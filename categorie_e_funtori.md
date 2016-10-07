@@ -59,7 +59,7 @@ Specifichiamo in modo formale che cosa vuol dire per una mappa preservare la str
 Siano `C` e `D` due categorie, allora una mappa `F` si dice "funtore" se valgono le seguenti proprietà:
 
 - ad ogni oggetto `X` in `C`, `F` associa un oggetto `F(X)` in `D`
-- ad ogni morfismo `f: A -> B`, `F` associa un morfismo `F(f): F(X) -> F(Y)` in `D`
+- ad ogni morfismo `f: A -> B`, `F` associa un morfismo `F(f): F(A) -> F(B)` in `D`
 - `F(idX)` = `idF(X)` per ogni oggetto `X` in `C`
 - `F(g . f)` = `F(g) . F(f)` per tutti i morfismi `f: A -> B` e `g: B -> C` di `C`
 
