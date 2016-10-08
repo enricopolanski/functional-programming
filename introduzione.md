@@ -17,7 +17,9 @@ Sia `A` un insieme, una operazione `*: A x A -> A` si dice *associativa* se per 
 (a * b) * c = a * ( b * c )
 ```
 
-L'insieme `A` dotato dell'operazione `*` è un esempio di *algebra* e prende il nome di `Semigruppo` (`Semigroup`)
+L'insieme `A` dotato dell'operazione `*` è un esempio di *algebra* e prende il nome di `Semigruppo` (`Semigroup`).
+
+Esempio di parallelizzazione, l'operazione principale viene suddivisa in due sotto-operazioni, ognuna delle quali viene nuovamente suddivisa:
 
 ```
 ( ( a * b ) * ( c * d ) ) * ( ( e * f ) * ( g * h ) )
@@ -70,3 +72,4 @@ per modellarla come funzione pura modifico il tipo di ritorno e restituisco una 
 function sum(a, b) {
   return [a + b, `per favore qualcuno prima o poi mi faccia il piacere di loggare ${a}, ${b}`]
 }
+```
