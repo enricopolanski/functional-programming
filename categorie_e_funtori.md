@@ -134,3 +134,24 @@ Il più tipico esempio di funtore è `Array = (Array<A>, liftArray)` ove
 
 - `Promise<A>` manda un tipo `A` in una promise che, una volta risolta, produce un valore di tipo `A`
 - `liftPromise = (f) => (fa => fa.then(a => f(a))`
+
+## I funtori "compongono"
+
+Siano `F` e `G` due funtori, allora possiamo costruire un nuovo funtore `F(G)`
+
+```
+F(G(A))---> F(G(f)) ---> F(G(B))  <= categoria E
+ ^            ^            ^
+ |            |            |
+ |            |            |
+G(A) ------- G(f) -----> G(B)     <= categoria D
+ ^            ^            ^
+ |            |            |
+ |            |            |
+ A ---------- f ---------> B      <= categoria C
+```
+
+- (oggetti) `F(G)` manda un tipo `A` nel tipo `F(G(A))`
+- (morfismi) `mapFG = (f) => mapF . mapG`
+
+**Nota**. L'ultima riga si legge "la map del funtore composizione è la composizione delle map dei funtori". Il fatto che anche in italiano si scambino i nomi e il loro ordine tra destra e sinistra è sintomo forte che si è in presenza di buone proprietà di composizione.
