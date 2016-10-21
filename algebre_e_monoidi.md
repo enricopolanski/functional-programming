@@ -115,7 +115,7 @@ function fold<M>(monoid: Monoid<M>, ms: Array<M>): M {
   if (ms.length === 0) {
     return monoid.empty()
   }
-  return monoid.concat(ms[0], fold(ms.slice(1)))
+  return monoid.concat(ms[0], fold(monoid, ms.slice(1)))
 }
 
 fold(stringMonoid, ['a', 'b', 'c']) // => 'abc'
