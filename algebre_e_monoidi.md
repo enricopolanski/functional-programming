@@ -102,7 +102,7 @@ const stringMonoid: Monoid<string> = {
 e il monoide `(number, *, 1)`
 
 ```js
-const productMonoid: Monoid<number> = {
+const multMonoid: Monoid<number> = {
   empty() { return 1 },
   concat(x, y) { return x * y }
 }
@@ -169,3 +169,28 @@ Ora il colpo di scena, è possibile dimostrare che:
 # Approfondimenti
 
 - [Free Monoids - by Bartosz Milewski](https://bartoszmilewski.com/2015/07/21/free-monoids/)
+
+# Esercizi
+
+1) Implementare il prodotto di due monoidi
+
+```js
+// funzione da implementare
+declare function product<A, B>(m1: Monoid<A>, m2: Monoid<B>): Monoid<[A, B]>;
+
+// test
+const stringMultMonoid = product(stringMonoid, multMonoid)
+
+console.log(fold(stringMultMonoid, [
+  ['a', 2],
+  ['b', 3]
+])) // => ["ab", 6]
+```
+
+2) Reimplementare `Array.prototype.every` in termini di `fold`
+
+Suggerimento: definire un monoide su `boolean` in cui `concat` agisce come `&&`
+
+3) Reimplementare `Array.prototype.some` in termini di `fold`
+
+Suggerimento: definire un monoide su `boolean` in cui `concat` agisce come `||`
