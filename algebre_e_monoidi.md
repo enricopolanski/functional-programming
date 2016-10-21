@@ -49,7 +49,7 @@ Dato che i monoidi possono essere associati ad una categoria con un solo oggetto
 - `(number, *, 1)`
 - `(number, +, 0)`
 - `(String, +, "")`
-- `(Array, concat, [])`
+- `(Array<any>, concat, [])`
 - `(Object, Object.assign, {})`
 
 Ancora un altro esempio di monoide, questa volta un po' più astratto ma ugualmente importante e comune, è `(End(X), ., idX)` dove `End(X)` è l'insieme delle funzioni `f: X -> X` (ovvero le funzioni che, dato un insieme `X`, hanno come dominio e codominio `X` e che prendono il nome di "endomorfismi"), `.` è l'usuale composizione di funzioni e l'elemento neutro è la funzione identità (su `X`)
@@ -153,14 +153,14 @@ Ovviamente quello che abbiamo non è un monoide: non c'è traccia di un elemento
 - `u` è un elemento speciale che fa da unità
 - `Y = { u, a, b, ab, ba, aa, bb, aab, aba, ... }`
 
-**Attenzione**. Perchè valga la proprietà associativa dobbiamo anche identificare alcuni elementi generati, ad esempio `(aa)b = a(ab)`
+Attenzione: perchè valga la proprietà associativa dobbiamo anche identificare alcuni elementi generati, ad esempio `(aa)b = a(ab)`
 
 Gli elementi di `X` vengono detti "elementi generatori" di `M(X)`.
 
 Ora il colpo di scena, è possibile dimostrare che:
 
 - `M(X)` è il "più piccolo" monoide che contiene `X` (il termine "libero" si usa quando sussiste questa proprietà)
-- `M(X)` è *isomorfo* a `Array<X>`
+- `M(X)` è *isomorfo* a `(Array<X>, concat, [])`
 
 ### Applicazioni
 
