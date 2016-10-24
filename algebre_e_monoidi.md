@@ -194,3 +194,15 @@ Suggerimento: definire un monoide su `boolean` in cui `concat` agisce come `&&`
 3) Reimplementare `Array.prototype.some` in termini di `fold`
 
 Suggerimento: definire un monoide su `boolean` in cui `concat` agisce come `||`
+
+4) Implementare una funzione che restituisce un monoide per `Promise<A>` per ogni `A`
+
+```js
+declare function getPromiseMonoid<A>(monoid: Monoid<A>): Monoid<Promise<A>>;
+```
+
+5) Implementare una funzione che restituisce un monoide per `Maybe<A>` per ogni `A` (ove `Maybe<A> = ?A` e `?A =A | null | undefined`)
+
+```js
+declare function getMaybeMonoid<A>(monoid: Monoid<A>): Monoid<?A>;
+```
