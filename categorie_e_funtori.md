@@ -12,6 +12,15 @@ Il progetto open source si chiama "matematica" e questa teoria sulla componibili
 
 Studiare la teoria delle categorie non è perciò un passatempo astratto, ma va dritto al cuore di ciò che facciamo tutti i giorni quando vogliamo sviluppare (buon) software.
 
+**The Rosetta Stone**
+
+```
+Category Theory | Physics | Logic       | Computation
+-----------------------------------------------------
+object          | system  | proposition | data type
+morphism        | process | proof       | program
+```
+
 ## Definizione
 
 Una categoria `C` è una coppia `(Oggetti, Morfismi)` ove
@@ -114,6 +123,14 @@ lift(f: (a: A) => B): (fa: F<A>) => F<B>
 map(f: (a: A) => B, fa: F<A>): F<B>
 ```
 
+## Interface
+
+```js
+interface Functor<F> {
+  map<A, B>(f: (a: A) => B, fa: F<A>): F<B>;
+}
+```
+
 #### `Array`
 
 Il più tipico esempio di funtore è `Array = (Array<A>, liftArray)` ove
@@ -125,6 +142,10 @@ Il più tipico esempio di funtore è `Array = (Array<A>, liftArray)` ove
 
 `Maybe = (?A, liftMaybe)` ove
 
+```js
+type Maybe<A> = ?A;
+```
+
 - `?A` manda un tipo `A` nell'unione `A | null`
 - `liftMaybe = (f) => (fa => fa === null ? null : f(fa))`
 
@@ -134,6 +155,28 @@ Il più tipico esempio di funtore è `Array = (Array<A>, liftArray)` ove
 
 - `Promise<A>` manda un tipo `A` in una promise che, una volta risolta, produce un valore di tipo `A`
 - `liftPromise = (f) => (fa => fa.then(a => f(a))`
+
+#### `Id`
+
+`Id = (Id<A>, liftId)` ove
+
+```js
+type Id<A> = A;
+```
+
+- `Id<A>` manda un tipo `A` ancora in `A`
+- `liftId = (f) => (f)`
+
+#### `Eff`
+
+`Eff = (Eff<A>, liftEff)` ove
+
+```js
+type Eff<A> = () => A;
+```
+
+- `Eff<A>` manda un tipo `A` nel tipo `() => A`
+- `liftEff = (f) => ( a => () => f(a) )`
 
 ## I funtori "compongono"
 
