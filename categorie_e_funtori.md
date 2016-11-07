@@ -1,4 +1,4 @@
-# Categorie e funtori
+# Categorie
 
 ## Introduzione
 
@@ -21,7 +21,7 @@ object          | system  | proposition | data type
 morphism        | process | proof       | program
 ```
 
-## Definizione
+## Definizione di categoria
 
 Una categoria `C` è una coppia `(Oggetti, Morfismi)` ove
 
@@ -49,11 +49,11 @@ Deve esistere una operazione, indichiamola con il simbolo `.`, detta "composizio
 
 ![esempio di categoria](https://upload.wikimedia.org/wikipedia/commons/f/ff/Category_SVG.svg)
 
-## Funtori
+# Funtori
 
 Di fronte ad un nuovo oggetto di studio come le categorie, il matematico ha davanti due percorsi di indagine: il primo, che chiamerò, "ricerca in profondità", mira a studiare le proprietà di una singola categoria. Il secondo (ed è quello che interessa a noi), che chiamerò "ricerca in ampiezza", mira a studiare quando due categorie possono essere dette "simili". Per iniziare questo secondo tipo di indagine dobbiamo introdurre un nuovo strumento: le mappe tra categorie (pensate a "mappa" come ad un sinonimo di "funzione").
 
-### Mappe tra categorie
+## Mappe tra categorie
 
 Se `C` e `D` sono due categorie, cosa vuol dire costruire una "mappa F tra C e D"? Essenzialmente vuol dire costruire una associazione tra le parti costituenti di `C` e le parti costituenti di `D`. Siccome una categoria è composta da due cose, i suoi oggetti e i suoi morfismi, per avere una "buona" mappa non devo mischiarle, devo cioè fare in modo che agli oggetti di `C` vengano associati degli oggetti di `D` e che ai morfismi di `C` vengano associati dei morfismi di `D`. La costruzione di una buona mappa implica che oggetti e morfismi viaggiano su "strade separate" e non si mischiano tra loro.
 
@@ -63,7 +63,7 @@ Ma mi interessano proprio tutte le mappe che posso costruire così? No davvero, 
 
 Specifichiamo in modo formale che cosa vuol dire per una mappa preservare la struttura di categoria.
 
-## Definizione
+## Definizione di funtore
 
 Siano `C` e `D` due categorie, allora una mappa `F` si dice "funtore" se valgono le seguenti proprietà:
 
@@ -75,11 +75,17 @@ Siano `C` e `D` due categorie, allora una mappa `F` si dice "funtore" se valgono
 Le prime due proprietà formalizzano il requisito che oggetti e morfismi viaggiano su strade separate. Gli ultimi due formalizzano il requisito che la "struttura categoriale" sia preservata.
 
 ```
-F(A) ---- F(f) ----> F(B)  <= categoria D
- ^         ^          ^
- |         |          |
- |         |          |
- A ------- f -------> B    <= categoria C
+ +---------------- F(g . f) ---------------+
+ |                                         |
+ |                                         |
+`F(A) ---- F(f) ----> F(B) ---- F(g) ----> F(B)  <= categoria D
+ ^         ^          ^         ^          ^
+ |         |          |         |          |
+ |         |          |         |          |
+ A ------- f -------> B ------- g -------> C    <= categoria C
+ |                                         ^
+ |                                         |
+ +----------------- g . f -----------------+
 ```
 
 L'associazione tra `f` e `F(f)` si chiama "lifting" della funzione `f`.
@@ -90,9 +96,9 @@ Quando `C` e `D` coincidono, si parla di "endofuntori" ("endo" proviene dal grec
 
 Producendo software avete sicuramente già utilizzato i funtori, invece è più raro cha abbiate avuto a che fare con tanti esemplari diversi di categorie. Tipicamente si lavora sempre dentro la stessa: la categoria `JS`.
 
-### La categoria `JS`
+# La categoria JS
 
-Come ogni categoria, la categoria `JS` è composta da oggetti e morfismi:
+Come ogni categoria, la categoria **JS** è composta da oggetti e morfismi:
 
 - gli oggetti sono i tipi (per esempio `number`, `string`, `boolean`, `Array<number>`, `Array<Array<number>>`, etc...)
 - i morfismi sono funzioni tra tipi (per esempio `number -> number`, `string -> number`, `Array<number> -> Array<number>`, etc...)
@@ -101,82 +107,90 @@ Inoltre l'operazione di composizione `.` è l'usuale composizione di funzioni.
 
 **Esercizio**. Dimostrare che `JS` è effettivamente una categoria verificando che valgono tutte le leggi.
 
-### Esempi di endofuntori di `JS`
+## Endofuntori in `JS`
 
-Definire un (endo)funtore `F` nella categoria `JS` significa nella pratica due cose:
+Definire un (endo)funtore **F** nella categoria `JS` significa nella pratica due cose:
 
 - per ogni tipo `A` stabilire a quale tipo corrisponde `F(A)`
 - per ogni funzione `f: A -> B` stabilire a quale funzione corrisponde `F(f)`
 
-Quindi un funtore è sempre una **coppia** `(F, lift)` ove
+Quindi un funtore è una coppia **F** = `(F<A>, lift)` ove
 
-- `F` è una "procedura" che, dato un qualsiasi tipo `A` produce un tipo `F<A>`
+- `F<A>` è una "procedura" che, dato un qualsiasi tipo `A` produce un tipo `F<A>`
 - `lift` è una funzione con la seguente firma
 
 ```js
 lift(f: (a: A) => B): (fa: F<A>) => F<B>
 ```
 
-**Nota**. La funzione `lift` è conosciuta sottoforma di una sua variante **equivalente** più popolare chiamata `map`
+**Nota**. La funzione `lift` è meglio conosciuta sottoforma di una sua variante **equivalente** e più popolare chiamata `map`
 
 ```js
 map(f: (a: A) => B, fa: F<A>): F<B>
 ```
 
-## Interface
+## Definizione di una `interface` per i funtori
 
 ```js
+// versione funzionale
 interface Functor<F> {
   map<A, B>(f: (a: A) => B, fa: F<A>): F<B>;
 }
+
+// versione OOP
+interface Functor<A> {
+  map<B>(f: (a: A) => B): Functor<B>;
+}
 ```
 
-#### `Array`
+## Esempi
 
-Il più tipico esempio di funtore è `Array = (Array<A>, liftArray)` ove
+### Id (Funtore identità)
 
-- `Array<A>` manda un tipo `A` nella lista di elementi di tipo `A`
-- `liftArray = (f) => (fa => fa.map(f))`
-
-#### `Maybe`
-
-`Maybe = (?A, liftMaybe)` ove
-
-```js
-type Maybe<A> = ?A;
-```
-
-- `?A` manda un tipo `A` nell'unione `A | null`
-- `liftMaybe = (f) => (fa => fa === null ? null : f(fa))`
-
-#### `Promise`
-
-`Promise = (Promise<A>, liftPromise)` ove
-
-- `Promise<A>` manda un tipo `A` in una promise che, una volta risolta, produce un valore di tipo `A`
-- `liftPromise = (f) => (fa => fa.then(a => f(a))`
-
-#### `Id`
-
-`Id = (Id<A>, liftId)` ove
+**Id** = `(Id<A>, lift)` ove
 
 ```js
 type Id<A> = A;
 ```
 
 - `Id<A>` manda un tipo `A` ancora in `A`
-- `liftId = (f) => (f)`
+- `lift = (f) => (f)`
 
-#### `Eff`
+### Maybe
 
-`Eff = (Eff<A>, liftEff)` ove
+**Maybe** = `(?A, lift)` ove
+
+```js
+type Maybe<A> = ?A;
+```
+
+- `?A` manda un tipo `A` nell'unione `A | null`
+- `lift = (f) => (fa => fa === null ? null : f(fa))`
+
+### Array
+
+**Array** = `(Array<A>, lift)` ove
+
+- `Array<A>` manda un tipo `A` nella lista di elementi di tipo `A`
+- `lift = (f) => (fa => fa.map(f))`
+
+### Promise
+
+**Promise** = `(Promise<A>, lift)` ove
+
+- `Promise<A>` manda un tipo `A` in una promise che, una volta risolta, produce un valore di tipo `A`
+- `lift = (f) => (fa => fa.then(a => f(a))`
+
+### Eff (rappresenta i side effect)
+
+**Eff** = `(Eff<A>, lift)` ove
 
 ```js
 type Eff<A> = () => A;
 ```
 
 - `Eff<A>` manda un tipo `A` nel tipo `() => A`
-- `liftEff = (f) => ( a => () => f(a) )`
+- `lift = (f) => ( a => () => f(a) )`
 
 ## I funtori "compongono"
 
