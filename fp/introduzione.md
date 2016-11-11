@@ -1,6 +1,6 @@
 # Cosa vuol dire "functional programming"?
 
-Per me vuol dire fare matematica applicata (o informatica altamente matematizzata).
+Per me vuol dire fare matematica applicata.
 
 Facciamo due esempi
 
