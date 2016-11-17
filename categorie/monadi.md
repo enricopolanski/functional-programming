@@ -177,3 +177,9 @@ function join<A>(mma: Array<Array<A>>): Array<A> {
 ```js
 type Either<L, R> = { type: 'Left', left: L } | { type: 'Right', right: R };
 ```
+
+3) E' possibile definire un'istanza di monade per le tuple?
+
+```js
+type Tuple<B, A> = [B, A];
+```

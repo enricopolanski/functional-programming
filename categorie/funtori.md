@@ -195,3 +195,9 @@ export class Node<A> {
 
 export type Tree<A> = Leaf<A> | Node<A>;
 ```
+
+2) Definire un functore per le tuple
+
+```js
+type Tuple<B, A> = [B, A];
+```
