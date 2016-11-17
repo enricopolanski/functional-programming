@@ -1,12 +1,12 @@
 # Funtori applicativi
 
-Nel capitolo sui [funtori](categorie_e_funtori.md#funtori) abbiamo visto come "liftare" una generica funzione `f: A -> B` con un solo argomento. Cosa succede se abbiamo una funzione con due o più argomenti? Possiamo ancora effettuare una operazione che sia simile al "lifting" che già conosciamo? Consideriamo una funzione con due argomenti
+Nel capitolo sui [funtori](funtori.md#funtori) abbiamo visto come "liftare" una generica funzione `f: A -> B` con un solo argomento. Cosa succede se abbiamo una funzione con due o più argomenti? Possiamo ancora effettuare una operazione che sia simile al "lifting" che già conosciamo? Consideriamo una funzione con due argomenti
 
 ```
 f: A x B -> C
 ```
 
-ove `A x B` indica il [prodotto cartesiano](relazioni.md#prodotto-cartesiano) degli insiemi `A` e `B`. La funzione `f` può essere riscritta in modo che sia una composizione di due funzioni, ognuna con un solo parametro
+ove `A x B` indica il [prodotto cartesiano](../base/relazioni.md#prodotto-cartesiano) degli insiemi `A` e `B`. La funzione `f` può essere riscritta in modo che sia una composizione di due funzioni, ognuna con un solo parametro
 
 ```
 f: A -> B -> C
