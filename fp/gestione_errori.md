@@ -37,6 +37,10 @@ function chain<L, A, B>(f: (a: A) => Either<L, B>, ma: Either<L, A>): Either<L, 
   }
   return f(ma.right)
 }
+
+function left<L, R>(left: L): Either<L, R> {
+  return { type: 'Left', left }
+}
 ```
 
 Due esempi:
@@ -63,6 +67,27 @@ function validateNumber(s: string): Either<string, number> {
   if (isNaN(n)) {
     return { type: 'Left', left: `invalid number ${s}` }
   }
-  return { type: 'Right', right: n }
+  return of(n)
 }
+```
+
+`validateNumber` può essere composta con altre Kleisli arrows
+
+```js
+function greaterThan(n: number): (a: number) => Either<string, number> {
+  return a => {
+    if (a > n) {
+      return of(a)
+    }
+    return { type: 'Left', left: `invalid number: ${a}, expected a number greater than ${n}` }
+  }
+}
+
+const numberGreaterThan2 = (s: string): Either<string, number> => {
+  return chain(greaterThan(2), validateNumber(s))
+}
+
+console.log(numberGreaterThan2('a')) // => {type: "Left", left: "invalid number a"}
+console.log(numberGreaterThan2('1')) // => {type: "Left", left: "invalid number: 1, expected a number greater than 2"}
+console.log(numberGreaterThan2('3')) // => {type: "Right", right: 3}
 ```
