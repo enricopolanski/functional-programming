@@ -11,7 +11,12 @@
 ## Category theory
 
 - Category Theory, The essence of interface-based design - Erik Meijer https://www.youtube.com/watch?v=JMP6gI5mLHc
-- This is a very watchable talk explaining what Contravariant Functors, Bifunctors and Profunctors are https://www.youtube.com/watch?v=JZPXzJ5tp9w
+- Contravariant Functors, Bifunctors and Profunctors are https://www.youtube.com/watch?v=JZPXzJ5tp9w
+
+## Applicative functors
+
+- (Part 1) http://www.seas.upenn.edu/%7Ecis194/spring13/lectures/10-applicative.html
+- (Part 2) http://www.seas.upenn.edu/%7Ecis194/spring13/lectures/11-applicative2.html
 
 ## Monads
 
@@ -24,7 +29,8 @@
 
 ## Comonads
 
-Esempi: Lenses, Zippers, Non empty lists, Matrices, (Classical) FRP
+Examples: Lenses, Zippers (= ZipList), Non empty lists, Matrices, (Classical) FRP
+
 Semi-comonads: Maybe, List
 
 - http://mth.io/slides/comonads
@@ -38,13 +44,17 @@ Semi-comonads: Maybe, List
 - http://blog.higher-order.com/blog/2013/11/01/free-and-yoneda/
 - http://blog.sigfpe.com/2006/11/yoneda-lemma.html
 
-## Trasformazioni naturali
+## Natural transformations
 
 - https://bartoszmilewski.com/2015/04/07/natural-transformations/
 
-## Free monads
+## Free applicatives
 
 - Move Over Free Monads: Make Way for Free Applicatives! — John de Goes https://www.youtube.com/watch?v=H28QqxO7Ihc
+
+## Monad transformers
+
+- `MaybeT` http://www.parsonsmatt.org/2016/11/18/clean_alternatives_with_maybet.html
 
 ## Ancora da controllare:
 
@@ -58,11 +68,13 @@ Semi-comonads: Maybe, List
 
 Free monads
 
+- [What is the “Free Monad + Interpreter” pattern?](http://programmers.stackexchange.com/a/242803/113613)
+
 - [Monads are Trees with Grafting](https://dl.dropboxusercontent.com/u/828035/Monads/monads.pdf)
 - [Understanding F-Algebras](https://www.schoolofhaskell.com/user/bartosz/understanding-algebras)
 - [The Interpreter Pattern Revisited](https://youtu.be/hmX2s3pe_qk)
 - [Difference between free monads and fixpoints of functors?](http://stackoverflow.com/a/17476076/1798418)
-- [What is the “Free Monad + Interpreter” pattern?](http://programmers.stackexchange.com/a/242803/113613)
+
 - [What are free monads?](http://stackoverflow.com/a/13357359/1798418)
 - [ScalaZ - Getting to grips with the Free Monad](http://polygonalhell.blogspot.com/2014/12/scalaz-getting-to-grips-free-monad.html)
 - [A Modern Architecture for FP](http://degoes.net/articles/modern-fp)
