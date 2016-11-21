@@ -155,17 +155,17 @@ export function liftA2<F, A, B, C>(applicative: Applicative<F>, f: (a: A, b: B) 
 }
 ```
 
-### `Eff`
+### `IO`
 
 ```js
 {
-  map<A, B>(f: (a: A) => B, fa: Eff<A>): Eff<B> {
+  map<A, B>(f: (a: A) => B, fa: IO<A>): IO<B> {
     return () => f(fa())
   },
-  of<A>(a: A): Eff<A> {
+  of<A>(a: A): IO<A> {
     return () => a
   },
-  ap<A, B>(ff: Eff<(a: A) => B>, fa: Eff<A>): Eff<B> {
+  ap<A, B>(ff: IO<(a: A) => B>, fa: IO<A>): IO<B> {
     return () => ff()(fa())
   }
 }

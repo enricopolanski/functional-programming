@@ -130,15 +130,15 @@ type Maybe<A> = ?A;
 - `Promise<A>` manda un tipo `A` in una promise che, una volta risolta, produce un valore di tipo `A`
 - `lift = (f) => (fa => fa.then(a => f(a))`
 
-### Eff (rappresenta i side effect)
+### IO (rappresenta i side effect)
 
-**Eff** = `(Eff<A>, lift)` ove
+**IO** = `(IO<A>, lift)` ove
 
 ```js
-type Eff<A> = () => A;
+type IO<A> = () => A;
 ```
 
-- `Eff<A>` manda un tipo `A` nel tipo `() => A`
+- `IO<A>` manda un tipo `A` nel tipo `() => A`
 - `lift = (f) => ( a => () => f(a) )`
 
 ## I funtori "compongono"
@@ -199,5 +199,13 @@ export type Tree<A> = Leaf<A> | Node<A>;
 2) Definire un functore per le tuple
 
 ```js
-type Tuple<B, A> = [B, A];
+type Tuple<A, B> = [A, B];
+```
+
+3) Definire un funtore per il tipo `Parser<A>` (the type `Parser<A>` represents a parser which can take a `string` as input and possibly produce a value of type `A`, along with the remaining unparsed portion of the `string`)
+
+```js
+type Maybe<A> = null | A;
+type Tuple<A, B> = [A, B];
+type Parser<A> = (input: string) => Maybe<Tuple<string, A>>;
 ```
