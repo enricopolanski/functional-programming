@@ -77,6 +77,39 @@ interface Apply<F> extends Functor<F> {
 interface Applicative<F> extends PointedFunctor<F>, Apply<F> {}
 ```
 
+## Un esempio: `Maybe`
+
+```js
+const maybe = {
+  map<A, B>(f: (a: A) => B, fa: ?A): ?B {
+    return fa == null ? fa : f(fa)
+  },
+  of<A>(a: A): ?A {
+    return a
+  },
+  ap<A, B>(ff: ?((a: A) => B), fa: ?A): ?B {
+    if (ff != null && fa != null) {
+      return ff(fa)
+    }
+    return null
+  }
+}
+```
+
+## Lift manuale
+
+```js
+const { map, ap } = maybe
+
+const sum = a => b => a + b
+const maybeSum = a => b => ap(map(sum, a), b)
+console.log(maybeSum(1)(2))
+
+const supersum = a => b => c => a + b + c
+const maybeSupersum = a => b => c => ap(ap(map(supersum, a), b), c)
+console.log(maybeSupersum(1)(2)(3))
+```
+
 ## `liftA2`
 
 ```js
@@ -86,7 +119,7 @@ export function liftA2<F, A, B, C>(applicative: Applicative<F>, f: (a: A, b: B) 
 }
 ```
 
-## Esempi
+## Altri esempi
 
 ### `Id`
 
@@ -100,25 +133,6 @@ export function liftA2<F, A, B, C>(applicative: Applicative<F>, f: (a: A, b: B) 
   },
   ap<A, B>(ff: Id<(a: A) => B>, fa: Id<A>): Id<B> {
     return ff(fa)
-  }
-}
-```
-
-### `Maybe`
-
-```js
-{
-  map<A, B>(f: (a: A) => B, fa: Maybe<A>): Maybe<B> {
-    return fa == null ? fa : f(fa)
-  },
-  of<A>(a: A): Maybe<A> {
-    return a
-  },
-  ap<A, B>(ff: Maybe<(a: A) => B>, fa: Maybe<A>): Maybe<B> {
-    if (ff != null && fa != null) {
-      return ff(fa)
-    }
-    return null
   }
 }
 ```
