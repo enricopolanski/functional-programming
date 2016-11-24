@@ -56,6 +56,10 @@ Semi-comonads: Maybe, List
 
 - `MaybeT` http://www.parsonsmatt.org/2016/11/18/clean_alternatives_with_maybet.html
 
+## Homotopy Type Theory
+
+- http://www.cs.cmu.edu/~rwh/courses/hott/
+
 ## Ancora da controllare:
 
 - https://github.com/slamdata/matryoshka#external-resources
@@ -68,13 +72,15 @@ Semi-comonads: Maybe, List
 
 Free monads
 
+- [I/O Is Pure](http://chris-taylor.github.io/blog/2013/02/09/io-is-not-a-side-effect)
 - [What is the “Free Monad + Interpreter” pattern?](http://programmers.stackexchange.com/a/242803/113613)
+
+Non ancora controllati:
 
 - [Monads are Trees with Grafting](https://dl.dropboxusercontent.com/u/828035/Monads/monads.pdf)
 - [Understanding F-Algebras](https://www.schoolofhaskell.com/user/bartosz/understanding-algebras)
 - [The Interpreter Pattern Revisited](https://youtu.be/hmX2s3pe_qk)
 - [Difference between free monads and fixpoints of functors?](http://stackoverflow.com/a/17476076/1798418)
-
 - [What are free monads?](http://stackoverflow.com/a/13357359/1798418)
 - [ScalaZ - Getting to grips with the Free Monad](http://polygonalhell.blogspot.com/2014/12/scalaz-getting-to-grips-free-monad.html)
 - [A Modern Architecture for FP](http://degoes.net/articles/modern-fp)
