@@ -1,27 +1,18 @@
-# Categorie
+# Teoria delle categorie
 
-## Introduzione
+## A cosa serve?
 
 Nell'ambito informatico è esperienza ormai comune che "lavorare a componenti", avere API "componibili", costruire nuovi oggetti tramite "composizione" sono proprietà positive del software.
 
 Ma cosa vuol dire esattamente "componibile"? Quando possiamo davvero dire che due cose "compongono"? E se compongono quando possiamo dire che lo fanno in un modo "buono"?
 
-Sarebbe assai utile poter fare riferimento ad una teoria **rigorosa** che ci possa fornire le risposte a queste importanti domande. Fortunatamente da più di 60 anni un vasto gruppo di studiosi appartenenti al più longevo e mastodontico progetto open source nella storia dell'umanità si occupa di sviluppare una teoria specificatamente dedicata a questo argomento: la **componibilità**.
+Sarebbe assai utile poter fare riferimento ad una teoria **rigorosa** che ci possa fornire buone risposte a queste fondamentali domande. Fortunatamente da più di 60 anni un vasto gruppo di studiosi appartenenti al più longevo e mastodontico progetto open source nella storia dell'umanità si occupa di sviluppare una teoria specificatamente dedicata a questo argomento: la **componibilità**.
 
-Il progetto open source si chiama "matematica" e questa teoria sulla componibilità ha preso il curioso nome di "Teoria delle categorie".
+Il progetto open source si chiama "matematica" e la teoria sulla componibilità ha preso il nome di "Teoria delle categorie".
 
-Studiare la teoria delle categorie non è perciò un passatempo astratto, ma va dritto al cuore di ciò che facciamo tutti i giorni quando vogliamo sviluppare (buon) software.
+Studiare teoria delle categorie non è perciò un passatempo astratto, ma va dritto al cuore di ciò che facciamo tutti i giorni quando vogliamo sviluppare (buon) software.
 
-**The Rosetta Stone**
-
-```
-Category Theory | Physics | Logic       | Computation
------------------------------------------------------
-object          | system  | proposition | data type
-morphism        | process | proof       | program
-```
-
-## Definizione di categoria
+## Definizione
 
 Una categoria `C` è una coppia `(Oggetti, Morfismi)` ove
 
@@ -31,8 +22,6 @@ Una categoria `C` è una coppia `(Oggetti, Morfismi)` ove
 Mentre gli oggetti non hanno ulteriori proprietà da soddisfare, per i morfismi devono valere alcune condizioni note come "leggi" ("laws")
 
 ## Leggi
-
-**Nota**. Non è importante memorizzare le leggi da subito ma lo sarà poco più avanti, quindi per ora se volete potete saltate questo paragrafo, ci torneremo quando sarà strettamente necessario.
 
 ### Prima legge: morfismi identità
 
@@ -45,7 +34,16 @@ Deve esistere una operazione, indichiamola con il simbolo `.`, detta "composizio
 - (*associatività*) se `f: A -> B`, `g: B -> C` e `h: C -> D`, allora `h . (g . f) = (h . g) . f`
 - (*identità*) per ogni morfismo `f: A -> B` vale `idB . f = f = f . idA` (ove `idB` e `idA` sono rispettivamente morfismi identità di `A` e `B`)
 
-*Esempio di categoria*
+**Esempio**.
 
 ![esempio di categoria](https://upload.wikimedia.org/wikipedia/commons/f/ff/Category_SVG.svg)
+
+**The Rosetta Stone**
+
+```
+Category Theory | Physics | Logic       | Computation
+-----------------------------------------------------
+object          | system  | proposition | data type
+morphism        | process | proof       | program
+```
 
