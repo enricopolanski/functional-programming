@@ -9,7 +9,7 @@
 
 - (2) [Categorie](categorie/categorie.md)
 - (3) [Funtori](categorie/funtori.md)
-- (4) [Monoidi](categorie/monoidi.md)
+- (4) [Monoidi](algebre/monoidi.md)
 - [Funtori applicativi]((categorie/funtori_applicativi.md))
 - (5) [Monadi](categorie/monadi.md)
 

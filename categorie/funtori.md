@@ -8,8 +8,6 @@ Se `C` e `D` sono due categorie, cosa vuol dire costruire una "mappa F tra C e D
 
 Ma mi interessano proprio tutte le mappe che posso costruire così? No davvero, molte di quelle che posso costruire non sarebbero affatto interessanti: quello che voglio è perlomeno preservare la "struttura di categoria", ovvero che le leggi rimangano valide anche dopo aver applicato la mappa.
 
-**Nota**. ora è il momento di ripassare le leggi se non l'avete già fatto.
-
 Specifichiamo in modo formale che cosa vuol dire per una mappa preservare la struttura di categoria.
 
 ## Definizione di funtore
@@ -196,7 +194,7 @@ export class Node<A> {
 export type Tree<A> = Leaf<A> | Node<A>;
 ```
 
-2) Definire un functore per le tuple
+2) Definire un funtore per le tuple
 
 ```js
 type Tuple<A, B> = [A, B];
