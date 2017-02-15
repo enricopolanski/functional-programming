@@ -333,7 +333,7 @@ Le prime due proprietà formalizzano il requisito che oggetti e morfismi viaggia
  +---------------- F(g . f) ---------------+
  |                                         |
  |                                         |
-`F(A) ---- F(f) ----> F(B) ---- F(g) ----> F(B)  <= categoria D
+`F(A) ---- F(f) ----> F(B) ---- F(g) ----> F(C)  <= categoria D
  ^         ^          ^         ^          ^
  |         |          |         |          |
  |         |          |         |          |
