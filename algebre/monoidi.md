@@ -4,7 +4,7 @@ Nell'introduzione abbiamo visto la definizione di `Semigruppo`: un semigruppo è
 
 ## Monoidi
 
-Se aggiungiamo una condizione in più, ovvero che esiste un elemento `u` appartenente a `X` tale che per ogni elemento `m` di `X` vale `u * m = m * u = m`, allora la coppia `(X, *, u)` viene chiamata *monoide* e l'elemento `u` viene chiamato "unità" (sinonimi: "elemento neutro", "elemento identità")
+Se aggiungiamo una condizione in più, ovvero che esista un elemento `u` appartenente a `M` tale che per ogni elemento `m` di `M` vale `u * m = m * u = m`, allora la terna `(M, *, u)` viene chiamata *monoide* e l'elemento `u` viene chiamato "unità" (sinonimi: "elemento neutro", "elemento identità")
 
 ## Algebre
 
@@ -30,13 +30,13 @@ Le algebre possono essere considerate alla stregua di "interfacce": quando si ma
 
 ## Monoidi come categorie
 
-La "somiglianza" di un monoide `(X, *, u)` e una categoria:
+La "somiglianza" di un monoide `(M, *, u)` e una categoria:
 
 - un'operazione che "compone" gli elementi
 - l'operazione deve essere "associativa"
 - c'è il concetto di "identità"
 
-non è casuale. Ad un monoide `(X, *, u)` può essere associata una categoria con un solo oggetto, i cui morfismi sono gli elementi di `X` e la cui operazione di composizione è `*`.
+non è casuale. Ad un monoide `(M, *, u)` può essere associata una categoria con un solo oggetto, i cui morfismi sono gli elementi di `M` e la cui operazione di composizione è `*`.
 
 > Categories correspond to strongly typed languages, monoids to untyped languages - Bartosz Milewski
 
