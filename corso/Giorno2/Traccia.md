@@ -219,6 +219,13 @@ interface Semigroup<A> { // <= l'insieme sostegno è rappresentato da un tipo
 }
 ```
 
+Nota. Questa è la definizione di semigruppo in PureScript
+
+```purescript
+class Semigroup a where
+  append :: a -> a -> a
+```
+
 Purtroppo l'associatività non può essere espressa nel type system
 
 ```ts
@@ -352,7 +359,7 @@ Real world example: reporters di [io-ts](https://github.com/gcanti/io-ts)
 
 ## Semigruppi per i type constructors
 
-Per poter costruire un'istanza di semigruppo sensata per un type construcotr, per esempio `Maybe<A>` o `Promise<A>`, dobbiamo prima avere un'istanza di semigruppo per `A`.
+Per poter costruire un'istanza di semigruppo sensata per un type constructor, per esempio `Maybe<A>` o `Promise<A>`, dobbiamo prima avere un'istanza di semigruppo per `A`.
 
 **Maybes**
 
@@ -539,18 +546,26 @@ export interface Monoid<A> extends Semigroup<A> {
 }
 ```
 
-Esempio di un semigruppo che non è un monoide? Si, `NonEmptyArray<A>`
+Nota. Questa è la definizione di monoide in PureScript
+
+```purescript
+class Semigroup m <= Monoid m where
+  mempty :: m
+```
+
+**Esercizio**. Definire una istanza di monoide (se possibile) per ogni semigruppo introdotto precedentemente.
+
+## Controesempio
+
+Esiste un esempio di un semigruppo che non è un monoide? Si, `NonEmptyArray<A>`
 
 ```ts
 class NonEmptyArray<A> {
-  readonly head: A;
-  readonly tail: Array<A>;
+  head: A;
+  tail: Array<A>;
   constructor(head: A, tail: Array<A>) {
     this.head = head
     this.tail = tail
-  }
-  inspect() {
-    return `(${this.head}, [${this.tail}])`
   }
 }
 
