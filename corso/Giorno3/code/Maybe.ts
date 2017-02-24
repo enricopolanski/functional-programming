@@ -5,8 +5,8 @@ export class Maybe<A> {
   static of<B>(b: B): Maybe<B> {
     return new Maybe(b)
   }
-  value: A | null;
-  constructor(value: A | null) {
+  value: A | null | undefined;
+  constructor(value: A | null | undefined) {
     this.value = value
   }
   map<B>(f: (a: A) => B): Maybe<B> {
