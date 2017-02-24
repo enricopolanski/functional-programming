@@ -15,7 +15,7 @@ export class IO<A> {
     return mmb.run()
   }
   chain<B>(f: (a: A) => IO<B>): IO<B> {
-    return f(this.run())
+    return new IO(() => f(this.run()).run())
   }
 }
 
