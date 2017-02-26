@@ -262,7 +262,7 @@ Inoltre devono valere le seguenti leggi:
 
 Nota.
 
-- sinonimi di `of` sono `return` (Haskell o PureScript), `pure` (Scala), `point`
+- sinonimi di `of` sono `return` (Haskell), `pure` (Scala o PureScript), `point`
 - sinonimi di `chain` sono `bind` (Haskell o PureScript), `flatMap` (Scala).
 
 Domande:
