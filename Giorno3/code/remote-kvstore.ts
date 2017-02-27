@@ -3,30 +3,30 @@ import { Maybe } from './Maybe'
 
 type Store<V> = { [key: string]: V | undefined }
 
-function put<V>(store: Store<V>, k: string, v: V): Task<void> {
+const store: Store<number> = {}
+
+function put(k: string, v: number): Task<void> {
   return new Task(() => {
     store[k] = v
     return Promise.resolve(undefined)
   })
 }
 
-function get<V>(store: Store<V>, k: string): Task<Maybe<V>> {
+function get(k: string): Task<Maybe<number>> {
   return new Task(() => Promise.resolve(new Maybe(store[k])))
 }
 
-function remove<V>(store: Store<V>, k: string): Task<void> {
+function remove(k: string): Task<void> {
   return new Task(() => {
     delete store[k]
     return Promise.resolve(undefined)
   })
 }
 
-const store: Store<number> = {}
+const initProgram = put('a', 1)
 
-const initProgram = put(store, 'a', 1)
-
-const readAndWriteProgram = get(store, 'a')
-  .chain(x => x.fold(() => Task.of(undefined), a => put(store, 'b', a * 2)))
+const readAndWriteProgram = get('a')
+  .chain(x => x.fold(() => Task.of(undefined), a => put('b', a * 2)))
 
 const program = initProgram.chain(() => readAndWriteProgram)
 

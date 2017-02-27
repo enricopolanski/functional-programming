@@ -1,22 +1,32 @@
-# Nozioni di base di algebra
+# [Giorno I](Giorno1/Traccia.md)
 
-- [Insiemi, funzioni, relazioni e permutazioni](http://twiki.di.uniroma1.it/twiki/viewfile/Algebra/Old/WebHome?rev=1;filename=infalg1.1.pdf)
-- [Richiami sulle funzioni](http://twiki.di.uniroma1.it/twiki/viewfile/Algebra/Old/WebHome?rev=1;filename=infalg1.2.pdf)
-- [Relazioni su un insieme](http://twiki.di.uniroma1.it/twiki/viewfile/Algebra/Old/WebHome?rev=1;filename=infalg1.3.pdf)
-  - [Relazione d'ordine](base/relazioni.md#relazione-dordine)
+- funzioni pure e funzioni parziali
+- error handling funzionale
+- categorie
+- funtori
 
-# Teoria delle Categorie
+# [Giorno II](Giorno2/Traccia.md)
 
-- (2) [Categorie](categorie/categorie.md)
-- (3) [Funtori](categorie/funtori.md)
-- (4) [Monoidi](algebre/monoidi.md)
-- [Funtori applicativi]((categorie/funtori_applicativi.md))
-- (5) [Monadi](categorie/monadi.md)
+- introduzione ai tipi statici
+- cos'è una algebra
+- semigruppi
+  - setoid
+  - ord
+- monoidi
+- monoidi come categorie
+- monoidi liberi
 
-# Programmazione funzionale
+# [Giorno III](Giorno3/Traccia.md)
 
-- (1) [Introduzione](fp/introduzione.md)
-- [Gestione degli errori]((fp/gestione_errori.md))
-- [Types e kinds](fp/types_kinds.md)
-- [Risorse](fp/risorse.md)
+- Come si gestiscono i side effect?
+- Monadi
+  - A cosa servono e definizione
+  - Capire le monadi attraverso le categorie di Kleisli
+
+# [Giorno IV](Giorno4/Traccia.md)
+
+- Funtori applicativi
+- ADT (Algebraic Data Types)
+  - Make impossible states irrepresentable
+  - Phantom types and smart constructors
 

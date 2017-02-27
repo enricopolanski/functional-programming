@@ -2,7 +2,7 @@
 
 Giorno II
 
-- introduzione ai tipi statici (oggi scriviamo un po' di codice!)
+- introduzione ai tipi statici
 - cos'è una algebra
 - semigruppi
   - setoid
@@ -10,7 +10,6 @@ Giorno II
 - monoidi
 - monoidi come categorie
 - monoidi liberi
-- che cos'è la programmazione funzionale?
 
 # Introduzione ai tipi statici
 

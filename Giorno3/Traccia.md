@@ -6,8 +6,6 @@ Giorno III
 - Monadi
   - A cosa servono e definizione
   - Capire le monadi attraverso le categorie di Kleisli
-- Hands on
-  - definiamo e implementiamo le monadi più comuni
 
 # Come si gestiscono i side effect?
 
