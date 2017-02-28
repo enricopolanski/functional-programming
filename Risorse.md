@@ -7,6 +7,7 @@
 
 - [ramda](https://github.com/ramda/ramda)
 - [sanctuary](https://github.com/sanctuary-js/sanctuary)
+- [Folktale](http://folktalejs.org/)
 - [fp-ts](https://github.com/gcanti/fp-ts) (shameless plug)
 
 # Linguaggi
@@ -26,8 +27,8 @@
 
 # Blogs
 
-- [artosz Milewski](https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/)
-- [JOHN A DE GOES](http://degoes.net/articles/)
+- [Artosz Milewski](https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/)
+- [John A De Goes](http://degoes.net/articles/)
 - [stephendiehl](http://www.stephendiehl.com)
 - [Haskell for all](http://www.haskellforall.com)
 
@@ -35,6 +36,8 @@
 
 ## Programmazione funzionali elementare
 
+- [awesome-fp-js (lista)](https://github.com/stoeffel/awesome-fp-js)
+- [JavaScript Allongé](https://leanpub.com/javascriptallongesix/read)
 - [Functional-Light-JS](https://github.com/getify/Functional-Light-JS)
 
 ## Programmazione algebrica
@@ -44,4 +47,4 @@
 # Video e podcast
 
 - [MAGIC READ ALONG](http://www.magicreadalong.com)
-- Prof frisby
+- [Professor Frisby Introduces Composable Functional JavaScript](https://egghead.io/courses/professor-frisby-introduces-function-composition)
