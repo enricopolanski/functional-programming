@@ -20,6 +20,7 @@
 
 # Monoids
 
+- https://failex.blogspot.it/2015/10/the-uninteresting-monoids-of-certain.html
 - http://repository.upenn.edu/cgi/viewcontent.cgi?article=1773&context=cis_papers
 - Rappresentazione: http://planetmath.org/cayleystheoremforsemigroups
 
@@ -228,6 +229,8 @@ La lista seguente è presa da https://gist.github.com/danidiaz/36f5647c0968361ee
 Examples: Lenses, Zippers (= ZipList), Non empty lists, Matrices, (Classical) FRP
 
 Semi-comonads: Maybe, List
+
+> the Reader Monad is Isomorphic to the Product Comonad https://bartoszmilewski.com/2017/01/02/comonads/
 
 - [bello](https://bartoszmilewski.com/2017/01/02/comonads/)
 - http://mth.io/slides/comonads
