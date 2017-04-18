@@ -310,7 +310,7 @@ Affermo ora che
 
 Sappiamo che in `K(C)` deve esistere un morfismo `f . g: A -> C`, ma allora la composizione `g >=> f` deve essere un morfismo `A -> F[C]`. Proviamo a costruirlo.
 
-E' possibile applicare un lifting a `f` ottenendo `F[f]: F[B] -> F[F[C]]`. Ora `F[f]` e `g` compongono in un morfismo `A -> F[[C]]` ma qui rimango bloccato.
+E' possibile applicare un lifting a `f` ottenendo `F[f]: F[B] -> F[F[C]]`. Ora `F[f]` e `g` compongono in un morfismo `A -> F[F[C]]` ma qui rimango bloccato.
 
 Occorre perciò introdurre una nuova operazione, chiamiamola `flatten: F[F[C]] -> F[C]` (sinonimo `join` in Haskell o PureScript).
 
