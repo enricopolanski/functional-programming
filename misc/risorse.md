@@ -16,6 +16,7 @@
 
 ## Recursion Schemes
 
+- https://www.youtube.com/watch?v=IlvJnkWH6CA (talk molto bello)
 - https://github.com/passy/awesome-recursion-schemes
 
 # Monoids
@@ -223,6 +224,10 @@ La lista seguente è presa da https://gist.github.com/danidiaz/36f5647c0968361ee
 ### State monad
 
 - https://www.quora.com/What-is-a-state-monad/answer/Bartosz-Milewski
+
+## Redaer / ReaderT
+
+- https://www.fpcomplete.com/blog/2017/06/readert-design-pattern
 
 ## Comonads
 
