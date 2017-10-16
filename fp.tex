@@ -1,0 +1,3512 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[all]{xy}
+\usepackage{bigfoot}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+
+\newtheorem{theorem}{Teorema}
+\newtheorem{definition}{Definizione}
+\newtheorem{example}{Esempio}
+
+\newenvironment{boxed}
+    {\begin{center}
+    \begin{tabular}{|p{0.9\textwidth}|}
+    \hline\\
+    }
+    {
+    \\\\\hline
+    \end{tabular}
+    \end{center}
+    }
+
+\title{
+  %\textit{A beautiful bind} \\
+  % \textit{Monad Lisa} \\
+  %\large Introduzione alla programmazione funzionale}
+  Introduzione alla programmazione funzionale
+}
+\author{Giulio Canti}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\newpage
+
+\section{Notazione}
+
+La notazione utilizzata nel testo è presa in prestito da TypeScript\footnote{http://www.typescriptlang.org/docs/home.html} e Flow\footnote{https://flow.org/}.
+
+\subsection{Variable Declarations}
+
+\begin{verbatim}
+// JavaScript
+const a = 1
+const b = 'foo'
+const c = true
+
+// TypeScript
+const a: number = 1
+const b: string = 'foo'
+const c: boolean = true
+\end{verbatim}
+
+\subsection{Arrow functions}
+
+\begin{verbatim}
+// JavaScript
+const double = n => 2 * n
+const sum = a => b => a + b
+
+// TypeScript
+const double = (n: number): number => 2 * n
+const sum = (a: number) => (b: number): number => a + b
+\end{verbatim}
+
+Le funzioni possono essere parametriche
+
+\begin{verbatim}
+// qui il type parameter `A` cattura il fatto che il tipo dell'output
+// deve essere uguale a quello dell'input
+const identity = <A>(a: A): A => a
+
+// qui il type parameter `A` cattura il fatto che il tipo degli elementi
+// dell'array `xs` e quello del valore `x` devono essere uguali
+const push = <A>(xs: Array<A>, x: A): Array<A> => {
+  const ys = xs.slice()
+  ys.push(x)
+  return ys
+}
+\end{verbatim}
+
+\subsection{Arrays and tuples}
+
+\begin{verbatim}
+// JavaScript
+const a = [1, 2, 3] // un array di numeri con lunghezza indefinita
+const b = [1, 'foo']  // un array con esattamente due elementi
+                      // il primo è un numero il secondo una stringa
+
+// TypeScript
+const a: Array<number> = [1, 2, 3]
+const b: [number, string] = [1, 'foo']
+\end{verbatim}
+
+\subsection{Interfaces}
+
+\begin{verbatim}
+// modella un oggetto con due proprietà `x`, `y` di tipo numerico
+interface Point {
+  x: number
+  y: number
+}
+
+// le interfacce possono essere estese
+interface Point3D extends Point {
+  z: number
+}
+
+// le interfacce possono essere parametriche
+// Pair modella un oggetto con due proprietà `x`, `y`
+// il cui tipo non è ancora precisato ma che deve essere uguale
+interface Pair<A> {
+  x: A
+  y: A
+}
+
+// questa definizione di Point è dunque equivalente
+// a quella iniziale
+interface Point extends Pair<number> {}
+\end{verbatim}
+
+\subsection{Classes}
+
+\begin{verbatim}
+// JavaScript
+class Person {
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+  }
+}
+
+// TypeScript
+class Person {
+  name: string
+  age: number
+  constructor(name: string, age: number) {
+    this.name = name
+    this.age = age
+  }
+}
+
+// le classi possono essere parametriche
+class Pair<A> {
+  x: A
+  y: A
+  constructor(x: A, y: A) {
+    this.x = x
+    this.y = y
+  }
+}
+
+new Pair(1, 2) // ok
+new Pair(1, 'foo') // error
+\end{verbatim}
+
+\subsection{Type aliases}
+
+Per questioni di comodità possiamo dare degli alias ai tipi
+
+\begin{verbatim}
+// Querystring modella i parametri di una querystring
+// come un array di coppie nome / valore
+type Querystring = Array<[string, string]>
+
+// la querystring `a=foo&b=bar`
+const querystring: Querystring = [['a', 'foo'], ['b', 'bar']]
+
+// i type alias possono essere parametrici
+// Pair modella un array con esattamente due elementi
+// dello stesso tipo
+type Pair<A> = [A, A]
+\end{verbatim}
+
+\subsection{Unions and discriminated unions}
+
+\begin{verbatim}
+// è possibile definire delle unioni
+type StringOrNumber = string | number
+
+// e delle unioni con discriminante, ovvero una unione
+// di insiemi disgiunti in cui un campo fa da discriminante
+type Action = { type: 'INCREMENT' } | { type: 'DECREMENT' }
+\end{verbatim}
+
+\newpage
+
+\section{Che cos'è la programmazione funzionale}
+
+\begin{quote}
+Though programming was born in mathematics, it has since largely been divorced from it.
+The idea is that there's some higher level than the code in which you need to be able to think precisely,
+and that mathematics actually allows you to think precisely about it - Leslie Lamport
+\end{quote}
+
+La programmazione funzionale usa \emph{modelli} formali per descrivere e meglio governare le \emph{implementazioni}.
+E più l'implementazione si avvicina al suo corrispettivo ideale (il modello matematico)
+più diventa facile ragionare sul sistema.
+
+Ecco un parziale elenco di concetti sfruttati dalla programmazione funzionale
+
+\begin{itemize}
+  \item Higher-order functions (\texttt{map}, \texttt{reduce}, \texttt{filter},  \ldots)
+  \item Funzioni pure
+  \item Strutture dati immutabili
+  \item Algebraic Data Types
+  \item Trasparenza referenziale\footnote{An expression is said to be \emph{referentially transparent} if it can be replaced with its corresponding value without changing the program's behavior}
+  \item Algebre (Semigruppi, Monoidi, \ldots)
+  \item Teoria delle Categorie (Funtori, Funtori applicativi, Monadi, \ldots)
+  \item Ottica funzionale
+\end{itemize}
+
+Nella programmazione funzionale sono innanzitutto le proprietà del codice ad essere portate in primo piano.
+
+\begin{example}
+Perchè \texttt{map} è "più funzionale" di un ciclo \texttt{for}?
+
+\begin{verbatim}
+const xs = [1, 2, 3]
+const double = n => n * 2
+
+const ys = []
+for (var i = 0; i < xs.length; i++) {
+  ys.push(double(xs[i]))
+}
+
+const zs = xs.map(double)
+\end{verbatim}
+
+\end{example}
+
+Un ciclo \texttt{for} è più flessibile: posso modificare l'indice di partenza, la condizione di fine e il passo.
+Ma questo vuol dire anche che ci sono più possibilità di introdurre bachi e non ho alcuna garanzia sul risultato.
+Una \texttt{map} invece mi da delle garanzie: gli elementi dell'input verrano processati tutti dal primo all'ultimo e
+qualunque sia l'operazione che viene fatta nella callback, il risultato sarà sempre un array con lo stesso numero di elementi
+dell'array di input.
+
+\subsection{Quali sono i suoi obiettivi?}
+
+\begin{itemize}
+  \item Design pattern derivati dai modelli formali
+  \item Programmazione modulare\footnote{By modular programming I mean the process of building large programs by gluing together smaller programs - Simon Peyton Jones}
+  \item Gestire gli effetti in modo che valga la trasparenza referenziale
+  \item Rendere gli stati illegali non rappresentabili
+\end{itemize}
+
+Vedremo come lo studio delle algebre e delle monadi permettano di raggiungere questi obiettivi in modo generale.
+
+Il pattern fondamentale della programmazione funzionale è la \emph{componibilità}, ovvero la costruzione di piccole unità
+che fanno qualcosa di specifico in grado di essere combinate al fine di ottenere entità più grandi e complesse.
+
+Una gran parte delle tecniche utilizzate nella programmazione funzionale sono mutuate dalla matematica.
+
+Facciamo due esempi che ci saranno utili anche in seguito
+
+\begin{itemize}
+  \item come catturare il concetto di computazione parallelizzabile?
+  \item che cos'è una funzione pura?
+\end{itemize}
+
+\subsection{Un esempio di matematica applicata: la proprietà associativa}
+
+Il concetto di computazione parallelizzabile (e distribuibile) può essere catturato dalla nozione di operazione associativa.
+
+\begin{definition}
+Sia $A$ un insieme, una operazione $*: A \times A \rightarrow A$ si dice \emph{associativa} se per ogni $a, b, c \in A$ vale
+
+$$
+(a * b) * c = a * ( b * c )
+$$
+\end{definition}
+
+In altre parole la proprietà associativa garantisce che non importa l'ordine in cui vengono fatte le operazioni, il risultato sarà sempre lo stesso.
+
+Possiamo quindi eliminare le parentesi, senza pericolo di ambiguità
+
+$$
+a * b * c
+$$
+
+\begin{example}
+La somma di interi gode della proprietà associativa.
+\end{example}
+
+Se sappiamo che una data operazione gode della proprietà associativa possiamo suddividere una computazione in due sotto computazioni, ognuna delle quali può essere ulteriormente suddivisa
+
+$$
+a * b * c * d * e * f * g * h = \Big( ( a * b ) * ( c * d ) \Big) * \Big( ( e * f ) * ( g * h ) \Big)
+$$
+
+Le sotto computazioni possono essere distribuite ed eseguite parallelamente.
+
+\subsection{Funzioni pure}
+
+\begin{quote}
+Una funzione pura è una procedura che dato lo stesso input restituisce sempre lo stesso output e non ha alcun side effect osservabile.
+\end{quote}
+
+Un tale enunciato informale può lasciare spazio a qualche dubbio (che cos'è un side effect? cosa vuol dire osservabile?).
+Vediamo una definizione formale del concetto di funzione
+
+\begin{definition}
+Una \emph{funzione} $f: X \rightarrow Y$ è un sottoinsieme $f$ di $X \times Y$ (il \emph{prodotto cartesiano} di $X$ e $Y$) tale che
+per ogni $x \in X$ esiste esattamente un $y \in Y$ tale che $(x, y) \in f$\footnote{Questa definizione risale ad un secolo fa https://en.wikipedia.org/wiki/History\_of\_the\_function\_concept}.
+\end{definition}
+
+L'insieme $X$ si dice il \emph{dominio} di $f$, $Y$ il suo \emph{codominio}.
+
+\begin{example}
+La funzione $\texttt{double}: Nat \rightarrow Nat$ è il sottoinsieme del prodotto cartesiano $Nat \times Nat$ dato da $\{ (1, 2), (2, 4), (3, 6), \ldots \}$.
+\end{example}
+
+In TypeScript
+\begin{verbatim}
+const f: { [key: number]: number } = {
+  1: 2,
+  2: 4,
+  3: 6
+  ...
+}
+\end{verbatim}
+
+Si noti che l'insieme $f$ deve essere descritto \emph{staticamente} in fase di definizione della funzione
+(ovvero gli elementi di quell'insieme non possono variare nel tempo e per nessuna condizione interna o esterna).
+Ecco allora che viene esclusa ogni forma di side effect e il risultato è sempre quello atteso.
+
+Quella dell'esempio viene detta definizione \emph{estensionale} di una funzione, ovvero si enumerano uno per uno gli elementi dell'insieme.
+Naturalmente quando l'insieme è infinito come in questo caso, la definizione può risultare un po' scomoda.
+
+Si può ovviare a questo problema introducendo quella che viene detta definizione \emph{intensionale},
+ovvero si esprime una condizione che deve valere per tutte le coppie $(x, y) \in f$ ovvero $y = x * 2$. Questa è la familiare forma con cui scriviamo la funzione $double$ e come la definiamo in JavaScript
+
+\begin{verbatim}
+const double = x => x * 2
+\end{verbatim}
+
+o in TypeScript, ove risultano evidenti dominio e codominio sottoforma di type annotation
+
+\begin{verbatim}
+const double = (x: number): number => x * 2
+\end{verbatim}
+
+La definizione di funzione come sottoinsieme di un prodotto cartesiano mostra come in matematica tutte le funzioni siano pure:
+non c'è azione, modifica di stato o modifica degli elementi (che sono considerati immutabili) degli insiemi coinvolti.
+Nella programmazione funzionale l'implementazione delle funzioni deve avvicinarsi il più possibile a questo modello ideale.
+
+Che una funzione sia pura non implica necessariamente che sia bandita la mutabilità
+(localmente è ammissibile se non esce dai confini della implementazione).
+Lo scopo ultimo è garantirne le proprietà fondamentali: purezza e trasparenza referenziale.
+
+Infine le funzioni compongono
+
+\begin{definition}
+Siano $f: Y \rightarrow Z$ e $g: X \rightarrow Y$ due funzioni, allora la funzione $h: X \rightarrow Z$ definita da
+
+$$
+h(x) = f(g(x))
+$$
+
+si dice \emph{composizione} di $f$ e $g$ e si scrive $h = f \circ g$
+
+\end{definition}
+
+Si noti che affinchè due funzioni $f$ e $g$ possano comporre, il codominio di $g$ deve coincidere col dominio di $f$.
+
+\subsection{Funzioni parziali}
+
+\begin{definition}
+Una funzione \emph{parziale} è una funzione che non è definita per tutti i valori del dominio.
+\end{definition}
+
+Viceversa una funzione definita per tutti i valori del dominio è detta \emph{totale}.
+
+\begin{example}
+$$
+f(x) = \frac{1}{x}
+$$
+\end{example}
+
+La funzione $f: number \rightarrow number$ non è definita per $x = 0$.
+
+Una funzione parziale $f: X \rightarrow Y$ può essere sempre ricondotta ad una funzione totale aggiungendo un valore speciale,
+chiamiamolo $None$, al codominio e associandolo ad ogni valore di $X$ per cui $f$ non è definita
+
+$$
+f': X \rightarrow Y \cup None
+$$
+
+Chiamiamo $Option(Y) = Y \cup None$.
+
+$$
+f': X \rightarrow Option(Y)
+$$
+
+In ambito funzionale si tende a definire solo funzioni totali.
+
+\newpage
+
+\section{Error handling funzionale}
+
+Consideriamo la funzione
+
+\begin{verbatim}
+const inverse = (x: number): number => 1 / x
+\end{verbatim}
+
+Tale funzione è parziale perchè non è definita per $x = 0$. Come possiamo gestire questa situazione?
+
+Una soluzione potrebbe essere lanciare un'eccezione
+
+\begin{verbatim}
+const inverse = (x: number): number => {
+  if (x !== 0) return 1 / x
+  throw new Error('cannot divide by zero')
+}
+\end{verbatim}
+
+ma così la funzione non sarebbe più da considerarsi pura
+\footnote{Le eccezioni sono considerate un side effect inaccettabile perchè modificano la normale esecuzione del codice
+e violano la trasparenza referenziale}.
+
+Un'altra possibile soluzione è restituire \texttt{null}
+
+\begin{verbatim}
+const inverse = (x: number): number | null => {
+  if (x !== 0) return 1 / x
+  return null
+}
+\end{verbatim}
+
+Sorge però un nuovo problema quando si cerca di comporre la funzione \texttt{inverse} così modificata con un'altra funzione
+
+\begin{verbatim}
+// calcola l'inverso e poi moltiplica per 2
+const doubleInverse = (x: number): number => double(inverse(x))
+\end{verbatim}
+
+L'implementazione di \texttt{doubleInverse} non è corretta, cosa succede se \texttt{inverse(x)} restituisce \texttt{null}?
+Occorre tenerne conto
+
+\begin{verbatim}
+const doubleInverse = (x: number): number | null => {
+  const y = inverse(x)
+  if (y === null) return null
+  return double(y)
+}
+\end{verbatim}
+
+Appare evidente come l'obbligo di gestione del valore speciale \texttt{null} si propaghi in modo contagioso
+a tutti gli utilizzatori di \texttt{inverse}.
+
+Questo approccio ha diversi svantaggi
+
+\begin{itemize}
+  \item molto boilerplate
+  \item prono ad errori (è facile dimenticarsi di gestire il caso di fallimento)
+  \item le funzioni non compongono facilmente
+\end{itemize}
+
+\subsection{Il tipo \texttt{Option}}
+
+La soluzione funzionale ai problemi illustrati precedentemente è l'utilizzo del tipo \texttt{Option},
+eccone la definizione
+
+\begin{verbatim}
+type Option<A> = Some<A> | None<A>
+
+class Some<A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Option<B> {
+    return new Some(f(this.value))
+  }
+}
+
+class None<A> {
+  map<B>(f: (a: A) => B): Option<B> {
+    return new None()
+  }
+}
+\end{verbatim}
+
+Ridefiniamo \texttt{inverse} sfruttando \texttt{Option}
+
+\begin{verbatim}
+const inverse = (x: number): Option<number> =>
+  x === 0 ? new None() : new Some(1 / x)
+\end{verbatim}
+
+Possiamo interpretare questa modifica in termini di successo e fallimento: se viene restituita una istanza di \texttt{Some}
+la computazione di \texttt{inverse} ha avuto successo, se viene restituita una istanza di \texttt{None} essa è fallita.
+
+\begin{boxed}
+Il tipo \texttt{Option} codifica l'\emph{effetto} di una computazione che può fallire
+\end{boxed}
+
+Ora è possibile definire \texttt{doubleInverse} senza boilerplate
+
+\begin{verbatim}
+const doubleInverse = (x: number): Option<number> =>
+  inverse(x).map(double)
+
+doubleInverse(2) // Some(1)
+doubleInverse(0) // None
+\end{verbatim}
+
+Inoltre è facile concatenare altre operazioni
+
+\begin{verbatim}
+const inc = (x: number): number => x + 1
+
+inverse(0)
+  .map(double)
+  .map(inc) // None
+inverse(4)
+  .map(double)
+  .map(inc) // Some(1.5)
+\end{verbatim}
+
+\begin{boxed}
+\texttt{Option} mi permette di concentrarmi solo sul \emph{path di successo} in una serie di computazioni che possono fallire
+\end{boxed}
+
+\subsubsection{Branching tramite la funzione \texttt{fold}}
+
+Prima o poi dovrò affrontare il problema di stabilire cosa fare sia nel caso di successo che di fallimento.
+La funzione \texttt{fold} permette di gestire i due casi
+
+\begin{verbatim}
+class Some<A> {
+  ...
+  fold<R>(f: () => R, g: (a: A) => R): R {
+    return g(this.value)
+  }
+}
+
+class None<A> {
+  ...
+  fold<R>(f: () => R, g: (a: A) => R): R {
+    return f()
+  }
+}
+
+const f = (): string => 'cannot divide by zero'
+const g = (x: number): string => `the result is ${x}`
+
+inverse(2).fold(f, g) // 'the result is 0.5'
+inverse(0).fold(f, g) // 'cannot divide by zero'
+\end{verbatim}
+
+Si noti come il branching è racchiuso nella definizione di \texttt{Option} e non necessita di alcun \texttt{if}
+e che l'utilizzo necessita solo di funzioni.
+
+Inoltre le funzioni \texttt{f} e \texttt{g} sono generiche e riutilizzabili.
+
+\subsection{Il tipo \texttt{Either}}
+
+Il tipo \texttt{Option} è utile quando c'è un solo modo evidente per il quale una computazione può fallire,
+oppure ce ne sono diversi ma non interessa distinguerli.
+
+Se invece esistono molteplici ragioni di fallimento ed interessa comunicare al chiamante quale si sia verificata,
+oppure se si vuole definire un errore personalizzato, è possibile impiegare il tipo \texttt{Either}. Eccone la definizione
+
+\begin{verbatim}
+type Either<L, A> = Left<L, A> | Right<L, A>
+
+class Left<L, A> {
+  value: L
+  constructor(value: L) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Either<L, B> {
+    return new Left(this.value)
+  }
+}
+
+class Right<L, A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Either<L, B> {
+    return new Right(f(this.value))
+  }
+}
+\end{verbatim}
+
+Tipicamente \texttt{Left} rappresenta il caso di fallimento mentre \texttt{Right} quello di successo.
+
+Ridefiniamo la funzione \texttt{inverse} in funzione del tipo \texttt{Either}
+
+\begin{verbatim}
+const inverse = (x: number): Either<string, number> =>
+  x === 0
+    ? new Left('cannot divide by zero')
+    : new Right(1 / x)
+\end{verbatim}
+
+Ancora una volta è possibile definire \texttt{doubleInverse} senza boilerplate
+
+\begin{verbatim}
+const doubleInverse = (x: number): Either<string, number> =>
+  inverse(x).map(double)
+
+doubleInverse(2) // Right(1)
+doubleInverse(0) // Left('cannot divide by zero')
+\end{verbatim}
+
+ed è facile comporre insieme altre operazioni
+
+\begin{verbatim}
+inverse(0)
+  .map(double)
+  .map(inc) // Left('cannot divide by zero')
+inverse(4)
+  .map(double)
+  .map(inc) // Right(1.5)
+\end{verbatim}
+
+Anche per il tipo \texttt{Either} è possibile definire una funzione \texttt{fold}
+
+\begin{verbatim}
+class Left<L, A> {
+  ...
+  fold<R>(f: (l: L) => R, g: (a: A) => R): R {
+    return f(this.value)
+  }
+}
+
+class Right<L, A> {
+  ...
+  fold<R>(f: (l: L) => R, g: (a: A) => R): R {
+    return g(this.value)
+  }
+}
+\end{verbatim}
+
+I vantaggi offerti dalla funzione \texttt{map} non sono esclusivi dei tipi \texttt{Option} e \texttt{Either}.
+Essi sono condivisi da tutti i membri di una vasta famiglia che prende il nome di \emph{funtori}. Per definire in modo formale cosa sia un funtore,
+occorre prima introdurre il concetto di \emph{categoria}.
+
+\section{Teoria delle categorie}
+
+\subsection{Perchè è importante?}
+
+\begin{quote}
+And how do we solve problems? We decompose bigger problems into smaller problems. If the smaller problems are still too big,
+we decompose them further, and so on. Finally, we write code that solves all the small problems.
+And then comes the essence of programming: we compose those pieces of code to create solutions to larger problems.
+Decomposition wouldn’t make sense if we weren’t able to put the pieces back together. - Bartosz Milewski
+\end{quote}
+
+Ma cosa vuol dire esattamente \emph{componibile}? Quando possiamo davvero dire che due cose \emph{compongono}?
+E se compongono quando possiamo dire che lo fanno in un \emph{modo buono}?\\
+
+\begin{quote}
+Entities are composable if we can easily and generally combine their behaviors in some way without having to modify the entities being combined.
+I think of composability as being the key ingredient necessary for acheiving reuse, and for achieving a combinatorial expansion of
+what is succinctly expressible in a programming model. - Paul Chiusano
+\end{quote}
+
+\begin{boxed}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{combinator.ts}
+\end{center}
+\end{boxed}
+
+Occorre poter fare riferimento ad una teoria \textbf{rigorosa} che possa fornire risposte a domande così fondamentali.
+
+Opportunamente da più di 60 anni un vasto gruppo di studiosi appartenenti al più longevo e mastodontico progetto open source nella storia
+dell'umanità si occupa di sviluppare una teoria specificatamente dedicata a questo argomento: la \emph{componibilità}.
+
+Il progetto open source si chiama \emph{matematica} e la teoria sulla componibilità ha preso il nome di \emph{Teoria delle categorie}.
+
+Studiare teoria delle categorie non è perciò un passatempo astratto, ma va dritto al cuore di ciò che facciamo tutti i giorni quando vogliamo
+sviluppare (buon) software.
+
+\subsection{Categorie}
+
+Una categoria $\mathcal{C}$ è una coppia $(O, M)$ ove
+\begin{itemize}
+  \item $O$ è una collezione di \emph{oggetti}, non meglio specificati. Considerate un oggetto come un corpo imperscrutabile,
+  senza struttura né proprietà distintive, a meno della sua identità (ovvero considerati due oggetti sappiamo solo se sono uguali oppure diversi
+  ma non il perchè).
+  \item $M$ è una collezione di \emph{frecce} (o \emph{morfismi}) che collegano gli oggetti. Tipicamente un morfismo $f$ è denotato con $f: A \rightarrow B$
+  per rendere chiaro che è una freccia che parte da $A$ detta \emph{sorgente} e arriva a $B$ detta \emph{destinazione}.
+\end{itemize}
+
+Mentre gli oggetti non hanno ulteriori proprietà da soddisfare, per i morfismi devono valere alcune condizioni note come \emph{leggi}\\
+
+\paragraph{Morfismi identità.} Per ogni oggetto $X$ di $\mathcal{C}$ deve esistere un morfismo $1_X: X \rightarrow X$ (chiamato \emph{morfismo identità per $X$})\\
+
+\paragraph{Composizione di morfismi.} Deve esistere una operazione, indichiamola con il simbolo $\circ$, detta \emph{composizione}, tale che per ogni coppia di morfismi $g: A \rightarrow B$
+e $f: B \rightarrow C$ associa un terzo morfismo $f \circ g: A \rightarrow C$. Inoltre l'operazione $\circ$ di composizione deve soddisfare le seguenti proprietà:
+
+\begin{itemize}
+  \item associatività: se $g: A \rightarrow B$, $f: B \rightarrow C$, $h: C \rightarrow D$, allora $h \circ (g \circ f) = (h \circ g) \circ f$
+  \item identità: per ogni morfismo $f: A \rightarrow B$ vale $f \circ 1_A = f = 1_B \circ f$ (ove $1_A$ e $1_B$ sono rispettivamente i morfismi identità di $A$ e $B$)
+\end{itemize}
+
+\begin{example}
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  A \ar@(ul,ur)^{1_A} \ar[r]^g \ar[rd]_{f \circ g} & B \ar@(ul,ur)^{1_B} \ar[d]^f \\
+    & C \ar@(dl,dr)_{1_C}
+}
+\]
+\end{example}
+
+Le categorie possono essere interpretate come linguaggi di programmazione: gli oggetti rappresentano i tipi mentre i morfismi
+rappresentano le funzioni.
+
+\begin{example}
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  {\texttt{string}} \ar[r]^{length} \ar[rd]_{length > 2} & {\texttt{number}} \ar[d]^{> 2} \\
+    & {\texttt{boolean}}
+}
+\]
+\end{example}
+
+\subsection{Funtori}
+
+Di fronte ad un nuovo oggetto di studio come le categorie, il matematico ha davanti due percorsi di indagine: il primo, che chiamerò, \emph{ricerca in profondità},
+mira a studiare le proprietà di una singola categoria. Il secondo (ed è quello che interessa a noi), che chiamerò \emph{ricerca in ampiezza},
+mira a studiare quando due categorie possono essere dette \emph{simili}.
+
+Per iniziare questo secondo tipo di indagine dobbiamo introdurre un nuovo strumento: le mappe tra categorie
+(pensate a mappa come ad un sinonimo di funzione).
+
+\paragraph{Mappe tra categorie.} Se $\mathcal{C}$ e $\mathcal{D}$ sono due categorie, cosa vuol dire costruire una mappa $F$ tra $\mathcal{C}$ e $\mathcal{D}$?
+
+Essenzialmente vuol dire costruire una associazione tra le parti costituenti di $\mathcal{C}$ e le parti costituenti di $\mathcal{D}$.
+
+Siccome una categoria è composta da due cose, i suoi oggetti e i suoi morfismi, per avere una buona mappa non devo mischiarle,
+devo cioè fare in modo che agli oggetti di $\mathcal{C}$ vengano associati degli oggetti di $\mathcal{D}$ e che ai morfismi di
+$\mathcal{C}$ vengano associati dei morfismi di $\mathcal{D}$.
+
+La costruzione di una buona mappa implica che oggetti e morfismi viaggiano su strade separate e non si mischiano tra loro.
+
+Ma mi interessano proprio tutte le mappe che posso costruire così? No davvero, molte di quelle che posso costruire
+non sarebbero affatto interessanti: quello che voglio è perlomeno preservare la \emph{struttura di categoria},
+ovvero che le leggi rimangano valide anche dopo aver applicato la mappa.
+
+Specifichiamo in modo formale che cosa vuol dire per una mappa preservare la struttura categoriale.
+
+\begin{definition}
+Siano $\mathcal{C}$ e $\mathcal{D}$ due categorie, allora una mappa $F$ si dice \emph{funtore} se valgono le seguenti proprietà:
+
+\begin{itemize}
+  \item ad ogni oggetto $X$ in $\mathcal{C}$, $F$ associa un oggetto $F(X)$ in $\mathcal{D}$
+  \item ad ogni morfismo $f: A \rightarrow B$ in $\mathcal{C}$, $F$ associa un morfismo $F(f): F(A) \rightarrow F(B)$ in $\mathcal{D}$
+  \item $F(1_X) = 1_{F(X)}$ per ogni oggetto $X$ in $\mathcal{C}$
+  \item $F(f \circ_\mathcal{C} g) = F(f) \circ_\mathcal{D} F(g)$ per tutti i morfismi $g: A \rightarrow B$ e $f: B \rightarrow C$ in $\mathcal{C}$
+\end{itemize}
+
+\end{definition}
+
+Le prime due proprietà formalizzano il requisito che oggetti e morfismi viaggiano su strade separate.
+
+Le ultime due formalizzano il requisito che la struttura categoriale sia preservata.
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  F(A) \ar[r]^{F(g)} \ar[r] \ar@/^1cm/[rr]^{F(f) \circ_\mathcal{D} F(g)} & F(B) \ar[r]^{F(f)} & F(C) \ar@(ul,ur)^{F(1_C)} & \mathcal{D} \\
+  A \ar[u]^F \ar[r]_g \ar@/_1cm/[rr]_{f \circ_\mathcal{C} g}  & B \ar[u]^F \ar[r]_f & C \ar[u]^F \ar@(dl,dr)_{1_C} & \mathcal{C}
+}
+\]
+
+L'associazione tra $f$ e $F(f)$ si chiama \emph{lifting} del morfismo $f$.
+
+Quando $\mathcal{C}$ e $\mathcal{D}$ coincidono, si parla di \emph{endofuntori} \footnote{endo proviene dal greco e significa dentro}.
+
+\subsection{La categoria $\mathcal{JS}$}
+
+Come ogni categoria, la categoria $\mathcal{JS}$ è composta da oggetti e morfismi:
+
+\begin{itemize}
+  \item gli oggetti sono i tipi (per esempio \texttt{number}, \texttt{string}, \texttt{boolean}, \texttt{Array<number>}, \texttt{Array<Array<number>>}, etc \ldots)
+  \item i morfismi sono funzioni tra tipi (per esempio \texttt{number $\rightarrow$ number}, \texttt{string $\rightarrow$ number}, \texttt{Array<number> $\rightarrow$ Array<number>}, etc \ldots)
+\end{itemize}
+
+Inoltre l'operazione di composizione $\circ$ è l'usuale composizione di funzioni.
+
+\paragraph{Endofuntori in $\mathcal{JS}$}
+
+Definire un (endo)funtore $F$ nella categoria $\mathcal{JS}$ significa due cose:
+
+\begin{enumerate}
+  \item per ogni tipo $A$ stabilire a quale tipo corrisponde $F(A)$
+  \item per ogni funzione $f: A \rightarrow B$ stabilire a quale funzione corrisponde $F(f)$
+\end{enumerate}
+
+Perciò un funtore è una coppia $F = (\texttt{F<X>}, \texttt{lift})$ ove
+
+\begin{enumerate}
+  \item \texttt{F<X>} è un \emph{type constructor}\footnote{
+    \begin{itemize}
+      \item \texttt{number} è un $0$-type constructor (kind $*$)
+      \item \texttt{Option<A>} è un $1$-type constructor (kind $* \rightarrow *$)
+      \item \texttt{Either<L, A>} è un $2$-type constructor (kind $* \rightarrow * \rightarrow *$)
+    \end{itemize}
+  }, ovvero una procedura che, dato un qualunque tipo \texttt{X} produce un tipo \texttt{F<X>}
+  \item \texttt{lift} è una funzione con la seguente firma\footnote{Si noti che la sintassi usata non è valida né in TypeScript né in Flow dato che non supportano gli Higher Kinded Types}
+\end{enumerate}
+
+\begin{verbatim}
+lift: <A, B>(f: (a: A) => B) => (fa: F<A>) => F<B>
+\end{verbatim}
+
+La funzione \texttt{lift} è meglio conosciuta nella sua forma equivalente \texttt{map}.
+
+\begin{verbatim}
+map: <A, B>(f: (a: A) => B, fa: F<A>) => F<B>
+\end{verbatim}
+
+Infine abbiamo già visto un paio di implementazioni (per \texttt{Option} e \texttt{Either}) in cui l'argomento \texttt{fa} è implicito,
+ottenendo la più semplice forma
+
+\begin{verbatim}
+map: <A, B>(f: (a: A) => B) => F<B>
+\end{verbatim}
+
+Riporto qui il codice per comodità di esposizione
+
+\begin{verbatim}
+type Option<A> = Some<A> | None<A>
+
+class Some<A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Option<B> {
+    return new Some(f(this.value))
+  }
+}
+
+class None<A> {
+  map<B>(f: (a: A) => B): Option<B> {
+    return new None()
+  }
+}
+
+type Either<L, A> = Left<L, A> | Right<L, A>
+
+class Left<L, A> {
+  value: L
+  constructor(value: L) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Either<L, B> {
+    return new Left(this.value)
+  }
+}
+
+class Right<L, A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Either<L, B> {
+    return new Right(f(this.value))
+  }
+}
+\end{verbatim}
+
+\subsection{Esempi}
+
+Vediamo una raccolta dei funtori più comuni
+
+\paragraph{Identity.}
+
+Manda un tipo \texttt{A} ancora in \texttt{A}
+
+\begin{verbatim}
+class Identity<A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Identity<B> {
+    return new Identity(f(this.value))
+  }
+}
+\end{verbatim}
+
+\paragraph{Array.}
+
+Manda un tipo \texttt{A} nel tipo della lista di elementi di tipo \texttt{A}
+
+\begin{verbatim}
+const functorArray = {
+  map: <A, B>(f: (a: A) => B) => (fa: Array<A>): Array<B> =>
+    fa.map(f)
+}
+\end{verbatim}
+
+\paragraph{IO.}
+
+Manda un tipo \texttt{A} nel tipo \texttt{() => A}\footnote{Una funzione senza argomenti viene detta \emph{thunk}}
+
+\begin{verbatim}
+class IO<A> {
+  run: () => A
+  constructor(run: () => A) {
+    this.run = run
+  }
+  map<B>(f: (a: A) => B): IO<B> {
+    return new IO(() => f(this.run()))
+  }
+}
+\end{verbatim}
+
+\paragraph{Promise.}
+
+Manda un tipo \texttt{A} nel tipo di una computazione che produce un valore di tipo \texttt{A} in modo asincrono
+
+\begin{verbatim}
+const functorPromise = {
+  map: <A, B>(f: (a: A) => B, fa: Promise<A>): Promise<B> =>
+    fa.then(f)
+}
+\end{verbatim}
+
+\paragraph{Task.}
+
+Le \texttt{Promise} sono \emph{eager}, ovvero eseguono il side effect immediatamente, Task è una variante \emph{lazy}
+di una computazione asincrona: manda un tipo \texttt{A} nel tipo \texttt{() => Promise<A>}
+
+\begin{verbatim}
+class Task<A> {
+  run: () => Promise<A>
+  constructor(run: () => Promise<A>) {
+    this.run = run
+  }
+  map<B>(f: (a: A) => B): Task<B> {
+    return new Task(() => this.run().then(f))
+  }
+}
+\end{verbatim}
+
+\subsection{Funtori controvarianti}
+
+\begin{verbatim}
+// Funtori covarianti
+map<A, B>      (f: (a: A) => B, fa: F<A>) => F<B>
+
+// Funtori controvarianti
+contramap<A, B>(f: (b: B) => A, fa: F<A>) => F<B>
+\end{verbatim}
+
+Vediamo un esempio notevole di funtore controvariante: le componenti di \texttt{React}.
+
+\paragraph{Component.}
+
+Manda un tipo \texttt{A} nel tipo \texttt{(a: A) => ReactElement}
+
+\begin{verbatim}
+import * as React from 'react'
+import * as ReactDOM from 'react-dom'
+
+type Component<A> = (a: A) => React.ReactElement<any>
+
+const contramap = <A, B>(
+  f: (b: B) => A,
+  fa: Component<A>
+): Component<B> => b => fa(f(b))
+
+const DisplayFullName = (a: { fullName: string }) => (
+  <div>Hello {a.fullName}</div>
+)
+
+ReactDOM.render(
+  <DisplayFullName fullName="Giulio Canti" />,
+  document.getElementById('app')
+)
+
+type Person = {
+  name: string
+  surname: string
+}
+
+const DisplayPerson: Component<Person> = contramap(
+  b => ({ fullName: $${b.name} ${b.surname}$ }),
+  DisplayFullName
+)
+
+ReactDOM.render(
+  <DisplayPerson name="Giulio" surname="Canti" />,
+  document.getElementById('app')
+)
+\end{verbatim}
+
+\subsection{Composizione di funtori}
+
+Siano $F: \mathcal{D} \rightarrow \mathcal{E}$ e $G: \mathcal{C} \rightarrow \mathcal{D}$ due funtori,
+allora possiamo costruire il funtore composizione $F(G): \mathcal{C} \rightarrow \mathcal{E}$
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  F(G(A)) \ar[r]^{F(G(g))} \ar[r] & F(G(B)) \ar[r]^{F(G(f))} & F(G(C)) & \mathcal{E} \\
+  F(A) \ar[u]^G \ar[r]^{F(g)} \ar[r] & F(B) \ar[u]^G \ar[r]^{F(f)} & F(C) \ar[u]^G & \mathcal{D} \\
+  A \ar[u]^F \ar[r]_g & B \ar[u]^F \ar[r]_f & C \ar[u]^F & \mathcal{C}
+}
+\]
+
+\begin{boxed}
+La \texttt{map} della composizione è la composizione delle \texttt{map}
+\end{boxed}
+
+\begin{example}
+Un array di \texttt{Option}
+
+\begin{verbatim}
+class ArrayOption<A> {
+  value: Array<Option<A>>
+  constructor(value: Array<Option<A>>) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): ArrayOption<B> {
+    return new ArrayOption(this.value.map(o => o.map(f)))
+  }
+}
+\end{verbatim}
+
+\end{example}
+
+\paragraph{Esercizio.} Definire una istanza di funtore per il tipo \texttt{Parser}
+
+\begin{verbatim}
+type Parser<A> = (input: string) => Option<[A, string]>
+\end{verbatim}
+
+\section{Un po' di algebra}
+
+\subsection{Cos'è una algebra?}
+
+Al posto del termine programmazione funzionale potremmo usare quello di programmazione algebrica, infatti
+
+\begin{boxed}
+Le algebre sono i design pattern della programmazione funzionale
+\end{boxed}
+
+Per algebra si intende generalmente una qualunque combinazione di
+
+\begin{itemize}
+  \item insiemi
+  \item operazioni
+  \item leggi
+\end{itemize}
+
+Le algebre sono il modo in cui i matematici tendono a catturare un concetto nel modo più puro,
+ovvero eliminando tutto ciò che è superfluo.
+
+Le algebre possono essere considerate una versione più potente delle interfacce: quando si manipola una struttura algebrica
+sono permesse solo le operazioni definite dall'algebra in oggetto e in conformità alle sue leggi.
+
+I matematici lavorano con tali interfacce da secoli e funziona in modo egregio.
+
+Facciamo un esempio di algebra, il magma.
+
+\begin{definition}
+Sia $M$ un insieme e $*$ un'operazione \emph{chiusa su} (o \emph{interna a}) $M$ ovvero $*: M \times M \rightarrow M$,
+allora la coppia $(M, *)$ si chiama \emph{magma}.
+\end{definition}
+
+\begin{quote}
+Because the binary operation of a magma takes two values of a given type and returns a new value of the same type (\emph{closure property}),
+this operation can be chained indefinitely
+\end{quote}
+
+Il fatto che l'operazione sia chiusa è una proprietà non banale,
+per esempio sugli interi la somma è una operazione chiusa mentre la sottrazione non lo è.
+
+Un magma non possiede alcuna legge a parte il vincolo basilare di chiusura, vediamo un'algebra che ne definisce una: i semigruppi.
+
+\subsection{Semigruppi}
+
+\begin{definition}
+Sia $(S, *)$ un magma, se $*$ è associativa \footnote{ovvero per ogni $a, b, c \in S$ vale
+
+$$
+(a * b) * c = a * ( b * c )
+$$
+} allora è un \emph{semigruppo}.
+\end{definition}
+
+L'insieme $S$ si dice insieme \emph{sostegno} del semigruppo.
+
+La proprietà associativa ci assicura che non ci dobbiamo preoccupare di utilizzare le parentesi in una espressione\footnote{ovvero possiamo scrivere semplicemente $a * b * c$}.
+
+Come abbiamo visto nell'introduzione, i semigruppi catturano l'essenza di una operazione parallelizzabile
+
+Ma possono anche essere usati per rappresentare l'idea astratta di
+
+\begin{itemize}
+  \item concatenazione
+  \item fusione (merging)
+  \item riduzione
+\end{itemize}
+
+Vediamo qualche esempio
+
+\begin{itemize}
+  \item \texttt{(number, +)} ove \texttt{+} è l'usuale addizione di numeri
+  \item \texttt{(number, *)} ove \texttt{*} è l'usuale moltiplicazione di numeri
+  \item \texttt{(string, +)} ove \texttt{+} è l'usuale concatenazioni di stringhe
+  \item \texttt{(boolean, \&\&)} ove \texttt{\&\&} è l'usuale congiunzione
+  \item \texttt{(boolean, ||)} ove \texttt{||} è l'usuale disgiunzione
+\end{itemize}
+
+\subsubsection{Implementazione}
+
+Come facciamo a tradurre questa astrazione sottoforma di codice?
+
+Possiamo implementare il concetto di semigruppo come una \texttt{interface}
+
+\begin{verbatim}
+interface Semigroup<A> {
+  concat: (x: A) => (y: A) => A
+}
+\end{verbatim}
+
+L'insieme sostegno è rappresentato dal type parameter \texttt{A} mentre l'operazione $*$ è chiamata \texttt{concat}.
+
+L'associatività non può essere espressa nel type system di TypeScript
+
+\begin{verbatim}
+// deve valere per ogni a, b, c
+concat(concat(a)(b))(c) = concat(a)(concat(b)(c))
+\end{verbatim}
+
+Ecco come possiamo implementare il semigruppo $(number, +)$
+
+\begin{verbatim}
+const sum: Semigroup<number> = {
+  concat: x => y => x + y
+}
+\end{verbatim}
+
+Notate che si possono definire differenti istanze di semigruppo per lo stesso insieme sostegno
+
+\begin{verbatim}
+const product: Semigroup<number> = {
+  concat: x => y => x * y
+}
+\end{verbatim}
+
+\paragraph{Esercizio.} Implementare i seguenti semigruppi
+\begin{itemize}
+  \item \texttt{(string, +)}
+  \item \texttt{(boolean, \&\&)}
+  \item \texttt{(boolean, ||)}
+  \item \texttt{(Object, \ldots)} (spread operator)
+\end{itemize}
+
+L'insieme sostegno può essere costituito anche da funzioni
+
+\begin{verbatim}
+type Predicate<A> = (a: A) => boolean
+
+const getPredicateSemigroup = <A>(
+  S: Semigroup<boolean>
+): Semigroup<Predicate<A>> => ({
+  concat: x => y => a => S.concat(x(a))(y(a))
+})
+\end{verbatim}
+
+Ora se definiamo una generica funzione \texttt{fold} che accetta un semigruppo come parametro\footnote{Notate che ho bisogno anche di una $A$ perchè l'array potrebbe essere vuoto}
+
+\begin{verbatim}
+const fold = <A>(S: Semigroup<A>) => (a: A) => (
+  as: Array<A>
+): A => as.reduce((a, b) => S.concat(a)(b), a)
+\end{verbatim}
+
+possiamo reimplementare alcune popolari funzioni
+
+\begin{verbatim}
+const every = <A>(p: Predicate<A>) => (
+  as: Array<A>
+): boolean => fold(all)(true)(as.map(p))
+
+const some = <A>(p: Predicate<A>) => (
+  as: Array<A>
+): boolean => fold(any)(true)(as.map(p))
+
+const assign = (as: Array<Object>): Object =>
+  fold(obj)({})(as)
+\end{verbatim}
+
+\subsubsection{Il semigruppo duale}
+
+\begin{verbatim}
+const getDualSemigroup = <A>(
+  S: Semigroup<A>
+): Semigroup<A> => ({
+  concat: x => y => S.concat(y)(x)
+})
+\end{verbatim}
+
+\subsubsection{Non riesco a trovare un'istanza!}
+
+Cosa succede se, dato un tipo $A$, non si riesce a trovare un'operazione interna associativa?
+
+Potete creare un'istanza di semigruppo per \emph{ogni} tipo usando una delle seguenti costruzioni:
+
+restituire sempre il primo argomento
+
+\begin{verbatim}
+const getFirstSemigroup = <A>(): Semigroup<A> => ({
+  concat: x => y => x
+})
+\end{verbatim}
+
+restituire sempre l'ultimo argomento
+
+\begin{verbatim}
+const getLastSemigroup = <A>(): Semigroup<A> => ({
+  concat: x => y => y
+})
+\end{verbatim}
+
+restituire sempre uno stesso elemento $a \in A$
+
+\begin{verbatim}
+const getConstSemigroup = <A>(
+  a: A
+): Semigroup<A> => ({
+  concat: x => y => a
+})
+\end{verbatim}
+
+Queste istanze possono sembrare banali\footnote{Eppure a volte possono essere molto utili, in particolare \texttt{getLastSemigroup}}
+ma c'è un'altra tecnica che mantiene il contenuto informativo ed è quella di definire una istanza di semigruppo per \texttt{Array<A>},
+chiamata il \emph{semigruppo libero} (Free semigroup) di $A$
+
+\begin{verbatim}
+const getFreeSemigroup = <A>(): Semigroup<
+  Array<A>
+> => ({
+  concat: x => y => x.concat(y)
+})
+\end{verbatim}
+
+e poi mappare gli elementi di \texttt{A} sui singoletti di \texttt{Array<A>}
+
+\begin{verbatim}
+const of = <A>(a: A): Array<A> => [a]
+\end{verbatim}
+
+Il semigruppo libero di $A$ è il semigruppo i cui elementi sono tutte le possibili sequenze finite di elementi di $A$.
+
+\begin{boxed}
+Il semigruppo libero di $A$ può essere visto come un modo \emph{lazy} di concatenare elementi di $A$.
+\end{boxed}
+
+Anche se ho a disposizione una istanza di semigruppo per $A$, potrei decidere di usare ugualmente il semigruppo libero perchè
+
+\begin{itemize}
+  \item evita di eseguire computazioni possibilmente inutili
+  \item evita di passare in giro l'istanza di semigruppo
+  \item permette al consumer delle mie API di stabilire la strategia di concatenazione
+\end{itemize}
+
+\begin{example}
+Reporters di \texttt{io-ts} (https://github.com/gcanti/io-ts)
+\end{example}
+
+\subsubsection{Semigruppi per i type constructor}
+
+In alcuni casi è possibile derivare una istanza di semigruppo per un type constructor, per esempio \texttt{Option<A>} o \texttt{Promise<A>},
+sfruttando una istanza per \texttt{A}. Vediamo qualche esempio
+
+\paragraph{Option}
+
+\begin{verbatim}
+const getOptionSemigroup = <A>(
+  S: Semigroup<A>
+): Semigroup<Option<A>> => ({
+  concat: x => y =>
+    x.fold(
+      () => y,
+      ax =>
+        y.fold(() => x, ay => new Some(S.concat(ax)(ay)))
+    )
+})
+
+fold(getOptionSemigroup(sum))(new None())([
+  new Some(2),
+  new None(),
+  new Some(3)
+]) // Some(5)
+\end{verbatim}
+
+\paragraph{Promise}
+
+\begin{verbatim}
+const getPromiseSemigroup = <A>(
+  S: Semigroup<A>
+): Semigroup<Promise<A>> => ({
+  concat: x => y =>
+    Promise.all([x, y]).then(([ax, ay]) => S.concat(ax)(ay))
+})
+
+fold(getPromiseSemigroup(sum))(Promise.resolve(0))([
+  Promise.resolve(2),
+  Promise.resolve(0),
+  Promise.resolve(3)
+]).then(x => console.log(x)) // 5
+\end{verbatim}
+
+\subsubsection{Il semigruppo prodotto}
+
+Dati due semigruppi $(A, *)$ e $(B, +)$ è possibile definire il semigruppo prodotto $(A \times B, *+)$ ove
+
+$$
+*+\Big((a_1, b_1), (a_2, b_2)\Big) = (a_1 * a_2, b_1 + b_2)
+$$
+
+\begin{verbatim}
+const getProductSemigroup = <A, B>(
+  A: Semigroup<A>,
+  B: Semigroup<B>
+): Semigroup<[A, B]> => ({
+  concat: ([ax, bx]) => ([ay, by]) => [
+    A.concat(ax)(ay),
+    B.concat(bx)(by)
+  ]
+})
+
+getProductSemigroup(sum, str)
+  .concat([2, 'a'])([3, 'b']) // [ 5, 'ab' ]
+\end{verbatim}
+
+Il teorema\footnote{
+\begin{theorem}
+Siano $(A, *)$ e $(B, +)$ due semigruppi, allora $P = (A \times B, * \times +)$ è un semigruppo
+\end{theorem}
+
+\emph{Dimostrazione}. $P$ è un magma dato che $a_1 * a_2$ appartiene a $A$ e $b_1 + b_2$ appartiene a $B$ (per definizione dei semigruppi $(A, *)$ e $(B, +)$).
+Inoltre vale la proprietà associativa:
+
+\begin{eqnarray}
+(a_1, b_1) *+ ((a_2, b_2) *+ (a_3, b_3)) = \\
+(a_1, b_1) *+ (a_2 * a_3, b_2 + b_3) = \\
+(a_1 * (a_2 * a_3), b_1 + (b_2 + b_3)) = \\
+((a_1 * a_2) * a_3, (b_1 + b_2) + b_3) = \\
+(a_1 * a_2, b_1 + b_2) *+ (a_3, b_3) = \\
+((a_1, b_1) *+ (a_2, b_2)) *+ (a_3, b_3)
+\end{eqnarray}
+
+QED
+
+} può essere generalizzato al prodotto di $n$ semigruppi ($n$-tuple) e ai record.
+
+\subsubsection{Insiemi ordinati}
+
+Se \texttt{A} è ordinabile allora è possibile definire un'istanza di semigruppo su \texttt{A} usando \texttt{min} (o \texttt{max}) come operazioni
+
+\begin{verbatim}
+const meet: Semigroup<number> = {
+  concat: x => y => Math.min(x, y)
+}
+
+const join: Semigroup<number> = {
+  concat: x => y => Math.max(x, y)
+}
+\end{verbatim}
+
+E' possibile catturare la nozione di \emph{ordinabile}? Per farlo prima dobbiamo catturare la nozione di \emph{uguaglianza}.
+I matematici parlano di \emph{relazione di equivalenza}.
+Definiamo una nuova interfaccia
+
+\begin{verbatim}
+interface Setoid<A> {
+  equals: (x: A) => (y: A) => boolean
+}
+\end{verbatim}
+
+Devono valere le seguenti leggi
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|p{10cm}| }
+\hline
+riflessiva & \texttt{equals(x)(x) = true} per ogni $x \in A$ \\
+\hline
+simmetrica & \texttt{equals(x)(y) = equals(y)(x)} per ogni $x, y \in A$ \\
+\hline
+transitiva & se \texttt{equals(x)(y) = true} e \texttt{equals(y)(z) = true} allora \texttt{equals(x)(z) = true} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+Possiamo catturare la nozione di ordinabile introduciamo l'interfaccia \texttt{Ord}
+
+\begin{verbatim}
+type Ordering = 'LT' | 'EQ' | 'GT';
+
+interface Ord<A> extends Setoid<A> {
+  compare: (x: A) => (y: A) => Ordering
+}
+\end{verbatim}
+
+Ora possiamo definire l'equivalente di $\leq$
+
+\begin{verbatim}
+const leq = <A>(ord: Ord<A>) => (x: A) => (
+  y: A
+): boolean => ord.compare(x)(y) !== 'GT'
+\end{verbatim}
+
+scriviamo che $x \leq y$ se e solo se \texttt{leq(ord, x, y) = true}.
+
+Devono valere le seguenti leggi
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|p{10cm}| }
+\hline
+riflessiva & $x \leq x$ per ogni $x \in A$ \\
+\hline
+antisimmetrica & se $x \leq y$ e $y \leq x$ allora $x = y$ (se non vale questa proprietà, si chiama \emph{preordine}) \\
+\hline
+transitiva & se $x \leq y$ e $y \leq z$ allora $x \leq z$ \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+Per essere compatibile con \texttt{Setoid} deve valere una proprietà aggiuntiva
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|p{10cm}| }
+\hline
+compatibilità & \texttt{compare(x)(y) = 'EQ'} se e solo se \texttt{equals(x)(y) = true} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+Ora possiamo definire \texttt{min} e \texttt{max} in modo generale
+
+\begin{verbatim}
+const min = <A>(ord: Ord<A>) => (x: A) => (
+  y: A
+): A => (ord.compare(x)(y) === 'LT' ? x : y)
+
+const max = <A>(ord: Ord<A>) => (x: A) => (
+  y: A
+): A => (ord.compare(x)(y) === 'LT' ? y : x)
+\end{verbatim}
+
+con i quali infine possiamo definire due nuovi combinator
+
+\begin{verbatim}
+const getMeetSemigroup = <A>(
+  O: Ord<A>
+): Semigroup<A> => ({
+  concat: min(O)
+})
+
+const getJoinSemigroup = <A>(
+  O: Ord<A>
+): Semigroup<A> => ({
+  concat: max(O)
+})
+\end{verbatim}
+
+\subsection{Monoidi}
+
+Se aggiungiamo una condizione in più alla definizione dei semigruppi, ovvero che esista un elemento $u \in M$
+tale che per ogni elemento $m \in M$ vale
+
+$$
+u * m = m * u = m
+$$
+
+allora la terna $(M, *, u)$ viene detta \emph{monoide} e l'elemento $u$ viene detto \emph{unità}
+(sinonimi: \emph{elemento neutro}, \emph{elemento identità}).
+
+\begin{theorem}
+L'unità di un monoide è unica.
+\end{theorem}
+
+\emph{Dimostrazione}. Siano $u_1$ e $u_2$ due unità allora
+
+\begin{eqnarray}
+u1 * u2 = u1 \\
+u1 * u2 = u2
+\end{eqnarray}
+
+\paragraph{Esercizio.} Molti dei semigruppi che abbiamo visto possono essere estesi a monoidi
+
+\begin{itemize}
+  \item \texttt{(number, +, 0)}
+  \item \texttt{(number, *, 1)}
+  \item \texttt{(string, +, "")}
+  \item \texttt{(boolean, \&\&, true)}
+  \item \texttt{(boolean, ||, false)}
+  \item \texttt{(Object, \ldots, \{\})}
+\end{itemize}
+
+I monoidi sono ovunque
+
+\begin{itemize}
+  \item Money amounts define a Monoid under summation with the null amount as neutral element
+  \item Relative paths in a file system form a Monoid under appending
+  \item Access rights to files form a Monoid under intersection or union of rights
+\end{itemize}
+
+\subsubsection{Implementazione}
+
+\begin{verbatim}
+interface Monoid<A> extends Semigroup<A> {
+  empty: () => A
+}
+\end{verbatim}
+
+Come esempi non banali possiamo implementare i seguenti fatti.
+
+Dato un tipo \texttt{A}, gli endomorfismi\footnote{Un endomorfismo non è altro che una funzione il cui dominio e codominio coincidono}
+su \texttt{A} ammettono una istanza di monoide
+
+\begin{verbatim}
+type Endomorphism<A> = (a: A) => A
+
+const getEndomorphismMonoid = <A>(): Monoid<
+  Endomorphism<A>
+> => ({
+  concat: x => y => a => x(y(a)),
+  empty: () => a => a
+})
+\end{verbatim}
+
+Se il tipo \texttt{M} ammette una istanza di monoide allora il tipo \texttt{(a: A) => M} ammette una istanza di monoide per ogni tipo \texttt{A}
+
+\begin{verbatim}
+const getFunctionMonoid = <M>(M: Monoid<M>) => <
+  A
+>(): Monoid<(a: A) => M> => ({
+  concat: f => g => a => M.concat(f(a))(g(a)),
+  empty: () => () => M.empty()
+})
+\end{verbatim}
+
+Come corrollario otteniamo che i reducer ammettono una istanza di monoide
+\footnote{Alternativamente, se i reducer non sono curried, l'istanza può essere definita manualmente
+
+\begin{verbatim}
+type Reducer<S, A> = (s: S, a: A) => S
+
+const getReducerMonoid = <S, A>(): Monoid<
+  Reducer<S, A>
+> => ({
+  concat: x => y => (s, a) => y(x(s, a), a),
+  empty: () => (s, _) => s
+})
+\end{verbatim}
+
+}
+
+\begin{verbatim}
+type Reducer<S, A> = (a: A) => (s: S) => S
+
+const getReducerMonoid = <S, A>(): Monoid<
+  Reducer<S, A>
+> => getFunctionMonoid(getEndomorphismMonoid<S>())<A>()
+\end{verbatim}
+
+\subsubsection{Monoide prodotto}
+
+\begin{verbatim}
+const getProductMonoid = <A, B>(
+  MA: Monoid<A>,
+  MB: Monoid<B>
+): Monoid<[A, B]> => ({
+  ...getProductSemigroup(MA, MB),
+  empty: () => [MA.empty(), MB.empty()]
+})
+\end{verbatim}
+
+Questo combinatore può essere generalizzato al prodotto di $n$ monoidi ($n$-tuple) e ai record.
+
+\subsubsection{Non tutti i semigruppi sono monoidi}
+
+Esiste una istanza di un semigruppo che non è possibile estendere a monoide?
+
+\begin{verbatim}
+class NonEmptyArray<A> {
+  constructor(readonly head: A, readonly tail: Array<A>) {}
+}
+
+const getNonEmptyArraySemigroup = <A>(): Semigroup<
+  NonEmptyArray<A>
+> => ({
+  concat: x => y =>
+    new NonEmptyArray(
+      x.head,
+      x.tail.concat([y.head]).concat(y.tail)
+    )
+})
+
+
+getNonEmptyArraySemigroup().concat(
+  new NonEmptyArray(1, [2])
+)(new NonEmptyArray(3, [4, 5])) // { head: 1, tail: [ 2, 3, 4, 5 ] }
+\end{verbatim}
+
+Ma non esiste nessun elemento \texttt{u: NonEmptyArray} che concatenato ad un altro \texttt{x: NonEmptyArray} dia ancora \texttt{x}.
+
+\subsubsection{Monoidi come categorie}
+
+Un monoide $(M, *, u)$ \emph{assomiglia} ad una categoria
+
+\begin{itemize}
+  \item c'è un'operazione che \emph{compone} gli elementi
+  \item l'operazione è associativa
+  \item c'è il concetto di \emph{identità}
+\end{itemize}
+
+La somiglianza non è casuale. Ad un monoide $(M, *, u)$ può essere associata una categoria con un solo oggetto,
+i cui morfismi sono gli elementi di $M$ e la cui operazione di composizione è $*$.
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  \circ \ar[r]^u \ar@/^1cm/[r]^a \ar@/^2cm/[r]^b \ar@/^3cm/[r]^{ab} \ar@/^4cm/[r]^{\ldots} & \circ
+}
+\]
+
+La funzione \texttt{fold} che abbiamo definito per i semigruppi può essere ridefinita per i monoidi
+
+\begin{verbatim}
+const fold = <A>(M: Monoid<A>) => (
+  as: Array<A>
+): A => as.reduce((a, b) => M.concat(a)(b), M.empty())
+\end{verbatim}
+
+Notate che non c'è più bisogno di un elemento iniziale \texttt{a: A} perchè ora possiamo sfruttare \texttt{empty()}
+
+\begin{verbatim}
+const product: Monoid<number> = {
+  concat: x => y => x * y,
+  empty: () => 1
+}
+
+const str: Monoid<string> = {
+  concat: x => y => x + y,
+  empty: () => ''
+}
+
+fold(str)(['a', 'b', 'c']) // 'abc'
+fold(product)([2, 3, 4]) // 24
+fold(product)([]) // 1
+\end{verbatim}
+
+\subsubsection{Monoidi liberi}
+
+Cosa succede se ho un insieme $X$ al quale non posso associare facilmente un'istanza di monoide?
+Esiste un'operazione su $X$ che produce in modo \emph{automatico} un monoide?
+E se si, il monoide generato che caratteristiche ha?
+
+Consideriamo come $X$ l'insieme costituito dalle due stringhe \texttt{'a'} e \texttt{'b'} e come operazione $*$ la giustapposizione:
+
+$$
+*(a, b) = ab
+$$
+
+Ovviamente quello che abbiamo non è un monoide: non c'è traccia di un elemento unità e appena applichiamo $*$ \emph{cadiamo fuori}
+dall'insieme $X$. Possiamo però costruire il seguente monoide $M(X)$ che viene chiamato \emph{monoide generato da $X$} o \emph{monoide libero di $X$}:
+
+$$
+M(X) = (Y, *, u)
+$$
+
+ove
+
+\begin{itemize}
+  \item $*$ è l'operazione di giustapposizione
+  \item $u$ è un elemento speciale che fa da unità
+  \item $Y = { u, a, b, ab, ba, aa, bb, aab, aba, ... }$
+\end{itemize}
+
+Attenzione, perchè valga la proprietà associativa dobbiamo anche identificare alcuni elementi generati, ad esempio $(aa)b = a(ab)$
+
+Gli elementi di $X$ vengono detti \emph{elementi generatori} di $M(X)$.
+
+E' possibile dimostrare che:
+
+\begin{itemize}
+  \item $M(X)$ è il \emph{più piccolo} monoide che contiene $X$\footnote{il termine libero si usa quando sussiste questa proprietà}
+  \item $M(X)$ è \emph{isomorfo} a $(Array<X>, concat, [])$
+\end{itemize}
+
+\subsection{Diagramma delle algebre}
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{4cm}
+\xymatrix{
+  & Set \ar[dl]_{\texttt{total order}} \ar[d]^{\texttt{equivalence}} \ar[dr]^{\texttt{closed bin op}} \\
+  Ord & Setoid & Magma \ar[d]_{\texttt{associativity}} \\
+  & & Semigroup \ar[d]_{\texttt{unit}} \\
+  & & Monoid \\
+}
+\]
+
+\begin{boxed}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{shapes.ts}
+\end{center}
+\end{boxed}
+
+
+\section{Funtori applicativi}
+
+Nel capitolo sui funtori abbiamo visto come trasformare, tramite l'operazione \texttt{lift},
+una computazione che non fallisce mai $f: A \rightarrow B$ in una computazione che può fallire $\texttt{lift}(f): Option(A) \rightarrow Option(B)$,
+per esempio se fallisce il recupero dell'input.
+
+Ma \texttt{lift} opera solo su funzioni unarie.
+
+Cosa succede se abbiamo una funzione con due o più argomenti?
+Possiamo ancora effettuare una operazione che sia simile al lifting che già conosciamo?
+
+Consideriamo una funzione con due argomenti
+
+$$
+f: A \times B \rightarrow C
+$$
+
+ove $A \times B$ indica il prodotto cartesiano degli insiemi $A$ e $B$.
+La funzione $f$ può essere riscritta in modo che sia una composizione di due funzioni, ognuna con un solo argomento
+
+$$
+f: A \rightarrow B \rightarrow C
+$$
+
+Questo processo di riscrittura prende il nome di \emph{currying}\footnote{Fu introdotta da Gottlob Frege (filosofo, logico e matematico tedesco), sviluppata da Moses Schönfinkel (logico e matematico russo), e sviluppata ulteriormente da Haskell Curry (logico e matematico americano)}.
+
+Se $F$ è un funtore, quello che si vorrebbe ottenere è una funzione $F(f)$ tale che
+
+$$
+F(f): F(A) \rightarrow F(B) \rightarrow F(C)
+$$
+
+Proviamo a costruire $F(f)$ con i soli mezzi che abbiamo a disposizione.
+Siccome sappiamo che la composizione di funzioni è associativa possiamo evidenziare il secondo elemento della composizione di $f$
+vedendola come una funzione che accetta un solo parametro di tipo $A$ e restituisce un valore di tipo $B \rightarrow C$.
+
+$$
+f: A \rightarrow (B \rightarrow C)
+$$
+
+ora che ci siamo ricondotti ad avere una funzione con un solo parametro, possiamo operare un lifting tramite il funtore $F$
+
+$$
+F(f): F(A) \rightarrow F(B \rightarrow C)
+$$
+
+Ma a questo punto siamo bloccati.
+Perchè non c'è nessuna operazione lecita che ci permette di passare dal tipo $F(B \rightarrow C)$ al tipo $F(B) \rightarrow F(C)$.
+
+Il fatto che $F$ sia solo un funtore non basta, deve avere una proprietà in più, quella cioè di possedere una operazione che permette di
+spacchettare il tipo delle funzioni da $B$ a $C$ mandandolo nel tipo delle funzioni da $F(B)$ a $F(C)$.
+Indichiamo questa operazione con il nome \texttt{ap}.
+
+Inoltre sarebbe oppurtuno avere un'altra operazione che, dato un valore di tipo $A$ associa un valore di tipo $F(A)$.
+In questo modo, una volta ottenuta la funzione $F(f) = F(A) \rightarrow F(B) \rightarrow F(C)$ e avendo a disposizione un valore di tipo $F(A)$
+(magari ottenuto da un'altra computazione) e un valore di tipo $B$, sono in grado di eseguire la funzione $F(f)$.
+
+Questa operazione si chiama \texttt{of} ed è la medesima operazione che abbiamo visto trattando delle monadi.
+
+\subsection{Definizione}
+
+Sia $F$ un endofuntore della categoria $\mathcal{C}$, allora si dice \emph{funtore applicativo} se esistono due operazioni
+
+\begin{verbatim}
+of: <A>(a: A) => M<A>
+ap: <A, B>(f: F<(a: A) => B>) => (fa: F<A>) => F<B>
+\end{verbatim}
+
+tali che valgono le seguenti leggi
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|p{10cm}| }
+\hline
+Associative composition & \texttt{ap(ap(map(compose, f), g), h) = ap(f, ap(g, h))} \\
+\hline
+Identity & \texttt{ap(of(identity), x) = x} \\
+\hline
+Composition & \texttt{ap(ap(ap(of(compose), f), g), h) = ap(f, ap(g, h))} \\
+\hline
+Homomorphism & \texttt{ap(of(f), of(x)) = of(f(x))} \\
+\hline
+Interchange & \texttt{ap(f, of(g)) = ap(of(x => g(x)), f)} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+Vediamo un primo esempio: il tipo \texttt{Option}
+
+\begin{verbatim}
+const of = <A>(a: A): Option<A> => new Some(a)
+
+class Some<A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Option<B> {
+    return new Some(f(this.value))
+  }
+  ap<B>(fab: Option<(a: A) => B>): Option<B> {
+    return fab.map(f => f(this.value))
+  }
+}
+
+class None<A> {
+  map<B>(f: (a: A) => B): Option<B> {
+    return new None()
+  }
+  ap<B>(fab: Option<(a: A) => B>): Option<B> {
+    return new None()
+  }
+}
+\end{verbatim}
+
+% \subsection{Significato delle leggi}
+
+% La normale applicazione di funzione può essere vista come una funzione binaria
+
+% \begin{verbatim}
+% const $ = <A, B>(f: (a: A) => B): ((a: A) => B) => a => f(a)
+% \end{verbatim}
+
+% Se si interpreta \texttt{ap} come un particolare tipo di applicazione di funzione ad un valore
+% (ove sia funzione che il valore sono contenuti nel contesto funtoriale) allora
+
+% Associative composition: ci dice che \texttt{ap} è associativa
+
+% Identity: ci dice che \texttt{ap} e \texttt{of} si comportano in modo sensato rispetto alla funzione identità
+
+% Composition: ci sice che \texttt{ap} e \texttt{of} si comportano in modo sensato rispetto alla composizione di funzioni
+
+% Homomorphism: dati $f: A \rightarrow B$ e $a \in A$ ho due modi per arrivare ad un valore di tipo $F(B)$ e voglio che siano uguali
+
+% Interchange: TODO
+
+\subsection{Lifting manuale}
+
+Consideriamo la seguente funzione \texttt{sum}
+
+\begin{verbatim}
+const sum = (a: number) => (b: number): number => a + b
+\end{verbatim}
+
+E' possibile sfruttare \texttt{of} e \texttt{ap} per ottenere il suo lifting
+
+\begin{verbatim}
+const sumOptions = (fa: Option<number>) => (
+  fb: Option<number>
+): Option<number> => fb.ap(fa.ap(of(sum)))
+\end{verbatim}
+
+oppure usando \texttt{map} e \texttt{ap}
+
+\begin{verbatim}
+const sumOptions = (fa: Option<number>) => (
+  fb: Option<number>
+): Option<number> => fb.ap(fa.map(sum))
+\end{verbatim}
+
+\subsection{La funzione \texttt{liftA2}}
+
+L'operazione di lifting può essere facilmente generalizzata per ogni funzione\footnote{e per ogni funtore applicativo}
+
+\begin{verbatim}
+const liftA2 = <A, B, C>(
+  f: (a: A) => (b: B) => C
+): ((
+  fa: Option<A>
+) => (fb: Option<B>) => Option<C>) => fa => fb =>
+  fb.ap(fa.map(f))
+
+const sumOptions = liftA2(sum)
+\end{verbatim}
+
+Analogamente è possibile definire \texttt{liftA3} per funzioni con 3 argomenti, \texttt{liftA4}, etc \ldots
+
+E' importante sottolineare che mentre abbiamo avuto bisogno di una nuova astrazione per poter operare un lifting di una funzione binaria,
+per operare un lifting di una funzione $n$-aria un funtore applicativo è sufficiente.
+
+\subsection{Esempi}
+
+\paragraph{Identity}
+
+\begin{verbatim}
+const of = <A>(a: A) => new Identity(a)
+
+class Identity<A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Identity<B> {
+    return new Identity(f(this.value))
+  }
+  ap<B>(fab: Identity<(a: A) => B>): Identity<B> {
+    return new Identity(fab.value(this.value))
+  }
+}
+\end{verbatim}
+
+\paragraph{Either}
+
+\begin{verbatim}
+const of = <L, A>(a: A): Either<L, A> => new Right(a)
+
+class Left<L, A> {
+  value: L
+  constructor(value: L) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Either<L, B> {
+    return new Left(this.value)
+  }
+  ap<B>(fab: Either<L, (a: A) => B>): Either<L, B> {
+    return fab.fold<Either<L, B>>(
+      l => new Left(l),
+      () => new Left(this.value)
+    )
+  }
+}
+
+class Right<L, A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  map<B>(f: (a: A) => B): Either<L, B> {
+    return new Right(f(this.value))
+  }
+  ap<B>(fab: Either<L, (a: A) => B>): Either<L, B> {
+    return fab.fold<Either<L, B>>(
+      l => new Left(l),
+      f => new Right(f(this.value))
+    )
+  }
+}
+\end{verbatim}
+
+\paragraph{Array}
+
+\begin{verbatim}
+const applicativeArray = {
+  map: <A, B>(f: (a: A) => B) => (fa: Array<A>): Array<B> =>
+    fa.map(f),
+  of: <A>(a: A): Array<A> => [a],
+  ap: <A, B>(fab: Array<(a: A) => B>) => (
+    fa: Array<A>
+  ): Array<B> =>
+    fab.reduce(
+      (acc, f) => acc.concat(fa.map(f)),
+      [] as Array<B>
+    )
+}
+\end{verbatim}
+
+\paragraph{IO}
+
+\begin{verbatim}
+const of = <A>(a: A): IO<A> => new IO(() => a)
+
+class IO<A> {
+  run: () => A
+  constructor(run: () => A) {
+    this.run = run
+  }
+  map<B>(f: (a: A) => B): IO<B> {
+    return new IO(() => f(this.run()))
+  }
+  ap<B>(fab: IO<(a: A) => B>): IO<B> {
+    return new IO(() => fab.run()(this.run()))
+  }
+}
+\end{verbatim}
+
+\paragraph{Task}
+
+\begin{verbatim}
+const of = <A>(a: A): Task<A> =>
+  new Task(() => Promise.resolve(a))
+
+class Task<A> {
+  run: () => Promise<A>
+  constructor(run: () => Promise<A>) {
+    this.run = run
+  }
+  map<B>(f: (a: A) => B): Task<B> {
+    return new Task(() => this.run().then(f))
+  }
+  ap<B>(fab: Task<(a: A) => B>): Task<B> {
+    return new Task(() =>
+      Promise.all([fab.run(), this.run()]).then(([f, a]) =>
+        f(a)
+      )
+    )
+  }
+}
+\end{verbatim}
+
+\begin{boxed}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{applicative.ts}
+\end{center}
+\end{boxed}
+
+\section{Monadi}
+
+\subsection{Come si gestiscono i side effect?}
+
+A parte alcune tipologie di programmi come i compilatori o come \texttt{prettier}, che possono essere pensati come funzioni pure (\texttt{string -> string}),
+quasi tutti i programmi che scriviamo comportano dei side effect.
+
+Occorre perciò modellare un programma che induce side effect con una funzione pura. Ci sono due modi per farlo
+
+\begin{enumerate}
+  \item definire un DSL per gli effetti
+  \item usare i \emph{thunk}
+\end{enumerate}
+
+\paragraph{DSL.} Il programma
+
+\begin{verbatim}
+const sum = (a: number, b: number): number => {
+  console.log(a, b) // side effect
+  return a + b
+}
+\end{verbatim}
+
+viene modellato con una funzione pura modificando il codominio e restituendo una descrizione del side effect
+
+\begin{verbatim}
+const sum = (a: number, b: number): [number, string] => [
+  a + b,
+  `please log: ${a}, ${b}`
+]
+\end{verbatim}
+
+fondamentalmente creando un DSL per gli effetti.
+
+\paragraph{Thunk.} La computazione viene racchiusa bel body di una funzione senza argomenti
+
+\begin{verbatim}
+const sum = (a: number, b: number): IO<number> =>
+  new IO(() => {
+    console.log(a, b)
+    return a + b
+  })
+\end{verbatim}
+
+Il programma, quando viene eseguito, non provoca immediatamente il side effect ma restituisce un valore che rappresenta la computazione
+(detta anche \emph{azione}).
+
+Vediamo un altro esempio, leggere e scrivere sul \texttt{localStorage}
+
+\begin{verbatim}
+const read = (name: string): IO<string | null> =>
+  new IO(() => localStorage.getItem(name))
+
+const write = (name: string, value: string): IO<void> =>
+  new IO(() => localStorage.setItem(name, value))
+\end{verbatim}
+
+Ritorneremo più avanti a occuparci di \texttt{IO} dato che è possibile associare una istanza di \emph{monade}.
+
+Nella programmazione funzionale si tende a spingere i side effect ai confini del sistema (la funzione \texttt{main})
+ove vengono eseguiti da un interprete ottenendo il seguente schema
+
+\begin{boxed}
+\begin{center}
+system = pure core + imperative shell
+\end{center}
+\end{boxed}
+
+Nei linguaggi \emph{puramente funzionali} (come Haskell, PureScript o Elm) questa divisione netta è imposta dal linguaggio stesso.
+
+Un intero programma che produce un valore di tipo \texttt{A} è rappresentato da una funzione il cui codominio è \texttt{IO<A>}
+
+Come faccio a scrivere la funzione \texttt{main}? Davvero si pretende di scrivere tutta l'applicazione in una unica funzione?
+
+E' possibile applicare la tecnica \emph{divide et impera} ovvero decomporre il problema in sotto problemi più piccoli,
+per poi ricomporre le soluzioni trovate per i sotto problemi.
+
+Cosa c'è di nuovo però? Il fatto che nella programmazione funzionale come decomporre e poi ricomporre il problema non è lasciato
+all'istinto del programmatore, la metodologia suggerita è quella di descrivere il programma tramite strutture algebriche
+(monoidi, categorie, funtori, \ldots) che godono di buone proprietà di composizione.
+
+C'è un ostacolo però: \textbf{il fatto che due funzioni compongano è un evento raro!}
+
+Perchè due funzioni $g$ e $f$ compongano, il codominio di $g$ deve coincidere col dominio di $f$
+
+$$
+g: A \rightarrow B, f: B \rightarrow C
+$$
+
+Ma in generale non è così.
+
+E in particolare non sappiamo ancora come comporre gli effetti, guardate cosa può accadere con \texttt{Option}
+
+\begin{verbatim}
+const head = <A>(as: Array<A>): Option<A> =>
+  as.length ? new Some(as[0]) : new None()
+
+const inverse = (x: number): Option<number> =>
+  x === 0 ? new None() : new Some(1 / x)
+
+// program: Option<Option<number>>
+const program = head([2, 3]).map(inverse)
+\end{verbatim}
+
+Qui il risultato è incapsulato due volte in una \texttt{Option}, circostanza affatto desiderabile.
+Vediamo se è possibile definire una funzione che \emph{appiattisce} il risultato, chiamiamola \texttt{flatten}
+
+\begin{verbatim}
+const flatten = <A>(
+  mma: Option<Option<A>>
+): Option<A> => mma.fold(() => new None(), identity)
+
+// program: Option<number>
+const program = flatten(head([2, 3]).map(inverse))
+\end{verbatim}
+
+\begin{center}
+\begin{tabular}{ c c c }
+ Outer & Inner & Result \\
+ \hline
+ \texttt{None} & \texttt{None} & \texttt{None} \\
+ \texttt{Some} & \texttt{None} & \texttt{None} \\
+ \texttt{Some} & \texttt{Some} & \texttt{Some}
+\end{tabular}
+\end{center}
+
+Vediamo un altro esempio: scrivere la funzione \texttt{echo} in stile funzionale.
+
+\begin{verbatim}
+const getLine: IO<string> = new IO(() => process.argv[2])
+
+const putStrLn = (s: string): IO<void> =>
+  new IO(() => console.log(s))
+
+// program: IO<IO<void>>
+const program = getLine.map(putStrLn)
+\end{verbatim}
+
+Anche in questo caso possiamo definire una funzione \texttt{flatten}
+
+\begin{verbatim}
+const flatten = <A>(mma: IO<IO<A>>): IO<A> =>
+  new IO(() => mma.run().run())
+\end{verbatim}
+
+Cosa dire di \texttt{Either}, \texttt{Array} e degli altri funtori?
+E' possibile individuare un nuovo pattern funzionale?
+
+\subsection{Un po' di storia}
+
+\begin{center}
+\includegraphics[scale=0.6]{maclane}
+
+Saunders Mac Lane
+\end{center}
+
+\begin{center}
+\includegraphics[scale=0.6]{eilenberg}
+
+Samuel Eilenberg
+\end{center}
+
+\begin{center}
+\includegraphics[scale=0.3]{moggi}
+\end{center}
+
+Eugenio Moggi is a professor of computer science at the University of Genoa, Italy.
+He first described the general use of monads to structure programs.
+
+\begin{center}
+\includegraphics[scale=0.45]{wadler}
+\end{center}
+
+Philip Lee Wadler is an American computer scientist known for his contributions to programming language design and type theory.
+
+\subsection{Definizione}
+
+Quella seguente è una possibile definizione che si può trovare in rete:
+
+Una monade $M$ nella categoria $\mathcal{C}$ è un endofuntore di $\mathcal{C}$ con due operazioni aggiuntive
+
+\begin{verbatim}
+of: <A>(a: A) => M<A>
+chain: <A, B>(f: (a: A) => M<B>) => (ma: M<A>) => M<B>
+\end{verbatim}
+
+Inoltre devono valere le seguenti leggi
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|p{10cm}| }
+\hline
+Left identity & \texttt{chain(f, of(x)) = f(x)} \\
+\hline
+Right identity & \texttt{chain(of, x) = x} \\
+\hline
+Associativity & \texttt{chain(g, chain(f, ma)) = chain(x => chain(g, f(x)), mx)} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+Sinonimi di \texttt{of}\footnote{Nome contenuto nella specifica https://github.com/fantasyland/fantasy-land} sono \texttt{return}, \texttt{pure} e \texttt{point}, sinonimi di \texttt{chain} sono \texttt{bind} e \texttt{flatMap}.
+
+\begin{itemize}
+  \item perchè ci sono esattamente quelle due funzioni?
+  \item perchè hanno quelle firme?
+  \item perchè devono valere quelle leggi?
+\end{itemize}
+
+Per rispondere a queste domande introduciamo un concetto equivalente a quello di monade: le \emph{categorie di Kleisli}
+
+\subsection{Categorie di Kleisli}
+
+\begin{center}
+\includegraphics[scale=0.5]{kleisli}
+
+Heinrich Kleisli (Swiss mathematician)
+\end{center}
+
+Sia $M$ un endofuntore nella categoria $\mathcal{C}$ e si considerino i due morfismi $g: A \rightarrow M(B)$, $f: B \rightarrow M(C)$
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  & M(B) & M(C) \\
+  A \ar[ur]^g & B \ar[ur]^f & C
+}
+\]
+
+Chiamiamo \emph{Kleisli arrow} i morfismi come $g$ ed $f$, ovvero i morifismi il cui target è l'immagine di un endofuntore $M$.
+
+\begin{boxed}
+Una Kleisli arrow $f: A \rightarrow M(B)$ può essere interpretata come un programma che accetta un input di tipo $A$ e che produce un output di tipo $B$ insieme ad un effetto di tipo $M$
+\end{boxed}
+
+Le Kleisli arrows $g: A \rightarrow M(B)$, $f: B \rightarrow M(C)$ in generale non compongono rispetto a $\circ$, l'operazione di composizione della categoria $\mathcal{C}$,
+poichè $M(B)$ è diverso da $B$.
+
+Si consideri allora la seguente costruzione $K_{\mathcal{C}}$
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  A \ar[r]^{g'} & B \ar[r]^{f'} & C
+}
+\]
+
+ove
+
+\begin{itemize}
+  \item $A, B, C, \ldots$ sono gli oggetti di $\mathcal{C}$
+  \item esiste una morfismo $m': A \rightarrow B$ in $K_{\mathcal{C}}$ se e solo se esiste un morfismo $m: A \rightarrow M(B)$ in $\mathcal{C}$
+\end{itemize}
+
+\begin{boxed}
+Definire una buona operazione di composizione per le Kleisli arrow in $\mathcal{C}$, indichiamola con $\bullet$, vuol dire imporre che $K_{\mathcal{C}}$ sia una categoria.
+\end{boxed}
+
+Per dimostrare che $K_{\mathcal{C}}$ è una categoria dobbiamo definire una operazione di composizione, indichiamola con $\diamond$,
+e dimostrare che valgono le leggi categoriali (identità sinistra, identità destra e associatività).
+
+\paragraph{Composizione}
+
+Se $K_{\mathcal{C}}$ è una categoria allora deve esistere un morfismo $f' \diamond g': A \rightarrow C$.
+Ma allora il corrispondente morfismo $f \bullet g$ in $\mathcal{C}$ deve avere come sorgente $A$ e come target $M(C)$, ovvero $h: A \rightarrow M(C)$.
+Proviamo a costruirlo
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  && M(M(C)) \ar[d]^{flatten} \\
+  & M(B) \ar[ur]^{M(f)} & M(C) \\
+  A \ar[ur]^g \ar@{-->}[urr]^{f \bullet g} & B \ar[ur]^f & C \\
+  A \ar[r]^{g'} \ar@/_1cm/[rr]_{f' \diamond g'} & B \ar[r]^{f'} & C
+}
+\]
+
+$$
+f \bullet g = flatten \circ M(f) \circ g
+$$
+
+\paragraph{Morfismi identità}
+
+Se $K_{\mathcal{C}}$ è una categoria allora per ogni $A$ deve esistere un morfismo $1'_A: A \rightarrow A$,
+perciò deve esistere un morfismo $\eta_A: A \rightarrow M(A)$ in $\mathcal{C}$.
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  M(A) \\
+  A \ar[u]_{\eta_A} \\
+  A \ar@(ul,ur)^{1'_A}
+}
+\]
+
+\paragraph{Identità sinistra e destra}
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  & M(M(C)) \ar@/_-0.5cm/[d]^{flatten} \\
+  M(B) \ar[ur]^{M(f)} & M(C) \ar@/_-0.5cm/[u]^{M(\eta_C)} \\
+  B \ar[u]^{\eta_B} \ar[ur]^f & C \ar[u]^{\eta_C} \\
+  B \ar@(ul,ur)^{1'_B} \ar[r]^{f'} & C \ar@(ul,ur)^{1'_C}
+}
+\]
+
+\begin{itemize}
+  \item $1'_B \diamond f' = f'$ implica $\eta_B \bullet f = f$ ovvero \texttt{chain(f, of(b)) = f(b)}
+  \item $f' \diamond 1'_C = f'$ implica $f \bullet \eta_C = f$ ovvero \texttt{chain(of, c) = c}
+\end{itemize}
+
+\paragraph{Associatività}
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  & M(B) & M(C) & M(D) \\
+  A \ar[ur]^g \ar@{-->}[urr]^{f \bullet g} & B \ar[ur]^f \ar@{-->}[urr]^{h \bullet f} & C \ar[ur]^h & D \\
+  A \ar[r]^{g'} \ar@/_1cm/[rr]_{f' \diamond g'} & B \ar[r]^{f'} \ar@/_1cm/[rr]_{f' \diamond g'} & C \ar[r]^{h'} & D
+}
+\]
+
+$$
+h \diamond (f \diamond g) = (h \diamond f) \diamond g
+$$
+
+ovvero
+
+\begin{center}
+\texttt{chain(h, chain(f, mb)) = chain(b => chain(h, f(b)), mb)}
+\end{center}
+
+\subsection{Ricapitolando}
+
+\paragraph{Perchè le categorie sono importanti?}
+
+Perchè sono alla base del concetto di composizione e di monade.
+
+\paragraph{Cos'è una monade?}
+
+$M$ è una monade quanto le funzioni $A \rightarrow M(B)$, che rappresentano un programma che ha per input $A$, per output $B$
+e che produce un effetto $M$, sono i morfismi di una categoria.
+
+\paragraph{Perchè le monadi sono importanti?}
+
+Perchè se $M$ è una monade posso comporre i programmi $A \rightarrow M(B)$ tra loro.
+
+\paragraph{Una monade per ogni occasione.}
+
+\begin{itemize}
+  \item eseguire un'azione sincrona? monade \texttt{IO}
+  \item eseguire computazioni asincrone? monade \texttt{Task}
+  \item leggere una configurazione? monade \texttt{Reader}
+  \item scrivere su un log? monade \texttt{Writer}
+  \item gestire lo stato? monade \texttt{State}
+  \item gestire gli errori? monade \texttt{Option} o \texttt{Either}
+  \item gestire risultati non deterministici? monade \texttt{Array}
+\end{itemize}
+
+\subsection{Esempi}
+
+\paragraph{Identity}
+
+\begin{verbatim}
+const of = <A>(a: A) => new Identity(a)
+
+class Identity<A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  chain<B>(f: (a: A) => Identity<B>): Identity<B> {
+    return f(this.value)
+  }
+}
+\end{verbatim}
+
+\paragraph{Option}
+
+\begin{verbatim}
+const of = <A>(a: A): Option<A> => new Some(a)
+
+class Some<A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  chain<B>(f: (a: A) => Option<B>): Option<B> {
+    return f(this.value)
+  }
+}
+
+class None<A> {
+  map<B>(f: (a: A) => B): Option<B> {
+    return new None()
+  }
+  chain<B>(f: (a: A) => Option<B>): Option<B> {
+    return new None()
+  }
+}
+\end{verbatim}
+
+\paragraph{Either}
+
+\begin{verbatim}
+const of = <L, A>(a: A): Either<L, A> => new Right(a)
+
+class Left<L, A> {
+  value: L
+  constructor(value: L) {
+    this.value = value
+  }
+  chain<B>(f: (a: A) => Either<L, B>): Either<L, B> {
+    return new Left(this.value)
+  }
+}
+
+class Right<L, A> {
+  value: A
+  constructor(value: A) {
+    this.value = value
+  }
+  chain<B>(f: (a: A) => Either<L, B>): Either<L, B> {
+    return f(this.value)
+  }
+}
+\end{verbatim}
+
+\paragraph{Array}
+
+\begin{verbatim}
+const monadArray = {
+  of: <A>(a: A): Array<A> => [a],
+  chain: <A, B>(f: (a: A) => Array<B>) => (
+    fa: Array<A>
+  ): Array<B> =>
+    fa.reduce((acc, a) => acc.concat(f(a)), [] as Array<B>)
+}
+\end{verbatim}
+
+\paragraph{IO}
+
+\begin{verbatim}
+const of = <A>(a: A): IO<A> => new IO(() => a)
+
+class IO<A> {
+  run: () => A
+  constructor(run: () => A) {
+    this.run = run
+  }
+  chain<B>(f: (a: A) => IO<B>): IO<B> {
+    return new IO(() => f(this.run()).run())
+  }
+}
+\end{verbatim}
+
+\paragraph{Promise}
+
+\begin{verbatim}
+const monadPromise = {
+  of: <A>(a: A) => Promise.resolve(a),
+  chain: <A, B>(
+    f: (a: A) => Promise<B>,
+    fa: Promise<A>
+  ): Promise<B> => fa.then(f)
+}
+\end{verbatim}
+
+\paragraph{Task}
+
+\begin{verbatim}
+const of = <A>(a: A): Task<A> =>
+  new Task(() => Promise.resolve(a))
+
+class Task<A> {
+  run: () => Promise<A>
+  constructor(run: () => Promise<A>) {
+    this.run = run
+  }
+  chain<B>(f: (a: A) => Task<B>): Task<B> {
+    return new Task(() => this.run().then(a => f(a).run()))
+  }
+}
+\end{verbatim}
+
+\subsection{Derivazione di \texttt{map}}
+
+L'operazione \texttt{map} può essere derivata da \texttt{chain} e \texttt{of}
+
+\begin{verbatim}
+const map = <A, B>(f: (a: A) => B) => (
+  fa: Option<A>
+): Option<B> => fa.chain(a => of(f(a)))
+\end{verbatim}
+
+\subsection{Derivazione di \texttt{ap}}
+
+L'operazione \texttt{ap} può essere derivata da \texttt{chain} e \texttt{map}
+
+\begin{verbatim}
+
+const ap = <A, B>(fab: Option<(a: A) => B>) => (
+  fa: Option<A>
+): Option<B> => fab.chain(f => fa.map(f))
+\end{verbatim}
+
+\subsection{Esecuzione parallela e sequenziale}
+
+\begin{verbatim}
+// par-seq.ts
+
+const liftA2 = <A, B, C>(
+  f: (a: A) => (b: B) => C
+): ((
+  fa: Task<A>
+) => (fb: Task<B>) => Task<C>) => fa => fb =>
+  fb.ap(fa.map(f))
+
+const sumTasks = liftA2(
+  (a: number) => (b: number): number => a + b
+)
+
+const delay = (n: number) => <A>(a: A): Task<A> =>
+  new Task(
+    () =>
+      new Promise(resolve => {
+        setTimeout(() => resolve(a), n)
+      })
+  )
+
+const oneSec = delay(1000)
+
+sumTasks(oneSec(1))(oneSec(3))
+  .run()
+  .then(x => console.log(x))
+\end{verbatim}
+
+Eseguendo il codice mostrando il tempo di esecuzione otteniamo
+\footnote{\texttt{ts-node} è un wrapper di \texttt{node} in grado di eseguire codice TypeScript}
+
+\begin{verbatim}
+$ time ts-node par-seq.ts
+
+3
+
+real    0m1.383s
+user    0m0.327s
+sys     0m0.058s
+\end{verbatim}
+
+Il che dimostra che le computazioni asincrone vengono eseguite in parallelo.
+
+Se però come implementazione di \texttt{ap} per \texttt{Task} scegliamo quella derivata da \texttt{chain} otteniamo
+
+\begin{verbatim}
+$ time ts-node par-seq.ts
+
+3
+
+real    0m2.402s
+user    0m0.342s
+sys     0m0.063s
+\end{verbatim}
+
+Che cosa è successo? La spiegazione è che l'implementazione di \texttt{ap} derivata da \texttt{chain} è sempre \textbf{sequenziale}.
+
+\subsection{Trasparenza referenziale}
+
+\begin{verbatim}
+const readFile = (filename: string): IO<string> =>
+  new IO(() => fs.readFileSync(filename, 'utf-8'))
+
+const writeFile = (
+  filename: string,
+  data: string
+): IO<void> =>
+  new IO(() =>
+    fs.writeFileSync(filename, data, { encoding: 'utf-8' })
+  )
+
+const log = (message: string): IO<void> =>
+  new IO(() => console.log(message))
+
+const program1 = readFile('file.txt')
+  .chain(log)
+  .chain(() => writeFile('file.txt', 'hello'))
+  .chain(() => readFile('file.txt'))
+  .chain(log)
+\end{verbatim}
+
+L'azione \texttt{readFile('file.txt')} è ripetuta due volte ma dato che vale la trasparenza referenziale possiamo catturare l'azione in una costante
+
+\begin{verbatim}
+const read = readFile('file.txt').chain(log)
+
+const program2 = read
+  .chain(() => writeFile('file.txt', 'foo'))
+  .chain(() => read)
+\end{verbatim}
+
+Possiamo anche definire un combinator e sfruttarlo per rendere più compatto il codice
+
+\begin{verbatim}
+const aba = <A, B>(a: IO<A>, b: IO<B>): IO<A> =>
+  a.chain(() => b).chain(() => a)
+
+const program3 = aba(read, writeFile('file.txt', 'foo'))
+\end{verbatim}
+
+\begin{boxed}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{router.ts}
+\texttt{game.ts}
+\end{center}
+\end{boxed}
+
+\subsection{Come gestire lo stato in modo funzionale: la monade \texttt{State}}
+
+Se sono bandite le mutazioni, come è possibile gestire lo stato?
+Cambiare lo stato in modo compatibile alla programmazione funzionale vuol dire restituirne una nuova copia modificata.
+
+Il modello che descrive nel modo più generale un cambiamento di stato è quello definito dalla seguente firma
+
+\begin{verbatim}
+(s: S) => [A, S]
+\end{verbatim}
+
+ove \texttt{S} è il tipo dello stato e \texttt{A} è il tipo del valore restituito dalla computazione.
+
+Definiamo una istanza di monade
+
+\begin{verbatim}
+class State<S, A> {
+  run: (s: S) => [A, S]
+  constructor(run: (s: S) => [A, S]) {
+    this.run = run
+  }
+  map<B>(f: (a: A) => B): State<S, B> {
+    return this.chain(a => of(f(a))) // <= derived
+  }
+  ap<B>(fab: State<S, (a: A) => B>): State<S, B> {
+    return fab.chain(f => this.map(f)) // <= derived
+  }
+  chain<B>(f: (a: A) => State<S, B>): State<S, B> {
+    return new State(s => {
+      const [a, s1] = this.run(s)
+      return f(a).run(s1)
+    })
+  }
+}
+
+const of = <S, A>(a: A): State<S, A> =>
+  new State(s => [a, s])
+\end{verbatim}
+
+Generalmente \texttt{State} si accompagna alle seguenti funzioni di utility
+
+\begin{verbatim}
+const get = <S>(): State<S, S> =>
+  new State(s => [s, s])
+
+const put = <S>(s: S): State<S, undefined> =>
+  new State(() => [undefined, s])
+
+const modify = <S>(
+  f: (s: S) => S
+): State<S, undefined> => new State(s => [undefined, f(s)])
+
+const gets = <S, A>(f: (s: S) => A): State<S, A> =>
+  new State(s => [f(s), s])
+\end{verbatim}
+
+\begin{itemize}
+  \item \texttt{get} legge lo stato corrente
+  \item \texttt{put} imposta lo stato corrente
+  \item \texttt{modify} modifica lo stato corrente
+  \item \texttt{gets} restituisce un valore in base allo stato corrente
+\end{itemize}
+
+Vediamo ora un semplice programma che gestisce un contatore
+
+\begin{verbatim}
+type S = number
+
+const increment = modify<S>(n => n + 1)
+
+const decrement = modify<S>(n => n - 1)
+
+const program = increment
+  .chain(() => increment)
+  .chain(() => increment)
+  .chain(() => decrement)
+
+console.log(program.run(0)) // [undefined, 2]
+\end{verbatim}
+
+Si noti che \texttt{increment} è un \emph{valore} che rappresenta un programma, che se eseguito
+modificherà lo stato incrementando il contatore.
+Essendo un valore è inerte fino a quando non viene eseguito (chiamando il metodo \texttt{run}).
+\texttt{program} è un programma ottenuto dalla combinazione di due sottoprogrammi (\texttt{increment} e \texttt{decrement}).
+E qui emerge il fatto che vale la trasparenza referenziale: si noti che vengono fatti tre incrementi
+ma \texttt{increment} è definito una volta sola.
+
+alla fine decido di eseguire il programma fornendo lo stato iniziale
+
+\begin{verbatim}
+console.log(program.run(0)) // [undefined, 2]
+\end{verbatim}
+
+naturalmente rappresentando \texttt{program} l'intero programma posso eseguirlo tutte le volte che voglio,
+anche cambiando lo stato iniziale
+
+\begin{verbatim}
+console.log(program.run(2)) // [undefined, 4]
+\end{verbatim}
+
+La monade \texttt{State} può anche essere utilizzata nei test quando occorrano dei mock stateful.
+
+\subsection{Dependency injection funzionale: la monade \texttt{Reader}}
+
+\begin{quote}
+Represents a computation which can read values from a shared environment, pass values from function to function
+and execute sub-computations in a modified environment
+\end{quote}
+
+Se leggere da uno stato mutabile può invalidare la trasparenza referenziale, come è possibile leggere da una configurazione globale?
+Ancora una volta la risposta è nelle funzioni, il modello che descrive nel modo più generale la lettura da una configurazione globale
+è quello definito dalla seguente firma
+
+\begin{verbatim}
+(e: E) => A
+\end{verbatim}
+
+ove \texttt{E} è il tipo della configurazione e \texttt{A} è il tipo del valore restituito dalla computazione.
+
+Definiamo una istanza di monade
+
+\begin{verbatim}
+class Reader<E, A> {
+  constructor(readonly run: (e: E) => A) {}
+  map<B>(f: (a: A) => B): Reader<E, B> {
+    return this.chain(a => of(f(a))) // <= derived
+  }
+  ap<B>(fab: Reader<E, (a: A) => B>): Reader<E, B> {
+    return fab.chain(f => this.map(f)) // <= derived
+  }
+  chain<B>(f: (a: A) => Reader<E, B>): Reader<E, B> {
+    return new Reader(e => f(this.run(e)).run(e))
+  }
+}
+
+const of = <E, A>(a: A): Reader<E, A> =>
+  new Reader(() => a)
+\end{verbatim}
+
+Generalmente \texttt{Reader} si accompagna alle seguenti funzioni di utility
+
+\begin{verbatim}
+const ask = <E>(): Reader<E, E> => new Reader(e => e)
+
+const asks = <E, A>(f: (e: E) => A): Reader<E, A> =>
+  new Reader(f)
+
+const local = <E>(f: (e: E) => E) => <A>(
+  fa: Reader<E, A>
+): Reader<E, A> => new Reader((e: E) => fa.run(f(e)))
+\end{verbatim}
+
+\begin{itemize}
+  \item \texttt{ask} legge il contesto corrente
+  \item \texttt{asks} restituisce un valore in base al contesto corrente
+  \item \texttt{local} cambia il valore del contesto durante l'esecuzione dell'azione
+\end{itemize}
+
+\begin{boxed}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{reader.ts}
+\end{center}
+\end{boxed}
+
+
+\subsection{Le monadi non compongono}
+
+In generale le monadi non compongono, ovvero date due istanze di monade per \texttt{M<A>} e \texttt{N<A>},
+alla struttura dati \texttt{M<N<A>>} non è detto che possa ancora essere associata una istanza di monade.
+
+Che non compongano in generale però non vuol dire che non esistano dei casi perticolari dove questo succede.
+
+Per esempio
+
+\begin{itemize}
+  \item se \texttt{M} ha una istanza di monade allora \texttt{M<Either<L, A>>} ha una istanza monade
+  \item se \texttt{M} ha una istanza di monade allora \texttt{Reader<E, M>} ha una istanza di monade
+\end{itemize}
+
+\newpage
+
+\section{Algebraic Data Types}
+
+Un \emph{Algebraic Data Type} (o ADT) è un tipo composto da product e/o sum types, anche innestati.
+
+\subsection{Product types}
+
+\begin{definition}
+Un product type è una collezione di tipi $A_i$ indicizzati da un insieme $I$.
+\end{definition}
+
+Un product type è isomorfo\footnote{Due insiemi $A$ e $B$ sono isomorfi se esiste una funzione $f: A \rightarrow B$ iniettiva e suriettiva,
+ovvero se esiste una funzione $f^{-1}: B \rightarrow A$, detta \emph{funzione inversa} di $f$, tale che $f \circ f^{-1} = identity$}
+al prodotto cartesiano $\prod_i A_i$.
+
+Esponenti notevoli di questa famiglia sono le $n$-tuple, ove $I$ è un intervallo non vuoto dei numeri naturali
+\footnote{$\{0\}$ per \texttt{Tuple1}, $\{0, 1\}$ per \texttt{Tuple2}, $\{0, 1, 2\}$ per \texttt{Tuple2}}
+
+\begin{verbatim}
+type Tuple1 = [string]
+type Tuple2 = [string, number]
+type Tuple3 = [string, number, boolean]
+\end{verbatim}
+
+e i record, ove $I$ è una collezione di label
+\footnote{$\{ "name", "age" \}$ per \texttt{Person}}
+
+\begin{verbatim}
+type Person = {
+  name: string,
+  age: number
+}
+\end{verbatim}
+
+\texttt{Tuple2} e \texttt{Person} sono isomorfi tra loro e al prodotto cartesiano $string \times number$.
+
+$$
+f: \texttt{Tuple2} \rightarrow \texttt{Person}
+$$
+
+$$
+f(\texttt{[name, age]}) = \texttt{\{ name, age  \}}
+$$
+
+$$
+f^{-1}: \texttt{Person} \rightarrow \texttt{Tuple2}
+$$
+
+$$
+f^{-1}(\texttt{\{ name, age  \}}) = \texttt{[name, age]}
+$$
+
+L'isomorfismo è evidente se si implementa \texttt{Person} con una classe
+
+\begin{verbatim}
+class Person {
+  name: string,
+  age: number
+  constructor(name: string, age: number) {
+    this.name = name
+    this.age = age
+  }
+}
+\end{verbatim}
+
+in cui \texttt{constructor} realizza la funzione $f$.
+
+Perchè si chiamano product types? Se indichiamo con $\|A\|$, detta \emph{cardinalità} o \emph{ordine} di $A$, il numero di elementi
+dell'insieme $A$ è facile convincersi che vale la seguente formula
+
+$$
+\|A \times B\| = \|A\| * \|B\|
+$$
+
+ovvero la cardinalità del prodotto cartesiano è il prodotto delle cadinalità.
+
+\begin{verbatim}
+type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
+type Period = 'AM' | 'PM'
+type Clock = [Hour, Period]
+\end{verbatim}
+
+Il tipo \texttt{Clock} ha $12 * 2 = 24$ abitanti.
+
+\subsection{Sum types}
+
+Così come i product types sono analoghi ai prodotti cartesiani di insiemi, i sum types sono analoghi alle unioni di insiemi disgiunti
+
+\begin{verbatim}
+type Action =
+  | { type: 'INCREMENT' }
+  | { type: 'DECREMENT' }
+\end{verbatim}
+
+Product types e sum types possono essere mischiati
+
+\begin{verbatim}
+type Action =
+  | { type: 'ADD_TODO', text: string }
+  | { type: 'UPDATE_TODO', id: number, text: string, completed: boolean }
+  | { type: 'DELETE_TODO', id: number }
+\end{verbatim}
+
+Il tipo \texttt{Array<A>} può essere interpretato come sum type
+
+\begin{verbatim}
+type Array<A> = [] | [A] | [A, A] | [A, A, A] | ...
+\end{verbatim}
+
+\begin{example}
+Linked lists\footnote{E' possibile definire una istanza di funtore per \texttt{List<A>}
+
+\begin{verbatim}
+const map = <A, B>(f: (a: A) => B) => (
+  fa: List<A>
+): List<B> => {
+  switch (fa.type) {
+    case 'Nil':
+      return { type: 'Nil' }
+    case 'Cons':
+      return {
+        type: 'Cons',
+        head: f(fa.head),
+        tail: map(f)(fa.tail)
+      }
+  }
+}
+\end{verbatim}
+}
+
+\begin{verbatim}
+type List<A> =
+  | { type: 'Nil' }
+  | { type: 'Cons', head: A, tail: List<A> }
+\end{verbatim}
+\end{example}
+
+\begin{example}
+Binary trees\footnote{E' possibile definire una istanza di funtore per \texttt{Tree<A>}
+
+\begin{verbatim}
+const map = <A, B>(f: (a: A) => B) => (
+  fa: Tree<A>
+): Tree<B> => {
+  switch (fa.type) {
+    case 'Empty':
+      return { type: 'Empty' }
+    case 'Node':
+      return {
+        type: 'Node',
+        left: map(f)(fa.left),
+        value: f(fa.value),
+        right: map(f)(fa.right)
+      }
+  }
+}
+\end{verbatim}
+}
+
+\begin{verbatim}
+type Tree<A> =
+  | { type: 'Empty' }
+  | {
+      type: 'Node'
+      left: Tree<A>
+      value: A
+      right: Tree<A>
+    }
+\end{verbatim}
+\end{example}
+
+Perchè si chiamano sum types? E' facile convincersi che la cadinalità di un sum type è la somma delle cardinalità dei suoi membri
+
+$$
+\|A | B\| = \|A\| + \|B\|
+$$
+
+Il tipo \texttt{Option<boolean>} ha $1 + 2 = 3$ abitanti.
+
+\section{Make impossible states irrepresentable}
+
+Vediamo un'altra tecnica per ottenere type safety, questa volta addirittura per costruzione.
+
+Sappiamo che la funzione \texttt{head} è pariziale
+
+\begin{verbatim}
+const head = <A>(xs: Array<A>): A => xs[0]
+\end{verbatim}
+
+e che per renderla totale occorre modificare il codominio
+
+\begin{verbatim}
+const head = <A>(xs: Array<A>): Option<A> =>
+  xs.length > 0 ? new Some(xs[0]) : new None()
+\end{verbatim}
+
+Tuttavia questo ci obbliga ad usare \texttt{Option}.
+
+Un'altra opzione è quella di cambiare il dominio invece che estendere il codominio
+
+\subsection{Il tipo \texttt{NonEmptyArray}}
+
+\begin{verbatim}
+class NonEmptyArray<A> {
+  constructor(readonly head: A, readonly tail: Array<A>) {}
+}
+
+const head = <A>(fa: NonEmptyArray<A>): A => fa.head
+\end{verbatim}
+
+\subsection{Il tipo \texttt{Zipper}}
+
+Supponiamo di dover modellare la seguente struttura dati
+
+\begin{quote}
+una lista non vuota di elementi di cui uno è considerato la selezione corrente
+\end{quote}
+
+Un modello semplice potrebbe essere questo
+
+\begin{verbatim}
+type Selection<A> = {
+  items: Array<A>
+  current: number
+}
+\end{verbatim}
+
+Tuttavia questo modello ha diversi difetti
+
+\begin{itemize}
+  \item la lista può essere vuota
+  \item l'indice può essere out of range
+\end{itemize}
+
+Uno \texttt{Zipper} invece è un modello perfetto e type safe per il problema
+
+\begin{verbatim}
+type Zipper<A> = {
+  prev: Array<A>
+  current: A
+  next: Array<A>
+}
+\end{verbatim}
+
+\section{Ottica funzionale}
+
+\subsection{Perchè è utile?}
+
+Si consideri il problema di modificare delle strutture dati immutabili.
+Per capire la ragione per cui potremmo voler utilizzare l'ottica funzionale vediamo un semplice esempio, definiamo due record
+
+\begin{verbatim}
+type Street = {
+  num: number
+  name: string
+}
+type Address = {
+  city: string
+  street: Street
+}
+\end{verbatim}
+
+Data una istanza di \texttt{Address}, ricavare il nome della strada è semplice
+
+\begin{verbatim}
+const a1: Address = {
+  city: 'london',
+  street: { num: 23, name: 'high street' }
+}
+const name = a1.street.name
+\end{verbatim}
+
+Tuttavia modificarne il valore non lo è
+
+\begin{verbatim}
+const a2: Address = {
+  ...a1,
+  street: {
+    ...a1.street,
+    name: 'main street'
+  }
+}
+\end{verbatim}
+
+\subsection{Iso}
+
+Il tipo \texttt{Iso<S, A>} rappresenta un isomorfismo tra \texttt{S} e \texttt{A}
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  S \ar@/_0.5cm/[r]_{\texttt{get}} & A \ar@/_0.5cm/[l]_{\texttt{reverseGet}}
+}
+\]
+
+\begin{verbatim}
+class Iso<S, A> {
+  constructor(
+    readonly get: (s: S) => A,
+    readonly reverseGet: (a: A) => S
+  ) {}
+}
+\end{verbatim}
+
+Devono valere le seguenti leggi
+
+\begin{itemize}
+  \item \texttt{get $\circ$ reverseGet = identity}
+  \item \texttt{reversetGet $\circ$ get = identity}
+\end{itemize}
+
+\begin{example}
+
+Convertire metri in chilometri e chilometri in miglia
+
+\begin{verbatim}
+const mTokm = new Iso<number, number>(
+  m => m / 1000,
+  km => km * 1000
+)
+const kmToMile = new Iso<number, number>(
+  km => km * 0.621371,
+  mile => mile / 0.621371
+)
+\end{verbatim}
+\end{example}
+
+E' possibile effettuare il lifting di un endomorfismo\footnote{Un \emph{endomorfismo} di un insieme $A$ è una funzione $f: A \rightarrow A$}
+di \texttt{A} ad un endomorfismo di \texttt{S} tramite la funzione \texttt{modify}.
+
+Inoltre gli \texttt{Iso} compongono
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  S \ar@/_0.5cm/[r]_{\texttt{get}} & A \ar@/_0.5cm/[l]_{\texttt{reverseGet}} \ar@/_0.5cm/[r]_{\texttt{get}} & B \ar@/_0.5cm/[l]_{\texttt{reverseGet}}
+}
+\]
+
+\begin{verbatim}
+class Iso<S, A> {
+  constructor(
+    readonly get: (s: S) => A,
+    readonly reverseGet: (a: A) => S
+  ) {}
+  modify(f: (a: A) => A): (s: S) => S {
+    return s => this.reverseGet(f(this.get(s)))
+  }
+  compose<B>(ab: Iso<A, B>): Iso<S, B> {
+    return new Iso(
+      s => ab.get(this.get(s)),
+      b => this.reverseGet(ab.reverseGet(b))
+    )
+  }
+}
+\end{verbatim}
+
+Usando la composizione si ottiene facilmente un isomorfismo tra metri e miglia
+
+\begin{verbatim}
+const mToMile = mTokm.compose(kmToMile)
+\end{verbatim}
+
+\subsection{Lens}
+
+Il tipo \texttt{Lens} è la reificazione dell'operazione di focalizzazione su una parte di un product type.
+
+Data una lente ci sono essenzialmente tre cose che si possono fare
+
+\begin{itemize}
+  \item vedere la parte
+  \item modificare l'intero cambiando la parte
+  \item combinare due lenti per guardare ancora più in profondità
+\end{itemize}
+
+Una lente non è altro che una coppia di funzioni, un getter e un setter. Il tipo \texttt{S} rappresenta l'intero \texttt{A} la parte
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  {S \rightarrow S} \\
+  S \ar[r]_{\texttt{get}} & A \ar[lu]_{\texttt{set}}
+}
+\]
+
+\begin{verbatim}
+class Lens<S, A> {
+  constructor(
+    readonly get: (s: S) => A,
+    readonly set: (a: A) => (s: S) => S
+  ) {}
+}
+\end{verbatim}
+
+Definiamo una lente per il tipo \texttt{Address} con focus sul campo \texttt{street}
+
+\begin{verbatim}
+const address = new Lens<Address, Street>(
+  s => s.street,
+  a => s => ({ ...s, street: a })
+)
+
+address.get(a1)
+// { num: 23, name: "high street" }
+
+address.set({ num: 23, name: 'main street' })(a1)
+// { city: "london", street: { num: 23, name: "main street" } }
+\end{verbatim}
+
+Ora definiamo una lente per il tipo \texttt{Street} con focus sul campo \texttt{name}
+
+\begin{verbatim}
+const street = new Lens<Street, string>(
+  s => s.name,
+  a => s => ({ ...s, name: a })
+)
+\end{verbatim}
+
+C'è un modo per ottenere una lente per il tipo \texttt{Address} con focus sul campo innestato \texttt{name}?
+
+Le lenti, così come gli \texttt{Iso}, compongono
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  {S \rightarrow S} & {A \rightarrow A} \\
+  S \ar[r]_{\texttt{get}} & A \ar[lu]_{\texttt{set}} \ar[r]_{\texttt{get}} & B \ar[lu]_{\texttt{set}}
+}
+\]
+
+\begin{verbatim}
+class Lens<S, A> {
+  constructor(
+    readonly get: (s: S) => A,
+    readonly set: (a: A) => (s: S) => S
+  ) {}
+  compose<B>(ab: Lens<A, B>): Lens<S, B> {
+    return new Lens(
+      s => ab.get(this.get(s)),
+      b => s => this.set(ab.set(b)(this.get(s)))(s)
+    )
+  }
+}
+\end{verbatim}
+
+Ora gestire il campo \texttt{name} risulta banale
+
+\begin{verbatim}
+const name = address.compose(street)
+
+name.get(a1)
+// "high street"
+
+name.set('main street')(a1)
+// { city: "london", street: { num: 23, name: "main street" } }
+\end{verbatim}
+
+Come per gli \texttt{Iso} è possibile definire una funzione \texttt{modify} per le lenti.
+
+Per esempio supponiamo di volere il nome della via tutto in maiuscolo
+
+\begin{verbatim}
+class Lens<S, A> {
+  constructor(
+    readonly get: (s: S) => A,
+    readonly set: (a: A) => (s: S) => S
+  ) {}
+  compose<B>(ab: Lens<A, B>): Lens<S, B> {
+    return new Lens(
+      s => ab.get(this.get(s)),
+      b => s => this.set(ab.set(b)(this.get(s)))(s)
+    )
+  }
+  modify(f: (a: A) => A): (s: S) => S {
+    return s => this.set(f(this.get(s)))(s)
+  }
+}
+
+const toUpperCase = (s: string): string => s.toUpperCase()
+
+name.modify(toUpperCase)(a1)
+// { city: 'london', street: { num: 23, name: 'HIGH STREET' } }
+\end{verbatim}
+
+\subsection{Prism}
+
+Il tipo \texttt{Prism} è in qualche modo il duale di \texttt{Lens}, ovvero è la reificazione dell'operazione di focalizzazione
+su una parte di un sum type.
+
+\begin{verbatim}
+class Prism<S, A> {
+  constructor(
+    readonly getOption: (s: S) => Option<A>,
+    readonly reverseGet: (a: A) => S
+  ) {}
+}
+\end{verbatim}
+
+Il tipo \texttt{S} rappresenta l'intera unione mentre \texttt{A} un suo membro.
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  & A \ar[dl]_{\texttt{reverseGet}} \\
+  S \ar[r]_{\texttt{getOption}} & {Option(A)}
+}
+\]
+
+\begin{example}
+Convertire un valore di tipo $A | null$ in un valore di tipo $Option(A)$
+
+\begin{verbatim}
+const fromNullable = new Prism<
+  string | null,
+  string
+>(s => (s === null ? new None() : new Some(s)), a => a)
+\end{verbatim}
+
+\end{example}
+
+Un altro esempio tipico di prisma è una coppia di parser / formatter
+
+\begin{verbatim}
+const number = new Prism<string, number>(
+  s => {
+    const n = parseFloat(s)
+    return isNaN(n) ? new None() : new Some(n)
+  },
+  a => String(a)
+)
+\end{verbatim}
+
+Un altro prisma, questa volta tra numeri e interi
+
+\begin{verbatim}
+const integer = new Prism<number, number>(
+  s => (s % 1 === 0 ? new Some(s) : new None()),
+  a => a
+)
+\end{verbatim}
+
+Anche i prismi compongono
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  & & B \ar[dl]_{\texttt{reverseGet}} \\
+  & A \ar[dl]_{\texttt{reverseGet}} \ar[r]_{\texttt{getOption}} & {Option(B)} \\
+  S \ar[r]_{\texttt{getOption}} & {Option(A)}
+}
+\]
+
+\begin{verbatim}
+class Prism<S, A> {
+  constructor(
+    readonly getOption: (s: S) => Option<A>,
+    readonly reverseGet: (a: A) => S
+  ) {}
+  compose<B>(ab: Prism<A, B>): Prism<S, B> {
+    return new Prism(
+      s => this.getOption(s).chain(a => ab.getOption(a)),
+      b => this.reverseGet(ab.reverseGet(b))
+    )
+  }
+}
+\end{verbatim}
+
+Posso perciò facilmente ottenere un prisma tra una stringa e un intero
+
+\begin{verbatim}
+const integerFromString = number.compose(integer)
+\end{verbatim}
+
+Anche per i prismi è possibile definire una funzione \texttt{modify}
+
+\begin{verbatim}
+class Prism<S, A> {
+  constructor(
+    readonly getOption: (s: S) => Option<A>,
+    readonly reverseGet: (a: A) => S
+  ) {}
+  compose<B>(ab: Prism<A, B>): Prism<S, B> {
+    return new Prism(
+      s => this.getOption(s).chain(a => ab.getOption(a)),
+      b => this.reverseGet(ab.reverseGet(b))
+    )
+  }
+  modify(f: (a: A) => A): (s: S) => S {
+    return s =>
+      this.getOption(s)
+        .map(a => this.reverseGet(f(a)))
+        .fold(() => s, s => s)
+  }
+}
+\end{verbatim}
+
+\subsection{Optional}
+
+\section{Foldable}
+
+\texttt{Foldable} rappresenta una struttura che può essere ridotta tramite la seguente operazione (sinonimo di \texttt{foldl})
+
+\begin{verbatim}
+reduce: <A, B>(f: (b: B, a: A) => B, b: B, fa: F<A>) => B
+\end{verbatim}
+
+Definizioni equivalenti\footnote{ovvero ogni operazione può essere derivata da una qualsiasi delle altre} di \texttt{Foldable} coinvolgono l'operazione
+
+\begin{verbatim}
+foldr: <A, B>(f: (a: A) => (b: B) => B) => (b: B) => (fa: F<A>) => B
+\end{verbatim}
+
+oppure l'operazione
+
+\begin{verbatim}
+foldMap: <M>(M: Monoid<M>) => <A>(f: (a: A) => M) => (fa: F<A>) => M
+\end{verbatim}
+
+Un altro modo di afferrare il concetto di \texttt{Foldable} è che una struttura che ammette una sua istanza
+è in grado di essere rappresentata sotto forma di array.
+
+\paragraph{Esercizio.} \texttt{Option<A>} ammette una istanza di \texttt{Foldable}, qual'è la sua rappresentazione come array?
+
+\texttt{Foldable} e \texttt{Functor} sono indipendenti, ovvero esistono strutture che ammettono una istanza di \texttt{Foldable} ma non una di
+\texttt{Functor} e viceversa. Per esempio \texttt{Set<A>} ammette una istanza di \texttt{Foldable} ma non di \texttt{Functor},
+mentre \texttt{Task<A>} ammette una istanza di \texttt{Functor} ma non di \texttt{Foldable}.
+
+\section{Diagramma delle type class}
+
+\[
+\xymatrix{
+  Semigroup & Monoid \ar[l] \\
+  Setoid & Ord \ar[l] \\
+  Contravariant \\
+  & Alt \ar[ldd] & Plus \ar[l] & Alternative \ar[l] \ar[ld] \\
+  & Apply \ar[ld] & Applicative \ar[l] & Monad \ar[l] \ar[ld] \\
+  Functor & Bifunctor \ar[l] & Chain \ar[lu] & ChainRec \ar[l] \\
+  & Extend \ar[lu] & Comonad \ar[l] \\
+  & Profunctor \ar[luu] \\
+  Foldable & Traversable \ar[l] \\
+  Semigroupoid & Category \ar[l] \\
+}
+\]
+
+
+\end{document}
