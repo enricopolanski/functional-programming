@@ -528,6 +528,16 @@ inverse(4)
 \texttt{Option} mi permette di concentrarmi solo sul \emph{path di successo} in una serie di computazioni che possono fallire
 \end{boxed}
 
+Per questioni di interoperabilità con codice che non usa \texttt{Option} possiamo definire una utile funzione
+
+\begin{verbatim}
+const fromNullable = <A>(
+  a: A | null | undefined
+): Option<A> => {
+  return a == null ? new None() : new Some(a)
+}
+\end{verbatim}
+
 \subsubsection{Branching tramite la funzione \texttt{fold}}
 
 Prima o poi dovrò affrontare il problema di stabilire cosa fare sia nel caso di successo che di fallimento.
@@ -965,7 +975,82 @@ map<A, B>      (f: (a: A) => B, fa: F<A>) => F<B>
 contramap<A, B>(f: (b: B) => A, fa: F<A>) => F<B>
 \end{verbatim}
 
-Vediamo un esempio notevole di funtore controvariante: le componenti di \texttt{React}.
+Un esempio standard di tipo che ammette una istanza di funtore controvariante è
+
+\begin{verbatim}
+(a: A) => B
+\end{verbatim}
+
+con \texttt{B} fissato.
+
+Fanno parte di questa famiglia
+
+\begin{itemize}
+  \item i predicati \texttt{(a: A) => boolean}
+  \item le relazioni di equivalenza \texttt{(x: A) => (y: A) => boolean}
+  \item le funzioni di ordinamento \texttt{(x: A) => (y: A) => number}
+  \item i serializzatori, ad esempio \texttt{(a: A) => string}
+\end{itemize}
+
+Vediamo un esempio con le funzioni di ordinamento
+
+\begin{verbatim}
+type Ordering = -1 | 0 | 1
+
+type Comparison<A> = (x: A, y: A) => Ordering
+
+const contramap = <A, B>(
+  f: (b: B) => A,
+  fa: Comparison<A>
+): Comparison<B> => (x, y) => fa(f(x), f(y))
+
+const comparisonString: Comparison<string> = (x, y) =>
+  x < y ? -1 : x > y ? 1 : 0
+
+const comparisonNumber: Comparison<number> = (x, y) =>
+  x < y ? -1 : x > y ? 1 : 0
+
+interface Person {
+  name: string
+  age: number
+}
+
+const byName: Comparison<Person> = contramap(
+  p => p.name,
+  comparisonString
+)
+
+const byAge: Comparison<Person> = contramap(
+  p => p.age,
+  comparisonNumber
+)
+
+const sort = <A>(
+  as: Array<A>,
+  c: Comparison<A>
+): Array<A> => as.slice().sort(c)
+
+const persons: Array<Person> = [
+  { name: 'A', age: 43 },
+  { name: 'C', age: 26 },
+  { name: 'B', age: 40 }
+]
+
+console.log(sort(persons, byName))
+/*
+[ { name: 'A', age: 43 },
+  { name: 'B', age: 40 },
+  { name: 'C', age: 26 } ]
+*/
+console.log(sort(persons, byAge))
+/*
+[ { name: 'C', age: 26 },
+  { name: 'B', age: 40 },
+  { name: 'A', age: 43 } ]
+*/
+\end{verbatim}
+
+Vediamo un altro esempio notevole di funtore controvariante: le componenti di \texttt{React}.
 
 \paragraph{Component.}
 
@@ -997,7 +1082,7 @@ type Person = {
 }
 
 const DisplayPerson: Component<Person> = contramap(
-  b => ({ fullName: $${b.name} ${b.surname}$ }),
+  b => ({ fullName: `${b.name} ${b.surname}` }),
   DisplayFullName
 )
 
@@ -2051,12 +2136,12 @@ class Task<A> {
 
 \section{Monadi}
 
-\subsection{Come si gestiscono i side effect?}
+\subsection{Come si gestiscono gli effetti?}
 
 A parte alcune tipologie di programmi come i compilatori o come \texttt{prettier}, che possono essere pensati come funzioni pure (\texttt{string -> string}),
-quasi tutti i programmi che scriviamo comportano dei side effect.
+quasi tutti i programmi che scriviamo comportano degli effetti.
 
-Occorre perciò modellare un programma che induce side effect con una funzione pura. Ci sono due modi per farlo
+Occorre perciò modellare un programma che produce effetti con una funzione pura. Ci sono due modi per farlo
 
 \begin{enumerate}
   \item definire un DSL per gli effetti
@@ -2067,12 +2152,12 @@ Occorre perciò modellare un programma che induce side effect con una funzione p
 
 \begin{verbatim}
 const sum = (a: number, b: number): number => {
-  console.log(a, b) // side effect
+  console.log(a, b) // effetto
   return a + b
 }
 \end{verbatim}
 
-viene modellato con una funzione pura modificando il codominio e restituendo una descrizione del side effect
+viene modellato con una funzione pura modificando il codominio e restituendo una descrizione dell'effetto
 
 \begin{verbatim}
 const sum = (a: number, b: number): [number, string] => [
@@ -2093,8 +2178,8 @@ const sum = (a: number, b: number): IO<number> =>
   })
 \end{verbatim}
 
-Il programma, quando viene eseguito, non provoca immediatamente il side effect ma restituisce un valore che rappresenta la computazione
-(detta anche \emph{azione}).
+Il programma \texttt{sum}, quando viene eseguito, non provoca immediatamente l'effetto ma restituisce un valore che rappresenta
+la computazione (detta anche \emph{azione}).
 
 Vediamo un altro esempio, leggere e scrivere sul \texttt{localStorage}
 
@@ -2848,13 +2933,24 @@ const local = <E>(f: (e: E) => E) => <A>(
 In generale le monadi non compongono, ovvero date due istanze di monade per \texttt{M<A>} e \texttt{N<A>},
 alla struttura dati \texttt{M<N<A>>} non è detto che possa ancora essere associata una istanza di monade.
 
-Che non compongano in generale però non vuol dire che non esistano dei casi perticolari dove questo succede.
+Che non compongano in generale però non vuol dire che non esistano dei casi particolari ove questo succede.
 
-Per esempio
+Vediamo qualche esempio, se \texttt{M} ha una istanza di monade allora ammettono una istanza di monade i seguenti tipi
 
 \begin{itemize}
-  \item se \texttt{M} ha una istanza di monade allora \texttt{M<Either<L, A>>} ha una istanza monade
-  \item se \texttt{M} ha una istanza di monade allora \texttt{Reader<E, M>} ha una istanza di monade
+  \item \texttt{OptionT<M, A> = M<Option<A>>}
+  \item \texttt{EitherT<M, L, A> = M<Either<L, A>>}
+  \item \texttt{StateT<M, S, A> = (s: S) => M<[A, S]>}
+  \item \texttt{ReaderT<M, E, A> = Reader<E, M<A>>}
+\end{itemize}
+
+Notate come questi tipi collassino quando la monade \texttt{M} è la monade \texttt{Identity}
+
+\begin{itemize}
+  \item \texttt{Option<A> = OptionT<Identity, A>}
+  \item \texttt{Either<L, A> = EitherT<Identity, L, A>}
+  \item \texttt{State = StateT<Identity, S, A>}
+  \item \texttt{Reader<E, A> = ReaderT<Identity, E, A>}
 \end{itemize}
 
 \newpage
@@ -3041,7 +3137,7 @@ Il tipo \texttt{Option<boolean>} ha $1 + 2 = 3$ abitanti.
 
 Vediamo un'altra tecnica per ottenere type safety, questa volta addirittura per costruzione.
 
-Sappiamo che la funzione \texttt{head} è pariziale
+Sappiamo che la funzione \texttt{head} è parziale
 
 \begin{verbatim}
 const head = <A>(xs: Array<A>): A => xs[0]
