@@ -807,18 +807,18 @@ Come ogni categoria, la categoria $\mathcal{JS}$ è composta da oggetti e morfis
 
 Inoltre l'operazione di composizione $\circ$ è l'usuale composizione di funzioni.
 
-\paragraph{Endofuntori in $\mathcal{JS}$}
+\subsubsection{Endofuntori in $\mathcal{JS}$}
 
 Definire un (endo)funtore $F$ nella categoria $\mathcal{JS}$ significa due cose:
 
-\begin{enumerate}
+\begin{itemize}
   \item per ogni tipo $A$ stabilire a quale tipo corrisponde $F(A)$
   \item per ogni funzione $f: A \rightarrow B$ stabilire a quale funzione corrisponde $F(f)$
-\end{enumerate}
+\end{itemize}
 
 Perciò un funtore è una coppia $F = (\texttt{F<X>}, \texttt{lift})$ ove
 
-\begin{enumerate}
+\begin{itemize}
   \item \texttt{F<X>} è un \emph{type constructor}\footnote{
     \begin{itemize}
       \item \texttt{number} è un $0$-type constructor (kind $*$)
@@ -827,63 +827,45 @@ Perciò un funtore è una coppia $F = (\texttt{F<X>}, \texttt{lift})$ ove
     \end{itemize}
   }, ovvero una procedura che, dato un qualunque tipo \texttt{X} produce un tipo \texttt{F<X>}
   \item \texttt{lift} è una funzione con la seguente firma\footnote{Si noti che la sintassi usata non è valida né in TypeScript né in Flow dato che non supportano gli Higher Kinded Types}
-\end{enumerate}
+\end{itemize}
 
 \begin{verbatim}
-lift: <A, B>(f: (a: A) => B) => (fa: F<A>) => F<B>
+lift<A, B>(f: (a: A) => B): ((fa: F<A>) => F<B>)
 \end{verbatim}
 
 La funzione \texttt{lift} è meglio conosciuta nella sua forma equivalente \texttt{map}.
 
 \begin{verbatim}
-map: <A, B>(f: (a: A) => B, fa: F<A>) => F<B>
+map<A, B>(f: (a: A) => B, fa: F<A>): F<B>
 \end{verbatim}
 
-Infine abbiamo già visto un paio di implementazioni (per \texttt{Option} e \texttt{Either}) in cui l'argomento \texttt{fa} è implicito,
-ottenendo la più semplice forma
+Infine abbiamo già visto un paio di implementazioni (per \texttt{Option} e \texttt{Either})
+in cui l'argomento \texttt{fa} è implicito (\texttt{this})
 
 \begin{verbatim}
-map: <A, B>(f: (a: A) => B) => F<B>
-\end{verbatim}
-
-Riporto qui il codice per comodità di esposizione
-
-\begin{verbatim}
-type Option<A> = Some<A> | None<A>
-
 class Some<A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  ...
   map<B>(f: (a: A) => B): Option<B> {
     return new Some(f(this.value))
   }
 }
 
 class None<A> {
+  ...
   map<B>(f: (a: A) => B): Option<B> {
     return new None()
   }
 }
 
-type Either<L, A> = Left<L, A> | Right<L, A>
-
 class Left<L, A> {
-  value: L
-  constructor(value: L) {
-    this.value = value
-  }
+  ...
   map<B>(f: (a: A) => B): Either<L, B> {
     return new Left(this.value)
   }
 }
 
 class Right<L, A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  ...
   map<B>(f: (a: A) => B): Either<L, B> {
     return new Right(f(this.value))
   }
@@ -916,7 +898,7 @@ Manda un tipo \texttt{A} nel tipo della lista di elementi di tipo \texttt{A}
 
 \begin{verbatim}
 const functorArray = {
-  map: <A, B>(f: (a: A) => B) => (fa: Array<A>): Array<B> =>
+  map: <A, B>(f: (a: A) => B, fa: Array<A>): Array<B> =>
     fa.map(f)
 }
 \end{verbatim}
@@ -969,27 +951,19 @@ class Task<A> {
 
 \begin{verbatim}
 // Funtori covarianti
-map<A, B>      (f: (a: A) => B, fa: F<A>) => F<B>
+map<A, B>      (f: (a: A) => B, fa: F<A>): F<B>
 
 // Funtori controvarianti
-contramap<A, B>(f: (b: B) => A, fa: F<A>) => F<B>
+contramap<A, B>(f: (b: B) => A, fa: F<A>): F<B>
 \end{verbatim}
 
-Un esempio standard di tipo che ammette una istanza di funtore controvariante è
-
-\begin{verbatim}
-(a: A) => B
-\end{verbatim}
-
-con \texttt{B} fissato.
-
-Fanno parte di questa famiglia
+Come esempi di tipi che ammettono istanze di funtore controvariante consideriamo
 
 \begin{itemize}
-  \item i predicati \texttt{(a: A) => boolean}
-  \item le relazioni di equivalenza \texttt{(x: A) => (y: A) => boolean}
-  \item le funzioni di ordinamento \texttt{(x: A) => (y: A) => number}
-  \item i serializzatori, ad esempio \texttt{(a: A) => string}
+  \item i predicati\footnote{\texttt{type Predicate<A> = (a: A) => boolean}}
+  \item le relazioni di equivalenza\footnote{\texttt{type Equivalence<A> = (x: A, y: A) => boolean}}
+  \item le funzioni di ordinamento\footnote{\texttt{type Comparison<A> = (x: A, y: A) => -1 | 0 | 1}}
+  \item i serializzatori\footnote{ad esempio \texttt{type Encoder<A> = (a: A) => string}}
 \end{itemize}
 
 Vediamo un esempio con le funzioni di ordinamento
@@ -1094,7 +1068,9 @@ ReactDOM.render(
 
 \subsection{Composizione di funtori}
 
-Siano $F: \mathcal{D} \rightarrow \mathcal{E}$ e $G: \mathcal{C} \rightarrow \mathcal{D}$ due funtori,
+I funtori compongono e la \texttt{map} della composizione è la composizione delle \texttt{map}.
+
+Formalmente, siano $F: \mathcal{D} \rightarrow \mathcal{E}$ e $G: \mathcal{C} \rightarrow \mathcal{D}$ due funtori,
 allora possiamo costruire il funtore composizione $F(G): \mathcal{C} \rightarrow \mathcal{E}$
 
 \[
@@ -1102,17 +1078,12 @@ allora possiamo costruire il funtore composizione $F(G): \mathcal{C} \rightarrow
 \xymatrixcolsep{3cm}
 \xymatrix{
   F(G(A)) \ar[r]^{F(G(g))} \ar[r] & F(G(B)) \ar[r]^{F(G(f))} & F(G(C)) & \mathcal{E} \\
-  F(A) \ar[u]^G \ar[r]^{F(g)} \ar[r] & F(B) \ar[u]^G \ar[r]^{F(f)} & F(C) \ar[u]^G & \mathcal{D} \\
+  G(A) \ar[u]^G \ar[r]^{G(g)} \ar[r] & G(B) \ar[u]^G \ar[r]^{G(f)} & G(C) \ar[u]^G & \mathcal{D} \\
   A \ar[u]^F \ar[r]_g & B \ar[u]^F \ar[r]_f & C \ar[u]^F & \mathcal{C}
 }
 \]
 
-\begin{boxed}
-La \texttt{map} della composizione è la composizione delle \texttt{map}
-\end{boxed}
-
-\begin{example}
-Un array di \texttt{Option}
+Come esempio implementiamo una istanza di funtore per gli array di \texttt{Option}
 
 \begin{verbatim}
 class ArrayOption<A> {
@@ -1124,14 +1095,6 @@ class ArrayOption<A> {
     return new ArrayOption(this.value.map(o => o.map(f)))
   }
 }
-\end{verbatim}
-
-\end{example}
-
-\paragraph{Esercizio.} Definire una istanza di funtore per il tipo \texttt{Parser}
-
-\begin{verbatim}
-type Parser<A> = (input: string) => Option<[A, string]>
 \end{verbatim}
 
 \section{Un po' di algebra}
@@ -2069,11 +2032,11 @@ class Right<L, A> {
 \paragraph{Array}
 
 \begin{verbatim}
-const applicativeArray = {
-  map: <A, B>(f: (a: A) => B) => (fa: Array<A>): Array<B> =>
-    fa.map(f),
+export const applicativeArray = {
+  ...functorArray,
   of: <A>(a: A): Array<A> => [a],
-  ap: <A, B>(fab: Array<(a: A) => B>) => (
+  ap: <A, B>(
+    fab: Array<(a: A) => B>,
     fa: Array<A>
   ): Array<B> =>
     fab.reduce(
@@ -2133,6 +2096,29 @@ class Task<A> {
 \texttt{applicative.ts}
 \end{center}
 \end{boxed}
+
+\subsection{Composizione di funtori applicativi}
+
+I funtori applicativi compongono, ovvero dati due funtori applicativi \texttt{F} e \texttt{G},
+allora la composizione \texttt{F(G)} è ancora un funtore applicativo.
+
+\begin{verbatim}
+const of = <A>(a: A) =>
+  new ArrayOption(applicativeArray.of(new Some(a)))
+
+class ArrayOption<A> {
+  ...
+  ap<B>(fab: Array<Option<(a: A) => B>>): Array<Option<B>> {
+    return applicativeArray.ap(
+      applicativeArray.map(
+        h => (ga: Option<A>) => ga.ap(h),
+        fab
+      ),
+      this.value
+    )
+  }
+}
+\end{verbatim}
 
 \section{Monadi}
 
@@ -2575,8 +2561,9 @@ class Right<L, A> {
 
 \begin{verbatim}
 const monadArray = {
-  of: <A>(a: A): Array<A> => [a],
-  chain: <A, B>(f: (a: A) => Array<B>) => (
+  ...applicativeArray,
+  chain: <A, B>(
+    f: (a: A) => Array<B>,
     fa: Array<A>
   ): Array<B> =>
     fa.reduce((acc, a) => acc.concat(f(a)), [] as Array<B>)
@@ -2627,6 +2614,29 @@ class Task<A> {
   }
 }
 \end{verbatim}
+
+\subsection{\texttt{Task} vs \texttt{Promise}}
+
+\texttt{Task} è una astrazione simile a \texttt{Promise}, la differenza chiave è che \texttt{Task} rappresenta una computazione asincrona
+mentre \texttt{Promise} rappresenta solo un risultato (ottenuto in maniera asincrona).
+
+Se abbiamo un \texttt{Task}
+
+\begin{itemize}
+  \item possiamo far partire la computazione che rappresenta (per esempio una richiesta network)
+  \item possiamo scegliere di non far partire la computazione
+  \item possiamo farlo partire più di una volta (e potenzialmente ottenere risultati diversi)
+  \item mentre la computazione si sta svolgendo, possiamo notificagli che non siamo più interessati al risultato ela computazione può scegliere di terminarsi da sola
+  \item quando la computazione finisce otteniamo il risultato
+\end{itemize}
+
+Se abbiamo una \texttt{Promise}
+
+\begin{itemize}
+  \item la computazione si sta già svolgendo (o è addirittura già finita) e non abbiamo controllo su questo
+  \item quando è disponible otteniamo il risultato
+  \item due consumatori della stessa \texttt{Promise} ottengono lo stesso risultato
+\end{itemize}
 
 \subsection{Derivazione di \texttt{map}}
 
@@ -3200,7 +3210,7 @@ type Zipper<A> = {
 
 \section{Ottica funzionale}
 
-\subsection{Perchè è utile?}
+\subsection{A cosa serve?}
 
 Si consideri il problema di modificare delle strutture dati immutabili.
 Per capire la ragione per cui potremmo voler utilizzare l'ottica funzionale vediamo un semplice esempio, definiamo due record
@@ -3216,7 +3226,7 @@ type Address = {
 }
 \end{verbatim}
 
-Data una istanza di \texttt{Address}, ricavare il nome della strada è semplice
+Data una istanza di \texttt{Address}, ricavare il nome della strada è immediato
 
 \begin{verbatim}
 const a1: Address = {
@@ -3226,7 +3236,7 @@ const a1: Address = {
 const name = a1.street.name
 \end{verbatim}
 
-Tuttavia modificarne il valore non lo è
+Tuttavia sostituirne il valore è laborioso
 
 \begin{verbatim}
 const a2: Address = {
@@ -3237,6 +3247,8 @@ const a2: Address = {
   }
 }
 \end{verbatim}
+
+L'ottica funzionale serve a manipolare (leggere, scrivere, modificare) le strutture dati immutabili in modo semplice e componibile.
 
 \subsection{Iso}
 
@@ -3558,9 +3570,26 @@ class Prism<S, A> {
 
 \subsection{Optional}
 
+TODO
+
+\subsection{Diagramma delle ottiche}
+
+\begin{example}
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  & Iso \\
+  Lens \ar[ur] & & Prism \ar[ul] \\
+  & Optional \ar[ul] \ar[ur] \\
+}
+\]
+\end{example}
+
+
 \section{Foldable}
 
-\texttt{Foldable} rappresenta una struttura che può essere ridotta tramite la seguente operazione (sinonimo di \texttt{foldl})
+\texttt{Foldable} rappresenta una struttura che può essere ridotta tramite l' operazione \texttt{reduce} (sinonimo di \texttt{foldl})
 
 \begin{verbatim}
 reduce: <A, B>(f: (b: B, a: A) => B, b: B, fa: F<A>) => B
@@ -3586,6 +3615,10 @@ Un altro modo di afferrare il concetto di \texttt{Foldable} è che una struttura
 \texttt{Foldable} e \texttt{Functor} sono indipendenti, ovvero esistono strutture che ammettono una istanza di \texttt{Foldable} ma non una di
 \texttt{Functor} e viceversa. Per esempio \texttt{Set<A>} ammette una istanza di \texttt{Foldable} ma non di \texttt{Functor},
 mentre \texttt{Task<A>} ammette una istanza di \texttt{Functor} ma non di \texttt{Foldable}.
+
+\section{Traversable}
+
+TODO
 
 \section{Diagramma delle type class}
 
