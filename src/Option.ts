@@ -1,7 +1,5 @@
 export type Option<A> = Some<A> | None<A>
 
-export const of = <A>(a: A): Option<A> => new Some(a)
-
 export class Some<A> {
   value: A
   constructor(value: A) {
@@ -36,23 +34,14 @@ export class None<A> {
   }
 }
 
-export const map = <A, B>(
-  f: (a: A) => B,
-  fa: Option<A>
-): Option<B> => fa.map(f)
+export const none: Option<never> = new None()
 
-export const ap = <A, B>(
-  fab: Option<(a: A) => B>,
-  fa: Option<A>
-): Option<B> => fa.ap(fab)
+export const some = <A>(a: A): Option<A> => new Some(a)
 
-export const chain = <A, B>(
-  f: (a: A) => Option<B>,
-  fa: Option<A>
-): Option<B> => fa.chain(f)
+export const of = some
 
 export const fromNullable = <A>(
   a: A | null | undefined
 ): Option<A> => {
-  return a == null ? new None() : new Some(a)
+  return a == null ? none : some(a)
 }

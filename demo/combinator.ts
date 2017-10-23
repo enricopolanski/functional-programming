@@ -104,7 +104,7 @@ const toContactInfos2 = (
 
 type Pair<A> = [A, A]
 
-// const getTokens1 = (csv: string): Pair<string> =>
+// const getTokens1 = (csv: string): Array<Pair<string>> =>
 //   csv.split('\n').map(line => line.split(';')) // Type 'string[][]' is not assignable to type '[string, string][]'
 
 /*
@@ -118,7 +118,7 @@ const toPair = (xs: Array<string>): Pair<string> => [
   xs.length > 1 ? xs[1].trim() : ''
 ]
 
-const getTokens = (csv: string): Array<[string, string]> =>
+const getTokens = (csv: string): Array<Pair<string>> =>
   csv.split('\n').map(line => toPair(line.split(';')))
 
 const toContactInfo = (
@@ -193,11 +193,10 @@ const toContactInfos = (
 /*
 
   Molto meglio. Ma come costruire un filtro?
-  Anche getFilter non è del tutto soddisfacente. Usiamo un combinator!
+  Anche getFilter non è del tutto soddisfacente.
+  Usiamo un combinatore!
 
-  Un "combinator" `c` è un endomorfismo di un exponential (type)
-  Un endomorfismo di un tipo `A` è una funzione `f: A -> A`
-  Un exponential è un tipo che rappresenta una funzione, per esempio double: number -> number
+  Un combinatore su un tipo `A` è una funzione `combinator: A -> A`
 
 */
 
