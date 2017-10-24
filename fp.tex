@@ -3235,6 +3235,40 @@ type Zipper<A> = {
 }
 \end{verbatim}
 
+\subsection{Smart constructors}
+
+Consideriamo la funzione \texttt{inverse}
+
+\begin{verbatim}
+const inverse = (x: number): Option<number> =>
+  x === 0 ? none : some(1 / x)
+\end{verbatim}
+
+Un altro modo per ottenere lo stesso grado di type safety senza avere una funzione parziale è l'utilizzo degli \emph{smart constructors}.
+
+In pratica si fa in modo che \texttt{Option} non compaia a valle, nel codominio di \texttt{inverse},
+ma a monte, in fase di creazione dell'input \texttt{x}.
+
+In generale, se voglio rappresentare un raffinamento di un tipo \texttt{A} (come per esempio il fatto che sia un numero diverso da zero),
+faccio in modo che il suo costruttore non sia invocabile al di fuori del suo modulo e fornisco un costruttore alternativo
+che però restituisce una \texttt{Option<A>} dato che a runtime verrà effettuato il controllo che il raffinamento sussista davvero.
+
+\begin{verbatim}
+class NonZero {
+  // private
+  private constructor(readonly value: number) {}
+  // smart constructor
+  static create(value: number): Option<NonZero> {
+    return value === 0 ? none : some(new NonZero(value))
+  }
+}
+
+const inverse = (x: NonZero): number => 1 / x.value
+\end{verbatim}
+
+In questo modo spesso si spingono i controlli a runtime là dove dovrebbe essere il loro posto naturale: ai confini del sistema,
+dove vengono fatte tutte le validazioni dell'input.
+
 \section{Ottica funzionale}
 
 \subsection{A cosa serve?}

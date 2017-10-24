@@ -3,7 +3,7 @@
 //====================
 
 import { Task, of } from '../src/Task'
-import { Option, None, Some } from '../src/Option'
+import { Option, none, some } from '../src/Option'
 import { prompt, log } from '../src/Console'
 import { randomInt } from '../src/Random'
 
@@ -19,7 +19,7 @@ const question: Task<string> = message(
 
 const parse = (s: string): Option<number> => {
   const n = parseInt(s, 10)
-  return isNaN(n) ? new None() : new Some(n)
+  return isNaN(n) ? none : some(n)
 }
 
 const answer: Task<number> = question.chain(s =>

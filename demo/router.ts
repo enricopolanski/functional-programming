@@ -27,7 +27,7 @@ export type Parser2<A> = (input: string) => [A, string]
 
 */
 
-import { Option, Some, None } from '../src/Option'
+import { Option, some, none } from '../src/Option'
 
 export type Parser3<A> = (
   input: string
@@ -38,7 +38,7 @@ const tuple = <A, B>(a: A, b: B): [A, B] => [a, b]
 export class Parser4<A> {
   run: Parser3<A>
   static of = <A>(a: A): Parser4<A> =>
-    new Parser4(s => new Some(tuple(a, s)))
+    new Parser4(s => some(tuple(a, s)))
   constructor(run: Parser3<A>) {
     this.run = run
   }
@@ -65,7 +65,7 @@ export class Parser4<A> {
 export class Parser<S, A> {
   run: (input: S) => Option<[A, S]>
   static of = <S, A>(a: A): Parser<S, A> =>
-    new Parser(s => new Some(tuple(a, s)))
+    new Parser(s => some(tuple(a, s)))
   constructor(run: (input: S) => Option<[A, S]>) {
     this.run = run
   }
@@ -79,7 +79,7 @@ export class Parser<S, A> {
   }
   alt(that: Parser<S, A>): Parser<S, A> {
     return new Parser(s =>
-      this.run(s).fold(() => that.run(s), x => new Some(x))
+      this.run(s).fold(() => that.run(s), x => some(x))
     )
   }
 }
@@ -99,18 +99,18 @@ const lit = (literal: string): Match<void> =>
   new Parser(
     s =>
       s.length > 0 && s[0] === literal
-        ? new Some(tuple(undefined, s.slice(1)))
-        : new None()
+        ? some(tuple(undefined, s.slice(1)))
+        : none
   )
 
 const int: Match<number> = new Parser(s => {
   if (s.length > 0) {
     const n = parseInt(s[0], 10)
     if (!isNaN(n)) {
-      return new Some(tuple(n, s.slice(1)))
+      return some(tuple(n, s.slice(1)))
     }
   }
-  return new None()
+  return none
 })
 
 // parser per la route 'users/1'
