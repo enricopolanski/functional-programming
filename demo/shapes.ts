@@ -2,7 +2,9 @@
 
   PROBLEMA: implementare un sistema per disegnare forme sulla console.
 
-  Una forma nello spazio S è una funzione che dato un punto di S
+  Prima di tutto il modello:
+
+  una forma nello spazio S è una funzione che dato un punto di S
   restituisce `true` se il punto appartiene alla forma e `false` altrimenti
 
 */

@@ -176,8 +176,7 @@ const toContactInfos4 = (
 
 /*
 
-  Ma adesso è evidente che i parametri aggiuntivi non centrano con lo scopo
-  della funzione toContactInfos, servono solo per creare il predicato.
+  Ma adesso è evidente che i parametri aggiuntivi servono solo per creare il predicato.
   Ma allora passiamo direttamente il predicato come argomento!
 
 */
@@ -202,15 +201,15 @@ const toContactInfos = (
 
 type Combinator = (filter: Filter) => Filter
 
-const base: Filter = () => true
+const all: Filter = () => true
 
-const nameRequired: Combinator = filter => pair =>
-  pair[0] === '' ? false : filter(pair)
+const nameRequired: Combinator = next => pair =>
+  pair[0] === '' ? false : next(pair)
 
-const emailRequired: Combinator = filter => pair =>
-  pair[1] === '' ? false : filter(pair)
+const emailRequired: Combinator = next => pair =>
+  pair[1] === '' ? false : next(pair)
 
-console.log(toContactInfos(bad, base))
+console.log(toContactInfos(bad, all))
 /*
 [ { name: 'foo', email: 'foo@google.com' },
 { name: 'bar', email: 'bar@hotmail.com' },
@@ -218,7 +217,7 @@ console.log(toContactInfos(bad, base))
 { name: 'quux', email: '' } ]
 */
 
-console.log(toContactInfos(bad, nameRequired(base)))
+console.log(toContactInfos(bad, nameRequired(all)))
 /*
 [ { name: 'foo', email: 'foo@google.com' },
   { name: 'bar', email: 'bar@hotmail.com' },
@@ -226,7 +225,7 @@ console.log(toContactInfos(bad, nameRequired(base)))
 */
 
 console.log(
-  toContactInfos(bad, emailRequired(nameRequired(base)))
+  toContactInfos(bad, emailRequired(nameRequired(all)))
 )
 /*
 [ { name: 'foo', email: 'foo@google.com' },
