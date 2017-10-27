@@ -721,7 +721,7 @@ Mentre gli oggetti non hanno ulteriori proprietà da soddisfare, per i morfismi 
 e $f: B \rightarrow C$ associa un terzo morfismo $f \circ g: A \rightarrow C$. Inoltre l'operazione $\circ$ di composizione deve soddisfare le seguenti proprietà:
 
 \begin{itemize}
-  \item associatività: se $g: A \rightarrow B$, $f: B \rightarrow C$, $h: C \rightarrow D$, allora $h \circ (g \circ f) = (h \circ g) \circ f$
+  \item associatività: se $g: A \rightarrow B$, $f: B \rightarrow C$, $h: C \rightarrow D$, allora $h \circ (f \circ g) = (h \circ f) \circ g$
   \item identità: per ogni morfismo $f: A \rightarrow B$ vale $f \circ 1_A = f = 1_B \circ f$ (ove $1_A$ e $1_B$ sono rispettivamente i morfismi identità di $A$ e $B$)
 \end{itemize}
 
@@ -1277,7 +1277,7 @@ const every = <A>(p: Predicate<A>) => (
 
 const some = <A>(p: Predicate<A>) => (
   as: Array<A>
-): boolean => fold(any)(true)(as.map(p))
+): boolean => fold(any)(false)(as.map(p))
 
 const assign = (as: Array<Object>): Object =>
   fold(obj)({})(as)
