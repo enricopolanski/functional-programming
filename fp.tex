@@ -1211,7 +1211,7 @@ Possiamo implementare il concetto di semigruppo come una \texttt{interface}
 
 \begin{verbatim}
 interface Semigroup<A> {
-  concat: (x: A) => (y: A) => A
+  concat: (x: A, y: A) => A
 }
 \end{verbatim}
 
@@ -1221,14 +1221,14 @@ L'associatività non può essere espressa nel type system di TypeScript
 
 \begin{verbatim}
 // deve valere per ogni a, b, c
-concat(concat(a)(b))(c) = concat(a)(concat(b)(c))
+concat(concat(a, b), c) = concat(a, concat(b, c))
 \end{verbatim}
 
 Ecco come possiamo implementare il semigruppo $(number, +)$
 
 \begin{verbatim}
 const sum: Semigroup<number> = {
-  concat: x => y => x + y
+  concat: (x, y) => x + y
 }
 \end{verbatim}
 
@@ -1236,7 +1236,7 @@ Notate che si possono definire differenti istanze di semigruppo per lo stesso in
 
 \begin{verbatim}
 const product: Semigroup<number> = {
-  concat: x => y => x * y
+  concat: (x, y) => x * y
 }
 \end{verbatim}
 
@@ -1256,31 +1256,54 @@ type Predicate<A> = (a: A) => boolean
 const getPredicateSemigroup = <A>(
   S: Semigroup<boolean>
 ): Semigroup<Predicate<A>> => ({
-  concat: x => y => a => S.concat(x(a))(y(a))
+  concat: (x, y) => a => S.concat(x(a), y(a))
 })
 \end{verbatim}
 
 Ora se definiamo una generica funzione \texttt{fold} che accetta un semigruppo come parametro\footnote{Notate che ho bisogno anche di una $A$ perchè l'array potrebbe essere vuoto}
 
 \begin{verbatim}
-const fold = <A>(S: Semigroup<A>) => (a: A) => (
+const fold = <A>(S: Semigroup<A>) => (
+  a: A,
   as: Array<A>
-): A => as.reduce((a, b) => S.concat(a)(b), a)
+): A => as.reduce((a, b) => S.concat(a, b), a)
 \end{verbatim}
 
 possiamo reimplementare alcune popolari funzioni
 
 \begin{verbatim}
-const every = <A>(p: Predicate<A>) => (
-  as: Array<A>
-): boolean => fold(all)(true)(as.map(p))
+const all: Semigroup<boolean> = {
+  concat: (x, y) => x && y
+}
 
-const some = <A>(p: Predicate<A>) => (
-  as: Array<A>
-): boolean => fold(any)(false)(as.map(p))
+const every = <A>(p: Predicate<A>, as: Array<A>): boolean =>
+  fold(all)(true, as.map(p))
+
+const any: Semigroup<boolean> = {
+  concat: (x, y) => x || y
+}
+
+const some = <A>(p: Predicate<A>, as: Array<A>): boolean =>
+  fold(any)(false, as.map(p))
+
+const obj: Semigroup<Object> = {
+  concat: (x, y) => ({ ...x, ...y })
+}
 
 const assign = (as: Array<Object>): Object =>
-  fold(obj)({})(as)
+  fold(obj)({}, as)
+\end{verbatim}
+
+E' possibile definire una versione alternativa di \texttt{fold} nel caso non esista un valore sensato da restituire quando l'array è vuoto
+
+\begin{verbatim}
+const tryFold = <A>(S: Semigroup<A>) => (
+  as: Array<A>
+): Option<A> =>
+  as.length === 0 ? none : some(fold(S)(as[0], as.slice(1)))
+
+tryFold(sum)([1, 2, 3]) // some(6)
+tryFold(sum)([]) // none
 \end{verbatim}
 
 \subsubsection{Il semigruppo duale}
@@ -1289,7 +1312,7 @@ const assign = (as: Array<Object>): Object =>
 const getDualSemigroup = <A>(
   S: Semigroup<A>
 ): Semigroup<A> => ({
-  concat: x => y => S.concat(y)(x)
+  concat: (x, y) => S.concat(y, x)
 })
 \end{verbatim}
 
@@ -1303,7 +1326,7 @@ restituire sempre il primo argomento
 
 \begin{verbatim}
 const getFirstSemigroup = <A>(): Semigroup<A> => ({
-  concat: x => y => x
+  concat: (x, y) => x
 })
 \end{verbatim}
 
@@ -1311,17 +1334,15 @@ restituire sempre l'ultimo argomento
 
 \begin{verbatim}
 const getLastSemigroup = <A>(): Semigroup<A> => ({
-  concat: x => y => y
+  concat: (x, y) => y
 })
 \end{verbatim}
 
 restituire sempre uno stesso elemento $a \in A$
 
 \begin{verbatim}
-const getConstSemigroup = <A>(
-  a: A
-): Semigroup<A> => ({
-  concat: x => y => a
+const getConstSemigroup = <A>(a: A): Semigroup<A> => ({
+  concat: () => a
 })
 \end{verbatim}
 
@@ -1330,10 +1351,8 @@ ma c'è un'altra tecnica che mantiene il contenuto informativo ed è quella di d
 chiamata il \emph{semigruppo libero} (Free semigroup) di $A$
 
 \begin{verbatim}
-const getFreeSemigroup = <A>(): Semigroup<
-  Array<A>
-> => ({
-  concat: x => y => x.concat(y)
+const getFreeSemigroup = <A>(): Semigroup<Array<A>> => ({
+  concat: (x, y) => x.concat(y)
 })
 \end{verbatim}
 
@@ -1372,14 +1391,14 @@ sfruttando una istanza per \texttt{A}. Vediamo qualche esempio
 const getOptionSemigroup = <A>(
   S: Semigroup<A>
 ): Semigroup<Option<A>> => ({
-  concat: x => y =>
+  concat: (x, y) =>
     x.fold(
       () => y,
-      ax => y.fold(() => x, ay => some(S.concat(ax)(ay)))
+      ax => y.fold(() => x, ay => some(S.concat(ax, ay)))
     )
 })
 
-fold(getOptionSemigroup(sum))(none)([
+fold(getOptionSemigroup(sum))(none, [
   some(2),
   none,
   some(3)
@@ -1392,11 +1411,11 @@ fold(getOptionSemigroup(sum))(none)([
 const getPromiseSemigroup = <A>(
   S: Semigroup<A>
 ): Semigroup<Promise<A>> => ({
-  concat: x => y =>
-    Promise.all([x, y]).then(([ax, ay]) => S.concat(ax)(ay))
+  concat: (x, y) =>
+    Promise.all([x, y]).then(([ax, ay]) => S.concat(ax, ay))
 })
 
-fold(getPromiseSemigroup(sum))(Promise.resolve(0))([
+fold(getPromiseSemigroup(sum))(Promise.resolve(0), [
   Promise.resolve(2),
   Promise.resolve(0),
   Promise.resolve(3)
@@ -1416,14 +1435,17 @@ const getProductSemigroup = <A, B>(
   A: Semigroup<A>,
   B: Semigroup<B>
 ): Semigroup<[A, B]> => ({
-  concat: ([ax, bx]) => ([ay, by]) => [
-    A.concat(ax)(ay),
-    B.concat(bx)(by)
+  concat: ([ax, bx], [ay, by]) => [
+    A.concat(ax, ay),
+    B.concat(bx, by)
   ]
 })
 
-getProductSemigroup(sum, str)
-  .concat([2, 'a'])([3, 'b']) // [ 5, 'ab' ]
+const str: Semigroup<string> = {
+  concat: (x, y) => x + y
+}
+
+getProductSemigroup(sum, str).concat([2, 'a'], [3, 'b']) // [ 5, 'ab' ]
 \end{verbatim}
 
 Il teorema\footnote{
@@ -1453,11 +1475,11 @@ Se \texttt{A} è ordinabile allora è possibile definire un'istanza di semigrupp
 
 \begin{verbatim}
 const meet: Semigroup<number> = {
-  concat: x => y => Math.min(x, y)
+  concat: (x, y) => Math.min(x, y)
 }
 
 const join: Semigroup<number> = {
-  concat: x => y => Math.max(x, y)
+  concat: (x, y) => Math.max(x, y)
 }
 \end{verbatim}
 
@@ -1467,7 +1489,7 @@ Definiamo una nuova interfaccia
 
 \begin{verbatim}
 interface Setoid<A> {
-  equals: (x: A) => (y: A) => boolean
+  equals: (x: A, y: A) => boolean
 }
 \end{verbatim}
 
@@ -1478,35 +1500,52 @@ Devono valere le seguenti leggi
 \def\arraystretch{1.5}
 \begin{tabular}{ |c|p{10cm}| }
 \hline
-riflessiva & \texttt{equals(x)(x) = true} per ogni $x \in A$ \\
+riflessiva & \texttt{equals(x, x) = true} per ogni $x \in A$ \\
 \hline
-simmetrica & \texttt{equals(x)(y) = equals(y)(x)} per ogni $x, y \in A$ \\
+simmetrica & \texttt{equals(x, y) = equals(y, x)} per ogni $x, y \in A$ \\
 \hline
-transitiva & se \texttt{equals(x)(y) = true} e \texttt{equals(y)(z) = true} allora \texttt{equals(x)(z) = true} \\
+transitiva & se \texttt{equals(x, y) = true} e \texttt{equals(y, z) = true} allora \texttt{equals(x, z) = true} \\
 \hline
 \end{tabular}
 \egroup
 \end{center}
 
+Esempio
+
+\begin{verbatim}
+const setoidNumber: Setoid<number> = {
+  equals: (x, y) => x === y
+}
+\end{verbatim}
+
 Possiamo catturare la nozione di ordinabile introduciamo l'interfaccia \texttt{Ord}
 
 \begin{verbatim}
-type Ordering = 'LT' | 'EQ' | 'GT';
+type Ordering = -1 | 0 | 1;
 
 interface Ord<A> extends Setoid<A> {
-  compare: (x: A) => (y: A) => Ordering
+  compare: (x: A, y: A) => Ordering
 }
 \end{verbatim}
+
+Esempio
+
+\begin{verbatim}
+const ordNumber: Ord<number> = {
+  ...setoidNumber,
+  compare: (x, y) => (x < y ? -1 : x > y ? 1 : 0)
+}
+\end{verbatim}
+
 
 Ora possiamo definire l'equivalente di $\leq$
 
 \begin{verbatim}
-const leq = <A>(ord: Ord<A>) => (x: A) => (
-  y: A
-): boolean => ord.compare(x)(y) !== 'GT'
+const leq = <A>(O: Ord<A>) => (x: A, y: A): boolean =>
+  O.compare(x, y) <= 0
 \end{verbatim}
 
-scriviamo che $x \leq y$ se e solo se \texttt{leq(ord, x, y) = true}.
+scriviamo che $x \leq y$ se e solo se \texttt{leq(ord)(x, y) = true}.
 
 Devono valere le seguenti leggi
 
@@ -1532,7 +1571,7 @@ Per essere compatibile con \texttt{Setoid} deve valere una proprietà aggiuntiva
 \def\arraystretch{1.5}
 \begin{tabular}{ |c|p{10cm}| }
 \hline
-compatibilità & \texttt{compare(x)(y) = 'EQ'} se e solo se \texttt{equals(x)(y) = true} \\
+compatibilità & \texttt{compare(x, y) = 0} se e solo se \texttt{equals(x, y) = true} \\
 \hline
 \end{tabular}
 \egroup
@@ -1541,34 +1580,66 @@ compatibilità & \texttt{compare(x)(y) = 'EQ'} se e solo se \texttt{equals(x)(y)
 Ora possiamo definire \texttt{min} e \texttt{max} in modo generale
 
 \begin{verbatim}
-const min = <A>(ord: Ord<A>) => (x: A) => (
-  y: A
-): A => (ord.compare(x)(y) === 'LT' ? x : y)
+const min = <A>(O: Ord<A>) => (x: A, y: A): A =>
+  O.compare(x, y) === -1 ? x : y
 
-const max = <A>(ord: Ord<A>) => (x: A) => (
-  y: A
-): A => (ord.compare(x)(y) === 'LT' ? y : x)
+const max = <A>(O: Ord<A>) => (x: A, y: A): A =>
+  O.compare(x, y) === -1 ? y : x
 \end{verbatim}
 
 con i quali infine possiamo definire due nuovi combinator
 
 \begin{verbatim}
-const getMeetSemigroup = <A>(
-  O: Ord<A>
-): Semigroup<A> => ({
+const getMeetSemigroup = <A>(O: Ord<A>): Semigroup<A> => ({
   concat: min(O)
 })
 
-const getJoinSemigroup = <A>(
-  O: Ord<A>
-): Semigroup<A> => ({
+const getJoinSemigroup = <A>(O: Ord<A>): Semigroup<A> => ({
   concat: max(O)
 })
 \end{verbatim}
 
+Ora possiamo calcolare il massimo di $n$ numeri
+
+\begin{verbatim}
+tryFold(getJoinSemigroup(ordNumber))([1, 2, 3]) // some(3)
+\end{verbatim}
+
+Oppure selezionare la persona con l'età minore in un gruppo
+
+\begin{verbatim}
+type Person = {
+  name: string
+  age: number
+}
+
+const persons: Array<Person> = [
+  { name: 'Giulio', age: 44 },
+  { name: 'Guido', age: 47 }
+]
+
+const contramap = <A, B>(
+  O: Ord<A>,
+  f: (b: B) => A
+): Ord<B> => ({
+  equals: (x, y) => O.equals(f(x), f(y)),
+  compare: (x, y) => O.compare(f(x), f(y))
+})
+
+tryFold(
+  getMeetSemigroup(
+    contramap(ordNumber, (p: Person) => p.age)
+  )
+)(persons) // some({ name: 'Giulio', age: 44 })
+\end{verbatim}
+
+Qui abbiamo dovuto usare \texttt{tryFold} perchè non c'è un valore iniziale sensato per \texttt{fold}.
+
+Tuttavia esistono semigruppi per i quali questo valore esiste: i \emph{monoidi}.
+
 \subsection{Monoidi}
 
-Se aggiungiamo una condizione in più alla definizione dei semigruppi, ovvero che esista un elemento $u \in M$
+Se aggiungiamo una condizione in più alla definizione di semigruppo, ovvero che esista un elemento $u \in M$
 tale che per ogni elemento $m \in M$ vale
 
 $$
@@ -1612,7 +1683,7 @@ I monoidi sono ovunque
 
 \begin{verbatim}
 interface Monoid<A> extends Semigroup<A> {
-  empty: () => A
+  empty: A
 }
 \end{verbatim}
 
@@ -1627,8 +1698,8 @@ type Endomorphism<A> = (a: A) => A
 const getEndomorphismMonoid = <A>(): Monoid<
   Endomorphism<A>
 > => ({
-  concat: x => y => a => x(y(a)),
-  empty: () => a => a
+  concat: (x, y) => a => x(y(a)),
+  empty: a => a
 })
 \end{verbatim}
 
@@ -1638,8 +1709,8 @@ Se il tipo \texttt{M} ammette una istanza di monoide allora il tipo \texttt{(a: 
 const getFunctionMonoid = <M>(M: Monoid<M>) => <
   A
 >(): Monoid<(a: A) => M> => ({
-  concat: f => g => a => M.concat(f(a))(g(a)),
-  empty: () => () => M.empty()
+  concat: (f, g) => a => M.concat(f(a), g(a)),
+  empty: () => M.empty
 })
 \end{verbatim}
 
@@ -1652,8 +1723,8 @@ type Reducer<S, A> = (s: S, a: A) => S
 const getReducerMonoid = <S, A>(): Monoid<
   Reducer<S, A>
 > => ({
-  concat: x => y => (s, a) => y(x(s, a), a),
-  empty: () => (s, _) => s
+  concat: (x, y) => (s, a) => y(x(s, a), a),
+  empty: (s, _) => s
 })
 \end{verbatim}
 
@@ -1662,9 +1733,8 @@ const getReducerMonoid = <S, A>(): Monoid<
 \begin{verbatim}
 type Reducer<S, A> = (a: A) => (s: S) => S
 
-const getReducerMonoid = <S, A>(): Monoid<
-  Reducer<S, A>
-> => getFunctionMonoid(getEndomorphismMonoid<S>())<A>()
+const getReducerMonoid = <S, A>(): Monoid<Reducer<S, A>> =>
+  getFunctionMonoid(getEndomorphismMonoid<S>())<A>()
 \end{verbatim}
 
 \subsubsection{Monoide prodotto}
@@ -1675,7 +1745,7 @@ const getProductMonoid = <A, B>(
   MB: Monoid<B>
 ): Monoid<[A, B]> => ({
   ...getProductSemigroup(MA, MB),
-  empty: () => [MA.empty(), MB.empty()]
+  empty: [MA.empty, MB.empty]
 })
 \end{verbatim}
 
@@ -1693,17 +1763,17 @@ class NonEmptyArray<A> {
 const getNonEmptyArraySemigroup = <A>(): Semigroup<
   NonEmptyArray<A>
 > => ({
-  concat: x => y =>
+  concat: (x, y) =>
     new NonEmptyArray(
       x.head,
       x.tail.concat([y.head]).concat(y.tail)
     )
 })
 
-
 getNonEmptyArraySemigroup().concat(
-  new NonEmptyArray(1, [2])
-)(new NonEmptyArray(3, [4, 5])) // { head: 1, tail: [ 2, 3, 4, 5 ] }
+  new NonEmptyArray(1, [2]),
+  new NonEmptyArray(3, [4, 5])
+) // { head: 1, tail: [ 2, 3, 4, 5 ] }
 \end{verbatim}
 
 Ma non esiste nessun elemento \texttt{u: NonEmptyArray} che concatenato ad un altro \texttt{x: NonEmptyArray} dia ancora \texttt{x}.
@@ -1734,20 +1804,20 @@ La funzione \texttt{fold} che abbiamo definito per i semigruppi può essere ride
 \begin{verbatim}
 const fold = <A>(M: Monoid<A>) => (
   as: Array<A>
-): A => as.reduce((a, b) => M.concat(a)(b), M.empty())
+): A => as.reduce((a, b) => M.concat(a, b), M.empty)
 \end{verbatim}
 
 Notate che non c'è più bisogno di un elemento iniziale \texttt{a: A} perchè ora possiamo sfruttare \texttt{empty()}
 
 \begin{verbatim}
 const product: Monoid<number> = {
-  concat: x => y => x * y,
-  empty: () => 1
+  concat: (x, y) => x * y,
+  empty: 1
 }
 
 const str: Monoid<string> = {
-  concat: x => y => x + y,
-  empty: () => ''
+  concat: (x, y) => x + y,
+  empty: ''
 }
 
 fold(str)(['a', 'b', 'c']) // 'abc'
@@ -1814,6 +1884,7 @@ E' possibile dimostrare che:
 \end{center}
 \end{boxed}
 
+\newpage
 
 \section{Funtori applicativi}
 

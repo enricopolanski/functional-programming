@@ -1,8 +1,11 @@
 /*
 
-  Problema: dato l'id di un utente, il cui record contiene il valore del suo conto corrente in EUR,
-  e il codice di una valuta, calcolare il valore del suo conto corrente in quella valuta.
-  I servizi che restituiscono il record dell'utente e il cambio relativo alla valuta sono asincroni
+  Problema: dato l'id di un utente, il cui record contiene il valore
+  del suo conto corrente in EUR,
+  e il codice di una valuta, calcolare il valore del suo conto corrente
+  in quella valuta.
+  I servizi che restituiscono il record dell'utente e il cambio relativo
+  alla valuta sono asincroni
 
 */
 
@@ -62,17 +65,18 @@ export const liftA2 = <A, B, C>(
   fb.ap(fa.map(f))
 
 const getAmountAsync = (
+  api: typeof API,
   userId: string,
   currency: Currency
 ): Task<number> => {
-  const amount = API.fetchUser(userId).map(
-    user => user.amount
-  )
-  const rate = API.fetchRate(currency)
+  const amount = api
+    .fetchUser(userId)
+    .map(user => user.amount)
+  const rate = api.fetchRate(currency)
   return liftA2(getAmountSync)(amount)(rate)
 }
 
-getAmountAsync('42', 'USD')
+getAmountAsync(API, '42', 'USD')
   .run()
   .then(x => console.log(x))
 // 12

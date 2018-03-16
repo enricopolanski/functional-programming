@@ -38,7 +38,8 @@ const outside = (s: Shape2D): Shape2D => point => !s(point)
 
 */
 
-const disk = (center: Point2D) => (
+const disk = (
+  center: Point2D,
   radius: number
 ): Shape2D => point => distance(point)(center) <= radius
 
@@ -50,20 +51,20 @@ const distance = (p1: Point2D) => (p2: Point2D) =>
   )
 
 const show = (s: Shape2D): string => {
-  let r = '-----------------------\n'
+  let r = '───────────────────────\n'
   for (let j = 10; j >= -10; j--) {
-    r += '|'
+    r += '│'
     for (let i = -10; i <= 10; i++) {
-      r += s({ x: i, y: j }) ? 'O' : ' '
+      r += s({ x: i, y: j }) ? '▧' : ' '
     }
-    r += '|\n'
+    r += '│\n'
   }
-  r += '-----------------------'
+  r += '───────────────────────'
   return r
 }
 
-// console.log(show(disk({ x: 0, y: 0 })(5)))
-// console.log(show(outside(disk({ x: 0, y: 0 })(5))))
+console.log(show(disk({ x: 0, y: 0 }, 5)))
+// console.log(show(outside(disk({ x: 0, y: 0 }, 5))))
 
 /*
 
@@ -81,6 +82,7 @@ import {
   any,
   fold
 } from '../src/Monoid'
+import { Option } from '../src/Option'
 
 const intersect: Monoid<Shape2D> = getFunctionMonoid(all)()
 
@@ -100,19 +102,22 @@ const union: Monoid<Shape2D> = getFunctionMonoid(any)()
 //   )
 // )
 
-const ring = (point: Point2D) => (bigRadius: number) => (
+const ring = (
+  point: Point2D,
+  bigRadius: number,
   smallRadius: number
 ): Shape2D =>
-  intersect.concat(disk(point)(bigRadius))(
-    outside(disk(point)(smallRadius))
+  intersect.concat(
+    disk(point, bigRadius),
+    outside(disk(point, smallRadius))
   )
 
-// console.log(show(ring({ x: 0, y: 0 })(5)(3)))
+// console.log(show(ring({ x: 0, y: 0 }, 5, 3)))
 
 const shapes: Array<Shape2D> = [
-  disk({ x: 0, y: 0 })(5),
-  disk({ x: -5, y: 5 })(3),
-  disk({ x: 5, y: 5 })(3)
+  disk({ x: 0, y: 0 }, 5),
+  disk({ x: -5, y: 5 }, 3),
+  disk({ x: 5, y: 5 }, 3)
 ]
 
 // console.log(show(fold(union)(shapes)))
