@@ -41,10 +41,10 @@ const outside = (s: Shape2D): Shape2D => point => !s(point)
 const disk = (
   center: Point2D,
   radius: number
-): Shape2D => point => distance(point)(center) <= radius
+): Shape2D => point => distance(point, center) <= radius
 
 // distanza euclidea
-const distance = (p1: Point2D) => (p2: Point2D) =>
+const distance = (p1: Point2D, p2: Point2D) =>
   Math.sqrt(
     Math.pow(Math.abs(p1.x - p2.x), 2) +
       Math.pow(Math.abs(p1.y - p2.y), 2)
@@ -63,7 +63,7 @@ const show = (s: Shape2D): string => {
   return r
 }
 
-console.log(show(disk({ x: 0, y: 0 }, 5)))
+// console.log(show(disk({ x: 0, y: 0 }, 5)))
 // console.log(show(outside(disk({ x: 0, y: 0 }, 5))))
 
 /*
@@ -82,14 +82,14 @@ import {
   any,
   fold
 } from '../src/Monoid'
-import { Option } from '../src/Option'
 
 const intersect: Monoid<Shape2D> = getFunctionMonoid(all)()
 
 // console.log(
 //   show(
-//     intersect(disk({ x: -3, y: 0 })(5))(
-//       disk({ x: 3, y: 0 })(5)
+//     intersect.concat(
+//       disk({ x: -3, y: 0 }, 5),
+//       disk({ x: 3, y: 0 }, 5)
 //     )
 //   )
 // )
@@ -98,7 +98,10 @@ const union: Monoid<Shape2D> = getFunctionMonoid(any)()
 
 // console.log(
 //   show(
-//     union(disk({ x: -3, y: 0 })(5))(disk({ x: 3, y: 0 })(5))
+//     union.concat(
+//       disk({ x: -3, y: 0 }, 5),
+//       disk({ x: 3, y: 0 }, 5)
+//     )
 //   )
 // )
 

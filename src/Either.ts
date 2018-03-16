@@ -1,21 +1,17 @@
 export type Either<L, A> = Left<L, A> | Right<L, A>
 
 export class Left<L, A> {
-  value: L
-  constructor(value: L) {
-    this.value = value
-  }
+  constructor(readonly value: L) {}
   map<B>(f: (a: A) => B): Either<L, B> {
-    return new Left(this.value)
+    return left(this.value)
   }
   ap<B>(fab: Either<L, (a: A) => B>): Either<L, B> {
-    return fab.fold<Either<L, B>>(
-      l => new Left(l),
-      () => new Left(this.value)
+    return fab.fold<Either<L, B>>(left, () =>
+      left(this.value)
     )
   }
   chain<B>(f: (a: A) => Either<L, B>): Either<L, B> {
-    return new Left(this.value)
+    return left(this.value)
   }
   fold<R>(f: (l: L) => R, g: (a: A) => R): R {
     return f(this.value)
@@ -23,17 +19,13 @@ export class Left<L, A> {
 }
 
 export class Right<L, A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Either<L, B> {
-    return new Right(f(this.value))
+    return right(f(this.value))
   }
   ap<B>(fab: Either<L, (a: A) => B>): Either<L, B> {
-    return fab.fold<Either<L, B>>(
-      l => new Left(l),
-      f => new Right(f(this.value))
+    return fab.fold<Either<L, B>>(left, f =>
+      right(f(this.value))
     )
   }
   chain<B>(f: (a: A) => Either<L, B>): Either<L, B> {

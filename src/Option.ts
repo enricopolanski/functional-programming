@@ -1,12 +1,9 @@
 export type Option<A> = Some<A> | None<A>
 
 export class Some<A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Option<B> {
-    return new Some(f(this.value))
+    return some(f(this.value))
   }
   chain<B>(f: (a: A) => Option<B>): Option<B> {
     return f(this.value)
@@ -21,13 +18,13 @@ export class Some<A> {
 
 export class None<A> {
   map<B>(f: (a: A) => B): Option<B> {
-    return new None()
+    return none
   }
   chain<B>(f: (a: A) => Option<B>): Option<B> {
-    return new None()
+    return none
   }
   ap<B>(fab: Option<(a: A) => B>): Option<B> {
-    return new None()
+    return none
   }
   fold<R>(f: () => R, g: (a: A) => R): R {
     return f()

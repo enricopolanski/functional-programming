@@ -6,11 +6,13 @@ export interface Monoid<A> extends Semigroup<A> {
 
 type Endomorphism<A> = (a: A) => A
 
+const identity = <A>(a: A): A => a
+
 const getEndomorphismMonoid = <A>(): Monoid<
   Endomorphism<A>
 > => ({
   concat: (x, y) => a => x(y(a)),
-  empty: a => a
+  empty: identity
 })
 
 export const getFunctionMonoid = <M>(M: Monoid<M>) => <

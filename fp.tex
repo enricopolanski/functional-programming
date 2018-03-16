@@ -476,22 +476,12 @@ La soluzione funzionale ai problemi illustrati precedentemente è l'utilizzo del
 eccone la definizione
 
 \begin{verbatim}
-type Option<A> = Some<A> | None<A>
+type Option<A> = None | Some<A>
+
+class None {}
 
 class Some<A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
-  map<B>(f: (a: A) => B): Option<B> {
-    return new Some(f(this.value))
-  }
-}
-
-class None<A> {
-  map<B>(f: (a: A) => B): Option<B> {
-    return new None()
-  }
+  constructor(readonly value: A) {}
 }
 
 const none: Option<never> = new None()
@@ -512,6 +502,38 @@ la computazione di \texttt{inverse} ha avuto successo, se viene restituita una i
 \begin{boxed}
 Il tipo \texttt{Option} codifica l'\emph{effetto} di una computazione che può fallire
 \end{boxed}
+
+Aggiungiamo un metodo \texttt{map}
+
+\begin{verbatim}
+type Option<A> = None<A> | Some<A>
+
+class None<A> {
+  map<B>(f: (a: A) => B): Option<B> {
+    return none
+  }
+}
+
+class Some<A> {
+  constructor(readonly value: A) {}
+  map<B>(f: (a: A) => B): Option<B> {
+    return some(f(this.value))
+  }
+}
+\end{verbatim}
+
+In un linguaggio che non supporta classi e metodi \texttt{map} può essere definita come funzione
+
+\begin{verbatim}
+const map = <A, B>(f: (a: A) => B, fa: Option<A>): Option<B> => {
+  if (isNone(fa)) {
+    ...
+  } else {
+    ...
+  }
+}
+\end{verbatim}
+
 
 Ora è possibile definire \texttt{doubleInverse} senza boilerplate
 
@@ -594,22 +616,16 @@ oppure se si vuole definire un errore personalizzato, è possibile impiegare il 
 type Either<L, A> = Left<L, A> | Right<L, A>
 
 class Left<L, A> {
-  value: L
-  constructor(value: L) {
-    this.value = value
-  }
+  constructor(readonly value: L) {}
   map<B>(f: (a: A) => B): Either<L, B> {
-    return new Left(this.value)
+    return left(this.value)
   }
 }
 
 class Right<L, A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Either<L, B> {
-    return new Right(f(this.value))
+    return right(f(this.value))
   }
 }
 
@@ -1695,11 +1711,13 @@ su \texttt{A} ammettono una istanza di monoide
 \begin{verbatim}
 type Endomorphism<A> = (a: A) => A
 
+const identity = <A>(a: A): A => a
+
 const getEndomorphismMonoid = <A>(): Monoid<
   Endomorphism<A>
 > => ({
   concat: (x, y) => a => x(y(a)),
-  empty: a => a
+  empty: identity
 })
 \end{verbatim}
 
@@ -1714,7 +1732,7 @@ const getFunctionMonoid = <M>(M: Monoid<M>) => <
 })
 \end{verbatim}
 
-Come corrollario otteniamo che i reducer ammettono una istanza di monoide
+Come corollario otteniamo che i reducer ammettono una istanza di monoide
 \footnote{Alternativamente, se i reducer non sono curried, l'istanza può essere definita manualmente
 
 \begin{verbatim}
@@ -1943,14 +1961,14 @@ Inoltre sarebbe oppurtuno avere un'altra operazione che, dato un valore di tipo 
 In questo modo, una volta ottenuta la funzione $F(f) = F(A) \rightarrow F(B) \rightarrow F(C)$ e avendo a disposizione un valore di tipo $F(A)$
 (magari ottenuto da un'altra computazione) e un valore di tipo $B$, sono in grado di eseguire la funzione $F(f)$.
 
-Questa operazione si chiama \texttt{of} ed è la medesima operazione che abbiamo visto trattando delle monadi.
+Questa operazione si chiama \texttt{of}.
 
 \subsection{Definizione}
 
 Sia $F$ un endofuntore della categoria $\mathcal{C}$, allora si dice \emph{funtore applicativo} se esistono due operazioni
 
 \begin{verbatim}
-of: <A>(a: A) => M<A>
+of: <A>(a: A) => F<A>
 ap: <A, B>(f: F<(a: A) => B>) => (fa: F<A>) => F<B>
 \end{verbatim}
 
@@ -1986,7 +2004,7 @@ class Some<A> {
     this.value = value
   }
   map<B>(f: (a: A) => B): Option<B> {
-    return new Some(f(this.value))
+    return some(f(this.value))
   }
   ap<B>(fab: Option<(a: A) => B>): Option<B> {
     return fab.map(f => f(this.value))
@@ -1995,10 +2013,10 @@ class Some<A> {
 
 class None<A> {
   map<B>(f: (a: A) => B): Option<B> {
-    return new None()
+    return none
   }
   ap<B>(fab: Option<(a: A) => B>): Option<B> {
-    return new None()
+    return none
   }
 }
 \end{verbatim}
@@ -2053,11 +2071,11 @@ const sumOptions = (fa: Option<number>) => (
 L'operazione di lifting può essere facilmente generalizzata per ogni funzione\footnote{e per ogni funtore applicativo}
 
 \begin{verbatim}
+type Function2<A, B, C> = (a: A) => (b: B) => C
+
 const liftA2 = <A, B, C>(
-  f: (a: A) => (b: B) => C
-): ((
-  fa: Option<A>
-) => (fb: Option<B>) => Option<C>) => fa => fb =>
+  f: Function2<A, B, C>
+): Function2<Option<A>, Option<B>, Option<C>> => fa => fb =>
   fb.ap(fa.map(f))
 
 const sumOptions = liftA2(sum)
