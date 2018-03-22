@@ -926,10 +926,7 @@ Manda un tipo \texttt{A} ancora in \texttt{A}
 
 \begin{verbatim}
 class Identity<A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Identity<B> {
     return new Identity(f(this.value))
   }
@@ -953,10 +950,7 @@ Manda un tipo \texttt{A} nel tipo \texttt{() => A}\footnote{Una funzione senza a
 
 \begin{verbatim}
 class IO<A> {
-  run: () => A
-  constructor(run: () => A) {
-    this.run = run
-  }
+  constructor(readonly run: () => A) {}
   map<B>(f: (a: A) => B): IO<B> {
     return new IO(() => f(this.run()))
   }
@@ -981,10 +975,7 @@ di una computazione asincrona: manda un tipo \texttt{A} nel tipo \texttt{() => P
 
 \begin{verbatim}
 class Task<A> {
-  run: () => Promise<A>
-  constructor(run: () => Promise<A>) {
-    this.run = run
-  }
+  constructor(readonly run: () => Promise<A>) {}
   map<B>(f: (a: A) => B): Task<B> {
     return new Task(() => this.run().then(f))
   }
@@ -1131,10 +1122,7 @@ Come esempio implementiamo una istanza di funtore per gli array di \texttt{Optio
 
 \begin{verbatim}
 class ArrayOption<A> {
-  value: Array<Option<A>>
-  constructor(value: Array<Option<A>>) {
-    this.value = value
-  }
+  constructor(readonly value: Array<Option<A>>) {}
   map<B>(f: (a: A) => B): ArrayOption<B> {
     return new ArrayOption(this.value.map(o => o.map(f)))
   }
@@ -1961,11 +1949,11 @@ Inoltre sarebbe oppurtuno avere un'altra operazione che, dato un valore di tipo 
 In questo modo, una volta ottenuta la funzione $F(f) = F(A) \rightarrow F(B) \rightarrow F(C)$ e avendo a disposizione un valore di tipo $F(A)$
 (magari ottenuto da un'altra computazione) e un valore di tipo $B$, sono in grado di eseguire la funzione $F(f)$.
 
-Questa operazione si chiama \texttt{of}.
+Chiamiamo questa operazione \texttt{of}.
 
 \subsection{Definizione}
 
-Sia $F$ un endofuntore della categoria $\mathcal{C}$, allora si dice \emph{funtore applicativo} se esistono due operazioni
+Sia $F$ un funtore, allora si dice \emph{funtore applicativo} se esistono due operazioni
 
 \begin{verbatim}
 of: <A>(a: A) => F<A>
@@ -1993,16 +1981,13 @@ Interchange & \texttt{ap(f, of(g)) = ap(of(x => g(x)), f)} \\
 \egroup
 \end{center}
 
-Vediamo un primo esempio: il tipo \texttt{Option}
+Vediamo un esempio: il tipo \texttt{Option}
 
 \begin{verbatim}
 const of = some
 
 class Some<A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Option<B> {
     return some(f(this.value))
   }
@@ -2016,6 +2001,21 @@ class None<A> {
     return none
   }
   ap<B>(fab: Option<(a: A) => B>): Option<B> {
+    return none
+  }
+}
+\end{verbatim}
+
+Oppure nella sua versione statica
+
+\begin{verbatim}
+const ap = <A, B>(
+  fab: Option<(a: A) => B>,
+  fa: Option<A>
+): Option<B> => {
+  if (isNone(fa)) {
+    return fab.map(f => f(fa.value))
+  } else {
     return none
   }
 }
@@ -2094,10 +2094,7 @@ per operare un lifting di una funzione $n$-aria un funtore applicativo è suffic
 const of = <A>(a: A) => new Identity(a)
 
 class Identity<A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Identity<B> {
     return new Identity(f(this.value))
   }
@@ -2113,10 +2110,7 @@ class Identity<A> {
 const of = right
 
 class Left<L, A> {
-  value: L
-  constructor(value: L) {
-    this.value = value
-  }
+  constructor(readonly value: L) {}
   map<B>(f: (a: A) => B): Either<L, B> {
     return new Left(this.value)
   }
@@ -2129,10 +2123,7 @@ class Left<L, A> {
 }
 
 class Right<L, A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Either<L, B> {
     return new Right(f(this.value))
   }
@@ -2168,10 +2159,7 @@ export const applicativeArray = {
 const of = <A>(a: A): IO<A> => new IO(() => a)
 
 class IO<A> {
-  run: () => A
-  constructor(run: () => A) {
-    this.run = run
-  }
+  constructor(readonly run: () => A) {}
   map<B>(f: (a: A) => B): IO<B> {
     return new IO(() => f(this.run()))
   }
@@ -2188,10 +2176,7 @@ const of = <A>(a: A): Task<A> =>
   new Task(() => Promise.resolve(a))
 
 class Task<A> {
-  run: () => Promise<A>
-  constructor(run: () => Promise<A>) {
-    this.run = run
-  }
+  constructor(readonly run: () => Promise<A>) {}
   map<B>(f: (a: A) => B): Task<B> {
     return new Task(() => this.run().then(f))
   }
@@ -2212,6 +2197,17 @@ class Task<A> {
 \texttt{applicative.ts}
 \end{center}
 \end{boxed}
+
+\subsection{Monoidal lax functors}
+
+La definizione di funtore applicativo che abbiamo visto è equivalente alla seguente
+
+\begin{verbatim}
+unit: F<void>
+mult: <A, B>(fa: F<A>, fb: F<B>) => F<[A, B]>
+\end{verbatim}
+
+\paragraph{Esercizio.} Dimostrare che sono equivalenti.
 
 \subsection{Composizione di funtori applicativi}
 
@@ -2236,14 +2232,20 @@ class ArrayOption<A> {
 }
 \end{verbatim}
 
+\newpage
+
 \section{Monadi}
 
-\subsection{Come si gestiscono gli effetti?}
+\subsection{Come si gestiscono i side effect?}
 
-A parte alcune tipologie di programmi come i compilatori o come \texttt{prettier}, che possono essere pensati come funzioni pure (\texttt{string -> string}),
-quasi tutti i programmi che scriviamo comportano degli effetti.
+A parte alcune tipologie di programmi come i compilatori o come \texttt{prettier}, che possono essere pensati come funzioni pure (\texttt{string => string}),
+quasi tutti i programmi che scriviamo comportano dei side effect.
 
-Occorre perciò modellare un programma che produce effetti con una funzione pura. Ci sono due modi per farlo
+\begin{boxed}
+Come è possibile modellare un programma che produce side effect con una funzione pura?
+\end{boxed}
+
+La risposta è modellando i side effect tramite effetti, ovvero valori che rappresentano il side effect. Ci sono due modi per farlo
 
 \begin{enumerate}
   \item definire un DSL per gli effetti
@@ -2254,7 +2256,7 @@ Occorre perciò modellare un programma che produce effetti con una funzione pura
 
 \begin{verbatim}
 const sum = (a: number, b: number): number => {
-  console.log(a, b) // effetto
+  console.log(a, b) // side effect
   return a + b
 }
 \end{verbatim}
@@ -2273,6 +2275,11 @@ fondamentalmente creando un DSL per gli effetti.
 \paragraph{Thunk.} La computazione viene racchiusa bel body di una funzione senza argomenti
 
 \begin{verbatim}
+class IO<A> {
+  constructor(readonly run: () => A) {}
+  ...
+}
+
 const sum = (a: number, b: number): IO<number> =>
   new IO(() => {
     console.log(a, b)
@@ -2280,7 +2287,7 @@ const sum = (a: number, b: number): IO<number> =>
   })
 \end{verbatim}
 
-Il programma \texttt{sum}, quando viene eseguito, non provoca immediatamente l'effetto ma restituisce un valore che rappresenta
+Il programma \texttt{sum}, quando viene eseguito, non provoca immediatamente il side effect ma restituisce un valore che rappresenta
 la computazione (detta anche \emph{azione}).
 
 Vediamo un altro esempio, leggere e scrivere sul \texttt{localStorage}
@@ -2304,9 +2311,9 @@ system = pure core + imperative shell
 \end{center}
 \end{boxed}
 
-Nei linguaggi \emph{puramente funzionali} (come Haskell, PureScript o Elm) questa divisione netta è imposta dal linguaggio stesso.
+Nei linguaggi \emph{puramente funzionali} (come Haskell, PureScript o Elm) questa divisione è netta ed è imposta dal linguaggio stesso.
 
-Un intero programma che produce un valore di tipo \texttt{A} è rappresentato da una funzione il cui codominio è \texttt{IO<A>}
+Un intero programma che produce un valore di tipo \texttt{A} è rappresentato da una funzione il cui codominio è \texttt{IO<A>} (o \texttt{Task<A>}).
 
 Come faccio a scrivere la funzione \texttt{main}? Davvero si pretende di scrivere tutta l'applicazione in una unica funzione?
 
@@ -2384,6 +2391,8 @@ const flatten = <A>(mma: IO<IO<A>>): IO<A> =>
 Cosa dire di \texttt{Either}, \texttt{Array} e degli altri funtori?
 E' possibile individuare un nuovo pattern funzionale?
 
+Si, le monadi.
+
 \subsection{Un po' di storia}
 
 \begin{center}
@@ -2419,7 +2428,7 @@ Una monade $M$ nella categoria $\mathcal{C}$ è un endofuntore di $\mathcal{C}$ 
 
 \begin{verbatim}
 of: <A>(a: A) => M<A>
-chain: <A, B>(f: (a: A) => M<B>) => (ma: M<A>) => M<B>
+chain: <A, B>(f: (a: A) => M<B>, ma: M<A>) => M<B>
 \end{verbatim}
 
 Inoltre devono valere le seguenti leggi
@@ -2439,7 +2448,7 @@ Associativity & \texttt{chain(g, chain(f, ma)) = chain(x => chain(g, f(x)), mx)}
 \egroup
 \end{center}
 
-Sinonimi di \texttt{of}\footnote{Nome contenuto nella specifica https://github.com/fantasyland/fantasy-land} sono \texttt{return}, \texttt{pure} e \texttt{point}, sinonimi di \texttt{chain} sono \texttt{bind} e \texttt{flatMap}.
+Possibili sinonimi di \texttt{of}\footnote{Nome contenuto nella specifica https://github.com/fantasyland/fantasy-land} sono \texttt{return}, \texttt{pure} e \texttt{point}, sinonimi di \texttt{chain} sono \texttt{bind} e \texttt{flatMap}.
 
 \begin{itemize}
   \item perchè ci sono esattamente quelle due funzioni?
@@ -2468,13 +2477,13 @@ Sia $M$ un endofuntore nella categoria $\mathcal{C}$ e si considerino i due morf
 }
 \]
 
-Chiamiamo \emph{Kleisli arrow} i morfismi come $g$ ed $f$, ovvero i morifismi il cui target è l'immagine di un endofuntore $M$.
+Chiamiamo \emph{Kleisli arrow} i morfismi come $g$ ed $f$, ovvero i morifismi il cui target è l'immagine di $M$.
 
 \begin{boxed}
 Una Kleisli arrow $f: A \rightarrow M(B)$ può essere interpretata come un programma che accetta un input di tipo $A$ e che produce un output di tipo $B$ insieme ad un effetto di tipo $M$
 \end{boxed}
 
-Le Kleisli arrows $g: A \rightarrow M(B)$, $f: B \rightarrow M(C)$ in generale non compongono rispetto a $\circ$, l'operazione di composizione della categoria $\mathcal{C}$,
+Le Kleisli arrows $g: A \rightarrow M(B)$, $f: B \rightarrow M(C)$ non compongono rispetto a $\circ$, l'operazione di composizione della categoria $\mathcal{C}$,
 poichè $M(B)$ è diverso da $B$.
 
 Si consideri allora la seguente costruzione $K_{\mathcal{C}}$
@@ -2612,10 +2621,7 @@ Perchè se $M$ è una monade posso comporre i programmi $A \rightarrow M(B)$ tra
 const of = <A>(a: A) => new Identity(a)
 
 class Identity<A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   chain<B>(f: (a: A) => Identity<B>): Identity<B> {
     return f(this.value)
   }
@@ -2692,10 +2698,7 @@ const monadArray = {
 const of = <A>(a: A): IO<A> => new IO(() => a)
 
 class IO<A> {
-  run: () => A
-  constructor(run: () => A) {
-    this.run = run
-  }
+  constructor(readonly run: () => A) {}
   chain<B>(f: (a: A) => IO<B>): IO<B> {
     return new IO(() => f(this.run()).run())
   }
@@ -2721,10 +2724,7 @@ const of = <A>(a: A): Task<A> =>
   new Task(() => Promise.resolve(a))
 
 class Task<A> {
-  run: () => Promise<A>
-  constructor(run: () => Promise<A>) {
-    this.run = run
-  }
+  constructor(readonly run: () => Promise<A>) {}
   chain<B>(f: (a: A) => Task<B>): Task<B> {
     return new Task(() => this.run().then(a => f(a).run()))
   }

@@ -54,7 +54,7 @@ const obj: Semigroup<Object> = {
 const assign = (as: Array<Object>): Object =>
   fold(obj)({}, as)
 
-const getDualSemigroup = <A>(
+export const getDualSemigroup = <A>(
   S: Semigroup<A>
 ): Semigroup<A> => ({
   concat: (x, y) => S.concat(y, x)
@@ -72,7 +72,9 @@ const getConstSemigroup = <A>(a: A): Semigroup<A> => ({
   concat: () => a
 })
 
-const getFreeSemigroup = <A>(): Semigroup<Array<A>> => ({
+export const getFreeSemigroup = <A>(): Semigroup<
+  Array<A>
+> => ({
   concat: (x, y) => x.concat(y)
 })
 

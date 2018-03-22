@@ -29,7 +29,18 @@ type Shape2D = Shape<Point2D>
 
 */
 
-const outside = (s: Shape2D): Shape2D => point => !s(point)
+const outside2D = (s: Shape2D): Shape2D => point =>
+  !s(point)
+
+/*
+
+  Notate che non stiamo usando in nessun modo il fatto
+  che stiamo lavorando in due dimensioni. Generalizziamo!
+
+*/
+
+const outside = <S>(s: Shape<S>): Shape<S> => point =>
+  !s(point)
 
 /*
 
@@ -124,3 +135,11 @@ const shapes: Array<Shape2D> = [
 ]
 
 // console.log(show(fold(union)(shapes)))
+
+/*
+
+  E se volessimo aggiungere i colori?
+
+  Come si modificano le istenze di semigruppi?
+
+*/

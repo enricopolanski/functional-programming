@@ -2,10 +2,7 @@ import { Option, Some } from './Option'
 import { applicativeArray } from './Array'
 
 export class ArrayOption<A> {
-  value: Array<Option<A>>
-  constructor(value: Array<Option<A>>) {
-    this.value = value
-  }
+  constructor(readonly value: Array<Option<A>>) {}
   map<B>(f: (a: A) => B): ArrayOption<B> {
     return new ArrayOption(this.value.map(o => o.map(f)))
   }

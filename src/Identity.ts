@@ -1,10 +1,7 @@
 export const of = <A>(a: A) => new Identity(a)
 
 export class Identity<A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Identity<B> {
     return new Identity(f(this.value))
   }

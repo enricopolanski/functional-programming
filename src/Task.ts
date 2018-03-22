@@ -2,10 +2,7 @@ export const of = <A>(a: A): Task<A> =>
   new Task(() => Promise.resolve(a))
 
 export class Task<A> {
-  run: () => Promise<A>
-  constructor(run: () => Promise<A>) {
-    this.run = run
-  }
+  constructor(readonly run: () => Promise<A>) {}
   map<B>(f: (a: A) => B): Task<B> {
     return new Task(() => this.run().then(f))
   }
@@ -35,3 +32,10 @@ export const chain = <A, B>(
   f: (a: A) => Task<B>,
   fa: Task<A>
 ): Task<B> => fa.chain(f)
+
+export const liftA2 = <A, B, C>(
+  f: (a: A) => (b: B) => C
+): ((
+  fa: Task<A>
+) => (fb: Task<B>) => Task<C>) => fa => fb =>
+  fb.ap(fa.map(f))
