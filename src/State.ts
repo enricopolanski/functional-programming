@@ -1,8 +1,5 @@
 export class State<S, A> {
-  run: (s: S) => [A, S]
-  constructor(run: (s: S) => [A, S]) {
-    this.run = run
-  }
+  constructor(readonly run: (s: S) => [A, S]) {}
   map<B>(f: (a: A) => B): State<S, B> {
     return this.chain(a => of(f(a))) // <= derived
   }

@@ -2891,10 +2891,7 @@ Definiamo una istanza di monade
 
 \begin{verbatim}
 class State<S, A> {
-  run: (s: S) => [A, S]
-  constructor(run: (s: S) => [A, S]) {
-    this.run = run
-  }
+  constructor(readonly run: (s: S) => [A, S]) {}
   map<B>(f: (a: A) => B): State<S, B> {
     return this.chain(a => of(f(a))) // <= derived
   }
@@ -3032,18 +3029,10 @@ const local = <E>(f: (e: E) => E) => <A>(
   \item \texttt{local} cambia il valore del contesto durante l'esecuzione dell'azione
 \end{itemize}
 
-\begin{boxed}
-\begin{center}
-\textbf{DEMO}
-
-\texttt{reader.ts}
-\end{center}
-\end{boxed}
-
 \subsection{Le monadi non compongono}
 
-In generale le monadi non compongono, ovvero date due istanze di monade per \texttt{M<A>} e \texttt{N<A>},
-alla struttura dati \texttt{M<N<A>>} non è detto che possa ancora essere associata una istanza di monade.
+In generale le monadi non compongono, ovvero date due istanze di monade, una per \texttt{M<A>} e una per \texttt{N<A>},
+allora a \texttt{M<N<A>>} non è detto che possa ancora essere associata una istanza di monade.
 
 Che non compongano in generale però non vuol dire che non esistano dei casi particolari ove questo succede.
 
