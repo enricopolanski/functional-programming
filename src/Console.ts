@@ -1,7 +1,7 @@
 import { createInterface } from 'readline'
 import { Task } from './Task'
 
-export const prompt: Task<string> = new Task(
+export const getLine: Task<string> = new Task(
   () =>
     new Promise(resolve => {
       const rl = createInterface({
@@ -15,7 +15,7 @@ export const prompt: Task<string> = new Task(
     })
 )
 
-export const log = (message: string): Task<void> =>
+export const putStrLn = (message: string): Task<void> =>
   new Task(
     () =>
       new Promise(res => {

@@ -147,7 +147,26 @@ type Routes =
       userId: number
       invoiceId: number
     }
-  | { type: 'NotFound' }
+  | { type: 'notfound' }
+
+/*
+
+    Definiamo qualche funzione per rendere agevole
+    la costruzione delle route
+
+*/
+
+const toUser = (userId: number): Routes => ({
+  type: 'user',
+  userId
+})
+
+const toInvoice = (
+  userId: number,
+  invoiceId: number
+): Routes => ({ type: 'invoice', userId, invoiceId })
+
+const notFound: Routes = { type: 'notfound' }
 
 /*
 
@@ -157,17 +176,10 @@ type Routes =
 */
 
 const router: Parser<Route, Routes> = invoice
-  .map(({ userId, invoiceId }): Routes => ({
-    type: 'invoice',
-    userId,
-    invoiceId
-  }))
-  .alt(
-    users.map((userId): Routes => ({
-      type: 'user',
-      userId
-    }))
+  .map(({ userId, invoiceId }) =>
+    toInvoice(userId, invoiceId)
   )
+  .alt(users.map(toUser))
 
 /*
 
@@ -179,11 +191,11 @@ const router: Parser<Route, Routes> = invoice
 const run = (path: string): Routes =>
   router
     .run(path.split('/'))
-    .fold((): Routes => ({ type: 'NotFound' }), x => x[0])
+    .fold(() => notFound, x => x[0])
 
 console.log(run('users/1'))
 // { type: 'user', userId: 1 }
 console.log(run('users/1/invoice/42'))
 // { type: 'invoice', userId: 1, invoiceId: 42 }
 console.log(run('foo'))
-// { type: 'NotFound' }
+// { type: 'notfound' }

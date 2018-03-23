@@ -2634,21 +2634,15 @@ class Identity<A> {
 const of = some
 
 class Some<A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   chain<B>(f: (a: A) => Option<B>): Option<B> {
     return f(this.value)
   }
 }
 
 class None<A> {
-  map<B>(f: (a: A) => B): Option<B> {
-    return new None()
-  }
   chain<B>(f: (a: A) => Option<B>): Option<B> {
-    return new None()
+    return none
   }
 }
 \end{verbatim}
@@ -2659,20 +2653,14 @@ class None<A> {
 const of = right
 
 class Left<L, A> {
-  value: L
-  constructor(value: L) {
-    this.value = value
-  }
+  constructor(readonly value: L) {}
   chain<B>(f: (a: A) => Either<L, B>): Either<L, B> {
-    return new Left(this.value)
+    return left(this.value)
   }
 }
 
 class Right<L, A> {
-  value: A
-  constructor(value: A) {
-    this.value = value
-  }
+  constructor(readonly value: A) {}
   chain<B>(f: (a: A) => Either<L, B>): Either<L, B> {
     return f(this.value)
   }
@@ -2742,7 +2730,7 @@ Se abbiamo un \texttt{Task}
   \item possiamo far partire la computazione che rappresenta (per esempio una richiesta network)
   \item possiamo scegliere di non far partire la computazione
   \item possiamo farlo partire più di una volta (e potenzialmente ottenere risultati diversi)
-  \item mentre la computazione si sta svolgendo, possiamo notificagli che non siamo più interessati al risultato ela computazione può scegliere di terminarsi da sola
+  \item mentre la computazione si sta svolgendo, possiamo notificagli che non siamo più interessati al risultato e la computazione può scegliere di terminarsi da sola
   \item quando la computazione finisce otteniamo il risultato
 \end{itemize}
 
@@ -2869,7 +2857,7 @@ const program2 = read
   .chain(() => read)
 \end{verbatim}
 
-Possiamo anche definire un combinator e sfruttarlo per rendere più compatto il codice
+Possiamo anche definire un combinatore e sfruttarlo per rendere più compatto il codice
 
 \begin{verbatim}
 const aba = <A, B>(a: IO<A>, b: IO<B>): IO<A> =>
@@ -2882,7 +2870,6 @@ const program3 = aba(read, writeFile('file.txt', 'foo'))
 \begin{center}
 \textbf{DEMO}
 
-\texttt{router.ts}
 \texttt{game.ts}
 \end{center}
 \end{boxed}
@@ -3053,7 +3040,6 @@ const local = <E>(f: (e: E) => E) => <A>(
 \end{center}
 \end{boxed}
 
-
 \subsection{Le monadi non compongono}
 
 In generale le monadi non compongono, ovvero date due istanze di monade per \texttt{M<A>} e \texttt{N<A>},
@@ -3070,7 +3056,7 @@ Vediamo qualche esempio, se \texttt{M} ha una istanza di monade allora ammettono
   \item \texttt{ReaderT<M, E, A> = Reader<E, M<A>>}
 \end{itemize}
 
-Notate come questi tipi collassino quando la monade \texttt{M} è la monade \texttt{Identity}
+Notate come questi tipi collassino in quelli già conosciuti quando la monade \texttt{M} è la monade \texttt{Identity}
 
 \begin{itemize}
   \item \texttt{Option<A> = OptionT<Identity, A>}
@@ -3259,6 +3245,8 @@ $$
 
 Il tipo \texttt{Option<boolean>} ha $1 + 2 = 3$ abitanti.
 
+\newpage
+
 \section{Make impossible states irrepresentable}
 
 Vediamo un'altra tecnica per ottenere type safety, questa volta addirittura per costruzione.
@@ -3357,6 +3345,8 @@ const inverse = (x: NonZero): number => 1 / x.value
 
 In questo modo spesso si spingono i controlli a runtime là dove dovrebbe essere il loro posto naturale: ai confini del sistema,
 dove vengono fatte tutte le validazioni dell'input.
+
+\newpage
 
 \section{Ottica funzionale}
 

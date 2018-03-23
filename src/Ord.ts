@@ -11,7 +11,7 @@ export interface Ord<A> extends Setoid<A> {
   compare: (x: A, y: A) => Ordering
 }
 
-const ordNumber: Ord<number> = {
+export const ordNumber: Ord<number> = {
   ...setoidNumber,
   compare: (x, y) => (x < y ? -1 : x > y ? 1 : 0)
 }
@@ -112,7 +112,7 @@ const byName: Ord<Person> = contramap(
 const S = getSemigroup<Person>()
 const byAgeAndThenByName = fold(S)(byAge, [byName])
 
-console.log(sort(byAgeAndThenByName, ps))
+// console.log(sort(byAgeAndThenByName, ps))
 /*
 [ { name: 'B', age: 44 },
   { name: 'C', age: 44 },
@@ -123,9 +123,33 @@ const getDualOrd = <A>(O: Ord<A>): Ord<A> => {
   return fromCompare((x, y) => O.compare(y, x))
 }
 
-console.log(sort(fold(S)(getDualOrd(byAge), [byName]), ps))
+// console.log(sort(fold(S)(getDualOrd(byAge), [byName]), ps))
 /*
 [ { name: 'A', age: 47 },
   { name: 'B', age: 44 },
   { name: 'C', age: 44 } ]
 */
+
+export const lessThan = <A>(O: Ord<A>) => (
+  x: A,
+  y: A
+): boolean => {
+  return O.compare(x, y) === -1
+}
+
+export const greaterThan = <A>(O: Ord<A>) => (
+  x: A,
+  y: A
+): boolean => {
+  return O.compare(x, y) === 1
+}
+
+/** Test whether a value is between a minimum and a maximum (inclusive) */
+export const between = <A>(
+  O: Ord<A>
+): ((low: A, hi: A) => (x: A) => boolean) => {
+  const lessThanO = lessThan(O)
+  const greaterThanO = greaterThan(O)
+  return (low, hi) => x =>
+    lessThanO(x, low) || greaterThanO(x, hi) ? false : true
+}
