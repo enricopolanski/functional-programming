@@ -24,3 +24,9 @@ export const monadArray = {
   ): Array<B> =>
     fa.reduce((acc, a) => acc.concat(f(a)), [] as Array<B>)
 }
+
+export const reduce = <A, B>(
+  fa: Array<A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => fa.reduce(f, b)

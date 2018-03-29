@@ -42,3 +42,15 @@ export const fromNullable = <A>(
 ): Option<A> => {
   return a == null ? none : some(a)
 }
+
+export const isNone = <A>(fa: Option<A>): fa is None<A> =>
+  fa instanceof None
+
+export const isSome = <A>(fa: Option<A>): fa is Some<A> =>
+  fa instanceof Some
+
+export const reduce = <A, B>(
+  fa: Option<A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => (isSome(fa) ? f(b, fa.value) : b)

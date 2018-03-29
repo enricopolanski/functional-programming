@@ -1,4 +1,5 @@
-import { Option, Some } from './Option'
+import { Option } from './Option'
+import * as option from './Option'
 import { applicativeArray } from './Array'
 
 export class ArrayOption<A> {
@@ -17,5 +18,21 @@ export class ArrayOption<A> {
   }
 }
 
-const of = <A>(a: A) =>
-  new ArrayOption(applicativeArray.of(new Some(a)))
+export const of = <A>(a: A) =>
+  new ArrayOption(applicativeArray.of(option.of(a)))
+
+export const reduce = <A, B>(
+  fa: ArrayOption<A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => fa.value.reduce((b, o) => option.reduce(o, b, f), b)
+
+import { some, none } from './Option'
+
+console.log(
+  reduce(
+    new ArrayOption([some('a'), none, some('b')]),
+    '',
+    (b, a) => b + a
+  )
+) // ab

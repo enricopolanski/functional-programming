@@ -2215,8 +2215,11 @@ I funtori applicativi compongono, ovvero dati due funtori applicativi \texttt{F}
 allora la composizione \texttt{F(G)} è ancora un funtore applicativo.
 
 \begin{verbatim}
+import { applicativeArray } from './Array'
+import * as option from './Option'
+
 const of = <A>(a: A) =>
-  new ArrayOption(applicativeArray.of(some(a)))
+  new ArrayOption(applicativeArray.of(option.of(a)))
 
 class ArrayOption<A> {
   ...
@@ -2874,161 +2877,6 @@ const program3 = aba(read, writeFile('file.txt', 'foo'))
 \end{center}
 \end{boxed}
 
-\subsection{Come gestire lo stato in modo funzionale: la monade \texttt{State}}
-
-Se sono bandite le mutazioni, come è possibile gestire lo stato?
-Cambiare lo stato in modo compatibile alla programmazione funzionale vuol dire restituirne una nuova copia modificata.
-
-Il modello che descrive nel modo più generale un cambiamento di stato è quello definito dalla seguente firma
-
-\begin{verbatim}
-(s: S) => [A, S]
-\end{verbatim}
-
-ove \texttt{S} è il tipo dello stato e \texttt{A} è il tipo del valore restituito dalla computazione.
-
-Definiamo una istanza di monade
-
-\begin{verbatim}
-class State<S, A> {
-  constructor(readonly run: (s: S) => [A, S]) {}
-  map<B>(f: (a: A) => B): State<S, B> {
-    return this.chain(a => of(f(a))) // <= derived
-  }
-  ap<B>(fab: State<S, (a: A) => B>): State<S, B> {
-    return fab.chain(f => this.map(f)) // <= derived
-  }
-  chain<B>(f: (a: A) => State<S, B>): State<S, B> {
-    return new State(s => {
-      const [a, s1] = this.run(s)
-      return f(a).run(s1)
-    })
-  }
-}
-
-const of = <S, A>(a: A): State<S, A> =>
-  new State(s => [a, s])
-\end{verbatim}
-
-Generalmente \texttt{State} si accompagna alle seguenti funzioni di utility
-
-\begin{verbatim}
-const get = <S>(): State<S, S> =>
-  new State(s => [s, s])
-
-const put = <S>(s: S): State<S, undefined> =>
-  new State(() => [undefined, s])
-
-const modify = <S>(
-  f: (s: S) => S
-): State<S, undefined> => new State(s => [undefined, f(s)])
-
-const gets = <S, A>(f: (s: S) => A): State<S, A> =>
-  new State(s => [f(s), s])
-\end{verbatim}
-
-\begin{itemize}
-  \item \texttt{get} legge lo stato corrente
-  \item \texttt{put} imposta lo stato corrente
-  \item \texttt{modify} modifica lo stato corrente
-  \item \texttt{gets} restituisce un valore in base allo stato corrente
-\end{itemize}
-
-Vediamo ora un semplice programma che gestisce un contatore
-
-\begin{verbatim}
-type S = number
-
-const increment = modify<S>(n => n + 1)
-
-const decrement = modify<S>(n => n - 1)
-
-const program = increment
-  .chain(() => increment)
-  .chain(() => increment)
-  .chain(() => decrement)
-
-console.log(program.run(0)) // [undefined, 2]
-\end{verbatim}
-
-Si noti che \texttt{increment} è un \emph{valore} che rappresenta un programma, che se eseguito
-modificherà lo stato incrementando il contatore.
-Essendo un valore è inerte fino a quando non viene eseguito (chiamando il metodo \texttt{run}).
-\texttt{program} è un programma ottenuto dalla combinazione di due sottoprogrammi (\texttt{increment} e \texttt{decrement}).
-E qui emerge il fatto che vale la trasparenza referenziale: si noti che vengono fatti tre incrementi
-ma \texttt{increment} è definito una volta sola.
-
-alla fine decido di eseguire il programma fornendo lo stato iniziale
-
-\begin{verbatim}
-console.log(program.run(0)) // [undefined, 2]
-\end{verbatim}
-
-naturalmente rappresentando \texttt{program} l'intero programma posso eseguirlo tutte le volte che voglio,
-anche cambiando lo stato iniziale
-
-\begin{verbatim}
-console.log(program.run(2)) // [undefined, 4]
-\end{verbatim}
-
-La monade \texttt{State} può anche essere utilizzata nei test quando occorrano dei mock stateful.
-
-\subsection{Dependency injection funzionale: la monade \texttt{Reader}}
-
-\begin{quote}
-Represents a computation which can read values from a shared environment, pass values from function to function
-and execute sub-computations in a modified environment
-\end{quote}
-
-Se leggere da uno stato mutabile può invalidare la trasparenza referenziale, come è possibile leggere da una configurazione globale?
-Ancora una volta la risposta è nelle funzioni, il modello che descrive nel modo più generale la lettura da una configurazione globale
-è quello definito dalla seguente firma
-
-\begin{verbatim}
-(e: E) => A
-\end{verbatim}
-
-ove \texttt{E} è il tipo della configurazione e \texttt{A} è il tipo del valore restituito dalla computazione.
-
-Definiamo una istanza di monade
-
-\begin{verbatim}
-class Reader<E, A> {
-  constructor(readonly run: (e: E) => A) {}
-  map<B>(f: (a: A) => B): Reader<E, B> {
-    return this.chain(a => of(f(a))) // <= derived
-  }
-  ap<B>(fab: Reader<E, (a: A) => B>): Reader<E, B> {
-    return fab.chain(f => this.map(f)) // <= derived
-  }
-  chain<B>(f: (a: A) => Reader<E, B>): Reader<E, B> {
-    return new Reader(e => f(this.run(e)).run(e))
-  }
-}
-
-const of = <E, A>(a: A): Reader<E, A> =>
-  new Reader(() => a)
-\end{verbatim}
-
-Generalmente \texttt{Reader} si accompagna alle seguenti funzioni di utility
-
-\begin{verbatim}
-const ask = <E>(): Reader<E, E> => new Reader(e => e)
-
-const asks = <E, A>(f: (e: E) => A): Reader<E, A> =>
-  new Reader(f)
-
-const local = <E>(f: (e: E) => E) => <A>(
-  fa: Reader<E, A>
-): Reader<E, A> => new Reader((e: E) => fa.run(f(e)))
-\end{verbatim}
-
-\begin{itemize}
-  \item \texttt{ask} legge il contesto corrente
-  \item \texttt{asks} restituisce un valore in base al contesto corrente
-  \item \texttt{local} cambia il valore del contesto durante l'esecuzione dell'azione
-\end{itemize}
-
 \subsection{Le monadi non compongono}
 
 In generale le monadi non compongono, ovvero date due istanze di monade, una per \texttt{M<A>} e una per \texttt{N<A>},
@@ -3041,18 +2889,16 @@ Vediamo qualche esempio, se \texttt{M} ha una istanza di monade allora ammettono
 \begin{itemize}
   \item \texttt{OptionT<M, A> = M<Option<A>>}
   \item \texttt{EitherT<M, L, A> = M<Either<L, A>>}
-  \item \texttt{StateT<M, S, A> = (s: S) => M<[A, S]>}
-  \item \texttt{ReaderT<M, E, A> = Reader<E, M<A>>}
 \end{itemize}
 
-Notate come questi tipi collassino in quelli già conosciuti quando la monade \texttt{M} è la monade \texttt{Identity}
+Notate come questi tipi collassino in quelli già conosciuti quando il type constructor \texttt{M} è \texttt{Identity}
 
 \begin{itemize}
   \item \texttt{Option<A> = OptionT<Identity, A>}
   \item \texttt{Either<L, A> = EitherT<Identity, L, A>}
-  \item \texttt{State = StateT<Identity, S, A>}
-  \item \texttt{Reader<E, A> = ReaderT<Identity, E, A>}
 \end{itemize}
+
+\texttt{OptionT} e \texttt{EitherT} sono esempi di \emph{monad transformer}.
 
 \newpage
 
@@ -3336,6 +3182,435 @@ In questo modo spesso si spingono i controlli a runtime là dove dovrebbe essere
 dove vengono fatte tutte le validazioni dell'input.
 
 \newpage
+
+\section{Foldable}
+
+\texttt{Foldable} rappresenta una struttura che può essere ridotta tramite l' operazione \texttt{reduce}
+(sinonimi: \texttt{reduceLeft}, \texttt{foldLeft}, \texttt{foldl})
+
+\begin{verbatim}
+interface Foldable<F> {
+  reduce: <A, B>(fa: F<A>, b: B, f: (b: B, a: A) => B) => B
+}
+\end{verbatim}
+
+Definizioni equivalenti\footnote{ovvero ogni operazione può essere derivata da una qualsiasi delle altre} di \texttt{Foldable}
+coinvolgono l'operazione
+
+\begin{verbatim}
+reduceRight: <A, B>(fa: F<A>, b: B, f: (a: A, b: B) => B) => B
+\end{verbatim}
+
+(sinonimi: \texttt{foldRight}, \texttt{foldr}) oppure l'operazione
+
+\begin{verbatim}
+foldMap: <M>(M: Monoid<M>) =>
+  <A>(fa: F<A>, f: (a: A) => M) => M
+\end{verbatim}
+
+Un modo per afferrare il concetto di \texttt{Foldable} è che una struttura che ammette una sua istanza
+è in grado di essere rappresentata sotto forma di array.
+
+Infatti è sempre possibile definire la seguente funzione
+
+\begin{verbatim}
+const toArray = <F>(F: Foldable<F>) => <A>(fa: F<A>): Array<A>
+\end{verbatim}
+
+\paragraph{Esercizio.} Perchè?
+
+\paragraph{Esercizio.} \texttt{Option<A>} ammette una istanza di \texttt{Foldable}, qual'è la sua rappresentazione come array?
+
+\subsection{Differenze tra \texttt{reduceLeft} e \texttt{reduceRight}}
+
+\texttt{reduceLeft} è \emph{associativa a sinistra}
+
+$$
+reduce(b, f, [x_1, x_2, \ldots , x_n])  == f( \ldots f(f(b, x_1), x_2), \ldots x_n)
+$$
+
+mentre \texttt{reduceRight} è \emph{associativa a destra}
+
+$$
+reduceRight(b, f, [x_1, x_2, \ldots , x_n])  == f(f( \ldots f(b, x_n) \ldots , x_2), x_1)
+$$
+
+\paragraph{Esempio.}
+
+\begin{verbatim}
+reduce(["a", "b", "c"], "", (b, a) => b + a) // "abc"
+
+reduceRight(["a", "b", "c"], "", (a, b) => b + a) // "cba"
+\end{verbatim}
+
+\subsection{\texttt{Foldable} e \texttt{Functor}}
+
+\texttt{Foldable} e \texttt{Functor} sono indipendenti, ovvero esistono strutture che ammettono una istanza di \texttt{Foldable} ma non una di
+\texttt{Functor} e viceversa.
+
+\texttt{Task<A>} ammette una istanza di \texttt{Functor} ma non di \texttt{Foldable}.
+
+La seguente struttura dati
+
+\begin{verbatim}
+class Weird<A> {
+  constructor(
+    readonly value: A,
+    readonly endo: (a: A) => A
+  ) {}
+}
+\end{verbatim}
+
+ammette una istanza di \texttt{Foldable}
+
+\begin{verbatim}
+const reduce = <A, B>(
+  fa: Weird<A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => f(b, fa.endo(fa.value))
+\end{verbatim}
+
+ma non di \texttt{Functor} perchè \texttt{A} compare in posizione controvariante.
+
+\subsection{Esempi}
+
+\paragraph{Identity}
+
+\begin{verbatim}
+const reduce = <A, B>(
+  fa: Identity<A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => f(b, fa.value)
+\end{verbatim}
+
+\paragraph{Option}
+
+\begin{verbatim}
+const reduce = <A, B>(
+  fa: Option<A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => (isSome(fa) ? f(b, fa.value) : b)
+\end{verbatim}
+
+\paragraph{Either}
+
+\begin{verbatim}
+const reduce = <L, A, B>(
+  fa: Either<L, A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => (isRight(fa) ? f(b, fa.value) : b)
+\end{verbatim}
+
+\paragraph{Array}
+
+\begin{verbatim}
+const reduce = <A, B>(
+  fa: Array<A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => fa.reduce(f, b)
+\end{verbatim}
+
+\paragraph{Esercizio.} Mostrare che \texttt{reduce}, \texttt{reduceRight} e \texttt{foldMap} sono definizioni equivalenti per \texttt{Foldable}.
+
+\paragraph{Esercizio.} Definire una istanza di \texttt{Foldable} per \texttt{Tree<A>}
+
+\begin{verbatim}
+type Tree<A> =
+  | { type: 'Empty' }
+  | {
+      type: 'Node'
+      left: Tree<A>
+      value: A
+      right: Tree<A>
+    }
+\end{verbatim}
+
+\paragraph{Esercizio.} \texttt{Set<A>} ammette una istanza di \texttt{Foldable}?
+
+\subsection{Funzioni costellazione}
+
+Anche a \texttt{Foldable} possono essere associate una serie di utili funzioni costellazioni, vediamone alcune
+
+TODO
+
+\subsection{I Foldable compongono}
+
+Dati due type constructor \texttt{F<A>} e \texttt{G<A>} tali che ammettono una istanza di \texttt{Foldable}, allora la composizione \texttt{F<G<A>>}
+ammette una istanza di \texttt{Foldable}.
+
+\paragraph{Esempio.} \texttt{ArrayOption<A>}
+
+\begin{verbatim}
+const reduce = <A, B>(
+  fa: ArrayOption<A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => fa.value.reduce((b, o) => option.reduce(o, b, f), b)
+
+reduce(
+  new ArrayOption([some("a"), none, some("b")]),
+  "",
+  (b, a) => b + a
+) // "ab"
+\end{verbatim}
+
+\begin{boxed}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{wizard.ts}
+\end{center}
+\end{boxed}
+
+
+\newpage
+
+\section{Traversable}
+
+TODO
+
+\newpage
+
+\section{Alternative}
+
+TODO
+
+\newpage
+
+\section{Parser combinators}
+
+TODO
+
+\newpage
+
+\section{Diagramma delle type class}
+
+\[
+\xymatrix{
+  Semigroup & Monoid \ar[l] \\
+  Setoid & Ord \ar[l] \\
+  Contravariant \\
+  & Alt \ar[ldd] & Plus \ar[l] & Alternative \ar[l] \ar[ld] \\
+  & Apply \ar[ld] & Applicative \ar[l] & Monad \ar[l] \ar[ld] \\
+  Functor & Bifunctor \ar[l] & Chain \ar[lu] & ChainRec \ar[l] \\
+  & Extend \ar[lu] & Comonad \ar[l] \\
+  & Profunctor \ar[luu] \\
+  Foldable & Traversable \ar[l] \\
+  Semigroupoid & Category \ar[l] \\
+}
+\]
+
+\newpage
+
+\section{Trasformazioni naturali}
+
+TODO
+
+\newpage
+
+\section{Gestire lo stato in modo funzionale: la monade \texttt{State}}
+
+Se sono bandite le mutazioni, come è possibile gestire lo stato?
+Cambiare lo stato in modo compatibile alla programmazione funzionale vuol dire restituirne una nuova copia modificata.
+
+Il modello che descrive nel modo più generale un cambiamento di stato è quello definito dalla seguente firma
+
+\begin{verbatim}
+(s: S) => [A, S]
+\end{verbatim}
+
+ove \texttt{S} è il tipo dello stato e \texttt{A} è il tipo del valore restituito dalla computazione.
+
+Definiamo l'istanza di monade
+
+\begin{verbatim}
+class State<S, A> {
+  constructor(readonly run: (s: S) => [A, S]) {}
+  // monad instance
+  map<B>(f: (a: A) => B): State<S, B> {
+    return this.chain(a => of(f(a))) // <= derived
+  }
+  ap<B>(fab: State<S, (a: A) => B>): State<S, B> {
+    return fab.chain(f => this.map(f)) // <= derived
+  }
+  chain<B>(f: (a: A) => State<S, B>): State<S, B> {
+    return new State(s => {
+      const [a, s1] = this.run(s)
+      return f(a).run(s1)
+    })
+  }
+  // utils
+  eval(s: S): A {
+    return this.run(s)[0]
+  }
+  exec(s: S): S {
+    return this.run(s)[1]
+  }
+}
+
+const of = <S, A>(a: A): State<S, A> =>
+  new State(s => [a, s])
+\end{verbatim}
+
+\texttt{State} si accompagna alle seguenti funzioni di utility
+
+\begin{verbatim}
+/** legge lo stato corrente */
+const get = <S>(): State<S, S> =>
+  new State(s => [s, s])
+
+/** imposta lo stato corrente */
+const put = <S>(s: S): State<S, undefined> =>
+  new State(() => [undefined, s])
+
+/** modifica lo stato corrente */
+const modify = <S>(
+  f: (s: S) => S
+): State<S, undefined> => new State(s => [undefined, f(s)])
+
+/** restituisce un valore in base allo stato corrente */
+const gets = <S, A>(f: (s: S) => A): State<S, A> =>
+  new State(s => [f(s), s])
+\end{verbatim}
+
+Vediamo qualche semplice esempio
+
+\begin{verbatim}
+/** `of` set the result value but leave the state unchanged */
+of('foo').run(1) // [ 'foo', 1 ]
+
+/** `get` set the result value to the state and leave the state unchanged */
+get().run(1) // [ 1, 1 ]
+
+/** `put` set the result value to `undefined` and set the state value */
+put(5).run(1) // [ undefined, 5 ]
+
+const inc = (n: number): number => n + 1
+
+modify(inc).run(1) // [ undefined, 2 ]
+
+gets(inc).run(1) // [ 2, 1 ]
+\end{verbatim}
+
+Vediamo ora un semplice programma che gestisce un contatore
+
+\begin{verbatim}
+type S = number
+
+const increment = modify<S>(n => n + 1)
+
+const decrement = modify<S>(n => n - 1)
+
+const program = increment
+  .chain(() => increment)
+  .chain(() => increment)
+  .chain(() => decrement)
+
+console.log(program.run(0)) // [undefined, 2]
+\end{verbatim}
+
+Si noti che \texttt{increment} è un \emph{valore} che rappresenta un programma, che se eseguito
+modificherà lo stato incrementando il contatore.
+Essendo un valore è inerte fino a quando non viene eseguito (chiamando il metodo \texttt{run}).
+\texttt{program} è un programma ottenuto dalla combinazione di due sottoprogrammi (\texttt{increment} e \texttt{decrement}).
+E qui emerge il fatto che vale la trasparenza referenziale: si noti che vengono fatti tre incrementi
+ma \texttt{increment} è definito una volta sola.
+
+alla fine decido di eseguire il programma fornendo lo stato iniziale
+
+\begin{verbatim}
+console.log(program.run(0)) // [undefined, 2]
+\end{verbatim}
+
+naturalmente rappresentando \texttt{program} l'intero programma posso eseguirlo tutte le volte che voglio,
+anche cambiando lo stato iniziale
+
+\begin{verbatim}
+console.log(program.run(2)) // [undefined, 4]
+\end{verbatim}
+
+\begin{boxed}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{???.ts}
+\end{center}
+\end{boxed}
+
+\newpage
+
+\section{Dependency injection funzionale: la monade \texttt{Reader}}
+
+\begin{quote}
+Represents a computation which can read values from a shared environment, pass values from function to function
+and execute sub-computations in a modified environment
+\end{quote}
+
+Se leggere da uno stato mutabile può invalidare la trasparenza referenziale, come è possibile leggere da una configurazione globale?
+Ancora una volta la risposta è nelle funzioni, il modello che descrive nel modo più generale la lettura da una configurazione globale
+è quello definito dalla seguente firma
+
+\begin{verbatim}
+(e: E) => A
+\end{verbatim}
+
+ove \texttt{E} è il tipo della configurazione e \texttt{A} è il tipo del valore restituito dalla computazione.
+
+Definiamo una istanza di monade
+
+\begin{verbatim}
+class Reader<E, A> {
+  constructor(readonly run: (e: E) => A) {}
+  map<B>(f: (a: A) => B): Reader<E, B> {
+    return this.chain(a => of(f(a))) // <= derived
+  }
+  ap<B>(fab: Reader<E, (a: A) => B>): Reader<E, B> {
+    return fab.chain(f => this.map(f)) // <= derived
+  }
+  chain<B>(f: (a: A) => Reader<E, B>): Reader<E, B> {
+    return new Reader(e => f(this.run(e)).run(e))
+  }
+}
+
+const of = <E, A>(a: A): Reader<E, A> =>
+  new Reader(() => a)
+\end{verbatim}
+
+Generalmente \texttt{Reader} si accompagna alle seguenti funzioni di utility
+
+\begin{verbatim}
+const ask = <E>(): Reader<E, E> => new Reader(e => e)
+
+const asks = <E, A>(f: (e: E) => A): Reader<E, A> =>
+  new Reader(f)
+
+const local = <E>(f: (e: E) => E) => <A>(
+  fa: Reader<E, A>
+): Reader<E, A> => new Reader((e: E) => fa.run(f(e)))
+\end{verbatim}
+
+\begin{itemize}
+  \item \texttt{ask} legge il contesto corrente
+  \item \texttt{asks} restituisce un valore in base al contesto corrente
+  \item \texttt{local} cambia il valore del contesto durante l'esecuzione dell'azione
+\end{itemize}
+
+\newpage
+
+\section{Logging: la monade \texttt{Writer}}
+
+TODO
+
+\newpage
+
+\section{Monad transformer}
+
+TODO
 
 \section{Ottica funzionale}
 
@@ -3714,57 +3989,5 @@ TODO
 }
 \]
 \end{example}
-
-
-\section{Foldable}
-
-\texttt{Foldable} rappresenta una struttura che può essere ridotta tramite l' operazione \texttt{reduce} (sinonimo di \texttt{foldl})
-
-\begin{verbatim}
-reduce: <A, B>(f: (b: B, a: A) => B, b: B, fa: F<A>) => B
-\end{verbatim}
-
-Definizioni equivalenti\footnote{ovvero ogni operazione può essere derivata da una qualsiasi delle altre} di \texttt{Foldable} coinvolgono l'operazione
-
-\begin{verbatim}
-foldr: <A, B>(f: (a: A) => (b: B) => B) => (b: B) => (fa: F<A>) => B
-\end{verbatim}
-
-oppure l'operazione
-
-\begin{verbatim}
-foldMap: <M>(M: Monoid<M>) => <A>(f: (a: A) => M) => (fa: F<A>) => M
-\end{verbatim}
-
-Un altro modo di afferrare il concetto di \texttt{Foldable} è che una struttura che ammette una sua istanza
-è in grado di essere rappresentata sotto forma di array.
-
-\paragraph{Esercizio.} \texttt{Option<A>} ammette una istanza di \texttt{Foldable}, qual'è la sua rappresentazione come array?
-
-\texttt{Foldable} e \texttt{Functor} sono indipendenti, ovvero esistono strutture che ammettono una istanza di \texttt{Foldable} ma non una di
-\texttt{Functor} e viceversa. Per esempio \texttt{Set<A>} ammette una istanza di \texttt{Foldable} ma non di \texttt{Functor},
-mentre \texttt{Task<A>} ammette una istanza di \texttt{Functor} ma non di \texttt{Foldable}.
-
-\section{Traversable}
-
-TODO
-
-\section{Diagramma delle type class}
-
-\[
-\xymatrix{
-  Semigroup & Monoid \ar[l] \\
-  Setoid & Ord \ar[l] \\
-  Contravariant \\
-  & Alt \ar[ldd] & Plus \ar[l] & Alternative \ar[l] \ar[ld] \\
-  & Apply \ar[ld] & Applicative \ar[l] & Monad \ar[l] \ar[ld] \\
-  Functor & Bifunctor \ar[l] & Chain \ar[lu] & ChainRec \ar[l] \\
-  & Extend \ar[lu] & Comonad \ar[l] \\
-  & Profunctor \ar[luu] \\
-  Foldable & Traversable \ar[l] \\
-  Semigroupoid & Category \ar[l] \\
-}
-\]
-
 
 \end{document}

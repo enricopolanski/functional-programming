@@ -43,3 +43,17 @@ export const right = <L, A>(a: A): Either<L, A> =>
   new Right(a)
 
 export const of = right
+
+export const isLeft = <L, A>(
+  fa: Either<L, A>
+): fa is Left<L, A> => fa instanceof Left
+
+export const isRight = <L, A>(
+  fa: Either<L, A>
+): fa is Right<L, A> => fa instanceof Right
+
+export const reduce = <L, A, B>(
+  fa: Either<L, A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => (isRight(fa) ? f(b, fa.value) : b)

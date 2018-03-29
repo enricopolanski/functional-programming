@@ -9,7 +9,7 @@ import { randomInt } from '../src/Random'
 import { between, ordNumber } from '../src/Ord'
 
 // il numero da indovinare
-const secret: Task<number> = randomInt(1, 100)
+export const secret: Task<number> = randomInt(1, 100)
 
 // combinatore: stampa un messaggio prima di una azione
 const withMessage = <A>(
@@ -65,4 +65,4 @@ const loop = (secret: number): Task<void> =>
 
 const program: Task<void> = secret.chain(loop)
 
-program.run()
+// program.run()

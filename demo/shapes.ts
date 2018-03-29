@@ -135,11 +135,3 @@ const shapes: Array<Shape2D> = [
 ]
 
 // console.log(show(fold(union)(shapes)))
-
-/*
-
-  E se volessimo aggiungere i colori?
-
-  Come si modificano le istenze di semigruppi?
-
-*/

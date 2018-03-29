@@ -4,7 +4,9 @@ const sum = (a: number) => (b: number): number => a + b
 
 const sumOptions = (fa: Option<number>) => (
   fb: Option<number>
-): Option<number> => fb.ap(fa.ap(of(sum)))
+): Option<number> => {
+  return fb.ap(fa.ap(of(sum)))
+}
 
 const sumOptions2 = (fa: Option<number>) => (
   fb: Option<number>

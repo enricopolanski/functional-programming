@@ -27,3 +27,9 @@ export const chain = <A, B>(
   f: (a: A) => Identity<B>,
   fa: Identity<A>
 ): Identity<B> => fa.chain(f)
+
+const reduce = <A, B>(
+  fa: Identity<A>,
+  b: B,
+  f: (b: B, a: A) => B
+): B => f(b, fa.value)
