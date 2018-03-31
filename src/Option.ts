@@ -54,3 +54,8 @@ export const reduce = <A, B>(
   b: B,
   f: (b: B, a: A) => B
 ): B => (isSome(fa) ? f(b, fa.value) : b)
+
+const flap = <A, B>(
+  fab: Option<(a: A) => B>,
+  a: A
+): Option<B> => fab.map(f => f(a))

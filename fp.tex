@@ -766,7 +766,9 @@ rappresentano le funzioni.
 \]
 \end{example}
 
-\subsection{Funtori}
+\newpage
+
+\section{Funtori}
 
 Di fronte ad un nuovo oggetto di studio come le categorie, il matematico ha davanti due percorsi di indagine: il primo, che chiamerò, \emph{ricerca in profondità},
 mira a studiare le proprietà di una singola categoria. Il secondo (ed è quello che interessa a noi), che chiamerò \emph{ricerca in ampiezza},
@@ -790,6 +792,8 @@ non sarebbero affatto interessanti: quello che voglio è perlomeno preservare la
 ovvero che le leggi rimangano valide anche dopo aver applicato la mappa.
 
 Specifichiamo in modo formale che cosa vuol dire per una mappa preservare la struttura categoriale.
+
+\subsection{Definizione}
 
 \begin{definition}
 Siano $\mathcal{C}$ e $\mathcal{D}$ due categorie, allora una mappa $F$ si dice \emph{funtore} se valgono le seguenti proprietà:
@@ -831,7 +835,7 @@ Come ogni categoria, la categoria $\mathcal{JS}$ è composta da oggetti e morfis
 
 Inoltre l'operazione di composizione $\circ$ è l'usuale composizione di funzioni.
 
-\subsubsection{Endofuntori in $\mathcal{JS}$}
+\subsection{Endofuntori in $\mathcal{JS}$}
 
 Definire un (endo)funtore $F$ nella categoria $\mathcal{JS}$ significa due cose:
 
@@ -982,7 +986,39 @@ class Task<A> {
 }
 \end{verbatim}
 
-\subsection{Funtori controvarianti}
+\paragraph{Esercizio. } Sia \texttt{type Tuple<L, A> = [L, A]}, definire una istanza di funtore per \texttt{Tuple}.
+
+\subsection{Composizione di funtori}
+
+I funtori compongono e la \texttt{map} della composizione è la composizione delle \texttt{map}.
+
+Formalmente, siano $F: \mathcal{D} \rightarrow \mathcal{E}$ e $G: \mathcal{C} \rightarrow \mathcal{D}$ due funtori,
+allora possiamo costruire il funtore composizione $F(G): \mathcal{C} \rightarrow \mathcal{E}$
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  F(G(A)) \ar[r]^{F(G(g))} \ar[r] & F(G(B)) \ar[r]^{F(G(f))} & F(G(C)) & \mathcal{E} \\
+  G(A) \ar[u]^F \ar[r]^{G(g)} \ar[r] & G(B) \ar[u]^F \ar[r]^{G(f)} & G(C) \ar[u]^F & \mathcal{D} \\
+  A \ar[u]^G \ar[r]_g & B \ar[u]^G \ar[r]_f & C \ar[u]^G & \mathcal{C}
+}
+\]
+
+Come esempio implementiamo una istanza di funtore per gli array di \texttt{Option}
+
+\begin{verbatim}
+class ArrayOption<A> {
+  constructor(readonly value: Array<Option<A>>) {}
+  map<B>(f: (a: A) => B): ArrayOption<B> {
+    return new ArrayOption(this.value.map(o => o.map(f)))
+  }
+}
+\end{verbatim}
+
+\newpage
+
+\section{Funtori controvarianti}
 
 \begin{verbatim}
 // Funtori covarianti
@@ -1101,39 +1137,114 @@ ReactDOM.render(
 )
 \end{verbatim}
 
-\subsection{Composizione di funtori}
+\newpage
 
-I funtori compongono e la \texttt{map} della composizione è la composizione delle \texttt{map}.
+\section{Bifuntori}
 
-Formalmente, siano $F: \mathcal{D} \rightarrow \mathcal{E}$ e $G: \mathcal{C} \rightarrow \mathcal{D}$ due funtori,
-allora possiamo costruire il funtore composizione $F(G): \mathcal{C} \rightarrow \mathcal{E}$
+TODO
 
-\[
-\xymatrixrowsep{3cm}
-\xymatrixcolsep{3cm}
-\xymatrix{
-  F(G(A)) \ar[r]^{F(G(g))} \ar[r] & F(G(B)) \ar[r]^{F(G(f))} & F(G(C)) & \mathcal{E} \\
-  G(A) \ar[u]^F \ar[r]^{G(g)} \ar[r] & G(B) \ar[u]^F \ar[r]^{G(f)} & G(C) \ar[u]^F & \mathcal{D} \\
-  A \ar[u]^G \ar[r]_g & B \ar[u]^G \ar[r]_f & C \ar[u]^G & \mathcal{C}
-}
-\]
+\newpage
 
-Come esempio implementiamo una istanza di funtore per gli array di \texttt{Option}
+\section{Profuntori}
+
+Vediamo ora un particolare type constructor che ammette sia una istanza di funtore covariante sia una istanza di
+funtore controvariante: le funzioni.
 
 \begin{verbatim}
-class ArrayOption<A> {
-  constructor(readonly value: Array<Option<A>>) {}
-  map<B>(f: (a: A) => B): ArrayOption<B> {
-    return new ArrayOption(this.value.map(o => o.map(f)))
+// I = input, O = output
+type Function1<I, O> = (i: I) => O
+\end{verbatim}
+
+Si noti che \texttt{Function1} ha kind \texttt{* -> * -> *} dato che
+ha due type parameter \footnote{In Haskell \texttt{Function1} è indicato con \texttt{(->)}}.
+
+Nel cercare una istanza di funtore abbiamo perciò due scelte
+
+\begin{itemize}
+\item fissare il type parameter \texttt{I}
+\item fissare il type parameter \texttt{O}
+\end{itemize}
+
+Prima fissiamo il tipo in input \texttt{I} e otteniamo una istanza di funtore \textbf{covariante}
+
+\begin{verbatim}
+const functorFunction1 = {
+  map: <I, A, B>(
+    f: (a: A) => B,
+    fa: Function1<I, A>
+  ): Function1<I, B> => {
+    return i => f(fa(i))
   }
 }
 \end{verbatim}
+
+Notate che l'implementazione di \texttt{map} non è altro che la composizione di funzioni
+
+\begin{verbatim}
+// prima g poi f
+const compose = <I, A, B>(
+  f: (a: A) => B,
+  g: (i: I) => A
+): ((i: I) => B) => {
+  return i => f(g(i))
+}
+
+const functorFunction1 = {
+  map: compose
+}
+\end{verbatim}
+
+Ora fissiamo il tipo in output \texttt{O} e otteniamo una istanza di funtore \textbf{controvariante}
+
+\begin{verbatim}
+const contravariantFunction1 = {
+  contramap: <B, A, O>(
+    f: (b: B) => A,
+    fa: Function1<A, O>
+  ): Function1<B, O> => {
+    return b => fa(f(b))
+  }
+}
+\end{verbatim}
+
+Notate che l'implementazione di \texttt{contramap} non è altro che la funzione \texttt{pipe}
+
+\begin{verbatim}
+// prima f poi g
+const pipe = <B, A, O>(
+  f: (b: B) => A,
+  g: (a: A) => O
+): ((b: B) => O) => {
+  return b => g(f(b))
+}
+
+const contravariantFunction1 = {
+  contramap: pipe
+}
+\end{verbatim}
+
+Giungiamo alla definizione di \texttt{Profunctor}, concetto associato ad un type constructor con kind \texttt{* -> * -> *} che è
+controvariante nel primo type parameter e covariante nel secondo type parameter.
+
+La sua operazione è chiamata \texttt{promap} (sinonimo \texttt{dimap})
+
+\begin{verbatim}
+interface Profunctor<P> {
+  promap: <A, B, C, D>(
+    pbc: P<B, C>,
+    f: (a: A) => B,
+    g: (c: C) => D
+  ) => P<A, D>
+}
+\end{verbatim}
+
+\newpage
 
 \section{Un po' di algebra}
 
 \subsection{Cos'è una algebra?}
 
-Al posto del termine programmazione funzionale potremmo usare quello di programmazione algebrica, infatti
+Potremmo aggiungere al termine programmazione funzionale quello di programmazione algebrica, infatti
 
 \begin{boxed}
 Le algebre sono i design pattern della programmazione funzionale
@@ -1941,9 +2052,9 @@ $$
 Ma a questo punto siamo bloccati.
 Perchè non c'è nessuna operazione lecita che ci permette di passare dal tipo $F(B \rightarrow C)$ al tipo $F(B) \rightarrow F(C)$.
 
-Il fatto che $F$ sia solo un funtore non basta, deve avere una proprietà in più, quella cioè di possedere una operazione che permette di
+Il fatto che $F$ ammetta una istanza di funtore non basta, deve avere una proprietà in più, quella cioè di ammettere una operazione che permette di
 spacchettare il tipo delle funzioni da $B$ a $C$ mandandolo nel tipo delle funzioni da $F(B)$ a $F(C)$.
-Indichiamo questa operazione con il nome \texttt{ap}.
+Indichiamo questa operazione con il nome \texttt{ap} e la corrispondente asptrazione con \texttt{Apply}.
 
 Inoltre sarebbe oppurtuno avere un'altra operazione che, dato un valore di tipo $A$ associa un valore di tipo $F(A)$.
 In questo modo, una volta ottenuta la funzione $F(f) = F(A) \rightarrow F(B) \rightarrow F(C)$ e avendo a disposizione un valore di tipo $F(A)$
@@ -1953,7 +2064,7 @@ Chiamiamo questa operazione \texttt{of}.
 
 \subsection{Definizione}
 
-Sia $F$ un funtore, allora si dice \emph{funtore applicativo} se esistono due operazioni
+Sia $F$ un funtore, allora si dice \emph{funtore applicativo} (\texttt{Applicative}) se esistono due operazioni
 
 \begin{verbatim}
 of: <A>(a: A) => F<A>
@@ -2042,6 +2153,16 @@ const ap = <A, B>(
 
 % Interchange: TODO
 
+\paragraph{Nota. } Si noti che per applicare una funzione inserita nel contesto funtoriale ad un valore
+che non è nel contesto funtoriale non occorre un funtore applicativo, un funtore è sufficiente
+
+\begin{verbatim}
+const flap = <A, B>(
+  fab: Option<(a: A) => B>,
+  a: A
+): Option<B> => fab.map(f => f(a))
+\end{verbatim}
+
 \subsection{Lifting manuale}
 
 Consideriamo la seguente funzione \texttt{sum}
@@ -2085,6 +2206,16 @@ Analogamente è possibile definire \texttt{liftA3} per funzioni con 3 argomenti,
 
 E' importante sottolineare che mentre abbiamo avuto bisogno di una nuova astrazione per poter operare un lifting di una funzione binaria,
 per operare un lifting di una funzione $n$-aria un funtore applicativo è sufficiente.
+
+\paragraph{Esercizio. } Mostrare che se \texttt{F} ammette una istanza di \texttt{Apply} allora è possibile definire le seguenti funzioni
+
+\begin{verbatim}
+const map2 = <A, B, C>(fa: F<A>, fb: F<B>, f: (a: A, b: B) => C): F<C> => ???
+
+const map3 = <A, B, C, D>(fa: F<A>, fb: F<B>, fc: F<C>, f: (a: A, b: B, c: C) => D): F<D> => ???
+
+// etc...
+\end{verbatim}
 
 \subsection{Esempi}
 
@@ -2189,6 +2320,8 @@ class Task<A> {
   }
 }
 \end{verbatim}
+
+\paragraph{Esercizio. } Sia \texttt{type Tuple<L, A> = [L, A]}, definire una istanza di funtore applicativo per \texttt{Tuple}.
 
 \begin{boxed}
 \begin{center}
@@ -2722,6 +2855,8 @@ class Task<A> {
 }
 \end{verbatim}
 
+\paragraph{Esercizio. } Sia \texttt{type Tuple<L, A> = [L, A]}, definire una istanza di monade per \texttt{Tuple}.
+
 \subsection{\texttt{Task} vs \texttt{Promise}}
 
 \texttt{Task} è una astrazione simile a \texttt{Promise}, la differenza chiave è che \texttt{Task} rappresenta una computazione asincrona
@@ -3183,6 +3318,12 @@ dove vengono fatte tutte le validazioni dell'input.
 
 \newpage
 
+\section{Debugging with \texttt{Trace}}
+
+TODO
+
+\newpage
+
 \section{Foldable}
 
 \texttt{Foldable} rappresenta una struttura che può essere ridotta tramite l' operazione \texttt{reduce}
@@ -3372,7 +3513,37 @@ reduce(
 
 \section{Traversable}
 
-TODO
+\texttt{Traversable} rappresenta una struttura che può essere attraversata da sinistra a destra, eseguendo una azione per ogni elemento.
+
+\begin{verbatim}
+interface Traversable<T> extends Functor<T>, Foldable<T> {
+  traverse: <F>(F: Applicative<F>) =>
+    <A, B>(ta: T<A>, f: (a: A) => F<B>) => F<T<B>>
+}
+\end{verbatim}
+
+Alternativamente \texttt{Traversable} può essere definita tramite la funzione
+
+\begin{verbatim}
+sequence: <F>(F: Applicative<F>) => <A>(tfa: T<F<A>>) => F<T<A>>
+\end{verbatim}
+
+Una istanza di \texttt{Traversable} deve soddisfare le seguenti leggi
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|p{10cm}| }
+\hline
+naturality & \\
+\hline
+identity & \\
+\hline
+composition & \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
 
 \newpage
 
