@@ -13,3 +13,6 @@
 * scalaz https://github.com/scalaz/scalaz
 * cats https://github.com/typelevel/cats
 
+## Java
+
+* vavr https://www.vavr.io
