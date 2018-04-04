@@ -357,8 +357,21 @@ La definizione di funzione come sottoinsieme di un prodotto cartesiano mostra co
 non c'è azione, modifica di stato o modifica degli elementi (che sono considerati immutabili) degli insiemi coinvolti.
 Nella programmazione funzionale l'implementazione delle funzioni deve avvicinarsi il più possibile a questo modello ideale.
 
-Che una funzione sia pura non implica necessariamente che sia bandita la mutabilità
-(localmente è ammissibile se non esce dai confini della implementazione).
+Che una funzione sia pura non implica necessariamente che sia bandita la mutabilità, localmente è ammissibile
+se non esce dai confini della implementazione.
+
+\begin{verbatim}
+              Mutable
+                 ^
+      (Good)     |      (Bad)
+                 |
+  Non-Shared ----------> Shared
+    State        |       State
+                 |
+      (Good)     |      (Good)
+             Immutable
+\end{verbatim}
+
 Lo scopo ultimo è garantirne le proprietà fondamentali: purezza e trasparenza referenziale.
 
 Infine le funzioni compongono
@@ -478,12 +491,16 @@ eccone la definizione
 \begin{verbatim}
 type Option<A> = None | Some<A>
 
-class None {}
+class None {
+  readonly _tag = 'None'
+}
 
 class Some<A> {
+  readonly _tag = 'Some'
   constructor(readonly value: A) {}
 }
 
+// in TypeScript never è un bottom type
 const none: Option<never> = new None()
 
 const some = <A>(a: A): Option<A> => new Some(a)
@@ -509,12 +526,14 @@ Aggiungiamo un metodo \texttt{map}
 type Option<A> = None<A> | Some<A>
 
 class None<A> {
+  readonly _tag = 'None'
   map<B>(f: (a: A) => B): Option<B> {
     return none
   }
 }
 
 class Some<A> {
+  readonly _tag = 'Some'
   constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Option<B> {
     return some(f(this.value))
@@ -522,14 +541,15 @@ class Some<A> {
 }
 \end{verbatim}
 
-In un linguaggio che non supporta classi e metodi \texttt{map} può essere definita come funzione
+In un linguaggio che non supporta classi e metodi, \texttt{map} può essere definita come funzione
 
 \begin{verbatim}
 const map = <A, B>(f: (a: A) => B, fa: Option<A>): Option<B> => {
-  if (isNone(fa)) {
-    ...
-  } else {
-    ...
+  switch (fa._tag) {
+    case 'None' :
+      return none
+    case 'Some' :
+      return some(f(fa.value))
   }
 }
 \end{verbatim}
@@ -562,13 +582,20 @@ inverse(4)
 \texttt{Option} mi permette di concentrarmi solo sul \emph{path di successo} in una serie di computazioni che possono fallire
 \end{boxed}
 
-Per questioni di interoperabilità con codice che non usa \texttt{Option} possiamo definire una utile funzione
+Per questioni di interoperabilità con codice che non usa \texttt{Option} possiamo definire due utili funzioni
 
 \begin{verbatim}
 const fromNullable = <A>(
   a: A | null | undefined
-): Option<A> => {
-  return a == null ? none : some(a)
+): Option<A> => (a == null ? none : some(a))
+
+const toNullable = <A>(fa: Option<A>): A | null => {
+  switch (fa._tag) {
+    case 'None':
+      return null
+    case 'Some':
+      return fa.value
+  }
 }
 \end{verbatim}
 
@@ -616,6 +643,7 @@ oppure se si vuole definire un errore personalizzato, è possibile impiegare il 
 type Either<L, A> = Left<L, A> | Right<L, A>
 
 class Left<L, A> {
+  readonly _tag = 'Left'
   constructor(readonly value: L) {}
   map<B>(f: (a: A) => B): Either<L, B> {
     return left(this.value)
@@ -623,6 +651,7 @@ class Left<L, A> {
 }
 
 class Right<L, A> {
+  readonly _tag = 'Right'
   constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Either<L, B> {
     return right(f(this.value))
@@ -824,9 +853,9 @@ L'associazione tra $f$ e $F(f)$ si chiama \emph{lifting} del morfismo $f$.
 
 Quando $\mathcal{C}$ e $\mathcal{D}$ coincidono, si parla di \emph{endofuntori} \footnote{endo proviene dal greco e significa dentro}.
 
-\subsection{La categoria $\mathcal{JS}$}
+\subsection{La categoria $\mathcal{TS}$}
 
-Come ogni categoria, la categoria $\mathcal{JS}$ è composta da oggetti e morfismi:
+Come ogni categoria, la categoria $\mathcal{TS}$ è composta da oggetti e morfismi:
 
 \begin{itemize}
   \item gli oggetti sono i tipi (per esempio \texttt{number}, \texttt{string}, \texttt{boolean}, \texttt{Array<number>}, \texttt{Array<Array<number>>}, etc \ldots)
@@ -835,9 +864,9 @@ Come ogni categoria, la categoria $\mathcal{JS}$ è composta da oggetti e morfis
 
 Inoltre l'operazione di composizione $\circ$ è l'usuale composizione di funzioni.
 
-\subsection{Endofuntori in $\mathcal{JS}$}
+\subsection{Endofuntori in $\mathcal{TS}$}
 
-Definire un (endo)funtore $F$ nella categoria $\mathcal{JS}$ significa due cose:
+Definire un (endo)funtore $F$ nella categoria $\mathcal{TS}$ significa due cose:
 
 \begin{itemize}
   \item per ogni tipo $A$ stabilire a quale tipo corrisponde $F(A)$
@@ -854,17 +883,17 @@ Perciò un funtore è una coppia $F = (\texttt{F<X>}, \texttt{lift})$ ove
       \item \texttt{Either<L, A>} è un $2$-type constructor (kind $* \rightarrow * \rightarrow *$)
     \end{itemize}
   }, ovvero una procedura che, dato un qualunque tipo \texttt{X} produce un tipo \texttt{F<X>}
-  \item \texttt{lift} è una funzione con la seguente firma\footnote{Si noti che la sintassi usata non è valida né in TypeScript né in Flow dato che non supportano gli Higher Kinded Types}
+  \item \texttt{lift} è una funzione con la seguente firma\footnote{Si noti che la sintassi usata non è valida in TypeScript dato che non supporta gli Higher Kinded Types}
 \end{itemize}
 
 \begin{verbatim}
-lift<A, B>(f: (a: A) => B): ( (fa: F<A>) => F<B> )
+lift: <A, B>(f: (a: A) => B) => ( (fa: F<A>) => F<B> )
 \end{verbatim}
 
 La funzione \texttt{lift} è meglio conosciuta nella sua forma equivalente \texttt{map}.
 
 \begin{verbatim}
-map<A, B>(f: (a: A) => B, fa: F<A>): F<B>
+map: <A, B>(f: (a: A) => B, fa: F<A>) => F<B>
 \end{verbatim}
 
 Vediamo l'implementazione per \texttt{Option} e \texttt{Either}
@@ -881,26 +910,26 @@ const functorEither = {
   map: <L, A, B>(
     f: (a: A) => B,
     fa: Either<L, A>
-  ): Either<L, B> => fa.fold(l => left(l), a => right(f(a)))
+  ): Either<L, B> => fa.fold(left, a => right(f(a)))
 }
 \end{verbatim}
 
-Per comodità di utilizzo abbiamo già visto che è possibile implementare \texttt{map} in modo che
+Per comodità di utilizzo (\emph{chainable APIs}) abbiamo già visto che è utile implementare \texttt{map} in modo che
 l'argomento \texttt{fa} sia implicito (ovvero come metodo)
 
 \begin{verbatim}
 // Option
-class Some<A> {
-  ...
-  map<B>(f: (a: A) => B): Option<B> {
-    return new Some(f(this.value))
-  }
-}
-
 class None<A> {
   ...
   map<B>(f: (a: A) => B): Option<B> {
-    return new None()
+    return none
+  }
+}
+
+class Some<A> {
+  ...
+  map<B>(f: (a: A) => B): Option<B> {
+    return some(f(this.value))
   }
 }
 
@@ -908,14 +937,14 @@ class None<A> {
 class Left<L, A> {
   ...
   map<B>(f: (a: A) => B): Either<L, B> {
-    return new Left(this.value)
+    return left(this.value)
   }
 }
 
 class Right<L, A> {
   ...
   map<B>(f: (a: A) => B): Either<L, B> {
-    return new Right(f(this.value))
+    return right(f(this.value))
   }
 }
 \end{verbatim}
@@ -988,6 +1017,8 @@ class Task<A> {
 
 \paragraph{Esercizio. } Sia \texttt{type Tuple<L, A> = [L, A]}, definire una istanza di funtore per \texttt{Tuple}.
 
+\paragraph{Esercizio. } Sia \texttt{type Decoder<A> = (s: string) => A}, definire una istanza di funtore per \texttt{Decoder}.
+
 \subsection{Composizione di funtori}
 
 I funtori compongono e la \texttt{map} della composizione è la composizione delle \texttt{map}.
@@ -1022,10 +1053,10 @@ class ArrayOption<A> {
 
 \begin{verbatim}
 // Funtori covarianti
-map<A, B>      (f: (a: A) => B, fa: F<A>): F<B>
+map: <A, B>      (f: (a: A) => B, fa: F<A>) => F<B>
 
 // Funtori controvarianti
-contramap<A, B>(f: (b: B) => A, fa: F<A>): F<B>
+contramap: <A, B>(f: (b: B) => A, fa: F<A>) => F<B>
 \end{verbatim}
 
 Come esempi di tipi che ammettono istanze di funtore controvariante consideriamo
@@ -1238,6 +1269,24 @@ interface Profunctor<P> {
 }
 \end{verbatim}
 
+Tale che \texttt{promap(identity, identity) = identity}
+
+Alternativamente è possibile definire la coppia \texttt{lmap} e \texttt{rmap}.
+
+\begin{verbatim}
+lmap: <A, B, C>(f: (a: A) => B, pbc: P<B, C>) => P<A, C>
+
+rmap: <A, B, C>(f: (b: B) => C, pab: P<A, B>) => P<A, C>
+\end{verbatim}
+
+Tali che \texttt{lmap(identity) = identity} e \texttt{rmap(identity) = identity}.
+
+\paragraph{Nota. } Deve valere la seguente relazione
+
+\begin{verbatim}
+promap(f, g, x) = lmap(f, rmap(g, x))
+\end{verbatim}
+
 \newpage
 
 \section{Un po' di algebra}
@@ -1387,26 +1436,26 @@ const fold = <A>(S: Semigroup<A>) => (
 possiamo reimplementare alcune popolari funzioni
 
 \begin{verbatim}
-const all: Semigroup<boolean> = {
+const monoidAll: Semigroup<boolean> = {
   concat: (x, y) => x && y
 }
 
 const every = <A>(p: Predicate<A>, as: Array<A>): boolean =>
-  fold(all)(true, as.map(p))
+  fold(monoidAll)(true, as.map(p))
 
-const any: Semigroup<boolean> = {
+const monoidAny: Semigroup<boolean> = {
   concat: (x, y) => x || y
 }
 
 const some = <A>(p: Predicate<A>, as: Array<A>): boolean =>
-  fold(any)(false, as.map(p))
+  fold(monoidAny)(false, as.map(p))
 
-const obj: Semigroup<Object> = {
+const monoidObject: Semigroup<Object> = {
   concat: (x, y) => ({ ...x, ...y })
 }
 
 const assign = (as: Array<Object>): Object =>
-  fold(obj)({}, as)
+  fold(monoidObject)({}, as)
 \end{verbatim}
 
 E' possibile definire una versione alternativa di \texttt{fold} nel caso non esista un valore sensato da restituire quando l'array è vuoto
@@ -1586,7 +1635,7 @@ QED
 
 \subsubsection{Insiemi ordinati}
 
-Se \texttt{A} è ordinabile allora è possibile definire un'istanza di semigruppo su \texttt{A} usando \texttt{min} (o \texttt{max}) come operazioni
+Se \texttt{A} è totalmente ordinabile allora è possibile definire un'istanza di semigruppo su \texttt{A} usando \texttt{min} (o \texttt{max}) come operazioni
 
 \begin{verbatim}
 const meet: Semigroup<number> = {
@@ -1598,7 +1647,10 @@ const join: Semigroup<number> = {
 }
 \end{verbatim}
 
-E' possibile catturare la nozione di \emph{ordinabile}? Per farlo prima dobbiamo catturare la nozione di \emph{uguaglianza}.
+\paragraph{Nota. } Definire una istanza di \texttt{Setoid} per \texttt{A} equivale a definire una \emph{partizione} di \texttt{A} in cui due
+elementi $x, y \in A$ appartengono alla stessa partizione se e solo se \texttt{equals(x, y) = true}.
+
+E' possibile catturare la nozione di \emph{totalmente ordinabile}? Per farlo prima dobbiamo catturare la nozione di \emph{uguaglianza}.
 I matematici parlano di \emph{relazione di equivalenza}.
 Definiamo una nuova interfaccia
 
@@ -1932,12 +1984,12 @@ const product: Monoid<number> = {
   empty: 1
 }
 
-const str: Monoid<string> = {
+const monoidString: Monoid<string> = {
   concat: (x, y) => x + y,
   empty: ''
 }
 
-fold(str)(['a', 'b', 'c']) // 'abc'
+fold(monoidString)(['a', 'b', 'c']) // 'abc'
 fold(product)([2, 3, 4]) // 24
 fold(product)([]) // 1
 \end{verbatim}
@@ -2067,8 +2119,13 @@ Chiamiamo questa operazione \texttt{of}.
 Sia $F$ un funtore, allora si dice \emph{funtore applicativo} (\texttt{Applicative}) se esistono due operazioni
 
 \begin{verbatim}
-of: <A>(a: A) => F<A>
-ap: <A, B>(f: F<(a: A) => B>) => (fa: F<A>) => F<B>
+interface Apply<F> extends Functor<F> {
+  ap: <A, B>(f: F<(a: A) => B>, fa: F<A>) => F<B>
+}
+
+interface Applicative<F> extends Apply<F> {
+  of: <A>(a: A) => F<A>
+}
 \end{verbatim}
 
 tali che valgono le seguenti leggi
@@ -2097,22 +2154,24 @@ Vediamo un esempio: il tipo \texttt{Option}
 \begin{verbatim}
 const of = some
 
+class None<A> {
+  readonly _tag = 'None'
+  map<B>(f: (a: A) => B): Option<B> {
+    return none
+  }
+  ap<B>(fab: Option<(a: A) => B>): Option<B> {
+    return none
+  }
+}
+
 class Some<A> {
+  readonly _tag = 'Some'
   constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Option<B> {
     return some(f(this.value))
   }
   ap<B>(fab: Option<(a: A) => B>): Option<B> {
     return fab.map(f => f(this.value))
-  }
-}
-
-class None<A> {
-  map<B>(f: (a: A) => B): Option<B> {
-    return none
-  }
-  ap<B>(fab: Option<(a: A) => B>): Option<B> {
-    return none
   }
 }
 \end{verbatim}
@@ -2123,13 +2182,11 @@ Oppure nella sua versione statica
 const ap = <A, B>(
   fab: Option<(a: A) => B>,
   fa: Option<A>
-): Option<B> => {
-  if (isNone(fa)) {
-    return fab.map(f => f(fa.value))
-  } else {
-    return none
-  }
-}
+): Option<B> =>
+  fab.fold(
+    () => none,
+    f => fa.fold(() => none, a => some(f(a)))
+  )
 \end{verbatim}
 
 % \subsection{Significato delle leggi}
@@ -2210,9 +2267,18 @@ per operare un lifting di una funzione $n$-aria un funtore applicativo è suffic
 \paragraph{Esercizio. } Mostrare che se \texttt{F} ammette una istanza di \texttt{Apply} allora è possibile definire le seguenti funzioni
 
 \begin{verbatim}
-const map2 = <A, B, C>(fa: F<A>, fb: F<B>, f: (a: A, b: B) => C): F<C> => ???
+const map2 = <A, B, C>(
+  fa: F<A>,
+  fb: F<B>,
+  f: (a: A, b: B) => C
+): F<C> => ???
 
-const map3 = <A, B, C, D>(fa: F<A>, fb: F<B>, fc: F<C>, f: (a: A, b: B, c: C) => D): F<D> => ???
+const map3 = <A, B, C, D>(
+  fa: F<A>,
+  fb: F<B>,
+  fc: F<C>,
+  f: (a: A, b: B, c: C) => D
+): F<D> => ???
 
 // etc...
 \end{verbatim}
@@ -2225,10 +2291,7 @@ const map3 = <A, B, C, D>(fa: F<A>, fb: F<B>, fc: F<C>, f: (a: A, b: B, c: C) =>
 const of = <A>(a: A) => new Identity(a)
 
 class Identity<A> {
-  constructor(readonly value: A) {}
-  map<B>(f: (a: A) => B): Identity<B> {
-    return new Identity(f(this.value))
-  }
+  ...
   ap<B>(fab: Identity<(a: A) => B>): Identity<B> {
     return new Identity(fab.value(this.value))
   }
@@ -2241,10 +2304,7 @@ class Identity<A> {
 const of = right
 
 class Left<L, A> {
-  constructor(readonly value: L) {}
-  map<B>(f: (a: A) => B): Either<L, B> {
-    return new Left(this.value)
-  }
+  ...
   ap<B>(fab: Either<L, (a: A) => B>): Either<L, B> {
     return fab.fold<Either<L, B>>(
       l => new Left(l),
@@ -2254,10 +2314,7 @@ class Left<L, A> {
 }
 
 class Right<L, A> {
-  constructor(readonly value: A) {}
-  map<B>(f: (a: A) => B): Either<L, B> {
-    return new Right(f(this.value))
-  }
+  ...
   ap<B>(fab: Either<L, (a: A) => B>): Either<L, B> {
     return fab.fold<Either<L, B>>(
       l => new Left(l),
@@ -2290,10 +2347,7 @@ export const applicativeArray = {
 const of = <A>(a: A): IO<A> => new IO(() => a)
 
 class IO<A> {
-  constructor(readonly run: () => A) {}
-  map<B>(f: (a: A) => B): IO<B> {
-    return new IO(() => f(this.run()))
-  }
+  ...
   ap<B>(fab: IO<(a: A) => B>): IO<B> {
     return new IO(() => fab.run()(this.run()))
   }
@@ -2307,10 +2361,7 @@ const of = <A>(a: A): Task<A> =>
   new Task(() => Promise.resolve(a))
 
 class Task<A> {
-  constructor(readonly run: () => Promise<A>) {}
-  map<B>(f: (a: A) => B): Task<B> {
-    return new Task(() => this.run().then(f))
-  }
+  ...
   ap<B>(fab: Task<(a: A) => B>): Task<B> {
     return new Task(() =>
       Promise.all([fab.run(), this.run()]).then(([f, a]) =>
@@ -2336,8 +2387,10 @@ class Task<A> {
 La definizione di funtore applicativo che abbiamo visto è equivalente alla seguente
 
 \begin{verbatim}
-unit: F<void>
-mult: <A, B>(fa: F<A>, fb: F<B>) => F<[A, B]>
+interface Monoidal<F> extends Functor<F> {
+  unit: F<void>
+  mult: <A, B>(fa: F<A>, fb: F<B>) => F<[A, B]>
+}
 \end{verbatim}
 
 \paragraph{Esercizio.} Dimostrare che sono equivalenti.
@@ -2348,20 +2401,17 @@ I funtori applicativi compongono, ovvero dati due funtori applicativi \texttt{F}
 allora la composizione \texttt{F(G)} è ancora un funtore applicativo.
 
 \begin{verbatim}
-import { applicativeArray } from './Array'
-import * as option from './Option'
+import { Option, option } from 'fp-ts/lib/Option'
+import { array } from 'fp-ts/lib/Array'
 
-const of = <A>(a: A) =>
-  new ArrayOption(applicativeArray.of(option.of(a)))
+export const of = <A>(a: A) =>
+  new ArrayOption(array.of(option.of(a)))
 
-class ArrayOption<A> {
+export class ArrayOption<A> {
   ...
   ap<B>(fab: Array<Option<(a: A) => B>>): Array<Option<B>> {
-    return applicativeArray.ap(
-      applicativeArray.map(
-        h => (ga: Option<A>) => ga.ap(h),
-        fab
-      ),
+    return array.ap(
+      array.map(fab, h => (ga: Option<A>) => ga.ap(h)),
       this.value
     )
   }
@@ -2563,8 +2613,10 @@ Quella seguente è una possibile definizione che si può trovare in rete:
 Una monade $M$ nella categoria $\mathcal{C}$ è un endofuntore di $\mathcal{C}$ con due operazioni aggiuntive
 
 \begin{verbatim}
-of: <A>(a: A) => M<A>
-chain: <A, B>(f: (a: A) => M<B>, ma: M<A>) => M<B>
+interface Monad<F> extends Functor<F> {
+  of: <A>(a: A) => M<A>
+  chain: <A, B>(f: (a: A) => M<B>, ma: M<A>) => M<B>
+}
 \end{verbatim}
 
 Inoltre devono valere le seguenti leggi
@@ -2757,7 +2809,7 @@ Perchè se $M$ è una monade posso comporre i programmi $A \rightarrow M(B)$ tra
 const of = <A>(a: A) => new Identity(a)
 
 class Identity<A> {
-  constructor(readonly value: A) {}
+  ...
   chain<B>(f: (a: A) => Identity<B>): Identity<B> {
     return f(this.value)
   }
@@ -2769,16 +2821,17 @@ class Identity<A> {
 \begin{verbatim}
 const of = some
 
-class Some<A> {
-  constructor(readonly value: A) {}
+class None<A> {
+  ...
   chain<B>(f: (a: A) => Option<B>): Option<B> {
-    return f(this.value)
+    return none
   }
 }
 
-class None<A> {
+class Some<A> {
+  ...
   chain<B>(f: (a: A) => Option<B>): Option<B> {
-    return none
+    return f(this.value)
   }
 }
 \end{verbatim}
@@ -2789,14 +2842,14 @@ class None<A> {
 const of = right
 
 class Left<L, A> {
-  constructor(readonly value: L) {}
+  ...
   chain<B>(f: (a: A) => Either<L, B>): Either<L, B> {
     return left(this.value)
   }
 }
 
 class Right<L, A> {
-  constructor(readonly value: A) {}
+  ...
   chain<B>(f: (a: A) => Either<L, B>): Either<L, B> {
     return f(this.value)
   }
@@ -2807,7 +2860,7 @@ class Right<L, A> {
 
 \begin{verbatim}
 const monadArray = {
-  ...applicativeArray,
+  ...
   chain: <A, B>(
     f: (a: A) => Array<B>,
     fa: Array<A>
@@ -2822,7 +2875,7 @@ const monadArray = {
 const of = <A>(a: A): IO<A> => new IO(() => a)
 
 class IO<A> {
-  constructor(readonly run: () => A) {}
+  ...
   chain<B>(f: (a: A) => IO<B>): IO<B> {
     return new IO(() => f(this.run()).run())
   }
@@ -2833,6 +2886,8 @@ class IO<A> {
 
 \begin{verbatim}
 const monadPromise = {
+  map: <A, B>(f: (a: A) => B, fa: Promise<A>): Promise<B> =>
+    fa.then(f),
   of: <A>(a: A) => Promise.resolve(a),
   chain: <A, B>(
     f: (a: A) => Promise<B>,
@@ -2848,7 +2903,7 @@ const of = <A>(a: A): Task<A> =>
   new Task(() => Promise.resolve(a))
 
 class Task<A> {
-  constructor(readonly run: () => Promise<A>) {}
+  ...
   chain<B>(f: (a: A) => Task<B>): Task<B> {
     return new Task(() => this.run().then(a => f(a).run()))
   }
@@ -2895,7 +2950,6 @@ const map = <A, B>(f: (a: A) => B) => (
 L'operazione \texttt{ap} può essere derivata da \texttt{chain} e \texttt{map}
 
 \begin{verbatim}
-
 const ap = <A, B>(fab: Option<(a: A) => B>) => (
   fa: Option<A>
 ): Option<B> => fab.chain(f => fa.map(f))
@@ -2945,7 +2999,7 @@ user    0m0.327s
 sys     0m0.058s
 \end{verbatim}
 
-Il che dimostra che le computazioni asincrone vengono eseguite in parallelo.
+Il che mostra che le computazioni asincrone vengono eseguite in modo concorrente.
 
 Se però come implementazione di \texttt{ap} per \texttt{Task} scegliamo quella derivata da \texttt{chain} otteniamo
 
@@ -3360,6 +3414,9 @@ const toArray = <F>(F: Foldable<F>) => <A>(fa: F<A>): Array<A>
 
 \paragraph{Esercizio.} Perchè?
 
+E' importante notare che affinchè sia possibile scrivere una istanza di \texttt{Foldable} è necessario che la produzione di valori
+di tipo \texttt{A} abbia un ordine deterministico.
+
 \paragraph{Esercizio.} \texttt{Option<A>} ammette una istanza di \texttt{Foldable}, qual'è la sua rappresentazione come array?
 
 \subsection{Differenze tra \texttt{reduceLeft} e \texttt{reduceRight}}
@@ -3473,12 +3530,6 @@ type Tree<A> =
 
 \paragraph{Esercizio.} \texttt{Set<A>} ammette una istanza di \texttt{Foldable}?
 
-\subsection{Funzioni costellazione}
-
-Anche a \texttt{Foldable} possono essere associate una serie di utili funzioni costellazioni, vediamone alcune
-
-TODO
-
 \subsection{I Foldable compongono}
 
 Dati due type constructor \texttt{F<A>} e \texttt{G<A>} tali che ammettono una istanza di \texttt{Foldable}, allora la composizione \texttt{F<G<A>>}
@@ -3535,27 +3586,133 @@ Una istanza di \texttt{Traversable} deve soddisfare le seguenti leggi
 \def\arraystretch{1.5}
 \begin{tabular}{ |c|p{10cm}| }
 \hline
-naturality & \\
+naturality & \texttt{at(traverse(F1)(f, ta)) = traverse(F2)(compose(at, f), ta)} per ogni \emph{applicative transformation} \texttt{at} \\
 \hline
-identity & \\
+identity & \texttt{traverse(F)(a => new Identity(a), ta) = new Identity(ta)} \\
 \hline
-composition & \\
+composition & \texttt{traverse(F)(a => compose(fa => A.map(g, fa), f), ta) = F.map(tfa => traverse(A)(g, tfa), traverse(F)(f, ta))} \\
 \hline
 \end{tabular}
 \egroup
 \end{center}
 
+Una applicative transformation è una funzione con la seguente firma
+
+\begin{verbatim}
+at: (F: Applicative<F>, g: Applicative<G>) =>
+  <A>(fa: F<A>) => G<A>
+\end{verbatim}
+
+E' importante notare che affinchè sia possibile scrivere una istanza di \texttt{Traversable} è necessario che la produzione di valori
+di tipo \texttt{A} abbia un ordine deterministico.
+
 \newpage
 
 \section{Alternative}
 
-TODO
+\subsection{Alt}
 
-\newpage
+\begin{verbatim}
+interface Alt<F> extends Functor<F> {
+  alt: <A>(fx: F<A>, fy: F<A>) => F<FA>
+}
+\end{verbatim}
 
-\section{Parser combinators}
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|p{10cm}| }
+\hline
+associativity & \texttt{A.alt(A.alt(a, b), c) = A.alt(a, A.alt(b, c))} \\
+\hline
+distributivity & \texttt{A.map(f, A.alt(a, b)) = A.alt(A.map(f, a), A.map(f, b))} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
 
-TODO
+\subsection{Plus}
+
+\begin{verbatim}
+interface Plus<F> extends Alt<F> {
+  zero: <A>() => F<A>
+}
+\end{verbatim}
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|p{10cm}| }
+\hline
+right identity & \texttt{P.alt(a, P.zero()) = a} \\
+\hline
+left identity & \texttt{P.alt(P.zero(), a) = a} \\
+\hline
+annihilation & \texttt{P.map(f, P.zero()) = P.zero()} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+\subsection{Alternative}
+
+\begin{verbatim}
+interface Alternative<F> extends Applicative<F>, Plus<F> {}
+\end{verbatim}
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|p{10cm}| }
+\hline
+distributivity & \texttt{A.ap(A.alt(a, b), c) = A.alt(A.ap(a, c), A.ap(b, c))} \\
+\hline
+annihilation & \texttt{A.ap(A.zero(), a) = A.zero()} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+\subsection{Esempi}
+
+\paragraph{Option.}
+
+\begin{verbatim}
+const alt = <A>(fx: Option<A>, fy: Option<A>): Option<A> => {
+  return isSome(fx) ? fx : fy
+}
+
+const zero = <A>(): Option<A> => {
+  return none
+}
+\end{verbatim}
+
+\paragraph{Either.} \texttt{Either} possiede una istanza di \texttt{Alt}
+
+\begin{verbatim}
+const alt = <L, A>(
+  fx: Either<L, A>,
+  fy: Either<L, A>
+): Either<L, A> => {
+  return isRight(fx) ? fx : fy
+}
+\end{verbatim}
+
+\paragraph{Array.}
+
+\begin{verbatim}
+const zero = <A>(): Array<A> => []
+
+const alt = concat
+\end{verbatim}
+
+\begin{boxed}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{router.ts}
+\end{center}
+\end{boxed}
 
 \newpage
 
@@ -3781,7 +3938,27 @@ TODO
 
 \section{Monad transformer}
 
-TODO
+Obiettivo: poter definire la seguente funzione
+
+$$
+flatten :: M ( N ( M ( N a ) ) ) \rightarrow M ( N a )
+$$
+
+Vediamo tre condizioni sufficienti
+
+$$
+prod :: N (M ( N a ) ) \rightarrow M( N a )
+$$
+
+$$
+dorp :: M (N ( M a ) ) \rightarrow M ( N a )
+$$
+
+$$
+swap :: N ( M a ) \rightarrow M ( N a )
+$$
+
+\newpage
 
 \section{Ottica funzionale}
 

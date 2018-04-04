@@ -2,11 +2,11 @@
 // GUESS THE NUMBER
 //====================
 
-import { Task, of } from '../src/Task'
-import { Option, none, some } from '../src/Option'
-import { getLine, putStrLn } from '../src/Console'
-import { randomInt } from '../src/Random'
-import { between, ordNumber } from '../src/Ord'
+import { Task, task } from 'fp-ts/lib/Task'
+import { Option, none, some } from 'fp-ts/lib/Option'
+import { getLine, putStrLn } from './Console'
+import { randomInt } from './Random'
+import { between, ordNumber } from 'fp-ts/lib/Ord'
 
 // il numero da indovinare
 export const secret: Task<number> = randomInt(1, 100)
@@ -30,13 +30,13 @@ const question: Task<string> = withMessage(
 )
 
 const answer: Task<number> = question.chain(s =>
-  parseGuess(s).fold(
+  parseGuess(s).foldL(
     () =>
       withMessage(
         'Devi inserire un intero da 1 a 100',
         answer
       ),
-    of
+    task.of
   )
 )
 

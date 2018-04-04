@@ -1,5 +1,5 @@
 import { createInterface } from 'readline'
-import { Task } from './Task'
+import { Task } from 'fp-ts/lib/Task'
 
 export const getLine: Task<string> = new Task(
   () =>

@@ -89,12 +89,14 @@ const show = (s: Shape2D): string => {
 import {
   Monoid,
   getFunctionMonoid,
-  all,
-  any,
+  monoidAll,
+  monoidAny,
   fold
-} from '../src/Monoid'
+} from 'fp-ts/lib/Monoid'
 
-const intersect: Monoid<Shape2D> = getFunctionMonoid(all)()
+const intersect: Monoid<Shape2D> = getFunctionMonoid(
+  monoidAll
+)()
 
 // console.log(
 //   show(
@@ -105,7 +107,9 @@ const intersect: Monoid<Shape2D> = getFunctionMonoid(all)()
 //   )
 // )
 
-const union: Monoid<Shape2D> = getFunctionMonoid(any)()
+const union: Monoid<Shape2D> = getFunctionMonoid(
+  monoidAny
+)()
 
 // console.log(
 //   show(
@@ -134,4 +138,5 @@ const shapes: Array<Shape2D> = [
   disk({ x: 5, y: 5 }, 3)
 ]
 
+// mickey mouse
 // console.log(show(fold(union)(shapes)))

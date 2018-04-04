@@ -1,6 +1,8 @@
-import { Option } from './Option'
-import * as option from './Option'
-import { applicativeArray } from './Array'
+import { Option, option } from 'fp-ts/lib/Option'
+import { array } from 'fp-ts/lib/Array'
+
+export const of = <A>(a: A) =>
+  new ArrayOption(array.of(option.of(a)))
 
 export class ArrayOption<A> {
   constructor(readonly value: Array<Option<A>>) {}
@@ -8,18 +10,12 @@ export class ArrayOption<A> {
     return new ArrayOption(this.value.map(o => o.map(f)))
   }
   ap<B>(fab: Array<Option<(a: A) => B>>): Array<Option<B>> {
-    return applicativeArray.ap(
-      applicativeArray.map(
-        h => (ga: Option<A>) => ga.ap(h),
-        fab
-      ),
+    return array.ap(
+      array.map(fab, h => (ga: Option<A>) => ga.ap(h)),
       this.value
     )
   }
 }
-
-export const of = <A>(a: A) =>
-  new ArrayOption(applicativeArray.of(option.of(a)))
 
 export const reduce = <A, B>(
   fa: ArrayOption<A>,
@@ -27,7 +23,7 @@ export const reduce = <A, B>(
   f: (b: B, a: A) => B
 ): B => fa.value.reduce((b, o) => option.reduce(o, b, f), b)
 
-import { some, none } from './Option'
+import { some, none } from 'fp-ts/lib/Option'
 
 console.log(
   reduce(
