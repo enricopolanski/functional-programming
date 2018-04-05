@@ -10,7 +10,7 @@
 \newtheorem{definition}{Definizione}
 \newtheorem{example}{Esempio}
 
-\newenvironment{boxed}
+\newenvironment{demo}
     {\begin{center}
     \begin{tabular}{|p{0.9\textwidth}|}
     \hline\\
@@ -254,13 +254,13 @@ Vedremo come lo studio delle algebre e delle monadi permettano di raggiungere qu
 Il pattern fondamentale della programmazione funzionale è la \emph{componibilità}, ovvero la costruzione di piccole unità
 che fanno qualcosa di specifico in grado di essere combinate al fine di ottenere entità più grandi e complesse.
 
-\begin{boxed}
+\begin{demo}
 \begin{center}
 \textbf{DEMO}
 
 \texttt{combinator.ts}
 \end{center}
-\end{boxed}
+\end{demo}
 
 Una gran parte delle tecniche utilizzate nella programmazione funzionale sono mutuate dalla matematica.
 
@@ -516,9 +516,9 @@ const inverse = (x: number): Option<number> =>
 Possiamo interpretare questa modifica in termini di successo e fallimento: se viene restituita una istanza di \texttt{Some}
 la computazione di \texttt{inverse} ha avuto successo, se viene restituita una istanza di \texttt{None} essa è fallita.
 
-\begin{boxed}
+\begin{demo}
 Il tipo \texttt{Option} codifica l'\emph{effetto} di una computazione che può fallire
-\end{boxed}
+\end{demo}
 
 Aggiungiamo un metodo \texttt{map}
 
@@ -578,9 +578,9 @@ inverse(4)
   .map(inc) // Some(1.5)
 \end{verbatim}
 
-\begin{boxed}
+\begin{demo}
 \texttt{Option} mi permette di concentrarmi solo sul \emph{path di successo} in una serie di computazioni che possono fallire
-\end{boxed}
+\end{demo}
 
 Per questioni di interoperabilità con codice che non usa \texttt{Option} possiamo definire due utili funzioni
 
@@ -1295,9 +1295,9 @@ promap(f, g, x) = lmap(f, rmap(g, x))
 
 Potremmo aggiungere al termine programmazione funzionale quello di programmazione algebrica, infatti
 
-\begin{boxed}
+\begin{demo}
 Le algebre sono i design pattern della programmazione funzionale
-\end{boxed}
+\end{demo}
 
 Per algebra si intende generalmente una qualunque combinazione di
 
@@ -1528,9 +1528,9 @@ const of = <A>(a: A): Array<A> => [a]
 
 Il semigruppo libero di $A$ è il semigruppo i cui elementi sono tutte le possibili sequenze finite di elementi di $A$.
 
-\begin{boxed}
+\begin{demo}
 Il semigruppo libero di $A$ può essere visto come un modo \emph{lazy} di concatenare elementi di $A$.
-\end{boxed}
+\end{demo}
 
 Anche se ho a disposizione una istanza di semigruppo per $A$, potrei decidere di usare ugualmente il semigruppo libero perchè
 
@@ -2045,13 +2045,13 @@ E' possibile dimostrare che:
 }
 \]
 
-\begin{boxed}
+\begin{demo}
 \begin{center}
 \textbf{DEMO}
 
 \texttt{shapes.ts}
 \end{center}
-\end{boxed}
+\end{demo}
 
 \newpage
 
@@ -2374,13 +2374,13 @@ class Task<A> {
 
 \paragraph{Esercizio. } Sia \texttt{type Tuple<L, A> = [L, A]}, definire una istanza di funtore applicativo per \texttt{Tuple}.
 
-\begin{boxed}
+\begin{demo}
 \begin{center}
 \textbf{DEMO}
 
 \texttt{applicative.ts}
 \end{center}
-\end{boxed}
+\end{demo}
 
 \subsection{Monoidal lax functors}
 
@@ -2427,9 +2427,9 @@ export class ArrayOption<A> {
 A parte alcune tipologie di programmi come i compilatori o come \texttt{prettier}, che possono essere pensati come funzioni pure (\texttt{string => string}),
 quasi tutti i programmi che scriviamo comportano dei side effect.
 
-\begin{boxed}
+\begin{demo}
 Come è possibile modellare un programma che produce side effect con una funzione pura?
-\end{boxed}
+\end{demo}
 
 La risposta è modellando i side effect tramite effetti, ovvero valori che rappresentano il side effect. Ci sono due modi per farlo
 
@@ -2491,11 +2491,11 @@ Ritorneremo più avanti a occuparci di \texttt{IO} dato che è possibile associa
 Nella programmazione funzionale si tende a spingere i side effect ai confini del sistema (la funzione \texttt{main})
 ove vengono eseguiti da un interprete ottenendo il seguente schema
 
-\begin{boxed}
+\begin{demo}
 \begin{center}
 system = pure core + imperative shell
 \end{center}
-\end{boxed}
+\end{demo}
 
 Nei linguaggi \emph{puramente funzionali} (come Haskell, PureScript o Elm) questa divisione è netta ed è imposta dal linguaggio stesso.
 
@@ -2667,9 +2667,9 @@ Sia $M$ un endofuntore nella categoria $\mathcal{C}$ e si considerino i due morf
 
 Chiamiamo \emph{Kleisli arrow} i morfismi come $g$ ed $f$, ovvero i morifismi il cui target è l'immagine di $M$.
 
-\begin{boxed}
+\begin{demo}
 Una Kleisli arrow $f: A \rightarrow M(B)$ può essere interpretata come un programma che accetta un input di tipo $A$ e che produce un output di tipo $B$ insieme ad un effetto di tipo $M$
-\end{boxed}
+\end{demo}
 
 Le Kleisli arrows $g: A \rightarrow M(B)$, $f: B \rightarrow M(C)$ non compongono rispetto a $\circ$, l'operazione di composizione della categoria $\mathcal{C}$,
 poichè $M(B)$ è diverso da $B$.
@@ -2691,9 +2691,9 @@ ove
   \item esiste una morfismo $m': A \rightarrow B$ in $K_{\mathcal{C}}$ se e solo se esiste un morfismo $m: A \rightarrow M(B)$ in $\mathcal{C}$
 \end{itemize}
 
-\begin{boxed}
+\begin{demo}
 Definire una buona operazione di composizione per le Kleisli arrow in $\mathcal{C}$, indichiamola con $\bullet$, vuol dire imporre che $K_{\mathcal{C}}$ sia una categoria.
-\end{boxed}
+\end{demo}
 
 Per dimostrare che $K_{\mathcal{C}}$ è una categoria dobbiamo definire una operazione di composizione, indichiamola con $\diamond$,
 e dimostrare che valgono le leggi categoriali (identità sinistra, identità destra e associatività).
@@ -3058,13 +3058,13 @@ const aba = <A, B>(a: IO<A>, b: IO<B>): IO<A> =>
 const program3 = aba(read, writeFile('file.txt', 'foo'))
 \end{verbatim}
 
-\begin{boxed}
+\begin{demo}
 \begin{center}
 \textbf{DEMO}
 
 \texttt{game.ts}
 \end{center}
-\end{boxed}
+\end{demo}
 
 \subsection{Le monadi non compongono}
 
@@ -3372,12 +3372,6 @@ dove vengono fatte tutte le validazioni dell'input.
 
 \newpage
 
-\section{Debugging with \texttt{Trace}}
-
-TODO
-
-\newpage
-
 \section{Foldable}
 
 \texttt{Foldable} rappresenta una struttura che può essere ridotta tramite l' operazione \texttt{reduce}
@@ -3551,14 +3545,13 @@ reduce(
 ) // "ab"
 \end{verbatim}
 
-\begin{boxed}
+\begin{demo}
 \begin{center}
 \textbf{DEMO}
 
 \texttt{wizard.ts}
 \end{center}
-\end{boxed}
-
+\end{demo}
 
 \newpage
 
@@ -3605,6 +3598,27 @@ at: (F: Applicative<F>, g: Applicative<G>) =>
 
 E' importante notare che affinchè sia possibile scrivere una istanza di \texttt{Traversable} è necessario che la produzione di valori
 di tipo \texttt{A} abbia un ordine deterministico.
+
+\subsection{Esempi}
+
+TODO
+
+\subsection{sequence}
+
+Da \texttt{traverse} è possibile derivare la seguente funzione
+
+\begin{verbatim}
+sequence: <F, T>(F: Applicative<F>, T: Traversable<T>) =>
+  (tfa: T<F<A>>) => F<T<A>>
+\end{verbatim}
+
+\begin{demo}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{traversable.ts}
+\end{center}
+\end{demo}
 
 \newpage
 
@@ -3706,13 +3720,13 @@ const zero = <A>(): Array<A> => []
 const alt = concat
 \end{verbatim}
 
-\begin{boxed}
+\begin{demo}
 \begin{center}
 \textbf{DEMO}
 
 \texttt{router.ts}
 \end{center}
-\end{boxed}
+\end{demo}
 
 \newpage
 
@@ -3862,13 +3876,13 @@ anche cambiando lo stato iniziale
 console.log(program.run(2)) // [undefined, 4]
 \end{verbatim}
 
-\begin{boxed}
+\begin{demo}
 \begin{center}
 \textbf{DEMO}
 
 \texttt{???.ts}
 \end{center}
-\end{boxed}
+\end{demo}
 
 \newpage
 
