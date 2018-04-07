@@ -1,16 +1,17 @@
 import {
   TaskEither,
   taskEither,
-  fromEither
+  right,
+  left
 } from 'fp-ts/lib/TaskEither'
 import { StrMap, fromFoldable } from 'fp-ts/lib/StrMap'
 import { array } from 'fp-ts/lib/Array'
 import { traverse } from 'fp-ts/lib/Traversable'
 import { tuple, identity } from 'fp-ts/lib/function'
-import { left } from 'fp-ts/lib/Either'
+import { delay } from './Task'
 
 /**
- * Data una lista chiave / valore restituisce
+ * Data un array di tuple chiave / valore restituisce
  * una StrMap con la strategia di merging scelta
  */
 const fromArray = fromFoldable(array)
@@ -26,24 +27,19 @@ const s3ListObjects = (
 ): TaskEither<S3Error, Array<string>> => {
   switch (url) {
     case getUrl('banca1'):
-      return taskEither.of([
-        'payload-banca1-1',
-        'payload-banca1-2'
-      ])
-    case getUrl('banca2'):
-      return taskEither.of([
-        'payload-banca2-1',
-        'payload-banca2-2'
-      ])
-    case getUrl('banca3'):
-      return taskEither.of([
-        'payload-banca3-1',
-        'payload-banca3-2'
-      ])
-    default:
-      return fromEither(
-        left<S3Error, Array<string>>('notFound')
+      return right(
+        delay(500)(['payload-banca1-1', 'payload-banca1-2'])
       )
+    case getUrl('banca2'):
+      return right(
+        delay(500)(['payload-banca2-1', 'payload-banca2-2'])
+      )
+    case getUrl('banca3'):
+      return right(
+        delay(500)(['payload-banca3-1', 'payload-banca3-2'])
+      )
+    default:
+      return left(delay(2000)<S3Error>('notFound'))
   }
 }
 
@@ -76,7 +72,7 @@ right({
 })
 */
 
-program(['banca1', 'banca2', 'banca4'])
+program(['banca4'])
   .run()
   .then(sm => console.log(sm))
 /*
