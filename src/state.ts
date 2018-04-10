@@ -100,5 +100,5 @@ const program3 = setValue2('a', 1)
   .chain(() => setValue2('b', 2))
   .chain(() => update2('c', double))
 
-console.log(program3.exec({})) // { a: 1, b: 2 }
-console.log(program3.exec({ c: 3 })) // { c: 6, a: 1, b: 2 }
+// console.log(program3.exec({})) // { a: 1, b: 2 }
+// console.log(program3.exec({ c: 3 })) // { c: 6, a: 1, b: 2 }

@@ -853,6 +853,8 @@ L'associazione tra $f$ e $F(f)$ si chiama \emph{lifting} del morfismo $f$.
 
 Quando $\mathcal{C}$ e $\mathcal{D}$ coincidono, si parla di \emph{endofuntori} \footnote{endo proviene dal greco e significa dentro}.
 
+\paragraph{Esercizio. } Dimostrare che $F(\mathcal{C})$ è una sotto-categoria di $\mathcal{D}$.
+
 \subsection{La categoria $\mathcal{TS}$}
 
 Come ogni categoria, la categoria $\mathcal{TS}$ è composta da oggetti e morfismi:
@@ -3612,6 +3614,29 @@ sequence: <F, T>(F: Applicative<F>, T: Traversable<T>) =>
   (tfa: T<F<A>>) => F<T<A>>
 \end{verbatim}
 
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|c| }
+\hline
+From & To \\
+\hline
+\texttt{Array<Option<A>>} & \texttt{Option<Array<A>>} \\
+\hline
+\texttt{Either<L, IO<A>>} & \texttt{IO<Either<L, A>>} \\
+\hline
+\texttt{Array<Either<L, A>>} & \texttt{Either<L, Array<A>>} \\
+\hline
+\texttt{Either<L, Task<A>>} & \texttt{Task<Either<L, A>>} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+\subsection{I \texttt{Traversable} compongono}
+
+Ovvero se sia \texttt{F<A>} che \texttt{G<A>} ammettono una istanza di \texttt{Traversable}, allora \texttt{F<G<A>>} ammette una istanza di \texttt{Traversable}
+
 \begin{demo}
 \begin{center}
 \textbf{DEMO}
@@ -3736,14 +3761,11 @@ const alt = concat
 \xymatrix{
   Semigroup & Monoid \ar[l] \\
   Setoid & Ord \ar[l] \\
-  Contravariant \\
   & Alt \ar[ldd] & Plus \ar[l] & Alternative \ar[l] \ar[ld] \\
   & Apply \ar[ld] & Applicative \ar[l] & Monad \ar[l] \ar[ld] \\
-  Functor & Bifunctor \ar[l] & Chain \ar[lu] & ChainRec \ar[l] \\
+  Functor & & Chain \ar[lu] \\
   & Extend \ar[lu] & Comonad \ar[l] \\
-  & Profunctor \ar[luu] \\
-  Foldable & Traversable \ar[l] \\
-  Semigroupoid & Category \ar[l] \\
+  Foldable & Traversable \ar[l] \ar[uul] \\
 }
 \]
 
@@ -3751,7 +3773,13 @@ const alt = concat
 
 \section{Trasformazioni naturali}
 
-TODO
+\subsection{Esempi}
+
+\subsubsection{Da \texttt{Option<A>} a \texttt{Array<A>}}
+
+\subsubsection{Da \texttt{Array<A>} a \texttt{Option<A>}}
+
+\subsubsection{Da \texttt{IO<A>} a \texttt{Task<A>}}
 
 \newpage
 
@@ -3799,7 +3827,7 @@ const of = <S, A>(a: A): State<S, A> =>
   new State(s => [a, s])
 \end{verbatim}
 
-\texttt{State} si accompagna alle seguenti funzioni di utility
+\subsection{Combinatori}
 
 \begin{verbatim}
 /** legge lo stato corrente */
@@ -3923,7 +3951,7 @@ const of = <E, A>(a: A): Reader<E, A> =>
   new Reader(() => a)
 \end{verbatim}
 
-Generalmente \texttt{Reader} si accompagna alle seguenti funzioni di utility
+\subsection{Combinatori}
 
 \begin{verbatim}
 const ask = <E>(): Reader<E, E> => new Reader(e => e)
@@ -3946,7 +3974,170 @@ const local = <E>(f: (e: E) => E) => <A>(
 
 \section{Logging: la monade \texttt{Writer}}
 
-TODO
+Il modello che descrive nel modo più generale una operazione con logging è quello definito dalla seguente firma
+
+\begin{verbatim}
+() => [A, W]
+\end{verbatim}
+
+ove \texttt{A} è il tipo del valore restituito dalla computazione e \texttt{W} è il tipo del valore usato come log.
+
+Definiamo una istanza di funtore
+
+\begin{verbatim}
+class Writer<W, A> {
+  constructor(readonly run: () => [A, W]) {}
+  map<B>(f: (a: A) => B): Writer<W, B> {
+    const [a, w] = this.run()
+    return new Writer(() => [f(a), w])
+  }
+  eval(): A {
+    return this.run()[0]
+  }
+  exec(): W {
+    return this.run()[1]
+  }
+}
+\end{verbatim}
+
+Proviamo a definire una istanza di monade, incominciamo da \texttt{of}
+
+\begin{verbatim}
+const of = <W, A>(a: A): Writer<W, A> =>
+  new Writer(() => [a, w]) // w ???
+\end{verbatim}
+
+C'è un problema: non so cosa usare come \texttt{w}.
+
+Vediamo adesso \texttt{chain}
+
+\begin{verbatim}
+class Writer<W, A> {
+  ...
+  chain<B>(f: (a: A) => Writer<W, B>): Writer<W, B> {
+    return new Writer(() => {
+      const [a, w1] = this.run()
+      const [b, w2] = f(a).run()
+      return [b, w] // w ???
+    })
+  }
+}
+\end{verbatim}
+
+Anche qui c'è un problema: non so cosa usare come \texttt{w}, inoltre intuitivamente dovrebbe contenere l'informazione sia di \texttt{w1} sia
+di \texttt{w2}.
+
+Ricapitolando
+
+\begin{itemize}
+\item per \texttt{of} mi servirebbe un valore di tipo \texttt{W} che sia \emph{neutro}
+\item per \texttt{chain} mi servirebbe un modo per \emph{combinare} due valori di tipo \texttt{W}
+\end{itemize}
+
+\subsection{\texttt{Monoid} to the rescue}
+
+\begin{verbatim}
+const of = <W>(M: Monoid<W>) => <A>(a: A): Writer<W, A> => {
+  return new Writer(() => [a, M.empty])
+}
+
+const chain = <W>(S: Semigroup<W>) => <A, B>(
+  fa: Writer<W, A>,
+  f: (a: A) => Writer<W, B>
+): Writer<W, B> => {
+  return new Writer(() => {
+    const [a, w1] = fa.run()
+    const [b, w2] = f(a).run()
+    return [b, S.concat(w1, w2)]
+  })
+}
+\end{verbatim}
+
+Infine defininiamo \texttt{ap} (anche se si potrebbe derivare)
+
+\begin{verbatim}
+const ap = <W>(S: Semigroup<W>) => <A, B>(
+  fab: Writer<W, (a: A) => B>,
+  fa: Writer<W, A>
+): Writer<W, B> => {
+  return new Writer(() => {
+    const [f, w1] = fab.run()
+    const [a, w2] = fa.run()
+    return [f(a), S.concat(w1, w2)]
+  })
+}
+\end{verbatim}
+
+\subsection{Combinatori}
+
+\begin{verbatim}
+/**
+ * Appends a value to the accumulator
+ */
+export const tell = <W>(w: W): Writer<W, void> => {
+  return new Writer(() => [undefined, w])
+}
+
+/**
+ * Modifies the result to include the
+ * changes to the accumulator
+ */
+export const listen = <W, A>(
+  fa: Writer<W, A>
+): Writer<W, [A, W]> => {
+  return new Writer(() => {
+    const [a, w] = fa.run()
+    return [tuple(a, w), w]
+  })
+}
+
+/**
+ * Applies the returned function to the accumulator
+ */
+export const pass = <W, A>(
+  fa: Writer<W, [A, (w: W) => W]>
+): Writer<W, A> => {
+  return new Writer(() => {
+    const [[a, f], w] = fa.run()
+    return [a, f(w)]
+  })
+}
+
+/**
+ * Projects a value from modifications made
+ * to the accumulator during an action
+ */
+export const listens = <W, A, B>(
+  fa: Writer<W, A>,
+  f: (w: W) => B
+): Writer<W, [A, B]> => {
+  return new Writer(() => {
+    const [a, w] = fa.run()
+    return [tuple(a, f(w)), w]
+  })
+}
+
+/**
+ * Modify the final accumulator value by applying a function
+ */
+export const censor = <W, A>(
+  fa: Writer<W, A>,
+  f: (w: W) => W
+): Writer<W, A> => {
+  return new Writer(() => {
+    const [a, w] = fa.run()
+    return [a, f(w)]
+  })
+}
+\end{verbatim}
+
+\begin{demo}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{writer.ts}
+\end{center}
+\end{demo}
 
 \newpage
 
