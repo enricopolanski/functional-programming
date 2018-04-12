@@ -992,17 +992,6 @@ class IO<A> {
 }
 \end{verbatim}
 
-\paragraph{Promise.}
-
-Manda un tipo \texttt{A} nel tipo di una computazione che produce un valore di tipo \texttt{A} in modo asincrono
-
-\begin{verbatim}
-const functorPromise = {
-  map: <A, B>(f: (a: A) => B, fa: Promise<A>): Promise<B> =>
-    fa.then(f)
-}
-\end{verbatim}
-
 \paragraph{Task.}
 
 Le \texttt{Promise} sono \emph{eager}, ovvero eseguono il side effect immediatamente, Task è una variante \emph{lazy}
@@ -1548,7 +1537,7 @@ Reporters di \texttt{io-ts} (https://github.com/gcanti/io-ts)
 
 \subsubsection{Semigruppi per i type constructor}
 
-In alcuni casi è possibile derivare una istanza di semigruppo per un type constructor, per esempio \texttt{Option<A>} o \texttt{Promise<A>},
+In alcuni casi è possibile derivare una istanza di semigruppo per un type constructor, per esempio \texttt{Option<A>} o \texttt{Task<A>},
 sfruttando una istanza per \texttt{A}. Vediamo qualche esempio
 
 \paragraph{Option}
@@ -1574,18 +1563,27 @@ fold(getOptionSemigroup(sum))(none, [
 \paragraph{Promise}
 
 \begin{verbatim}
-const getPromiseSemigroup = <A>(
+const getTaskSemigroup = <A>(
   S: Semigroup<A>
-): Semigroup<Promise<A>> => ({
+): Semigroup<Task<A>> => ({
   concat: (x, y) =>
-    Promise.all([x, y]).then(([ax, ay]) => S.concat(ax, ay))
+    new Task(() =>
+      x
+        .run()
+        .then(rx => y.run().then(ry => S.concat(rx, ry)))
+    )
 })
 
-fold(getPromiseSemigroup(sum))(Promise.resolve(0), [
-  Promise.resolve(2),
-  Promise.resolve(0),
-  Promise.resolve(3)
-]).then(x => console.log(x)) // 5
+const of = <A>(a: A): Task<A> =>
+  new Task(() => Promise.resolve(a))
+
+fold(getTaskSemigroup(semigroupSum))(of(0))([
+  of(2),
+  of(0),
+  of(3)
+])
+  .run()
+  .then(x => console.log(x)) // 5
 \end{verbatim}
 
 \subsubsection{Il semigruppo prodotto}
@@ -2884,20 +2882,6 @@ class IO<A> {
 }
 \end{verbatim}
 
-\paragraph{Promise}
-
-\begin{verbatim}
-const monadPromise = {
-  map: <A, B>(f: (a: A) => B, fa: Promise<A>): Promise<B> =>
-    fa.then(f),
-  of: <A>(a: A) => Promise.resolve(a),
-  chain: <A, B>(
-    f: (a: A) => Promise<B>,
-    fa: Promise<A>
-  ): Promise<B> => fa.then(f)
-}
-\end{verbatim}
-
 \paragraph{Task}
 
 \begin{verbatim}
@@ -3598,9 +3582,6 @@ at: (F: Applicative<F>, g: Applicative<G>) =>
   <A>(fa: F<A>) => G<A>
 \end{verbatim}
 
-E' importante notare che affinchè sia possibile scrivere una istanza di \texttt{Traversable} è necessario che la produzione di valori
-di tipo \texttt{A} abbia un ordine deterministico.
-
 \subsection{Esempi}
 
 TODO
@@ -3773,13 +3754,88 @@ const alt = concat
 
 \section{Trasformazioni naturali}
 
+In Teoria delle Categorie, una \emph{trasformazione naturale} offre una modo per trasformare un funtore in un altro rispettando
+la struttura interna, ovvero la composizione di morfismi, delle categorie coinvolte.
+
+Una trasformazione naturale può essere considerata come un morfismo tra funtori. In effetti questa intuizione può essere formalizzata
+definendo la \emph{categoria dei funtori}: date due categorie $\mathcal{C}$ e $\mathcal{D}$, i funtori tra $\mathcal{C}$ e $\mathcal{D}$
+costituiscono gli oggetti mentre i morfismi sono le trasformazioni naturali tra i funtori.
+
+Le trasformazioni naturali, dopo le categorie e i funtori, sono uno dei più importanti concetti in Teoria delle Categorie e perciò appaiono
+nella maggior parte delle sue applicazioni.
+
+\subsection{Definizione}
+
+Siano $F$ e $G$ due funtori tra le categorie $\mathcal{C}$ e $\mathcal{D}$, allora una \emph{trasformazione naturale} $\eta$ da $F$ a $G$
+è una famiglia di morfismi tale che
+
+\begin{itemize}
+\item ad ogni oggetto $X$ in $\mathcal{C}$ è associato un morfismo $\eta_X: F(X) \rightarrow G(X)$ tra oggetti di $\mathcal{D}$.
+Il morfismo $\eta_X$ è chiamato la \emph{componente} di $\eta$ in $X$.
+\item le componenti devono essere tali che per ogni morfismo $f: X \rightarrow Y$ in $\mathcal{C}$ valga
+$$
+\eta_y \circ F(f) = G(f) \circ \eta_X
+$$
+\end{itemize}
+
+L'ultima equazione può essere rappresentata dal seguente \emph{diagramma commutativo}
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  F(X) \ar[r]^{F(f)} \ar[d]_{\eta_X} & F(Y) \ar[d]^{\eta_Y} \\
+  G(X) \ar[r]_{G(f)} & G(Y) \\
+}
+\]
+
+Ecco lo stesso diagramma ma con l'aggiunta degli oggetti $X$, $Y$ e il morfismo $f$ appartenenti alla categoria $\mathcal{C}$
+
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  X \ar@{-->}[rd]_{F} \ar@{-->}[rdd]_{G} \ar[r]^{f} & Y \ar@{-->}[rd]^{F} \ar@{-->}[rdd]^{G} & \mathcal{C} \\
+  & F(X) \ar[r]^{F(f)} \ar[d]_{\eta_X} & F(Y) \ar[d]^{\eta_Y} & \mathcal{D} \\
+  & G(X) \ar[r]_{G(f)} & G(Y) \\
+}
+\]
+
+Dal punto di vista implementativo una trasformazione naturale ha il seguente tipo
+
+\begin{verbatim}
+type NaturalTransformation<F, G> = <A>(fa: F<A>) => G<A>
+\end{verbatim}
+
 \subsection{Esempi}
 
 \subsubsection{Da \texttt{Option<A>} a \texttt{Array<A>}}
 
+\begin{verbatim}
+const fromOption = <A>(fa: Option<A>): Array<A> =>
+  fa.fold([], a => [a])
+\end{verbatim}
+
 \subsubsection{Da \texttt{Array<A>} a \texttt{Option<A>}}
 
+\begin{verbatim}
+const head = <A>(fa: Array<A>): Option<A> =>
+  fromNullable(fa[0])
+\end{verbatim}
+
+\subsubsection{Da \texttt{Either<L, A>} a \texttt{Option<A>}}
+
+\begin{verbatim}
+const fromEither = <L, A>(fa: Either<L, A>): Option<A> =>
+  fa.fold(() => none, some)
+\end{verbatim}
+
 \subsubsection{Da \texttt{IO<A>} a \texttt{Task<A>}}
+
+\begin{verbatim}
+const fromIO = <A>(fa: IO<A>): Task<A> =>
+  new Task(() => Promise.resolve(fa.run()))
+\end{verbatim}
 
 \newpage
 
@@ -3830,20 +3886,20 @@ const of = <S, A>(a: A): State<S, A> =>
 \subsection{Combinatori}
 
 \begin{verbatim}
-/** legge lo stato corrente */
+/** Get the current state */
 const get = <S>(): State<S, S> =>
   new State(s => [s, s])
 
-/** imposta lo stato corrente */
+/** Set the state */
 const put = <S>(s: S): State<S, undefined> =>
   new State(() => [undefined, s])
 
-/** modifica lo stato corrente */
+/** Modify the state by applying a function to the current state */
 const modify = <S>(
   f: (s: S) => S
 ): State<S, undefined> => new State(s => [undefined, f(s)])
 
-/** restituisce un valore in base allo stato corrente */
+/** Get a value which depends on the current state */
 const gets = <S, A>(f: (s: S) => A): State<S, A> =>
   new State(s => [f(s), s])
 \end{verbatim}
