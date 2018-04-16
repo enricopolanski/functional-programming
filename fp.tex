@@ -6,9 +6,10 @@
 \usepackage{graphicx}
 \graphicspath{ {images/} }
 
-\newtheorem{theorem}{Teorema}
-\newtheorem{definition}{Definizione}
-\newtheorem{example}{Esempio}
+\newtheorem{theorem}{Teorema}[section]
+\newtheorem{definition}{Definizione}[section]
+\newtheorem{example}{Esempio}[section]
+\newtheorem{exercise}{Esercizio}[section]
 
 \newenvironment{demo}
     {\begin{center}
@@ -24,169 +25,15 @@
 \title{
   %\textit{A beautiful bind} \\
   % \textit{Monad Lisa} \\
-  %\large Introduzione alla programmazione funzionale}
   Introduzione alla programmazione funzionale
 }
 \author{Giulio Canti}
-\date{}
 
 \begin{document}
 
 \maketitle
 
 \tableofcontents
-
-\newpage
-
-\section{Notazione}
-
-La notazione utilizzata nel testo è presa in prestito da TypeScript\footnote{http://www.typescriptlang.org/docs/home.html} e Flow\footnote{https://flow.org/}.
-
-\subsection{Variable Declarations}
-
-\begin{verbatim}
-// JavaScript
-const a = 1
-const b = 'foo'
-const c = true
-
-// TypeScript
-const a: number = 1
-const b: string = 'foo'
-const c: boolean = true
-\end{verbatim}
-
-\subsection{Arrow functions}
-
-\begin{verbatim}
-// JavaScript
-const double = n => 2 * n
-const sum = a => b => a + b
-
-// TypeScript
-const double = (n: number): number => 2 * n
-const sum = (a: number) => (b: number): number => a + b
-\end{verbatim}
-
-Le funzioni possono essere parametriche
-
-\begin{verbatim}
-// qui il type parameter `A` cattura il fatto che il tipo dell'output
-// deve essere uguale a quello dell'input
-const identity = <A>(a: A): A => a
-
-// qui il type parameter `A` cattura il fatto che il tipo degli elementi
-// dell'array `xs` e quello del valore `x` devono essere uguali
-const push = <A>(xs: Array<A>, x: A): Array<A> => {
-  const ys = xs.slice()
-  ys.push(x)
-  return ys
-}
-\end{verbatim}
-
-\subsection{Arrays and tuples}
-
-\begin{verbatim}
-// JavaScript
-const a = [1, 2, 3] // un array di numeri con lunghezza indefinita
-const b = [1, 'foo']  // un array con esattamente due elementi
-                      // il primo è un numero il secondo una stringa
-
-// TypeScript
-const a: Array<number> = [1, 2, 3]
-const b: [number, string] = [1, 'foo']
-\end{verbatim}
-
-\subsection{Interfaces}
-
-\begin{verbatim}
-// modella un oggetto con due proprietà `x`, `y` di tipo numerico
-interface Point {
-  x: number
-  y: number
-}
-
-// le interfacce possono essere estese
-interface Point3D extends Point {
-  z: number
-}
-
-// le interfacce possono essere parametriche
-// Pair modella un oggetto con due proprietà `x`, `y`
-// il cui tipo non è ancora precisato ma che deve essere uguale
-interface Pair<A> {
-  x: A
-  y: A
-}
-
-// questa definizione di Point è dunque equivalente
-// a quella iniziale
-interface Point extends Pair<number> {}
-\end{verbatim}
-
-\subsection{Classes}
-
-\begin{verbatim}
-// JavaScript
-class Person {
-  constructor(name, age) {
-    this.name = name
-    this.age = age
-  }
-}
-
-// TypeScript
-class Person {
-  name: string
-  age: number
-  constructor(name: string, age: number) {
-    this.name = name
-    this.age = age
-  }
-}
-
-// le classi possono essere parametriche
-class Pair<A> {
-  x: A
-  y: A
-  constructor(x: A, y: A) {
-    this.x = x
-    this.y = y
-  }
-}
-
-new Pair(1, 2) // ok
-new Pair(1, 'foo') // error
-\end{verbatim}
-
-\subsection{Type aliases}
-
-Per questioni di comodità possiamo dare degli alias ai tipi
-
-\begin{verbatim}
-// Querystring modella i parametri di una querystring
-// come un array di coppie nome / valore
-type Querystring = Array<[string, string]>
-
-// la querystring `a=foo&b=bar`
-const querystring: Querystring = [['a', 'foo'], ['b', 'bar']]
-
-// i type alias possono essere parametrici
-// Pair modella un array con esattamente due elementi
-// dello stesso tipo
-type Pair<A> = [A, A]
-\end{verbatim}
-
-\subsection{Unions and discriminated unions}
-
-\begin{verbatim}
-// è possibile definire delle unioni
-type StringOrNumber = string | number
-
-// e delle unioni con discriminante, ovvero una unione
-// di insiemi disgiunti in cui un campo fa da discriminante
-type Action = { type: 'INCREMENT' } | { type: 'DECREMENT' }
-\end{verbatim}
 
 \newpage
 
@@ -599,7 +446,7 @@ const toNullable = <A>(fa: Option<A>): A | null => {
 }
 \end{verbatim}
 
-\subsubsection{Branching tramite la funzione \texttt{fold}}
+\subsection{Branching tramite la funzione \texttt{fold}}
 
 Prima o poi dovrò affrontare il problema di stabilire cosa fare sia nel caso di successo che di fallimento.
 La funzione \texttt{fold} permette di gestire i due casi
@@ -747,9 +594,11 @@ Il progetto open source si chiama \emph{matematica} e la teoria sulla componibil
 Studiare teoria delle categorie non è perciò un passatempo astratto, ma va dritto al cuore di ciò che facciamo tutti i giorni quando vogliamo
 sviluppare (buon) software.
 
-\subsection{Categorie}
+\subsection{Definizione}
 
-Una categoria $\mathcal{C}$ è una coppia $(O, M)$ ove
+\begin{definition}
+Una \emph{categoria} $\mathcal{C}$ è una coppia $(O, M)$ ove
+
 \begin{itemize}
   \item $O$ è una collezione di \emph{oggetti}, non meglio specificati. Considerate un oggetto come un corpo imperscrutabile,
   senza struttura né proprietà distintive, a meno della sua identità (ovvero considerati due oggetti sappiamo solo se sono uguali oppure diversi
@@ -769,6 +618,8 @@ e $f: B \rightarrow C$ associa un terzo morfismo $f \circ g: A \rightarrow C$. I
   \item associatività: se $g: A \rightarrow B$, $f: B \rightarrow C$, $h: C \rightarrow D$, allora $h \circ (f \circ g) = (h \circ f) \circ g$
   \item identità: per ogni morfismo $f: A \rightarrow B$ vale $f \circ 1_A = f = 1_B \circ f$ (ove $1_A$ e $1_B$ sono rispettivamente i morfismi identità di $A$ e $B$)
 \end{itemize}
+
+\end{definition}
 
 \begin{example}
 \[
@@ -853,9 +704,13 @@ L'associazione tra $f$ e $F(f)$ si chiama \emph{lifting} del morfismo $f$.
 
 Quando $\mathcal{C}$ e $\mathcal{D}$ coincidono, si parla di \emph{endofuntori} \footnote{endo proviene dal greco e significa dentro}.
 
-\paragraph{Esercizio. } Dimostrare che $F(\mathcal{C})$ è una sotto-categoria di $\mathcal{D}$.
+\begin{exercise}
+Mostrare che $F(\mathcal{C})$ è una sotto-categoria di $\mathcal{D}$.
+\end{exercise}
 
 \subsection{La categoria $\mathcal{TS}$}
+
+Vediamo la categoria che rappresenta il linguaggio \texttt{TypeScript}.
 
 Come ogni categoria, la categoria $\mathcal{TS}$ è composta da oggetti e morfismi:
 
@@ -1006,9 +861,25 @@ class Task<A> {
 }
 \end{verbatim}
 
-\paragraph{Esercizio. } Sia \texttt{type Tuple<L, A> = [L, A]}, definire una istanza di funtore per \texttt{Tuple}.
+\begin{exercise}
+Sia
 
-\paragraph{Esercizio. } Sia \texttt{type Decoder<A> = (s: string) => A}, definire una istanza di funtore per \texttt{Decoder}.
+\begin{verbatim}
+type Tuple<L, A> = [L, A]
+\end{verbatim}
+
+definire una istanza di funtore.
+\end{exercise}
+
+\begin{exercise}
+Sia
+
+\begin{verbatim}
+type Decoder<A> = (s: string) => A
+\end{verbatim}
+
+definire una istanza di funtore.
+\end{exercise}
 
 \subsection{Composizione di funtori}
 
@@ -1027,7 +898,8 @@ allora possiamo costruire il funtore composizione $F(G): \mathcal{C} \rightarrow
 }
 \]
 
-Come esempio implementiamo una istanza di funtore per gli array di \texttt{Option}
+\begin{example}
+Implementiamo una istanza di funtore per gli array di \texttt{Option}
 
 \begin{verbatim}
 class ArrayOption<A> {
@@ -1037,6 +909,7 @@ class ArrayOption<A> {
   }
 }
 \end{verbatim}
+\end{example}
 
 \newpage
 
@@ -1280,7 +1153,7 @@ promap(f, g, x) = lmap(f, rmap(g, x))
 
 \newpage
 
-\section{Un po' di algebra}
+\section{Un po' di algebra: Semigruppi}
 
 \subsection{Cos'è una algebra?}
 
@@ -1323,7 +1196,7 @@ per esempio sui numeri naturali la somma è una operazione chiusa mentre la sott
 
 Un magma non possiede alcuna legge a parte il vincolo basilare di chiusura, vediamo un'algebra che ne definisce una: i semigruppi.
 
-\subsection{Semigruppi}
+\subsection{Definizione}
 
 \begin{definition}
 Sia $(S, *)$ un magma, se $*$ è associativa \footnote{ovvero per ogni $a, b, c \in S$ vale
@@ -1358,7 +1231,7 @@ Vediamo qualche esempio
   \item \texttt{(boolean, ||)} ove \texttt{||} è l'usuale disgiunzione
 \end{itemize}
 
-\subsubsection{Implementazione}
+\subsection{Implementazione}
 
 Come facciamo a tradurre questa astrazione sottoforma di codice?
 
@@ -1395,13 +1268,15 @@ const product: Semigroup<number> = {
 }
 \end{verbatim}
 
-\paragraph{Esercizio.} Implementare i seguenti semigruppi
+\begin{exercise}
+Implementare i seguenti semigruppi
 \begin{itemize}
-  \item \texttt{(string, +)}
-  \item \texttt{(boolean, \&\&)}
-  \item \texttt{(boolean, ||)}
-  \item \texttt{(Object, \ldots)} (spread operator)
+  \item \begin{verbatim}(string, +)\end{verbatim}
+  \item \begin{verbatim}(boolean, &&)\end{verbatim}
+  \item \begin{verbatim}(boolean, ||)\end{verbatim}
+  \item \begin{verbatim}(object, ...)\end{verbatim} (spread operator)
 \end{itemize}
+\end{exercise}
 
 L'insieme sostegno può essere costituito anche da funzioni
 
@@ -1415,7 +1290,8 @@ const getPredicateSemigroup = <A>(
 })
 \end{verbatim}
 
-Ora se definiamo una generica funzione \texttt{fold} che accetta un semigruppo come parametro\footnote{Notate che ho bisogno anche di una $A$ perchè l'array potrebbe essere vuoto}
+Ora se definiamo una generica funzione \texttt{fold} che accetta un semigruppo come parametro
+\footnote{Notate che ho bisogno anche di un valore di tipo $A$ perchè l'array potrebbe essere vuoto}
 
 \begin{verbatim}
 const fold = <A>(S: Semigroup<A>) => (
@@ -1461,7 +1337,7 @@ tryFold(sum)([1, 2, 3]) // some(6)
 tryFold(sum)([]) // none
 \end{verbatim}
 
-\subsubsection{Il semigruppo duale}
+\subsection{Il semigruppo duale}
 
 \begin{verbatim}
 const getDualSemigroup = <A>(
@@ -1471,7 +1347,7 @@ const getDualSemigroup = <A>(
 })
 \end{verbatim}
 
-\subsubsection{Non riesco a trovare un'istanza!}
+\subsection{Non riesco a trovare un'istanza!}
 
 Cosa succede se, dato un tipo $A$, non si riesce a trovare un'operazione interna associativa?
 
@@ -1535,7 +1411,7 @@ Anche se ho a disposizione una istanza di semigruppo per $A$, potrei decidere di
 Reporters di \texttt{io-ts} (https://github.com/gcanti/io-ts)
 \end{example}
 
-\subsubsection{Semigruppi per i type constructor}
+\subsection{Semigruppi per i type constructor}
 
 In alcuni casi è possibile derivare una istanza di semigruppo per un type constructor, per esempio \texttt{Option<A>} o \texttt{Task<A>},
 sfruttando una istanza per \texttt{A}. Vediamo qualche esempio
@@ -1586,7 +1462,7 @@ fold(getTaskSemigroup(semigroupSum))(of(0))([
   .then(x => console.log(x)) // 5
 \end{verbatim}
 
-\subsubsection{Il semigruppo prodotto}
+\subsection{Il semigruppo prodotto}
 
 Dati due semigruppi $(A, *)$ e $(B, +)$ è possibile definire il semigruppo prodotto $(A \times B, *+)$ ove
 
@@ -1633,9 +1509,10 @@ QED
 
 } può essere generalizzato al prodotto di $n$ semigruppi ($n$-tuple) e ai record.
 
-\subsubsection{Insiemi ordinati}
+\section{Uguaglianza e ordinamento}
 
-Se \texttt{A} è totalmente ordinabile allora è possibile definire un'istanza di semigruppo su \texttt{A} usando \texttt{min} (o \texttt{max}) come operazioni
+Se \texttt{A} è totalmente ordinabile allora è possibile definire un'istanza di semigruppo su \texttt{A}
+usando \texttt{min} (o \texttt{max}) come operazioni
 
 \begin{verbatim}
 const meet: Semigroup<number> = {
@@ -1651,6 +1528,9 @@ const join: Semigroup<number> = {
 elementi $x, y \in A$ appartengono alla stessa partizione se e solo se \texttt{equals(x, y) = true}.
 
 E' possibile catturare la nozione di \emph{totalmente ordinabile}? Per farlo prima dobbiamo catturare la nozione di \emph{uguaglianza}.
+
+\subsection{Relazioni di equivalenza}
+
 I matematici parlano di \emph{relazione di equivalenza}.
 Definiamo una nuova interfaccia
 
@@ -1677,13 +1557,16 @@ transitiva & se \texttt{equals(x, y) = true} e \texttt{equals(y, z) = true} allo
 \egroup
 \end{center}
 
-Esempio
-
+\begin{example}
+Una relazione di equivalenza per \texttt{number}
 \begin{verbatim}
 const setoidNumber: Setoid<number> = {
   equals: (x, y) => x === y
 }
 \end{verbatim}
+\end{example}
+
+\subsection{Relazioni d'ordine}
 
 Possiamo catturare la nozione di ordinabile introduciamo l'interfaccia \texttt{Ord}
 
@@ -1695,7 +1578,8 @@ interface Ord<A> extends Setoid<A> {
 }
 \end{verbatim}
 
-Esempio
+\begin{example}
+Una relazione d'ordine totale per \texttt{number}
 
 \begin{verbatim}
 const ordNumber: Ord<number> = {
@@ -1703,7 +1587,7 @@ const ordNumber: Ord<number> = {
   compare: (x, y) => (x < y ? -1 : x > y ? 1 : 0)
 }
 \end{verbatim}
-
+\end{example}
 
 Ora possiamo definire l'equivalente di $\leq$
 
@@ -1804,7 +1688,7 @@ Qui abbiamo dovuto usare \texttt{tryFold} perchè non c'è un valore iniziale se
 
 Tuttavia esistono semigruppi per i quali questo valore esiste: i \emph{monoidi}.
 
-\subsection{Monoidi}
+\section{Monoidi}
 
 Se aggiungiamo una condizione in più alla definizione di semigruppo, ovvero che esista un elemento $u \in M$
 tale che per ogni elemento $m \in M$ vale
@@ -1827,7 +1711,7 @@ u1 * u2 = u1 \\
 u1 * u2 = u2
 \end{eqnarray}
 
-\paragraph{Esercizio.} Molti dei semigruppi che abbiamo visto possono essere estesi a monoidi
+Molti dei semigruppi che abbiamo visto possono essere estesi a monoidi
 
 \begin{itemize}
   \item \texttt{(number, +, 0)}
@@ -1846,7 +1730,7 @@ I monoidi sono ovunque
   \item Access rights to files form a Monoid under intersection or union of rights
 \end{itemize}
 
-\subsubsection{Implementazione}
+\subsection{Implementazione}
 
 \begin{verbatim}
 interface Monoid<A> extends Semigroup<A> {
@@ -1906,7 +1790,7 @@ const getReducerMonoid = <S, A>(): Monoid<Reducer<S, A>> =>
   getFunctionMonoid(getEndomorphismMonoid<S>())<A>()
 \end{verbatim}
 
-\subsubsection{Monoide prodotto}
+\subsection{Monoide prodotto}
 
 \begin{verbatim}
 const getProductMonoid = <A, B>(
@@ -1920,7 +1804,7 @@ const getProductMonoid = <A, B>(
 
 Questo combinatore può essere generalizzato al prodotto di $n$ monoidi ($n$-tuple) e ai record.
 
-\subsubsection{Non tutti i semigruppi sono monoidi}
+\subsection{Non tutti i semigruppi sono monoidi}
 
 Esiste una istanza di un semigruppo che non è possibile estendere a monoide?
 
@@ -1947,7 +1831,7 @@ getNonEmptyArraySemigroup().concat(
 
 Ma non esiste nessun elemento \texttt{u: NonEmptyArray} che concatenato ad un altro \texttt{x: NonEmptyArray} dia ancora \texttt{x}.
 
-\subsubsection{Monoidi come categorie}
+\subsection{Monoidi come categorie}
 
 Un monoide $(M, *, u)$ \emph{assomiglia} ad una categoria
 
@@ -1994,7 +1878,7 @@ fold(product)([2, 3, 4]) // 24
 fold(product)([]) // 1
 \end{verbatim}
 
-\subsubsection{Monoidi liberi}
+\subsection{Monoidi liberi}
 
 Cosa succede se ho un insieme $X$ al quale non posso associare facilmente un'istanza di monoide?
 Esiste un'operazione su $X$ che produce in modo \emph{automatico} un monoide?
@@ -2032,7 +1916,7 @@ E' possibile dimostrare che:
   \item $M(X)$ è \emph{isomorfo} a $(Array<X>, concat, [])$
 \end{itemize}
 
-\subsection{Diagramma delle algebre}
+\section{Diagramma delle algebre}
 
 \[
 \xymatrixrowsep{3cm}
@@ -2264,7 +2148,8 @@ Analogamente è possibile definire \texttt{liftA3} per funzioni con 3 argomenti,
 E' importante sottolineare che mentre abbiamo avuto bisogno di una nuova astrazione per poter operare un lifting di una funzione binaria,
 per operare un lifting di una funzione $n$-aria un funtore applicativo è sufficiente.
 
-\paragraph{Esercizio. } Mostrare che se \texttt{F} ammette una istanza di \texttt{Apply} allora è possibile definire le seguenti funzioni
+\begin{exercise}
+Mostrare che se \texttt{F} ammette una istanza di \texttt{Apply} allora è possibile definire le seguenti funzioni
 
 \begin{verbatim}
 const map2 = <A, B, C>(
@@ -2282,6 +2167,7 @@ const map3 = <A, B, C, D>(
 
 // etc...
 \end{verbatim}
+\end{exercise}
 
 \subsection{Esempi}
 
@@ -2372,7 +2258,9 @@ class Task<A> {
 }
 \end{verbatim}
 
-\paragraph{Esercizio. } Sia \texttt{type Tuple<L, A> = [L, A]}, definire una istanza di funtore applicativo per \texttt{Tuple}.
+\begin{exercise}
+Sia \begin{verbatim}type Tuple<L, A> = [L, A]\end{verbatim} definire una istanza di funtore applicativo per \texttt{Tuple}.
+\end{exercise}
 
 \begin{demo}
 \begin{center}
@@ -2393,7 +2281,9 @@ interface Monoidal<F> extends Functor<F> {
 }
 \end{verbatim}
 
-\paragraph{Esercizio.} Dimostrare che sono equivalenti.
+\begin{exercise}
+Dimostrare che sono equivalenti.
+\end{exercise}
 
 \subsection{Composizione di funtori applicativi}
 
@@ -2896,7 +2786,9 @@ class Task<A> {
 }
 \end{verbatim}
 
-\paragraph{Esercizio. } Sia \texttt{type Tuple<L, A> = [L, A]}, definire una istanza di monade per \texttt{Tuple}.
+\begin{exercise}
+Sia \begin{verbatim}type Tuple<L, A> = [L, A]\end{verbatim}, definire una istanza di monade per \texttt{Tuple}.
+\end{exercise}
 
 \subsection{\texttt{Task} vs \texttt{Promise}}
 
@@ -3363,6 +3255,8 @@ dove vengono fatte tutte le validazioni dell'input.
 \texttt{Foldable} rappresenta una struttura che può essere ridotta tramite l' operazione \texttt{reduce}
 (sinonimi: \texttt{reduceLeft}, \texttt{foldLeft}, \texttt{foldl})
 
+\subsection{Definizione}
+
 \begin{verbatim}
 interface Foldable<F> {
   reduce: <A, B>(fa: F<A>, b: B, f: (b: B, a: A) => B) => B
@@ -3392,12 +3286,16 @@ Infatti è sempre possibile definire la seguente funzione
 const toArray = <F>(F: Foldable<F>) => <A>(fa: F<A>): Array<A>
 \end{verbatim}
 
-\paragraph{Esercizio.} Perchè?
+\begin{exercise}
+Perchè? Suggerimento: usare \texttt{foldMap}.
+\end{exercise}
 
 E' importante notare che affinchè sia possibile scrivere una istanza di \texttt{Foldable} è necessario che la produzione di valori
 di tipo \texttt{A} abbia un ordine deterministico.
 
-\paragraph{Esercizio.} \texttt{Option<A>} ammette una istanza di \texttt{Foldable}, qual'è la sua rappresentazione come array?
+\begin{exercise}
+\texttt{Option<A>} ammette una istanza di \texttt{Foldable}, qual'è la sua rappresentazione come array?
+\end{exercise}
 
 \subsection{Differenze tra \texttt{reduceLeft} e \texttt{reduceRight}}
 
@@ -3413,13 +3311,15 @@ $$
 reduceRight(b, f, [x_1, x_2, \ldots , x_n])  == f(f( \ldots f(b, x_n) \ldots , x_2), x_1)
 $$
 
-\paragraph{Esempio.}
+\begin{example}
+Ridurre \texttt{Array<string>}
 
 \begin{verbatim}
 reduce(["a", "b", "c"], "", (b, a) => b + a) // "abc"
 
 reduceRight(["a", "b", "c"], "", (a, b) => b + a) // "cba"
 \end{verbatim}
+\end{example}
 
 \subsection{\texttt{Foldable} e \texttt{Functor}}
 
@@ -3493,9 +3393,12 @@ const reduce = <A, B>(
 ): B => fa.reduce(f, b)
 \end{verbatim}
 
-\paragraph{Esercizio.} Mostrare che \texttt{reduce}, \texttt{reduceRight} e \texttt{foldMap} sono definizioni equivalenti per \texttt{Foldable}.
+\begin{exercise}
+Mostrare che \texttt{reduce}, \texttt{reduceRight} e \texttt{foldMap} sono definizioni equivalenti per \texttt{Foldable}.
+\end{exercise}
 
-\paragraph{Esercizio.} Definire una istanza di \texttt{Foldable} per \texttt{Tree<A>}
+\begin{exercise}
+Definire una istanza di \texttt{Foldable} per \texttt{Tree<A>}
 
 \begin{verbatim}
 type Tree<A> =
@@ -3507,15 +3410,23 @@ type Tree<A> =
       right: Tree<A>
     }
 \end{verbatim}
+\end{exercise}
 
-\paragraph{Esercizio.} \texttt{Set<A>} ammette una istanza di \texttt{Foldable}?
+\begin{exercise}
+E' possibile definire una istanza di \texttt{Foldable} per \texttt{Set<A>}?
+\end{exercise}
 
-\subsection{I Foldable compongono}
+\begin{exercise}
+E' possibile definire una istanza di \texttt{Foldable} per \texttt{Task<A>}?
+\end{exercise}
+
+\subsection{I \texttt{Foldable} compongono}
 
 Dati due type constructor \texttt{F<A>} e \texttt{G<A>} tali che ammettono una istanza di \texttt{Foldable}, allora la composizione \texttt{F<G<A>>}
 ammette una istanza di \texttt{Foldable}.
 
-\paragraph{Esempio.} \texttt{ArrayOption<A>}
+\begin{example}
+\texttt{ArrayOption<A>}
 
 \begin{verbatim}
 const reduce = <A, B>(
@@ -3530,6 +3441,7 @@ reduce(
   (b, a) => b + a
 ) // "ab"
 \end{verbatim}
+\end{example}
 
 \begin{demo}
 \begin{center}
@@ -3544,6 +3456,8 @@ reduce(
 \section{Traversable}
 
 \texttt{Traversable} rappresenta una struttura che può essere attraversata da sinistra a destra, eseguendo una azione per ogni elemento.
+
+\subsection{Definizione}
 
 \begin{verbatim}
 interface Traversable<T> extends Functor<T>, Foldable<T> {
@@ -3584,11 +3498,52 @@ at: (F: Applicative<F>, g: Applicative<G>) =>
 
 \subsection{Esempi}
 
-TODO
+\paragraph{Identity. }
 
-\subsection{sequence}
+\begin{verbatim}
+function traverse<F>(
+  F: Applicative<F>
+): <A, B>(
+  ta: Identity<A>,
+  f: (a: A) => F<FB>
+) => F<Identity<B>> {
+  return (ta, f) => F.map(identity.of, f(ta.value))
+}
+\end{verbatim}
 
-Da \texttt{traverse} è possibile derivare la seguente funzione
+\paragraph{Array. }
+
+\begin{verbatim}
+const snoc = <A>(as: Array<A>) => (a: A): Array<A> =>
+  as.concat([a])
+
+function traverse<F>(
+  F: Applicative<F>
+): <A, B>(
+  ta: Array<A>,
+  f: (a: A) => F<B>
+) => F<Array<B>> {
+  const snocLifted = liftA2(F)(snoc)
+  return (ta, f) =>
+    reduce(ta, F.of([]), (fab, a) => snocLifted(fab)(f(a)))
+}
+\end{verbatim}
+
+\begin{exercise}
+Definire una istanza di \texttt{Traversable} per \texttt{Option<A>}
+\end{exercise}
+
+\begin{exercise}
+Definire una istanza di \texttt{Traversable} per \texttt{Either<L, A>}
+\end{exercise}
+
+\begin{exercise}
+E' possibile definire una istanza di \texttt{Traversable} per \texttt{Task<A>}?
+\end{exercise}
+
+\subsection{La funzione \texttt{sequence}}
+
+Da \texttt{traverse} è possibile derivare la seguente funzione \footnote{e viceversa}
 
 \begin{verbatim}
 sequence: <F, T>(F: Applicative<F>, T: Traversable<T>) =>
@@ -3630,7 +3585,7 @@ Ovvero se sia \texttt{F<A>} che \texttt{G<A>} ammettono una istanza di \texttt{T
 
 \section{Alternative}
 
-\subsection{Alt}
+\subsection{\texttt{Alt}}
 
 \begin{verbatim}
 interface Alt<F> extends Functor<F> {
@@ -3651,7 +3606,7 @@ distributivity & \texttt{A.map(f, A.alt(a, b)) = A.alt(A.map(f, a), A.map(f, b))
 \egroup
 \end{center}
 
-\subsection{Plus}
+\subsection{\texttt{Plus}}
 
 \begin{verbatim}
 interface Plus<F> extends Alt<F> {
@@ -3674,7 +3629,7 @@ annihilation & \texttt{P.map(f, P.zero()) = P.zero()} \\
 \egroup
 \end{center}
 
-\subsection{Alternative}
+\subsection{\texttt{Alternative}}
 
 \begin{verbatim}
 interface Alternative<F> extends Applicative<F>, Plus<F> {}
@@ -4026,9 +3981,17 @@ const local = <E>(f: (e: E) => E) => <A>(
   \item \texttt{local} cambia il valore del contesto durante l'esecuzione dell'azione
 \end{itemize}
 
+\begin{demo}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{reader.ts}
+\end{center}
+\end{demo}
+
 \newpage
 
-\section{Logging: la monade \texttt{Writer}}
+\section{Logging funzionale: la monade \texttt{Writer}}
 
 Il modello che descrive nel modo più generale una operazione con logging è quello definito dalla seguente firma
 
@@ -4199,6 +4162,54 @@ export const censor = <W, A>(
 
 \section{Monad transformer}
 
+Supponiamo di avere una computazione con le seguenti proprietà
+
+\begin{itemize}
+\item asincrona
+\item può fallire
+\end{itemize}
+
+Come possiamo modellarla?
+
+Sappiamo che questi due effetti possono essere rispettivamente codificati dai seguenti tipi
+
+\begin{itemize}
+\item \texttt{Task<A>}
+\item \texttt{Either<L, A>}
+\end{itemize}
+
+e che ambedue hanno una istanza di monade.
+
+Potremmo anche dire che l'istanza di monade di \texttt{Task<A>} rappresenta la feature di asincronicità, mentre l'istanza
+di monade di \texttt{Either<L, A>} rappresenta la feature di fallimento.
+
+Come posso combinare queste due feature?
+
+In due modi
+
+\begin{itemize}
+\item \texttt{Task<Either<L, A>>} rappresenta una computazione asincrona che può fallire
+\item \texttt{Either<L, Task<A>>} rappresenta una computazione che può fallire oppure che restituisce una computazione asincrona
+\end{itemize}
+
+Diciamo che sono interessato al primo dei due modi
+
+\begin{verbatim}
+// type alias
+type TaskEither<L, A> = Task<Either<L, A>>
+\end{verbatim}
+
+è possibile definire una istanza di monade per \texttt{TaskEither}?
+
+In generale le monadi non compongono, ovvero date due istanze di monade, una per \texttt{M<A>} e una per \texttt{N<A>},
+allora a \texttt{M<N<A>>} non è detto che possa ancora essere associata una istanza di monade.
+
+\begin{exercise}
+In generale le monadi non compongono, perchè?
+\end{exercise}
+
+Che non compongano in generale però non vuol dire che non esistano dei casi particolari ove questo succede.
+
 Obiettivo: poter definire la seguente funzione
 
 $$
@@ -4218,6 +4229,50 @@ $$
 $$
 swap :: N ( M a ) \rightarrow M ( N a )
 $$
+
+Vediamo qualche esempio, se \texttt{M} ha una istanza di monade allora ammettono una istanza di monade i seguenti tipi
+
+\begin{itemize}
+  \item \texttt{OptionT<M, A> = M<Option<A>>}
+  \item \texttt{EitherT<M, L, A> = M<Either<L, A>>}
+  \item \texttt{StateT<M, S, A> = (s: S) => M<[A, S]>}
+  \item \texttt{ReaderT<M, E, A> = Reader<E, M<A>>}
+\end{itemize}
+
+Notate come questi tipi collassino in quelli già conosciuti quando il type constructor \texttt{M} è \texttt{Identity}
+
+\begin{itemize}
+  \item \texttt{Option<A> = OptionT<Identity, A>}
+  \item \texttt{Either<L, A> = EitherT<Identity, L, A>}
+  \item \texttt{State<S, A> = StateT<Identity, S, A>}
+  \item \texttt{Reader<E, A> = ReaderT<Identity, E, A>}
+\end{itemize}
+
+Vediamo una implementazione concreta \texttt{TaskEither}
+
+\begin{verbatim}
+import { Task, task } from 'fp-ts/lib/Task'
+import { Either, either, left } from 'fp-ts/lib/Either'
+
+const of = <L, A>(a: A): TaskEither<L, A> =>
+  new TaskEither(task.of(either.of(a)))
+
+class TaskEither<L, A> {
+  constructor(readonly value: Task<Either<L, A>>) {}
+  run(): Promise<Either<L, A>> {
+    return this.value.run()
+  }
+  chain<B>(
+    f: (a: A) => TaskEither<L, B>
+  ): TaskEither<L, B> {
+    return new TaskEither(
+      this.value.chain(e =>
+        e.fold(l => task.of(left(l)), a => f(a).value)
+      )
+    )
+  }
+}
+\end{verbatim}
 
 \begin{demo}
 \begin{center}
