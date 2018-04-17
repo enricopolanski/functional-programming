@@ -218,32 +218,27 @@ const updateCustomerProfile5 = (
 
 */
 
+import { putStrLn } from './Console'
+
 let _email = 'a@gmail.com'
 
 const db: MonadDB = {
   getEmail: (userId: number) =>
-    new Task(
-      () =>
-        new Promise(resolve => {
-          console.log(
-            `[DEBUG]: getting email for ${userId}: ${_email}`
-          )
-          resolve(_email)
-        })
-    ),
+    putStrLn(
+      `[DEBUG]: getting email for ${userId}: ${_email}`
+    ).map(() => _email),
   updateProfile: (
     userId: number,
     name: string,
     email: string
   ) =>
-    new Task(
+    putStrLn(
+      `[DEBUG]: changing email from ${_email} to ${email}`
+    ).chain(
       () =>
-        new Promise(resolve => {
-          console.log(
-            `[DEBUG]: changing email from ${_email} to ${email}`
-          )
+        new Task(() => {
           _email = email
-          resolve(undefined)
+          return Promise.resolve(undefined)
         })
     )
 }
@@ -253,14 +248,8 @@ const email: MonadEmail = {
     newEmail: string,
     oldEmail: string
   ) =>
-    new Task(
-      () =>
-        new Promise(resolve => {
-          console.log(
-            `[DEBUG]: sending change notification to ${newEmail}`
-          )
-          resolve(undefined)
-        })
+    putStrLn(
+      `[DEBUG]: sending change notification to ${newEmail}`
     )
 }
 
@@ -269,6 +258,7 @@ const deps: Deps = {
   email
 }
 
+// program: ReaderTask<Deps, boolean>
 const program = updateCustomerProfile5({
   userId: 1,
   name: 'foo',

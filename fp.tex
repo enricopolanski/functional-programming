@@ -3840,20 +3840,34 @@ const of = <S, A>(a: A): State<S, A> =>
 
 \subsection{Combinatori}
 
+\paragraph{get}
+
 \begin{verbatim}
 /** Get the current state */
 const get = <S>(): State<S, S> =>
   new State(s => [s, s])
+\end{verbatim}
 
+\paragraph{put}
+
+\begin{verbatim}
 /** Set the state */
 const put = <S>(s: S): State<S, undefined> =>
   new State(() => [undefined, s])
+\end{verbatim}
 
+\paragraph{modify}
+
+\begin{verbatim}
 /** Modify the state by applying a function to the current state */
 const modify = <S>(
   f: (s: S) => S
 ): State<S, undefined> => new State(s => [undefined, f(s)])
+\end{verbatim}
 
+\paragraph{gets}
+
+\begin{verbatim}
 /** Get a value which depends on the current state */
 const gets = <S, A>(f: (s: S) => A): State<S, A> =>
   new State(s => [f(s), s])
@@ -3964,22 +3978,33 @@ const of = <E, A>(a: A): Reader<E, A> =>
 
 \subsection{Combinatori}
 
-\begin{verbatim}
-const ask = <E>(): Reader<E, E> => new Reader(e => e)
+\paragraph{ask}
 
+\begin{verbatim}
+/** Reads the current context */
+const ask = <E>(): Reader<E, E> => new Reader(e => e)
+\end{verbatim}
+
+\paragraph{asks}
+
+\begin{verbatim}
+/** Projects a value from the global context in a Reader */
 const asks = <E, A>(f: (e: E) => A): Reader<E, A> =>
   new Reader(f)
 
+\end{verbatim}
+
+\paragraph{local}
+
+\begin{verbatim}
+/**
+ * Changes the value of the local context
+ * during the execution of the action `fa`
+ */
 const local = <E>(f: (e: E) => E) => <A>(
   fa: Reader<E, A>
 ): Reader<E, A> => new Reader((e: E) => fa.run(f(e)))
 \end{verbatim}
-
-\begin{itemize}
-  \item \texttt{ask} legge il contesto corrente
-  \item \texttt{asks} restituisce un valore in base al contesto corrente
-  \item \texttt{local} cambia il valore del contesto durante l'esecuzione dell'azione
-\end{itemize}
 
 \begin{demo}
 \begin{center}
@@ -4089,6 +4114,8 @@ const ap = <W>(S: Semigroup<W>) => <A, B>(
 
 \subsection{Combinatori}
 
+\paragraph{tell}
+
 \begin{verbatim}
 /**
  * Appends a value to the accumulator
@@ -4096,7 +4123,11 @@ const ap = <W>(S: Semigroup<W>) => <A, B>(
 export const tell = <W>(w: W): Writer<W, void> => {
   return new Writer(() => [undefined, w])
 }
+\end{verbatim}
 
+\paragraph{listen}
+
+\begin{verbatim}
 /**
  * Modifies the result to include the
  * changes to the accumulator
@@ -4109,7 +4140,11 @@ export const listen = <W, A>(
     return [tuple(a, w), w]
   })
 }
+\end{verbatim}
 
+\paragraph{pass}
+
+\begin{verbatim}
 /**
  * Applies the returned function to the accumulator
  */
@@ -4121,7 +4156,11 @@ export const pass = <W, A>(
     return [a, f(w)]
   })
 }
+\end{verbatim}
 
+\paragraph{listens}
+
+\begin{verbatim}
 /**
  * Projects a value from modifications made
  * to the accumulator during an action
@@ -4135,7 +4174,11 @@ export const listens = <W, A, B>(
     return [tuple(a, f(w)), w]
   })
 }
+\end{verbatim}
 
+\paragraph{censor}
+
+\begin{verbatim}
 /**
  * Modify the final accumulator value by applying a function
  */
