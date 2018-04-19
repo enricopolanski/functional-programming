@@ -259,7 +259,7 @@ Condizione: Output($g$) = \texttt{M<}Input($f$)\texttt{>}
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Funtori}
+\frametitle{Functor}
 
 \begin{verbatim}
 interface Functor<M> {
@@ -270,7 +270,7 @@ interface Functor<M> {
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Funtori}
+\frametitle{Functor}
 
 \begin{verbatim}
 interface Functor<M> {
@@ -289,12 +289,28 @@ Un programma con effetti + un programma senza effetti
 \xymatrixrowsep{2.5cm}
 \xymatrixcolsep{2.5cm}
 \xymatrix{
+  & \texttt{M<B>} \\
+  \texttt{A} \ar[ur]^{g} & \texttt{B} \ar[r]^{f} & \texttt{C}
+}
+\]
+
+Condizione: \texttt{M} ammette una istanza di \texttt{Functor}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Composizione}
+
+Un programma con effetti + un programma senza effetti
+
+\[
+\xymatrixrowsep{2.5cm}
+\xymatrixcolsep{2.5cm}
+\xymatrix{
   & \texttt{M<B>} \ar[r]^{\texttt{map(}f\texttt{)}} & \texttt{M<C>}  \\
   \texttt{A} \ar[ur]^{g} & \texttt{B} \ar@{-->}[u] \ar[r]^{f} & \texttt{C} \ar@{-->}[u]
 }
 \]
-
-Condizione: \texttt{M} ammette un'istanza di funtore
 
 \end{frame}
 
@@ -381,10 +397,12 @@ Un programma con effetti + un programma senza effetti con due parametri
 \xymatrixrowsep{2.5cm}
 \xymatrixcolsep{2.5cm}
 \xymatrix{
-  & \texttt{M<B>} \ar[r]^{\texttt{map(}f'\texttt{)}} & \texttt{M<C => D>} \\
-  \texttt{A} \ar[ur]^{g} & \texttt{B} \ar[r]^{f'} \ar@{-->}[u] & \texttt{C => D} \ar@{-->}[u]
+  & \texttt{M<B>} \ar[r]^{\texttt{map(}f\texttt{)}} & \texttt{M<C => D>} \\
+  \texttt{A} \ar[ur]^{g} & \texttt{B} \ar[r]^{f} \ar@{-->}[u] & \texttt{C => D} \ar@{-->}[u]
 }
 \]
+
+Condizione: \texttt{M} ammette una istanza di \texttt{Functor}
 
 \end{frame}
 
@@ -421,10 +439,12 @@ Un programma con effetti + un programma senza effetti con due parametri
 \xymatrixrowsep{2.5cm}
 \xymatrixcolsep{2cm}
 \xymatrix{
-  & \texttt{M<B>} \ar[r]^{\texttt{map(}f'\texttt{)}} & \texttt{M<C => D>} \ar[r]^{\texttt{ap}} & \texttt{M<C> => M<D>} \\
-  \texttt{A} \ar[ur]^{g} & \texttt{B} \ar[r]^{f'} \ar@{-->}[u] & \texttt{C => D} \ar@{-->}[u]
+  & \texttt{M<B>} \ar[r]^{\texttt{map(}f\texttt{)}} & \texttt{M<C => D>} \ar[r]^{\texttt{ap}} & \texttt{M<C> => M<D>} \\
+  \texttt{A} \ar[ur]^{g} & \texttt{B} \ar[r]^{f} \ar@{-->}[u]  & \texttt{C => D} \ar@{-->}[u]
 }
 \]
+
+Condizione: \texttt{M} ammette una istanza di \texttt{Applicative}
 
 \end{frame}
 
@@ -435,15 +455,121 @@ Un programma con effetti + un programma senza effetti con due parametri
 
 \[
 \xymatrixrowsep{2.5cm}
-\xymatrixcolsep{2.5cm}
+\xymatrixcolsep{2cm}
 \xymatrix{
-  & \texttt{M<B>} \ar[r]^{\texttt{liftA2(f')}} & \texttt{M<C> => M<D>} \\
-  \texttt{A} \ar[ur]^{g}
+  & \texttt{M<B>} \ar[rr]^{\texttt{liftA2(f)}} & & \texttt{M<C> => M<D>} \\
+  \texttt{A} \ar[ur]^{g} & \texttt{B} \ar[r]^{f} & \texttt{C => D}
 }
 \]
 
+Ove
+
 $$
 liftA2 = ap \circ map
+$$
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Composizione}
+
+Un programma con effetti + un programma senza effetti con due parametri
+
+\[
+\xymatrixrowsep{2.5cm}
+\xymatrixcolsep{2cm}
+\xymatrix{
+  & \texttt{M<B>} & &  \texttt{M<C> => M<D>} \\
+  \texttt{A} \ar[ur]^{g} \ar[urrr]_{h} & \texttt{B} \ar[r]^{f} & \texttt{C => D}
+}
+\]
+
+Soluzione
+
+$$
+h = liftA2(f) \circ g
+$$
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Composizione}
+
+Un programma con effetti + un programma con effetti
+
+\[
+\xymatrixrowsep{2.5cm}
+\xymatrixcolsep{2.5cm}
+\xymatrix{
+  & \texttt{M<B>} & \texttt{M<C>} \\
+  \texttt{A} \ar[ur]^{g} & \texttt{B} \ar[ur]^{f}
+}
+\]
+
+Condizione: Output($g$) = \texttt{M<}Input($f$)\texttt{>}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Monad}
+
+\begin{verbatim}
+interface Monad<M> extends Functor<M> {
+  of: <A>(a: A) => M<A>,
+  chain: <A, B>(f: (a: A) => M<B>) => (ma: M<A>) => M<B>
+}
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Monad}
+
+\begin{verbatim}
+interface Monad<M> extends Functor<M> {
+  of: <A>(a: A) => M<A>,
+  chain: <A, B>(f: (a: A) => M<B>) => ( (ma: M<A>) => M<B> )
+}
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Composizione}
+
+Un programma con effetti + un programma con effetti
+
+\[
+\xymatrixrowsep{2.5cm}
+\xymatrixcolsep{2.5cm}
+\xymatrix{
+  & \texttt{M<B>} \ar[r]^{\texttt{chain}(f)} & \texttt{M<C>} \\
+  \texttt{A} \ar[ur]^{g} & \texttt{B} \ar[ur]^{f} \ar@{-->}[u]
+}
+\]
+
+Condizione: \texttt{M} ammette una istanza di \texttt{Monad}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Composizione}
+
+Un programma con effetti + un programma con effetti
+
+\[
+\xymatrixrowsep{2.5cm}
+\xymatrixcolsep{2.5cm}
+\xymatrix{
+  & \texttt{M<B>} & \texttt{M<C>} \\
+  \texttt{A} \ar[ur]^{g} \ar[urr]^{h} & \texttt{B} \ar[ur]^{f}
+}
+\]
+
+Soluzione
+
+$$
+h = chain(f) \circ g
 $$
 
 \end{frame}
