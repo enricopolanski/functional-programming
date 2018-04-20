@@ -1036,7 +1036,34 @@ ReactDOM.render(
 
 \section{Bifuntori}
 
-TODO
+Un \emph{bifuntore} è un concetto associato ad un type constructor con kind \texttt{* -> * -> *}
+per il quale esiste una istanza di funtore covariante per ambedue i type parameter.
+
+La sua operazione è chiamata \texttt{bimap}
+
+\begin{verbatim}
+interface Bifunctor<F> {
+  bimap: <L, A, M, B>(
+    fla: F<L, A>,
+    f: (l: L) => M,
+    g: (a: A) => B
+  ) => F<M, B>
+}
+\end{verbatim}
+
+Tale che \texttt{bimap(x, identity, identity) = x}
+
+Vediamo un esempio, una istanza per \texttt{Either}
+
+\begin{verbatim}
+const bimap = <L, V, A, B>(
+  fla: Either<L, A>,
+  f: (l: L) => V,
+  g: (a: A) => B
+): Either<V, B> => {
+  return fla.fold(l => left(f(l)), a => right(g(a)))
+}
+\end{verbatim}
 
 \newpage
 
@@ -1133,7 +1160,7 @@ interface Profunctor<P> {
 }
 \end{verbatim}
 
-Tale che \texttt{promap(identity, identity) = identity}
+Tale che \texttt{promap(x, identity, identity) = x}
 
 Alternativamente è possibile definire la coppia \texttt{lmap} e \texttt{rmap}.
 
@@ -1143,7 +1170,7 @@ lmap: <A, B, C>(f: (a: A) => B, pbc: P<B, C>) => P<A, C>
 rmap: <A, B, C>(f: (b: B) => C, pab: P<A, B>) => P<A, C>
 \end{verbatim}
 
-Tali che \texttt{lmap(identity) = identity} e \texttt{rmap(identity) = identity}.
+Tali che \texttt{lmap(identity, x) = x} e \texttt{rmap(identity, x) = x}.
 
 \paragraph{Nota. } Deve valere la seguente relazione
 
@@ -4256,24 +4283,33 @@ Che non compongano in generale però non vuol dire che non esistano dei casi par
 Obiettivo: poter definire la seguente funzione
 
 $$
-flatten :: M ( N ( M ( N a ) ) ) \rightarrow M ( N a )
+flatten: M ( N ( M ( N a ) ) ) \rightarrow M ( N a )
 $$
 
 Vediamo tre condizioni sufficienti
 
 $$
-prod :: N (M ( N a ) ) \rightarrow M( N a )
+prod: N (M ( N a ) ) \rightarrow M( N a )
 $$
 
 $$
-dorp :: M (N ( M a ) ) \rightarrow M ( N a )
+dorp: M (N ( M a ) ) \rightarrow M ( N a )
 $$
 
 $$
-swap :: N ( M a ) \rightarrow M ( N a )
+swap: N ( M a ) \rightarrow M ( N a )
 $$
 
-Vediamo qualche esempio, se \texttt{M} ha una istanza di monade allora ammettono una istanza di monade i seguenti tipi
+\begin{exercise}
+Mostrare che \texttt{swap} è sufficiente per le altre due
+\end{exercise}
+
+\begin{exercise}
+Mostrare che ognuna delle tre condizioni è sufficiente
+\end{exercise}
+
+Ora vediamo qualche esempio, se il type constructor \texttt{M} ha una istanza di monade
+allora ammettono una istanza di monade i seguenti type constructor
 
 \begin{itemize}
   \item \texttt{OptionT<M, A> = M<Option<A>>}
@@ -4291,7 +4327,63 @@ Notate come questi tipi collassino in quelli già conosciuti quando il type cons
   \item \texttt{Reader<E, A> = ReaderT<Identity, E, A>}
 \end{itemize}
 
-Vediamo una implementazione concreta \texttt{TaskEither}
+Vediamo la funzione \texttt{swap} per i quattro casi in esame
+
+\paragraph{OptionT}
+
+\begin{verbatim}
+import { HKT } from 'fp-ts/lib/HKT'
+import { Monad } from 'fp-ts/lib/Monad'
+
+import { Option, none, some } from 'fp-ts/lib/Option'
+
+const swapOption = <M>(M: Monad<M>) => <A>(
+  nma: Option<HKT<M, A>>
+): HKT<M, Option<A>> => {
+  return nma.fold(M.of(none), ma => M.map(ma, some))
+}
+\end{verbatim}
+
+\paragraph{EitherT}
+
+\begin{verbatim}
+import { Either, left, right } from 'fp-ts/lib/Either'
+
+const swapEither = <M>(M: Monad<M>) => <L, A>(
+  nma: Either<L, HKT<M, A>>
+): HKT<M, Either<L, A>> => {
+  return nma.fold(
+    l => M.of(left(l)),
+    ma => M.map(ma, a => right(a))
+  )
+}
+\end{verbatim}
+
+\paragraph{ReaderT}
+
+\begin{verbatim}
+import { Reader } from 'fp-ts/lib/Reader'
+
+const swapReader = <M>(M: Monad<M>) => <E, A>(
+  nma: HKT<M, Reader<E, A>>
+): Reader<E, HKT<M, A>> => {
+  return new Reader(e =>
+    M.map(nma, reader => reader.run(e))
+  )
+}
+\end{verbatim}
+
+\paragraph{StateT}
+
+\begin{verbatim}
+const swapState = <M>(M: Monad<M>) => <S, A>(
+  nma: HKT<M, (s: S) => [A, S]>
+): ((s: S) => HKT<M, [A, S]>) => {
+  return s => M.chain(nma, state => M.of(state(s)))
+}
+\end{verbatim}
+
+Ora vediamo una implementazione completa \texttt{TaskEither}
 
 \begin{verbatim}
 import { Task, task } from 'fp-ts/lib/Task'
@@ -4314,6 +4406,33 @@ class TaskEither<L, A> {
       )
     )
   }
+}
+\end{verbatim}
+
+e due utili combinatori
+
+\begin{verbatim}
+import { TaskEither, fromLeft, taskEither } from 'fp-ts/lib/TaskEither'
+import { Either } from 'fp-ts/lib/Either'
+
+/** Return `Right` if the given action succeeds, `Left` if it throws */
+export const attempt = <L, A>(fa: TaskEither<L, A>): TaskEither<L, Either<L, A>> => {
+  return new TaskEither(fa.value.map(e => e.map(() => e)))
+}
+
+/**
+ * Make sure that a resource is cleaned up in the event of an exception. The
+ * release action is called regardless of whether the body action throws or
+ * returns.
+ */
+export const bracket = <L, A, R>(
+  acquire: TaskEither<L, R>,
+  program: (r: R) => TaskEither<L, A>,
+  release: (r: R) => TaskEither<L, void>
+): TaskEither<L, A> => {
+  return acquire.chain(r =>
+    attempt(program(r)).chain(result => release(r).chain(() => result.fold<TaskEither<L, A>>(fromLeft, taskEither.of)))
+  )
 }
 \end{verbatim}
 
