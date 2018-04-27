@@ -10,6 +10,7 @@
 \newtheorem{definition}{Definizione}[section]
 \newtheorem{example}{Esempio}[section]
 \newtheorem{exercise}{Esercizio}[section]
+\newtheorem{observation}{Osservazione}[section]
 
 \newenvironment{demo}
     {\begin{center}
@@ -871,6 +872,10 @@ type Tuple<L, A> = [L, A]
 definire una istanza di funtore.
 \end{exercise}
 
+\begin{demo}
+Non tutte le istanze di funtore sono associabili ad un "contenitore"
+\end{demo}
+
 \begin{exercise}
 Sia
 
@@ -879,6 +884,15 @@ type Decoder<A> = (s: string) => A
 \end{verbatim}
 
 definire una istanza di funtore.
+
+Più in generale definire una istanza di funtore per il seguente tipo
+
+\begin{verbatim}
+type Reader<E, A> = (e: E) => A
+\end{verbatim}
+
+con \texttt{E} fissato
+
 \end{exercise}
 
 \subsection{Composizione di funtori}
@@ -1551,9 +1565,6 @@ const join: Semigroup<number> = {
 }
 \end{verbatim}
 
-\paragraph{Nota. } Definire una istanza di \texttt{Setoid} per \texttt{A} equivale a definire una \emph{partizione} di \texttt{A} in cui due
-elementi $x, y \in A$ appartengono alla stessa partizione se e solo se \texttt{equals(x, y) = true}.
-
 E' possibile catturare la nozione di \emph{totalmente ordinabile}? Per farlo prima dobbiamo catturare la nozione di \emph{uguaglianza}.
 
 \subsection{Relazioni di equivalenza}
@@ -1566,6 +1577,13 @@ interface Setoid<A> {
   equals: (x: A, y: A) => boolean
 }
 \end{verbatim}
+
+intuitivamente
+
+\begin{itemize}
+\item se \texttt{equals(x, y) = true} allora $x = y$
+\item se \texttt{equals(x, y) = false} allora $x \neq y$
+\end{itemize}
 
 Devono valere le seguenti leggi
 
@@ -1593,9 +1611,22 @@ const setoidNumber: Setoid<number> = {
 \end{verbatim}
 \end{example}
 
+Definire una istanza di \texttt{Setoid} per \texttt{A} equivale a definire una \emph{partizione} di \texttt{A} in cui due
+elementi $x, y \in A$ appartengono alla stessa partizione se e solo se \texttt{equals(x, y) = true}.
+
+\begin{observation}
+Ogni funzione $f: A \rightarrow B$ induce una istanza di \texttt{Setoid} su \texttt{A} definita da
+
+\begin{verbatim}
+equals(x, y) = (f(x) = f(y))
+\end{verbatim}
+\end{observation}
+
+per ogni $x, y \in A$.
+
 \subsection{Relazioni d'ordine}
 
-Possiamo catturare la nozione di ordinabile introduciamo l'interfaccia \texttt{Ord}
+Possiamo catturare la nozione di ordinabile introducendo l'interfaccia \texttt{Ord}
 
 \begin{verbatim}
 type Ordering = -1 | 0 | 1;
@@ -1604,6 +1635,14 @@ interface Ord<A> extends Setoid<A> {
   compare: (x: A, y: A) => Ordering
 }
 \end{verbatim}
+
+intuitivamente
+
+\begin{itemize}
+\item se \texttt{compare(x, y) = -1} allora $x < y$
+\item se \texttt{compare(x, y) = 0} allora $x = y$
+\item se \texttt{compare(x, y) = 1} allora $x > y$
+\end{itemize}
 
 \begin{example}
 Una relazione d'ordine totale per \texttt{number}
@@ -1686,7 +1725,7 @@ tryFold(getJoinSemigroup(ordNumber))([1, 2, 3]) // some(3)
 Oppure selezionare la persona con l'età minore in un gruppo
 
 \begin{verbatim}
-type Person = {
+interface Person {
   name: string
   age: number
 }
@@ -1711,7 +1750,16 @@ tryFold(
 )(persons) // some({ name: 'Giulio', age: 44 })
 \end{verbatim}
 
-Qui abbiamo dovuto usare \texttt{tryFold} perchè non c'è un valore iniziale sensato per \texttt{fold}.
+\begin{demo}
+\begin{center}
+\textbf{DEMO}
+
+\texttt{ord.ts}
+\end{center}
+\end{demo}
+
+
+Qui sopra abbiamo dovuto usare \texttt{tryFold} perchè non c'è un valore iniziale sensato per \texttt{fold}.
 
 Tuttavia esistono semigruppi per i quali questo valore esiste: i \emph{monoidi}.
 
