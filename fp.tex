@@ -1998,6 +1998,15 @@ E' possibile dimostrare che:
   \item $M(X)$ è \emph{isomorfo} a $(Array<X>, concat, [])$
 \end{itemize}
 
+\begin{quote}
+To facilitate unbounded composition, composable systems must hide information (like function composition) or destroy information
+(like semigroup append).
+
+A system that does neither, composes for “free” and represents a promise of eventual composition (like list concat).
+
+- John De Goes
+\end{quote}
+
 \section{Diagramma delle algebre}
 
 \[
@@ -4334,6 +4343,12 @@ In generale le monadi non compongono, perchè?
 \end{exercise}
 
 Che non compongano in generale però non vuol dire che non esistano dei casi particolari ove questo succede.
+
+\begin{demo}
+Cosa sono i monad transformer?
+Sono un elenco di ricette specifiche che mostrano come a \texttt{M<N<A>>} può essere associata una istanza di monade
+quando \texttt{M} e \texttt{N} ammettono una istanza di monade
+\end{demo}
 
 Obiettivo: poter definire la seguente funzione
 
