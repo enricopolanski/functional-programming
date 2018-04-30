@@ -4,13 +4,20 @@
 \usepackage{bigfoot}
 \usepackage{hyperref}
 \usepackage{graphicx}
+\usepackage{verbatim}
+\usepackage{xcolor}
+\usepackage{minted}
+\usepackage{amsthm}
 \graphicspath{ {images/} }
 
+\theoremstyle{definition}
 \newtheorem{theorem}{Teorema}[section]
 \newtheorem{definition}{Definizione}[section]
 \newtheorem{example}{Esempio}[section]
 \newtheorem{exercise}{Esercizio}[section]
 \newtheorem{observation}{Osservazione}[section]
+\newtheorem{combinator}{Combinatore}[section]
+\newtheorem{function}{Funzione}[section]
 
 \newenvironment{demo}
     {\begin{center}
@@ -22,6 +29,17 @@
     \end{tabular}
     \end{center}
     }
+
+%\newenvironment{code}
+%  {\verbatim}
+%  {\endverbatim}
+
+\definecolor{LightGray}{rgb}{0.98,0.98,0.98}
+\newminted{typescript}{fontfamily=tt,bgcolor=LightGray}
+
+\newenvironment{code}
+  {\vspace{0.5cm} \VerbatimEnvironment\begin{typescriptcode}}
+  {\end{typescriptcode} \vspace{0.2cm}}
 
 \title{
   %\textit{A beautiful bind} \\
@@ -68,7 +86,7 @@ Nella programmazione funzionale sono innanzitutto le proprietà del codice ad es
 \begin{example}
 Perchè \texttt{map} è "più funzionale" di un ciclo \texttt{for}?
 
-\begin{verbatim}
+\begin{code}
 const xs = [1, 2, 3]
 const double = n => n * 2
 
@@ -78,7 +96,7 @@ for (var i = 0; i < xs.length; i++) {
 }
 
 const zs = xs.map(double)
-\end{verbatim}
+\end{code}
 
 \end{example}
 
@@ -142,9 +160,9 @@ $$
 \begin{example}
 La concatenazione di stringhe gode della proprietà associativa.
 
-\begin{verbatim}
+\begin{code}
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
-\end{verbatim}
+\end{code}
 \end{example}
 
 Se sappiamo che una data operazione gode della proprietà associativa possiamo suddividere una computazione in due sotto computazioni, ognuna delle quali può essere ulteriormente suddivisa
@@ -183,14 +201,15 @@ La funzione $\texttt{double}: Nat \rightarrow Nat$ è il sottoinsieme del prodot
 \end{example}
 
 In TypeScript
-\begin{verbatim}
+
+\begin{code}
 const f: { [key: number]: number } = {
   1: 2,
   2: 4,
   3: 6
   ...
 }
-\end{verbatim}
+\end{code}
 
 Si noti che l'insieme $f$ deve essere descritto \emph{staticamente} in fase di definizione della funzione
 (ovvero gli elementi di quell'insieme non possono variare nel tempo e per nessuna condizione interna o esterna).
@@ -202,15 +221,15 @@ Naturalmente quando l'insieme è infinito come in questo caso, la definizione pu
 Si può ovviare a questo problema introducendo quella che viene detta definizione \emph{intensionale},
 ovvero si esprime una condizione che deve valere per tutte le coppie $(x, y) \in f$ ovvero $y = x * 2$. Questa è la familiare forma con cui scriviamo la funzione $double$ e come la definiamo in JavaScript
 
-\begin{verbatim}
+\begin{code}
 const double = x => x * 2
-\end{verbatim}
+\end{code}
 
 o in TypeScript, ove risultano evidenti dominio e codominio sottoforma di type annotation
 
-\begin{verbatim}
+\begin{code}
 const double = (x: number): number => x * 2
-\end{verbatim}
+\end{code}
 
 La definizione di funzione come sottoinsieme di un prodotto cartesiano mostra come in matematica tutte le funzioni siano pure:
 non c'è azione, modifica di stato o modifica degli elementi (che sono considerati immutabili) degli insiemi coinvolti.
@@ -285,20 +304,20 @@ In ambito funzionale si tende a definire solo funzioni totali.
 
 Consideriamo la funzione
 
-\begin{verbatim}
+\begin{code}
 const inverse = (x: number): number => 1 / x
-\end{verbatim}
+\end{code}
 
 Tale funzione è parziale perchè non è definita per $x = 0$. Come possiamo gestire questa situazione?
 
 Una soluzione potrebbe essere lanciare un'eccezione
 
-\begin{verbatim}
+\begin{code}
 const inverse = (x: number): number => {
   if (x !== 0) return 1 / x
   throw new Error('cannot divide by zero')
 }
-\end{verbatim}
+\end{code}
 
 ma così la funzione non sarebbe più da considerarsi pura
 \footnote{Le eccezioni sono considerate un side effect inaccettabile perchè modificano la normale esecuzione del codice
@@ -306,30 +325,30 @@ e violano la trasparenza referenziale}.
 
 Un'altra possibile soluzione è restituire \texttt{null}
 
-\begin{verbatim}
+\begin{code}
 const inverse = (x: number): number | null => {
   if (x !== 0) return 1 / x
   return null
 }
-\end{verbatim}
+\end{code}
 
 Sorge però un nuovo problema quando si cerca di comporre la funzione \texttt{inverse} così modificata con un'altra funzione
 
-\begin{verbatim}
+\begin{code}
 // calcola l'inverso e poi moltiplica per 2
 const doubleInverse = (x: number): number => double(inverse(x))
-\end{verbatim}
+\end{code}
 
 L'implementazione di \texttt{doubleInverse} non è corretta, cosa succede se \texttt{inverse(x)} restituisce \texttt{null}?
 Occorre tenerne conto
 
-\begin{verbatim}
+\begin{code}
 const doubleInverse = (x: number): number | null => {
   const y = inverse(x)
   if (y === null) return null
   return double(y)
 }
-\end{verbatim}
+\end{code}
 
 Appare evidente come l'obbligo di gestione del valore speciale \texttt{null} si propaghi in modo contagioso
 a tutti gli utilizzatori di \texttt{inverse}.
@@ -347,7 +366,7 @@ Questo approccio ha diversi svantaggi
 La soluzione funzionale ai problemi illustrati precedentemente è l'utilizzo del tipo \texttt{Option},
 eccone la definizione
 
-\begin{verbatim}
+\begin{code}
 type Option<A> = None | Some<A>
 
 class None {
@@ -360,17 +379,18 @@ class Some<A> {
 }
 
 // in TypeScript never è un bottom type
+// ovvero un sottotipo di ogni altro tipo
 const none: Option<never> = new None()
 
 const some = <A>(a: A): Option<A> => new Some(a)
-\end{verbatim}
+\end{code}
 
 Ridefiniamo \texttt{inverse} sfruttando \texttt{Option}
 
-\begin{verbatim}
+\begin{code}
 const inverse = (x: number): Option<number> =>
   x === 0 ? none : some(1 / x)
-\end{verbatim}
+\end{code}
 
 Possiamo interpretare questa modifica in termini di successo e fallimento: se viene restituita una istanza di \texttt{Some}
 la computazione di \texttt{inverse} ha avuto successo, se viene restituita una istanza di \texttt{None} essa è fallita.
@@ -381,7 +401,7 @@ Il tipo \texttt{Option} codifica l'\emph{effetto} di una computazione che può f
 
 Aggiungiamo un metodo \texttt{map}
 
-\begin{verbatim}
+\begin{code}
 type Option<A> = None<A> | Some<A>
 
 class None<A> {
@@ -398,36 +418,39 @@ class Some<A> {
     return some(f(this.value))
   }
 }
-\end{verbatim}
+\end{code}
 
 In un linguaggio che non supporta classi e metodi, \texttt{map} può essere definita come funzione
 
-\begin{verbatim}
-const map = <A, B>(f: (a: A) => B, fa: Option<A>): Option<B> => {
+\begin{code}
+const map = <A, B>(
+  f: (a: A) => B,
+  fa: Option<A>
+): Option<B> => {
   switch (fa._tag) {
-    case 'None' :
+    case 'None':
       return none
-    case 'Some' :
+    case 'Some':
       return some(f(fa.value))
   }
 }
-\end{verbatim}
+\end{code}
 
 
 Ora è possibile definire \texttt{doubleInverse} senza boilerplate
 
-\begin{verbatim}
+\begin{code}
 const doubleInverse = (x: number): Option<number> =>
   inverse(x).map(double)
 
 doubleInverse(2) // Some(1)
 doubleInverse(0) // None
-\end{verbatim}
+\end{code}
 
 \begin{example}
 Inoltre è facile concatenare altre operazioni
 
-\begin{verbatim}
+\begin{code}
 const inc = (x: number): number => x + 1
 
 inverse(0)
@@ -436,7 +459,7 @@ inverse(0)
 inverse(4)
   .map(double)
   .map(inc) // Some(1.5)
-\end{verbatim}
+\end{code}
 \end{example}
 
 \begin{demo}
@@ -445,7 +468,7 @@ inverse(4)
 
 Per questioni di interoperabilità con codice che non usa \texttt{Option} possiamo definire due utili funzioni
 
-\begin{verbatim}
+\begin{code}
 const fromNullable = <A>(
   a: A | null | undefined
 ): Option<A> => (a == null ? none : some(a))
@@ -458,14 +481,14 @@ const toNullable = <A>(fa: Option<A>): A | null => {
       return fa.value
   }
 }
-\end{verbatim}
+\end{code}
 
 \subsection{Branching tramite la funzione \texttt{fold}}
 
 Prima o poi dovrò affrontare il problema di stabilire cosa fare sia nel caso di successo che di fallimento.
 La funzione \texttt{fold} permette di gestire i due casi
 
-\begin{verbatim}
+\begin{code}
 class Some<A> {
   ...
   fold<R>(f: () => R, g: (a: A) => R): R {
@@ -480,12 +503,12 @@ class None<A> {
   }
 }
 
-const f = (): string => 'cannot divide by zero'
-const g = (x: number): string => `the result is ${x}`
+const f = (): string => "cannot divide by zero"
+const g = (x: number): string => "the result is " + x
 
 inverse(2).fold(f, g) // 'the result is 0.5'
 inverse(0).fold(f, g) // 'cannot divide by zero'
-\end{verbatim}
+\end{code}
 
 Si noti come il branching è racchiuso nella definizione di \texttt{Option} e non necessita di alcun \texttt{if}
 e che l'utilizzo necessita solo di funzioni.
@@ -500,7 +523,7 @@ oppure ce ne sono diversi ma non interessa distinguerli.
 Se invece esistono molteplici ragioni di fallimento ed interessa comunicare al chiamante quale si sia verificata,
 oppure se si vuole definire un errore personalizzato, è possibile impiegare il tipo \texttt{Either}. Eccone la definizione
 
-\begin{verbatim}
+\begin{code}
 type Either<L, A> = Left<L, A> | Right<L, A>
 
 class Left<L, A> {
@@ -524,41 +547,41 @@ const left = <L, A>(l: L): Either<L, A> =>
 
 const right = <L, A>(a: A): Either<L, A> =>
   new Right(a)
-\end{verbatim}
+\end{code}
 
 Tipicamente \texttt{Left} rappresenta il caso di fallimento mentre \texttt{Right} quello di successo.
 
 Ridefiniamo la funzione \texttt{inverse} in funzione del tipo \texttt{Either}
 
-\begin{verbatim}
+\begin{code}
 const inverse = (x: number): Either<string, number> =>
   x === 0 ? left('cannot divide by zero') : right(1 / x)
-\end{verbatim}
+\end{code}
 
 Ancora una volta è possibile definire \texttt{doubleInverse} senza boilerplate
 
-\begin{verbatim}
+\begin{code}
 const doubleInverse = (x: number): Either<string, number> =>
   inverse(x).map(double)
 
 doubleInverse(2) // Right(1)
 doubleInverse(0) // Left('cannot divide by zero')
-\end{verbatim}
+\end{code}
 
 ed è facile comporre insieme altre operazioni
 
-\begin{verbatim}
+\begin{code}
 inverse(0)
   .map(double)
   .map(inc) // Left('cannot divide by zero')
 inverse(4)
   .map(double)
   .map(inc) // Right(1.5)
-\end{verbatim}
+\end{code}
 
 Anche per il tipo \texttt{Either} è possibile definire una funzione \texttt{fold}
 
-\begin{verbatim}
+\begin{code}
 class Left<L, A> {
   ...
   fold<R>(f: (l: L) => R, g: (a: A) => R): R {
@@ -572,7 +595,7 @@ class Right<L, A> {
     return g(this.value)
   }
 }
-\end{verbatim}
+\end{code}
 
 I vantaggi offerti dalla funzione \texttt{map} non sono esclusivi dei tipi \texttt{Option} e \texttt{Either}.
 Essi sono condivisi da tutti i membri di una vasta famiglia che prende il nome di \emph{funtori}. Per definire in modo formale cosa sia un funtore,
@@ -669,13 +692,13 @@ Un semplice linguaggio di programmazione con tre tipi e tre funzioni
 \]
 \end{example}
 
-\begin{verbatim}
+\begin{code}
 const length = (s: string): number => s.length
 
 const gt2 = (n: number): boolean => n > 2
 
 const lengthGt2 = compose(gt2, length)
-\end{verbatim}
+\end{code}
 
 \newpage
 
@@ -723,18 +746,20 @@ Le prime due proprietà formalizzano il requisito che oggetti e morfismi viaggia
 Le ultime due formalizzano il requisito che la struttura categoriale sia preservata.
 
 \begin{observation}
-L'ultima legge permette delle ottimizzazioni
+L'ultima legge permette delle ottimizzazioni, passando da
 
-\begin{verbatim}
+\begin{code}
 inverse(4)
   .map(double)
   .map(inc)
-\end{verbatim}
+\end{code}
 
-\begin{verbatim}
+a
+
+\begin{code}
 inverse(4)
   .map(compose(inc, double))
-\end{verbatim}
+\end{code}
 \end{observation}
 
 \subsection{Diagramma dell'azione di un funtore}
@@ -758,16 +783,14 @@ Mostrare che $F(\mathcal{C})$ è una sotto-categoria di $\mathcal{D}$.
 
 \subsection{La categoria $\mathcal{TS}$}
 
-Vediamo la categoria che rappresenta il linguaggio \texttt{TypeScript}.
-
-Come ogni categoria, la categoria $\mathcal{TS}$ è composta da oggetti e morfismi:
+Vediamo la categoria che rappresenta il linguaggio \texttt{TypeScript}, come ogni categoria,
+la categoria $\mathcal{TS}$ è composta da oggetti e morfismi
 
 \begin{itemize}
   \item gli oggetti sono i tipi (per esempio \texttt{number}, \texttt{string}, \texttt{boolean}, \texttt{Array<number>}, \texttt{Array<Array<number>>}, etc \ldots)
   \item i morfismi sono funzioni tra tipi (per esempio \texttt{number $\rightarrow$ number}, \texttt{string $\rightarrow$ number}, \texttt{Array<number> $\rightarrow$ Array<number>}, etc \ldots)
+  \item l'operazione di composizione $\circ$ è l'usuale composizione di funzioni.
 \end{itemize}
-
-Inoltre l'operazione di composizione $\circ$ è l'usuale composizione di funzioni.
 
 \subsection{Endofuntori in $\mathcal{TS}$}
 
@@ -791,19 +814,19 @@ Perciò un funtore è una coppia $F = (\texttt{F<X>}, \texttt{lift})$ ove
   \item \texttt{lift} è una funzione con la seguente firma\footnote{Si noti che la sintassi usata non è valida in TypeScript dato che non supporta gli Higher Kinded Types}
 \end{itemize}
 
-\begin{verbatim}
+\begin{code}
 lift: <A, B>(f: (a: A) => B) => ( (fa: F<A>) => F<B> )
-\end{verbatim}
+\end{code}
 
 La funzione \texttt{lift} è meglio conosciuta nella sua forma equivalente \texttt{map}.
 
-\begin{verbatim}
+\begin{code}
 map: <A, B>(f: (a: A) => B, fa: F<A>) => F<B>
-\end{verbatim}
+\end{code}
 
 Vediamo l'implementazione per \texttt{Option} e \texttt{Either}
 
-\begin{verbatim}
+\begin{code}
 // Option
 const funtorOption = {
   map: <A, B>(f: (a: A) => B, fa: Option<A>): Option<B> =>
@@ -817,12 +840,12 @@ const functorEither = {
     fa: Either<L, A>
   ): Either<L, B> => fa.fold(left, a => right(f(a)))
 }
-\end{verbatim}
+\end{code}
 
 Per comodità di utilizzo (\emph{chainable APIs}) abbiamo già visto che è utile implementare \texttt{map} in modo che
 l'argomento \texttt{fa} sia implicito (ovvero come metodo)
 
-\begin{verbatim}
+\begin{code}
 // Option
 class None<A> {
   ...
@@ -852,91 +875,93 @@ class Right<L, A> {
     return right(f(this.value))
   }
 }
-\end{verbatim}
+\end{code}
 
 \subsection{Esempi}
 
 Vediamo una raccolta dei funtori più comuni
 
-\paragraph{Identity.}
+\begin{example}
+Il funtore \textbf{Identity} manda un tipo \texttt{A} ancora in \texttt{A}
 
-Manda un tipo \texttt{A} ancora in \texttt{A}
-
-\begin{verbatim}
+\begin{code}
 class Identity<A> {
   constructor(readonly value: A) {}
   map<B>(f: (a: A) => B): Identity<B> {
     return new Identity(f(this.value))
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Array.}
+\begin{example}
+Il funtore \textbf{Array} manda un tipo \texttt{A} nel tipo della lista di elementi di tipo \texttt{A}
 
-Manda un tipo \texttt{A} nel tipo della lista di elementi di tipo \texttt{A}
-
-\begin{verbatim}
+\begin{code}
 const functorArray = {
   map: <A, B>(f: (a: A) => B, fa: Array<A>): Array<B> =>
     fa.map(f)
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{IO.}
+\begin{example}
+Il funtore \textbf{IO} manda un tipo \texttt{A} nel tipo \texttt{() => A}\footnote{Una funzione senza argomenti viene detta \emph{thunk}}
 
-Manda un tipo \texttt{A} nel tipo \texttt{() => A}\footnote{Una funzione senza argomenti viene detta \emph{thunk}}
-
-\begin{verbatim}
+\begin{code}
 class IO<A> {
   constructor(readonly run: () => A) {}
   map<B>(f: (a: A) => B): IO<B> {
     return new IO(() => f(this.run()))
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Task.}
+\begin{example}
+Il funtore \textbf{Task} manda un tipo \texttt{A} nel tipo \texttt{() => Promise<A>}.
 
-Le \texttt{Promise} sono \emph{eager}, ovvero eseguono il side effect immediatamente, Task è una variante \emph{lazy}
-di una computazione asincrona: manda un tipo \texttt{A} nel tipo \texttt{() => Promise<A>}
+Le \texttt{Promise} sono \emph{eager}, ovvero eseguono il side effect immediatamente, \texttt{Task} è una variante \emph{lazy}
+di una computazione asincrona
 
-\begin{verbatim}
+\begin{code}
 class Task<A> {
   constructor(readonly run: () => Promise<A>) {}
   map<B>(f: (a: A) => B): Task<B> {
     return new Task(() => this.run().then(f))
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
 \begin{exercise}
 Sia
 
-\begin{verbatim}
+\begin{code}
 type Tuple<L, A> = [L, A]
-\end{verbatim}
+\end{code}
 
 definire una istanza di funtore.
 \end{exercise}
 
-\begin{demo}
-Non tutte le istanze di funtore sono associabili ad un "contenitore"
-\end{demo}
+\begin{observation}
+Non tutte le istanze di funtore sono associabili ad un "contenitore", come mostrato dall'esercizio seguente
+\end{observation}
 
 \begin{exercise}
 Sia
 
-\begin{verbatim}
+\begin{code}
 type Decoder<A> = (s: string) => A
-\end{verbatim}
+\end{code}
 
 definire una istanza di funtore.
 
 Più in generale definire una istanza di funtore per il seguente tipo
 
-\begin{verbatim}
+\begin{code}
 type Reader<E, A> = (e: E) => A
-\end{verbatim}
+\end{code}
 
 con \texttt{E} fissato
 
@@ -960,29 +985,29 @@ allora possiamo costruire il funtore composizione $F(G): \mathcal{C} \rightarrow
 \]
 
 \begin{example}
-Implementiamo una istanza di funtore per gli array di \texttt{Option}
+Una istanza di funtore per gli array di \texttt{Option}
 
-\begin{verbatim}
+\begin{code}
 class ArrayOption<A> {
   constructor(readonly value: Array<Option<A>>) {}
   map<B>(f: (a: A) => B): ArrayOption<B> {
     return new ArrayOption(this.value.map(o => o.map(f)))
   }
 }
-\end{verbatim}
+\end{code}
 \end{example}
 
 \newpage
 
 \section{Funtori controvarianti}
 
-\begin{verbatim}
+\begin{code}
 // Funtori covarianti
 map: <A, B>      (f: (a: A) => B, fa: F<A>) => F<B>
 
 // Funtori controvarianti
 contramap: <A, B>(f: (b: B) => A, fa: F<A>) => F<B>
-\end{verbatim}
+\end{code}
 
 Come esempi di tipi che ammettono istanze di funtore controvariante consideriamo
 
@@ -993,9 +1018,10 @@ Come esempi di tipi che ammettono istanze di funtore controvariante consideriamo
   \item i serializzatori\footnote{\texttt{type Encoder<A> = (a: A) => string}}
 \end{itemize}
 
+\begin{example}
 Vediamo un esempio con i predicati
 
-\begin{verbatim}
+\begin{code}
 type Predicate<A> = (a: A) => boolean
 
 const contramap = <A, B>(
@@ -1019,15 +1045,19 @@ const isPersonAdult: Predicate<Person> = contramap(
 
 isPersonAdult({ name: 'Giulio', age: 45 }) // true
 isPersonAdult({ name: 'Matilde', age: 2 }) // false
-\end{verbatim}
+\end{code}
+\end{example}
 
+\begin{example}
 Vediamo un altro esempio notevole di funtore controvariante: le componenti di \texttt{React}.
 
-\paragraph{Component.}
+Il funtore \textbf{Component} manda un tipo \texttt{A} nel tipo
 
-Manda un tipo \texttt{A} nel tipo \texttt{(a: A) => ReactElement}
+\begin{code}
+(a: A) => ReactElement
+\end{code}
 
-\begin{verbatim}
+\begin{code}
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
@@ -1063,7 +1093,8 @@ ReactDOM.render(
   <DisplayPerson name="Giulio" surname="Canti" />,
   document.getElementById('app')
 )
-\end{verbatim}
+\end{code}
+\end{example}
 
 \newpage
 
@@ -1074,7 +1105,7 @@ per il quale esiste una istanza di funtore covariante per ambedue i type paramet
 
 La sua operazione è chiamata \texttt{bimap}
 
-\begin{verbatim}
+\begin{code}
 interface Bifunctor<F> {
   bimap: <L, A, M, B>(
     fla: F<L, A>,
@@ -1082,13 +1113,13 @@ interface Bifunctor<F> {
     g: (a: A) => B
   ) => F<M, B>
 }
-\end{verbatim}
+\end{code}
 
 Tale che \texttt{bimap(x, identity, identity) = x}
 
 Vediamo un esempio, una istanza per \texttt{Either}
 
-\begin{verbatim}
+\begin{code}
 const bimap = <L, V, A, B>(
   fla: Either<L, A>,
   f: (l: L) => V,
@@ -1096,7 +1127,7 @@ const bimap = <L, V, A, B>(
 ): Either<V, B> => {
   return fla.fold(l => left(f(l)), a => right(g(a)))
 }
-\end{verbatim}
+\end{code}
 
 \newpage
 
@@ -1105,10 +1136,10 @@ const bimap = <L, V, A, B>(
 Vediamo ora un particolare type constructor che ammette sia una istanza di funtore covariante sia una istanza di
 funtore controvariante: le funzioni.
 
-\begin{verbatim}
+\begin{code}
 // I = input, O = output
 type Function1<I, O> = (i: I) => O
-\end{verbatim}
+\end{code}
 
 Si noti che \texttt{Function1} ha kind \texttt{* -> * -> *} dato che
 ha due type parameter \footnote{In Haskell \texttt{Function1} è indicato con \texttt{(->)}}.
@@ -1122,7 +1153,7 @@ Nel cercare una istanza di funtore abbiamo perciò due scelte
 
 Prima fissiamo il tipo in input \texttt{I} e otteniamo una istanza di funtore \textbf{covariante}
 
-\begin{verbatim}
+\begin{code}
 const functorFunction1 = {
   map: <I, A, B>(
     f: (a: A) => B,
@@ -1131,11 +1162,11 @@ const functorFunction1 = {
     return i => f(fa(i))
   }
 }
-\end{verbatim}
+\end{code}
 
 Notate che l'implementazione di \texttt{map} non è altro che la composizione di funzioni
 
-\begin{verbatim}
+\begin{code}
 // prima g poi f
 const compose = <I, A, B>(
   f: (a: A) => B,
@@ -1147,11 +1178,11 @@ const compose = <I, A, B>(
 const functorFunction1 = {
   map: compose
 }
-\end{verbatim}
+\end{code}
 
 Ora fissiamo il tipo in output \texttt{O} e otteniamo una istanza di funtore \textbf{controvariante}
 
-\begin{verbatim}
+\begin{code}
 const contravariantFunction1 = {
   contramap: <B, A, O>(
     f: (b: B) => A,
@@ -1160,11 +1191,11 @@ const contravariantFunction1 = {
     return b => fa(f(b))
   }
 }
-\end{verbatim}
+\end{code}
 
 Notate che l'implementazione di \texttt{contramap} non è altro che la funzione \texttt{pipe}
 
-\begin{verbatim}
+\begin{code}
 // prima f poi g
 const pipe = <B, A, O>(
   f: (b: B) => A,
@@ -1176,14 +1207,14 @@ const pipe = <B, A, O>(
 const contravariantFunction1 = {
   contramap: pipe
 }
-\end{verbatim}
+\end{code}
 
 Giungiamo alla definizione di \texttt{Profunctor}, concetto associato ad un type constructor con kind \texttt{* -> * -> *} che è
 controvariante nel primo type parameter e covariante nel secondo type parameter.
 
 La sua operazione è chiamata \texttt{promap} (sinonimo \texttt{dimap})
 
-\begin{verbatim}
+\begin{code}
 interface Profunctor<P> {
   promap: <A, B, C, D>(
     pbc: P<B, C>,
@@ -1191,29 +1222,31 @@ interface Profunctor<P> {
     g: (c: C) => D
   ) => P<A, D>
 }
-\end{verbatim}
+\end{code}
 
 Tale che \texttt{promap(x, identity, identity) = x}
 
 Alternativamente è possibile definire la coppia \texttt{lmap} e \texttt{rmap}.
 
-\begin{verbatim}
+\begin{code}
 lmap: <A, B, C>(f: (a: A) => B, pbc: P<B, C>) => P<A, C>
 
 rmap: <A, B, C>(f: (b: B) => C, pab: P<A, B>) => P<A, C>
-\end{verbatim}
+\end{code}
 
 Tali che \texttt{lmap(identity, x) = x} e \texttt{rmap(identity, x) = x}.
 
-\paragraph{Nota. } Deve valere la seguente relazione
+\begin{observation}
+Deve valere la seguente relazione
 
-\begin{verbatim}
+\begin{code}
 promap(f, g, x) = lmap(f, rmap(g, x))
-\end{verbatim}
+\end{code}
+\end{observation}
 
 \newpage
 
-\section{Un po' di algebra: Semigruppi}
+\section{Semigruppi}
 
 \subsection{Cos'è una algebra?}
 
@@ -1239,7 +1272,9 @@ sono permesse solo le operazioni definite dall'algebra in oggetto e in conformit
 
 I matematici lavorano con tali interfacce da secoli e funziona in modo egregio.
 
-Facciamo un esempio di algebra, il magma.
+Vediamo un esempio di algebra, il magma.
+
+\subsection{Definizione di Magma}
 
 \begin{definition}
 Sia $M$ un insieme e $*$ un'operazione \emph{chiusa su} (o \emph{interna a}) $M$ ovvero $*: M \times M \rightarrow M$,
@@ -1256,7 +1291,7 @@ per esempio sui numeri naturali la somma è una operazione chiusa mentre la sott
 
 Un magma non possiede alcuna legge a parte il vincolo basilare di chiusura, vediamo un'algebra che ne definisce una: i semigruppi.
 
-\subsection{Definizione}
+\subsection{Definizione di Semigruppo}
 
 \begin{definition}
 Sia $(S, *)$ un magma, se $*$ è associativa \footnote{ovvero per ogni $a, b, c \in S$ vale
@@ -1298,50 +1333,50 @@ Come facciamo a tradurre questa astrazione sottoforma di codice?
 
 Possiamo implementare il concetto di semigruppo come una \texttt{interface}
 
-\begin{verbatim}
+\begin{code}
 interface Semigroup<A> {
   concat: (x: A, y: A) => A
 }
-\end{verbatim}
+\end{code}
 
 L'insieme sostegno è rappresentato dal type parameter \texttt{A} mentre l'operazione $*$ è chiamata \texttt{concat}.
 
 L'associatività non può essere espressa nel type system di TypeScript
 
-\begin{verbatim}
+\begin{code}
 // deve valere per ogni a, b, c
 concat(concat(a, b), c) = concat(a, concat(b, c))
-\end{verbatim}
+\end{code}
 
 Ecco come possiamo implementare il semigruppo $(number, +)$
 
-\begin{verbatim}
+\begin{code}
 const sum: Semigroup<number> = {
   concat: (x, y) => x + y
 }
-\end{verbatim}
+\end{code}
 
 Notate che si possono definire differenti istanze di semigruppo per lo stesso insieme sostegno
 
-\begin{verbatim}
+\begin{code}
 const product: Semigroup<number> = {
   concat: (x, y) => x * y
 }
-\end{verbatim}
+\end{code}
 
 \begin{exercise}
 Implementare i seguenti semigruppi
 \begin{itemize}
-  \item \begin{verbatim}(string, +)\end{verbatim}
-  \item \begin{verbatim}(boolean, &&)\end{verbatim}
-  \item \begin{verbatim}(boolean, ||)\end{verbatim}
-  \item \begin{verbatim}(object, ...)\end{verbatim} (spread operator)
+  \item \texttt{(string, +)}
+  \item \texttt{(boolean, \&\&)}
+  \item \texttt{(boolean, ||)}
+  \item \texttt{(object, ...)} (spread operator)
 \end{itemize}
 \end{exercise}
 
 L'insieme sostegno può essere costituito anche da funzioni
 
-\begin{verbatim}
+\begin{code}
 type Predicate<A> = (a: A) => boolean
 
 const getPredicateSemigroup = <A>(
@@ -1349,7 +1384,7 @@ const getPredicateSemigroup = <A>(
 ): Semigroup<Predicate<A>> => ({
   concat: (x, y) => a => S.concat(x(a), y(a))
 })
-\end{verbatim}
+\end{code}
 
 \subsection{La funzione \texttt{fold}}
 
@@ -1360,41 +1395,45 @@ di elementi da combinare.
 
 Notate che ho bisogno anche di un valore di tipo \texttt{A} perchè l'array potrebbe essere vuoto.
 
-\begin{verbatim}
+\begin{code}
 const fold = <A>(S: Semigroup<A>) => (
   a: A,
   as: Array<A>
 ): A => as.reduce((a, b) => S.concat(a, b), a)
-\end{verbatim}
+\end{code}
 
 Ora, come esempi di applicazione di \texttt{fold}, possiamo reimplementare alcune popolari funzioni della standard library di JavaScript
 
-\begin{verbatim}
+\begin{code}
 const semigroupAll: Semigroup<boolean> = {
   concat: (x, y) => x && y
 }
 
 const every = <A>(p: Predicate<A>, as: Array<A>): boolean =>
   fold(semigroupAll)(true, as.map(p))
+\end{code}
 
+\begin{code}
 const semigroupAny: Semigroup<boolean> = {
   concat: (x, y) => x || y
 }
 
 const some = <A>(p: Predicate<A>, as: Array<A>): boolean =>
   fold(semigroupAny)(false, as.map(p))
+\end{code}
 
+\begin{code}
 const semigroupObject: Semigroup<Object> = {
   concat: (x, y) => ({ ...x, ...y })
 }
 
 const assign = (as: Array<Object>): Object =>
   fold(semigroupObject)({}, as)
-\end{verbatim}
+\end{code}
 
 E' possibile definire una versione alternativa di \texttt{fold} nel caso non esista un valore sensato da restituire quando l'array è vuoto
 
-\begin{verbatim}
+\begin{code}
 const tryFold = <A>(S: Semigroup<A>) => (
   as: Array<A>
 ): Option<A> =>
@@ -1402,19 +1441,19 @@ const tryFold = <A>(S: Semigroup<A>) => (
 
 tryFold(sum)([1, 2, 3]) // some(6)
 tryFold(sum)([]) // none
-\end{verbatim}
+\end{code}
 
 \subsection{Il semigruppo duale}
 
 Data una istanza di semigruppo, è possibile ricavarne un'altra semplicemente scambiando l'ordine in cui sono combinati gli elementi
 
-\begin{verbatim}
+\begin{code}
 const getDualSemigroup = <A>(
   S: Semigroup<A>
 ): Semigroup<A> => ({
   concat: (x, y) => S.concat(y, x)
 })
-\end{verbatim}
+\end{code}
 
 \subsection{Non riesco a trovare un'istanza!}
 
@@ -1424,26 +1463,26 @@ Potete creare un'istanza di semigruppo per \emph{ogni} tipo usando una delle seg
 
 restituire sempre il primo elemento
 
-\begin{verbatim}
+\begin{code}
 const getFirstSemigroup = <A>(): Semigroup<A> => ({
   concat: (x, _) => x
 })
-\end{verbatim}
+\end{code}
 
 restituire sempre l'ultimo elemento
 
-\begin{verbatim}
+\begin{code}
 const getLastSemigroup = <A>(): Semigroup<A> =>
   getDualSemigroup(getFirstSemigroup())
-\end{verbatim}
+\end{code}
 
 restituire sempre uno stesso elemento $a \in A$
 
-\begin{verbatim}
+\begin{code}
 const getConstSemigroup = <A>(a: A): Semigroup<A> => ({
   concat: () => a
 })
-\end{verbatim}
+\end{code}
 
 \subsection{Il semigruppo libero}
 
@@ -1451,17 +1490,17 @@ Le istanze mostrate precedentemente possono sembrare banali\footnote{Eppure a vo
 ma c'è un'altra tecnica che mantiene il contenuto informativo ed è quella di definire una istanza di semigruppo per \texttt{Array<A>},
 chiamata il \emph{semigruppo libero} (Free semigroup) di $A$
 
-\begin{verbatim}
+\begin{code}
 const getFreeSemigroup = <A>(): Semigroup<Array<A>> => ({
   concat: (x, y) => x.concat(y)
 })
-\end{verbatim}
+\end{code}
 
 e poi mappare gli elementi di \texttt{A} sui singoletti di \texttt{Array<A>}
 
-\begin{verbatim}
+\begin{code}
 const of = <A>(a: A): Array<A> => [a]
-\end{verbatim}
+\end{code}
 
 Il semigruppo libero di $A$ è il semigruppo i cui elementi sono tutte le possibili sequenze finite di elementi di $A$.
 
@@ -1477,16 +1516,17 @@ Anche se ho a disposizione una istanza di semigruppo per $A$, potrei decidere di
   \item permette al consumer delle mie API di stabilire la strategia di merging
 \end{itemize}
 
-\subsection{Semigruppi per higher kinds}
+\subsection{Semigruppi per gli higher kinds}
 
 In alcuni casi è possibile derivare una istanza di semigruppo per un type constructor con kind $> 0$, per esempio \texttt{Option<A>} o \texttt{Task<A>},
 sfruttando una istanza per \texttt{A}.
 
 Vediamo qualche esempio
 
-\paragraph{Option}
+\begin{combinator}
+Data un'istanza di semigruppo per il tipo \texttt{A} è possibile derivare una istanza di semigruppo per \texttt{Option<A>}
 
-\begin{verbatim}
+\begin{code}
 const getOptionSemigroup = <A>(
   S: Semigroup<A>
 ): Semigroup<Option<A>> => ({
@@ -1496,9 +1536,9 @@ const getOptionSemigroup = <A>(
       ax => y.fold(() => x, ay => some(S.concat(ax, ay)))
     )
 })
-\end{verbatim}
+\end{code}
 
-Come funziona \texttt{getOptionSemigroup}
+Di seguito è riportato uno schema che spiega come lavora questo combinatore
 
 \begin{center}
 \bgroup
@@ -1518,11 +1558,12 @@ Come funziona \texttt{getOptionSemigroup}
 \end{tabular}
 \egroup
 \end{center}
+\end{combinator}
 
 \begin{example}
 Concatenare un array di \texttt{Option}
 
-\begin{verbatim}
+\begin{code}
 const options = [
   some(2),
   none,
@@ -1536,12 +1577,13 @@ const sum: Semigroup<number> = {
 const S = getOptionSemigroup(sum)
 
 fold(S)(none, options) // Some(5)
-\end{verbatim}
+\end{code}
 \end{example}
 
-\paragraph{Task}
+\begin{combinator}
+Data un'istanza di semigruppo per il tipo \texttt{A} è possibile derivare una istanza di semigruppo per \texttt{Task<A>}
 
-\begin{verbatim}
+\begin{code}
 const getTaskSemigroup = <A>(
   S: Semigroup<A>
 ): Semigroup<Task<A>> => ({
@@ -1552,12 +1594,13 @@ const getTaskSemigroup = <A>(
         .then(rx => y.run().then(ry => S.concat(rx, ry)))
     )
 })
-\end{verbatim}
+\end{code}
+\end{combinator}
 
 \begin{example}
 Concatenare un array di \texttt{Task}
 
-\begin{verbatim}
+\begin{code}
 const of = <A>(a: A): Task<A> =>
   new Task(() => Promise.resolve(a))
 
@@ -1576,7 +1619,7 @@ const S = getTaskSemigroup(sum)
 fold(S)(of(0))(tasks)
   .run()
   .then(x => console.log(x)) // 5
-\end{verbatim}
+\end{code}
 \end{example}
 
 \subsection{Il semigruppo prodotto}
@@ -1587,7 +1630,7 @@ $$
 *+\Big((a_1, b_1), (a_2, b_2)\Big) = (a_1 * a_2, b_1 + b_2)
 $$
 
-\begin{verbatim}
+\begin{code}
 const getProductSemigroup = <A, B>(
   A: Semigroup<A>,
   B: Semigroup<B>
@@ -1597,12 +1640,12 @@ const getProductSemigroup = <A, B>(
     B.concat(bx, by)
   ]
 })
-\end{verbatim}
+\end{code}
 
 \begin{example}
 Concatenare tuple di tipo \texttt{[number, string]}
 
-\begin{verbatim}
+\begin{code}
 const semigroupString: Semigroup<string> = {
   concat: (x, y) => x + y
 }
@@ -1613,9 +1656,9 @@ const sum: Semigroup<number> = {
 
 const S = getProductSemigroup(sum, semigroupString)
 
-S.concat([2, ’a’], [3, ’b’])
-// [ 5, ’ab’ ]
-\end{verbatim}
+S.concat([2, "a"], [3, "b"])
+// [ 5, "ab" ]
+\end{code}
 \end{example}
 
 Il teorema\footnote{
@@ -1642,7 +1685,7 @@ QED
 \begin{example}
 Concatenare record
 
-\begin{verbatim}
+\begin{code}
 interface Person {
   name: string
   age: number
@@ -1663,11 +1706,11 @@ const S: Semigroup<Person> = {
   })
 }
 
-fold(S)({ name: 'Giulio', age: 44 })([
-  { name: 'Giulio', age: 45 },
-  { name: 'Giulio Canti', age: 45 }
-]) // { name: 'Giulio Canti', age: 45 }
-\end{verbatim}
+fold(S)({ name: "Giulio", age: 44 })([
+  { name: "Giulio", age: 45 },
+  { name: "Giulio Canti", age: 45 }
+]) // { name: "Giulio Canti", age: 45 }
+\end{code}
 \end{example}
 
 \newpage
@@ -1677,7 +1720,7 @@ fold(S)({ name: 'Giulio', age: 44 })([
 Se \texttt{A} è totalmente ordinabile allora è possibile definire un'istanza di semigruppo su \texttt{A}
 usando \texttt{min} (o \texttt{max}) come operazioni
 
-\begin{verbatim}
+\begin{code}
 const meet: Semigroup<number> = {
   concat: (x, y) => Math.min(x, y)
 }
@@ -1685,7 +1728,7 @@ const meet: Semigroup<number> = {
 const join: Semigroup<number> = {
   concat: (x, y) => Math.max(x, y)
 }
-\end{verbatim}
+\end{code}
 
 E' possibile catturare la nozione di \emph{totalmente ordinabile}? Per farlo prima dobbiamo catturare la nozione di \emph{uguaglianza}.
 
@@ -1695,11 +1738,11 @@ Le \emph{relazioni di equivalenza} catturano il concetto di uguaglianza di eleme
 
 \subsubsection{Implementazione}
 
-\begin{verbatim}
+\begin{code}
 interface Setoid<A> {
   equals: (x: A, y: A) => boolean
 }
-\end{verbatim}
+\end{code}
 
 intuitivamente
 
@@ -1731,18 +1774,19 @@ transitiva & se \texttt{equals(x, y) = true} e \texttt{equals(y, z) = true} allo
 
 E' possibile derivare una istanza di \texttt{Setoid} da una istanza precedentemente definita tramite il combinatore \texttt{contramap}
 
-\begin{verbatim}
+\begin{code}
 const contramap = <A, B>(
   f: (b: B) => A,
   S: Setoid<A>
 ): Setoid<B> => ({
   equals: (x, y) => S.equals(f(x), f(y))
 })
-\end{verbatim}
+\end{code}
 
 \begin{example}
 Una relazione di equivalenza per \texttt{Person}
-\begin{verbatim}
+
+\begin{code}
 interface Person {
   name: string
   age: number
@@ -1757,7 +1801,7 @@ const setoidPerson: Setoid<Person> = contramap(
   p => p.name,
   setoidString
 )
-\end{verbatim}
+\end{code}
 \end{example}
 
 \subsubsection{Relazioni di equivalenza come partizioni}
@@ -1768,9 +1812,9 @@ elementi $x, y \in A$ appartengono alla stessa partizione se e solo se \texttt{e
 \begin{observation}
 Ogni funzione $f: A \rightarrow B$ induce una istanza di \texttt{Setoid} su \texttt{A} definita da
 
-\begin{verbatim}
+\begin{code}
 equals(x, y) = (f(x) = f(y))
-\end{verbatim}
+\end{code}
 \end{observation}
 
 per ogni $x, y \in A$.
@@ -1781,13 +1825,13 @@ Le relazioni d'ordine catturano il concetto di ordinamento di elementi appartene
 
 \subsubsection{Implementazione}
 
-\begin{verbatim}
+\begin{code}
 type Ordering = -1 | 0 | 1;
 
 interface Ord<A> extends Setoid<A> {
   compare: (x: A, y: A) => Ordering
 }
-\end{verbatim}
+\end{code}
 
 intuitivamente
 
@@ -1800,12 +1844,12 @@ intuitivamente
 \begin{example}
 Una relazione d'ordine totale per \texttt{number}
 
-\begin{verbatim}
+\begin{code}
 const ordNumber: Ord<number> = {
   ...setoidNumber,
   compare: (x, y) => (x < y ? -1 : x > y ? 1 : 0)
 }
-\end{verbatim}
+\end{code}
 \end{example}
 
 \subsubsection{Leggi}
@@ -1844,7 +1888,7 @@ compatibilità & \texttt{compare(x, y) = 0} se e solo se \texttt{equals(x, y) = 
 
 E' ora possibile definire le funzioni \texttt{sort}, \texttt{min} e \texttt{max} in modo del tutto generale
 
-\begin{verbatim}
+\begin{code}
 const sort = <A>(O: Ord<A>) => (as: Array<A>): Array<A> =>
   as.slice().sort(O.compare)
 
@@ -1853,11 +1897,11 @@ const min = <A>(O: Ord<A>) => (x: A, y: A): A =>
 
 const max = <A>(O: Ord<A>) => (x: A, y: A): A =>
   O.compare(x, y) === -1 ? y : x
-\end{verbatim}
+\end{code}
 
 Ora possiamo definire due nuovi utili combinatori per i semigruppi
 
-\begin{verbatim}
+\begin{code}
 const getMeetSemigroup = <A>(O: Ord<A>): Semigroup<A> => ({
   concat: min(O)
 })
@@ -1865,21 +1909,21 @@ const getMeetSemigroup = <A>(O: Ord<A>): Semigroup<A> => ({
 const getJoinSemigroup = <A>(O: Ord<A>): Semigroup<A> => ({
   concat: max(O)
 })
-\end{verbatim}
+\end{code}
 
 \begin{example}
 Calcolare il massimo di $n$ numeri
 
-\begin{verbatim}
+\begin{code}
 tryFold(getJoinSemigroup(ordNumber))([1, 2, 3]) // some(3)
-\end{verbatim}
+\end{code}
 \end{example}
 
 \subsubsection{Il combinatore \texttt{contramap}}
 
 E' possibile derivare una istanza di \texttt{Ord} da una istanza precedentemente definita tramite il combinatore \texttt{contramap}
 
-\begin{verbatim}
+\begin{code}
 const contramap = <A, B>(
   O: Ord<A>,
   f: (b: B) => A
@@ -1887,42 +1931,42 @@ const contramap = <A, B>(
   equals: (x, y) => O.equals(f(x), f(y)),
   compare: (x, y) => O.compare(f(x), f(y))
 })
-\end{verbatim}
+\end{code}
 
 \begin{example}
 Selezionare la persona con l'età minore in un gruppo
 
-\begin{verbatim}
+\begin{code}
 interface Person {
   name: string
   age: number
 }
 
 const persons: Array<Person> = [
-  { name: 'Giulio', age: 44 },
-  { name: 'Guido', age: 47 }
+  { name: "Giulio", age: 44 },
+  { name: "Guido", age: 47 }
 ]
 
 tryFold(
   getMeetSemigroup(
     contramap(ordNumber, (p: Person) => p.age)
   )
-)(persons) // some({ name: 'Giulio', age: 44 })
-\end{verbatim}
+)(persons) // some({ name: "Giulio", age: 44 })
+\end{code}
 \end{example}
 
 \subsubsection{L'ordinamento duale}
 
 Infine un ultimo utile combinatore che, dato un ordinamento, restituisce l'ordinamento opposto
 
-\begin{verbatim}
+\begin{code}
 const getDualOrd = <A>(
   O: Ord<A>
 ): Ord<A> => ({
   equals: O.equals,
   comapre: (x, y) => O.compare(y, x)
 })
-\end{verbatim}
+\end{code}
 
 \begin{demo}
 \begin{center}
@@ -1975,9 +2019,9 @@ Molti dei semigruppi che abbiamo visto possono essere estesi a monoidi
 
 \begin{exercise}
 Generalizzare il monoide \texttt{(Object, \ldots, \{\})} in modo che possa lavorare con un generico dizionario
-\begin{verbatim}
+\begin{code}
 type Dictionary<A> = { [key: string]: A }
-\end{verbatim}
+\end{code}
 \end{exercise}
 
 I monoidi sono ovunque
@@ -1990,18 +2034,18 @@ I monoidi sono ovunque
 
 \subsection{Implementazione}
 
-\begin{verbatim}
+\begin{code}
 interface Monoid<A> extends Semigroup<A> {
   empty: A
 }
-\end{verbatim}
+\end{code}
 
 Come esempi non banali possiamo implementare i seguenti fatti.
 
 Dato un tipo \texttt{A}, gli endomorfismi\footnote{Un endomorfismo non è altro che una funzione il cui dominio e codominio coincidono}
 su \texttt{A} ammettono una istanza di monoide
 
-\begin{verbatim}
+\begin{code}
 type Endomorphism<A> = (a: A) => A
 
 const identity = <A>(a: A): A => a
@@ -2012,23 +2056,23 @@ const getEndomorphismMonoid = <A>(): Monoid<
   concat: (x, y) => a => x(y(a)),
   empty: identity
 })
-\end{verbatim}
+\end{code}
 
 Se il tipo \texttt{M} ammette una istanza di monoide allora il tipo \texttt{(a: A) => M} ammette una istanza di monoide per ogni tipo \texttt{A}
 
-\begin{verbatim}
+\begin{code}
 const getFunctionMonoid = <M>(M: Monoid<M>) => <
   A
 >(): Monoid<(a: A) => M> => ({
   concat: (f, g) => a => M.concat(f(a), g(a)),
   empty: () => M.empty
 })
-\end{verbatim}
+\end{code}
 
 Come corollario otteniamo che i reducer ammettono una istanza di monoide
 \footnote{Alternativamente, se i reducer non sono curried, l'istanza può essere definita manualmente
 
-\begin{verbatim}
+\begin{code}
 type Reducer<S, A> = (s: S, a: A) => S
 
 const getReducerMonoid = <S, A>(): Monoid<
@@ -2037,20 +2081,20 @@ const getReducerMonoid = <S, A>(): Monoid<
   concat: (x, y) => (s, a) => y(x(s, a), a),
   empty: (s, _) => s
 })
-\end{verbatim}
+\end{code}
 
 }
 
-\begin{verbatim}
+\begin{code}
 type Reducer<S, A> = (a: A) => (s: S) => S
 
 const getReducerMonoid = <S, A>(): Monoid<Reducer<S, A>> =>
   getFunctionMonoid(getEndomorphismMonoid<S>())<A>()
-\end{verbatim}
+\end{code}
 
 \subsection{Monoide prodotto}
 
-\begin{verbatim}
+\begin{code}
 const getProductMonoid = <A, B>(
   MA: Monoid<A>,
   MB: Monoid<B>
@@ -2058,7 +2102,7 @@ const getProductMonoid = <A, B>(
   ...getProductSemigroup(MA, MB),
   empty: [MA.empty, MB.empty]
 })
-\end{verbatim}
+\end{code}
 
 Questo combinatore può essere generalizzato al prodotto di $n$ monoidi ($n$-tuple) e ai record.
 
@@ -2066,7 +2110,7 @@ Questo combinatore può essere generalizzato al prodotto di $n$ monoidi ($n$-tup
 
 Esiste una istanza di un semigruppo che non è possibile estendere a monoide?
 
-\begin{verbatim}
+\begin{code}
 class NonEmptyArray<A> {
   constructor(readonly head: A, readonly tail: Array<A>) {}
 }
@@ -2085,7 +2129,7 @@ getNonEmptyArraySemigroup().concat(
   new NonEmptyArray(1, [2]),
   new NonEmptyArray(3, [4, 5])
 ) // { head: 1, tail: [ 2, 3, 4, 5 ] }
-\end{verbatim}
+\end{code}
 
 Ma non esiste nessun elemento \texttt{u: NonEmptyArray} che concatenato ad un altro \texttt{x: NonEmptyArray} dia ancora \texttt{x}.
 
@@ -2112,15 +2156,15 @@ i cui morfismi sono gli elementi di $M$ e la cui operazione di composizione è $
 
 La funzione \texttt{fold} che abbiamo definito per i semigruppi può essere ridefinita per i monoidi
 
-\begin{verbatim}
+\begin{code}
 const fold = <A>(M: Monoid<A>) => (
   as: Array<A>
 ): A => as.reduce((a, b) => M.concat(a, b), M.empty)
-\end{verbatim}
+\end{code}
 
 Notate che non c'è più bisogno di un elemento iniziale \texttt{a: A} perchè ora possiamo sfruttare \texttt{empty()}
 
-\begin{verbatim}
+\begin{code}
 const product: Monoid<number> = {
   concat: (x, y) => x * y,
   empty: 1
@@ -2134,7 +2178,7 @@ const monoidString: Monoid<string> = {
 fold(monoidString)(['a', 'b', 'c']) // 'abc'
 fold(product)([2, 3, 4]) // 24
 fold(product)([]) // 1
-\end{verbatim}
+\end{code}
 
 \subsection{Monoidi liberi}
 
@@ -2269,7 +2313,7 @@ Chiamiamo questa operazione \texttt{of}.
 
 Sia $F$ un funtore, allora si dice \emph{funtore applicativo} (\texttt{Applicative}) se esistono due operazioni
 
-\begin{verbatim}
+\begin{code}
 interface Apply<F> extends Functor<F> {
   ap: <A, B>(f: F<(a: A) => B>, fa: F<A>) => F<B>
 }
@@ -2277,7 +2321,7 @@ interface Apply<F> extends Functor<F> {
 interface Applicative<F> extends Apply<F> {
   of: <A>(a: A) => F<A>
 }
-\end{verbatim}
+\end{code}
 
 tali che valgono le seguenti leggi
 
@@ -2302,7 +2346,7 @@ Interchange & \texttt{ap(f, of(g)) = ap(of(x => g(x)), f)} \\
 
 Vediamo un esempio: il tipo \texttt{Option}
 
-\begin{verbatim}
+\begin{code}
 const of = some
 
 class None<A> {
@@ -2325,11 +2369,11 @@ class Some<A> {
     return fab.map(f => f(this.value))
   }
 }
-\end{verbatim}
+\end{code}
 
 Oppure nella sua versione statica
 
-\begin{verbatim}
+\begin{code}
 const ap = <A, B>(
   fab: Option<(a: A) => B>,
   fa: Option<A>
@@ -2338,15 +2382,15 @@ const ap = <A, B>(
     () => none,
     f => fa.fold(() => none, a => some(f(a)))
   )
-\end{verbatim}
+\end{code}
 
 % \subsection{Significato delle leggi}
 
 % La normale applicazione di funzione può essere vista come una funzione binaria
 
-% \begin{verbatim}
+% \begin{code}
 % const $ = <A, B>(f: (a: A) => B): ((a: A) => B) => a => f(a)
-% \end{verbatim}
+% \end{code}
 
 % Se si interpreta \texttt{ap} come un particolare tipo di applicazione di funzione ad un valore
 % (ove sia funzione che il valore sono contenuti nel contesto funtoriale) allora
@@ -2361,45 +2405,47 @@ const ap = <A, B>(
 
 % Interchange: TODO
 
-\paragraph{Nota. } Si noti che per applicare una funzione inserita nel contesto funtoriale ad un valore
+\begin{observation}
+Si noti che per applicare una funzione inserita nel contesto funtoriale ad un valore
 che non è nel contesto funtoriale non occorre un funtore applicativo, un funtore è sufficiente
+\end{observation}
 
-\begin{verbatim}
+\begin{code}
 const flap = <A, B>(
   fab: Option<(a: A) => B>,
   a: A
 ): Option<B> => fab.map(f => f(a))
-\end{verbatim}
+\end{code}
 
 \subsection{Lifting manuale}
 
 Consideriamo la seguente funzione \texttt{sum}
 
-\begin{verbatim}
+\begin{code}
 const sum = (a: number) => (b: number): number => a + b
-\end{verbatim}
+\end{code}
 
 E' possibile sfruttare \texttt{of} e \texttt{ap} per ottenere il suo lifting
 
-\begin{verbatim}
+\begin{code}
 const sumOptions = (fa: Option<number>) => (
   fb: Option<number>
 ): Option<number> => fb.ap(fa.ap(of(sum)))
-\end{verbatim}
+\end{code}
 
 oppure usando \texttt{map} e \texttt{ap}
 
-\begin{verbatim}
+\begin{code}
 const sumOptions = (fa: Option<number>) => (
   fb: Option<number>
 ): Option<number> => fb.ap(fa.map(sum))
-\end{verbatim}
+\end{code}
 
 \subsection{La funzione \texttt{liftA2}}
 
 L'operazione di lifting può essere facilmente generalizzata per ogni funzione\footnote{e per ogni funtore applicativo}
 
-\begin{verbatim}
+\begin{code}
 type Function2<A, B, C> = (a: A) => (b: B) => C
 
 const liftA2 = <A, B, C>(
@@ -2408,7 +2454,7 @@ const liftA2 = <A, B, C>(
   fb.ap(fa.map(f))
 
 const sumOptions = liftA2(sum)
-\end{verbatim}
+\end{code}
 
 Analogamente è possibile definire \texttt{liftA3} per funzioni con 3 argomenti, \texttt{liftA4}, etc \ldots
 
@@ -2418,7 +2464,7 @@ per operare un lifting di una funzione $n$-aria un funtore applicativo è suffic
 \begin{exercise}
 Mostrare che se \texttt{F} ammette una istanza di \texttt{Apply} allora è possibile definire le seguenti funzioni
 
-\begin{verbatim}
+\begin{code}
 const map2 = <A, B, C>(
   fa: F<A>,
   fb: F<B>,
@@ -2433,14 +2479,15 @@ const map3 = <A, B, C, D>(
 ): F<D> => ???
 
 // etc...
-\end{verbatim}
+\end{code}
 \end{exercise}
 
 \subsection{Esempi}
 
-\paragraph{Identity}
+\begin{example}
+Istanza per \texttt{Identity<A>}
 
-\begin{verbatim}
+\begin{code}
 const of = <A>(a: A) => new Identity(a)
 
 class Identity<A> {
@@ -2449,11 +2496,13 @@ class Identity<A> {
     return new Identity(fab.value(this.value))
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Either}
+\begin{example}
+Istanza per \texttt{Either<L, A>}
 
-\begin{verbatim}
+\begin{code}
 const of = right
 
 class Left<L, A> {
@@ -2475,11 +2524,13 @@ class Right<L, A> {
     )
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Array}
+\begin{example}
+Istanza per \texttt{Array<A>}
 
-\begin{verbatim}
+\begin{code}
 export const applicativeArray = {
   ...functorArray,
   of: <A>(a: A): Array<A> => [a],
@@ -2492,11 +2543,13 @@ export const applicativeArray = {
       [] as Array<B>
     )
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{IO}
+\begin{example}
+Istanza per \texttt{IO<A>}
 
-\begin{verbatim}
+\begin{code}
 const of = <A>(a: A): IO<A> => new IO(() => a)
 
 class IO<A> {
@@ -2505,11 +2558,13 @@ class IO<A> {
     return new IO(() => fab.run()(this.run()))
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Task}
+\begin{example}
+Istanza per \texttt{Task<A>}
 
-\begin{verbatim}
+\begin{code}
 const of = <A>(a: A): Task<A> =>
   new Task(() => Promise.resolve(a))
 
@@ -2523,10 +2578,17 @@ class Task<A> {
     )
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
 \begin{exercise}
-Sia \begin{verbatim}type Tuple<L, A> = [L, A]\end{verbatim} definire una istanza di funtore applicativo per \texttt{Tuple}.
+Sia
+
+\begin{code}
+type Tuple<L, A> = [L, A]
+\end{code}
+
+definire una istanza di funtore applicativo.
 \end{exercise}
 
 \begin{demo}
@@ -2541,12 +2603,12 @@ Sia \begin{verbatim}type Tuple<L, A> = [L, A]\end{verbatim} definire una istanza
 
 La definizione di funtore applicativo che abbiamo visto è equivalente alla seguente
 
-\begin{verbatim}
+\begin{code}
 interface Monoidal<F> extends Functor<F> {
   unit: F<void>
   mult: <A, B>(fa: F<A>, fb: F<B>) => F<[A, B]>
 }
-\end{verbatim}
+\end{code}
 
 \begin{exercise}
 Dimostrare che sono equivalenti.
@@ -2557,7 +2619,7 @@ Dimostrare che sono equivalenti.
 I funtori applicativi compongono, ovvero dati due funtori applicativi \texttt{F} e \texttt{G},
 allora la composizione \texttt{F(G)} è ancora un funtore applicativo.
 
-\begin{verbatim}
+\begin{code}
 import { Option, option } from 'fp-ts/lib/Option'
 import { array } from 'fp-ts/lib/Array'
 
@@ -2573,7 +2635,7 @@ export class ArrayOption<A> {
     )
   }
 }
-\end{verbatim}
+\end{code}
 
 \newpage
 
@@ -2597,27 +2659,27 @@ La risposta è modellando i side effect tramite effetti, ovvero valori che rappr
 
 \paragraph{DSL.} Il programma
 
-\begin{verbatim}
+\begin{code}
 const sum = (a: number, b: number): number => {
   console.log(a, b) // side effect
   return a + b
 }
-\end{verbatim}
+\end{code}
 
 viene modellato con una funzione pura modificando il codominio e restituendo una descrizione dell'effetto
 
-\begin{verbatim}
+\begin{code}
 const sum = (a: number, b: number): [number, string] => [
   a + b,
   `please log: ${a}, ${b}`
 ]
-\end{verbatim}
+\end{code}
 
 fondamentalmente creando un DSL per gli effetti.
 
 \paragraph{Thunk.} La computazione viene racchiusa bel body di una funzione senza argomenti
 
-\begin{verbatim}
+\begin{code}
 class IO<A> {
   constructor(readonly run: () => A) {}
   ...
@@ -2628,20 +2690,20 @@ const sum = (a: number, b: number): IO<number> =>
     console.log(a, b)
     return a + b
   })
-\end{verbatim}
+\end{code}
 
 Il programma \texttt{sum}, quando viene eseguito, non provoca immediatamente il side effect ma restituisce un valore che rappresenta
 la computazione (detta anche \emph{azione}).
 
 Vediamo un altro esempio, leggere e scrivere sul \texttt{localStorage}
 
-\begin{verbatim}
+\begin{code}
 const read = (name: string): IO<string | null> =>
   new IO(() => localStorage.getItem(name))
 
 const write = (name: string, value: string): IO<void> =>
   new IO(() => localStorage.setItem(name, value))
-\end{verbatim}
+\end{code}
 
 Ritorneremo più avanti a occuparci di \texttt{IO} dato che è possibile associare una istanza di \emph{monade}.
 
@@ -2679,7 +2741,7 @@ Ma in generale non è così.
 
 E in particolare non sappiamo ancora come comporre gli effetti, guardate cosa può accadere con \texttt{Option}
 
-\begin{verbatim}
+\begin{code}
 const head = <A>(as: Array<A>): Option<A> =>
   as.length ? some(as[0]) : none
 
@@ -2688,19 +2750,19 @@ const inverse = (x: number): Option<number> =>
 
 // program: Option<Option<number>>
 const program = head([2, 3]).map(inverse)
-\end{verbatim}
+\end{code}
 
 Qui il risultato è incapsulato due volte in una \texttt{Option}, circostanza affatto desiderabile.
 Vediamo se è possibile definire una funzione che \emph{appiattisce} il risultato, chiamiamola \texttt{flatten}
 
-\begin{verbatim}
+\begin{code}
 const flatten = <A>(
   mma: Option<Option<A>>
 ): Option<A> => mma.fold(() => none, identity)
 
 // program: Option<number>
 const program = flatten(head([2, 3]).map(inverse))
-\end{verbatim}
+\end{code}
 
 \begin{center}
 \begin{tabular}{ c c c }
@@ -2714,7 +2776,7 @@ const program = flatten(head([2, 3]).map(inverse))
 
 Vediamo un altro esempio: scrivere la funzione \texttt{echo} in stile funzionale.
 
-\begin{verbatim}
+\begin{code}
 const getLine: IO<string> = new IO(() => process.argv[2])
 
 const putStrLn = (s: string): IO<void> =>
@@ -2722,14 +2784,14 @@ const putStrLn = (s: string): IO<void> =>
 
 // program: IO<IO<void>>
 const program = getLine.map(putStrLn)
-\end{verbatim}
+\end{code}
 
 Anche in questo caso possiamo definire una funzione \texttt{flatten}
 
-\begin{verbatim}
+\begin{code}
 const flatten = <A>(mma: IO<IO<A>>): IO<A> =>
   new IO(() => mma.run().run())
-\end{verbatim}
+\end{code}
 
 Cosa dire di \texttt{Either}, \texttt{Array} e degli altri funtori?
 E' possibile individuare un nuovo pattern funzionale?
@@ -2769,12 +2831,12 @@ Quella seguente è una possibile definizione che si può trovare in rete:
 
 Una monade $M$ nella categoria $\mathcal{C}$ è un endofuntore di $\mathcal{C}$ con due operazioni aggiuntive
 
-\begin{verbatim}
+\begin{code}
 interface Monad<F> extends Functor<F> {
   of: <A>(a: A) => M<A>
   chain: <A, B>(f: (a: A) => M<B>, ma: M<A>) => M<B>
 }
-\end{verbatim}
+\end{code}
 
 Inoltre devono valere le seguenti leggi
 
@@ -2960,9 +3022,10 @@ Perchè se $M$ è una monade posso comporre i programmi $A \rightarrow M(B)$ tra
 
 \subsection{Esempi}
 
-\paragraph{Identity}
+\begin{example}
+Istanza per \texttt{Identity<A>}
 
-\begin{verbatim}
+\begin{code}
 const of = <A>(a: A) => new Identity(a)
 
 class Identity<A> {
@@ -2971,11 +3034,13 @@ class Identity<A> {
     return f(this.value)
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Option}
+\begin{example}
+Istanza per \texttt{Option<A>}
 
-\begin{verbatim}
+\begin{code}
 const of = some
 
 class None<A> {
@@ -2991,11 +3056,13 @@ class Some<A> {
     return f(this.value)
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Either}
+\begin{example}
+Istanza per \texttt{Either<L, A>}
 
-\begin{verbatim}
+\begin{code}
 const of = right
 
 class Left<L, A> {
@@ -3011,11 +3078,13 @@ class Right<L, A> {
     return f(this.value)
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Array}
+\begin{example}
+Istanza per \texttt{Array<A>}
 
-\begin{verbatim}
+\begin{code}
 const monadArray = {
   ...
   chain: <A, B>(
@@ -3024,11 +3093,13 @@ const monadArray = {
   ): Array<B> =>
     fa.reduce((acc, a) => acc.concat(f(a)), [] as Array<B>)
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{IO}
+\begin{example}
+Istanza per \texttt{IO<A>}
 
-\begin{verbatim}
+\begin{code}
 const of = <A>(a: A): IO<A> => new IO(() => a)
 
 class IO<A> {
@@ -3037,11 +3108,13 @@ class IO<A> {
     return new IO(() => f(this.run()).run())
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Task}
+\begin{example}
+Istanza per \texttt{Task<A>}
 
-\begin{verbatim}
+\begin{code}
 const of = <A>(a: A): Task<A> =>
   new Task(() => Promise.resolve(a))
 
@@ -3051,10 +3124,17 @@ class Task<A> {
     return new Task(() => this.run().then(a => f(a).run()))
   }
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
 \begin{exercise}
-Sia \begin{verbatim}type Tuple<L, A> = [L, A]\end{verbatim}, definire una istanza di monade per \texttt{Tuple}.
+Sia
+
+\begin{code}
+type Tuple<L, A> = [L, A]
+\end{code}
+
+definire una istanza di monade.
 \end{exercise}
 
 \subsection{\texttt{Task} vs \texttt{Promise}}
@@ -3084,25 +3164,25 @@ Se abbiamo una \texttt{Promise}
 
 L'operazione \texttt{map} può essere derivata da \texttt{chain} e \texttt{of}
 
-\begin{verbatim}
+\begin{code}
 const map = <A, B>(f: (a: A) => B) => (
   fa: Option<A>
 ): Option<B> => fa.chain(a => of(f(a)))
-\end{verbatim}
+\end{code}
 
 \subsection{Derivazione di \texttt{ap}}
 
 L'operazione \texttt{ap} può essere derivata da \texttt{chain} e \texttt{map}
 
-\begin{verbatim}
+\begin{code}
 const ap = <A, B>(fab: Option<(a: A) => B>) => (
   fa: Option<A>
 ): Option<B> => fab.chain(f => fa.map(f))
-\end{verbatim}
+\end{code}
 
 \subsection{Esecuzione parallela e sequenziale}
 
-\begin{verbatim}
+\begin{code}
 // par-seq.ts
 
 const liftA2 = <A, B, C>(
@@ -3129,12 +3209,12 @@ const oneSec = delay(1000)
 sumTasks(oneSec(1))(oneSec(3))
   .run()
   .then(x => console.log(x))
-\end{verbatim}
+\end{code}
 
 Eseguendo il codice mostrando il tempo di esecuzione otteniamo
 \footnote{\texttt{ts-node} è un wrapper di \texttt{node} in grado di eseguire codice TypeScript}
 
-\begin{verbatim}
+\begin{code}
 $ time ts-node par-seq.ts
 
 3
@@ -3142,13 +3222,13 @@ $ time ts-node par-seq.ts
 real    0m1.383s
 user    0m0.327s
 sys     0m0.058s
-\end{verbatim}
+\end{code}
 
 Il che mostra che le computazioni asincrone vengono eseguite in modo concorrente.
 
 Se però come implementazione di \texttt{ap} per \texttt{Task} scegliamo quella derivata da \texttt{chain} otteniamo
 
-\begin{verbatim}
+\begin{code}
 $ time ts-node par-seq.ts
 
 3
@@ -3156,13 +3236,15 @@ $ time ts-node par-seq.ts
 real    0m2.402s
 user    0m0.342s
 sys     0m0.063s
-\end{verbatim}
+\end{code}
 
 Che cosa è successo? La spiegazione è che l'implementazione di \texttt{ap} derivata da \texttt{chain} è sempre \textbf{sequenziale}.
 
 \subsection{Trasparenza referenziale}
 
-\begin{verbatim}
+Vediamo un piccolo programma che legge / scrive su un file
+
+\begin{code}
 const readFile = (filename: string): IO<string> =>
   new IO(() => fs.readFileSync(filename, 'utf-8'))
 
@@ -3182,26 +3264,27 @@ const program1 = readFile('file.txt')
   .chain(() => writeFile('file.txt', 'hello'))
   .chain(() => readFile('file.txt'))
   .chain(log)
-\end{verbatim}
+\end{code}
 
-L'azione \texttt{readFile('file.txt')} è ripetuta due volte ma dato che vale la trasparenza referenziale possiamo catturare l'azione in una costante
+L'azione \texttt{readFile('file.txt')} è ripetuta due volte ma dato che vale la trasparenza referenziale
+possiamo mettere a fattor comune l'azione assegnandone l'espressione ad una costante
 
-\begin{verbatim}
+\begin{code}
 const read = readFile('file.txt').chain(log)
 
 const program2 = read
   .chain(() => writeFile('file.txt', 'foo'))
   .chain(() => read)
-\end{verbatim}
+\end{code}
 
 Possiamo anche definire un combinatore e sfruttarlo per rendere più compatto il codice
 
-\begin{verbatim}
+\begin{code}
 const aba = <A, B>(a: IO<A>, b: IO<B>): IO<A> =>
   a.chain(() => b).chain(() => a)
 
 const program3 = aba(read, writeFile('file.txt', 'foo'))
-\end{verbatim}
+\end{code}
 
 \begin{demo}
 \begin{center}
@@ -3253,21 +3336,21 @@ al prodotto cartesiano $\prod_i A_i$.
 Esponenti notevoli di questa famiglia sono le $n$-tuple, ove $I$ è un intervallo non vuoto dei numeri naturali
 \footnote{$\{0\}$ per \texttt{Tuple1}, $\{0, 1\}$ per \texttt{Tuple2}, $\{0, 1, 2\}$ per \texttt{Tuple2}}
 
-\begin{verbatim}
+\begin{code}
 type Tuple1 = [string]
 type Tuple2 = [string, number]
 type Tuple3 = [string, number, boolean]
-\end{verbatim}
+\end{code}
 
 e i record, ove $I$ è una collezione di label
 \footnote{$\{ "name", "age" \}$ per \texttt{Person}}
 
-\begin{verbatim}
+\begin{code}
 type Person = {
   name: string,
   age: number
 }
-\end{verbatim}
+\end{code}
 
 \texttt{Tuple2} e \texttt{Person} sono isomorfi tra loro e al prodotto cartesiano $string \times number$.
 
@@ -3289,7 +3372,7 @@ $$
 
 L'isomorfismo è evidente se si implementa \texttt{Person} con una classe
 
-\begin{verbatim}
+\begin{code}
 class Person {
   name: string,
   age: number
@@ -3298,7 +3381,7 @@ class Person {
     this.age = age
   }
 }
-\end{verbatim}
+\end{code}
 
 in cui \texttt{constructor} realizza la funzione $f$.
 
@@ -3311,11 +3394,11 @@ $$
 
 ovvero la cardinalità del prodotto cartesiano è il prodotto delle cadinalità.
 
-\begin{verbatim}
+\begin{code}
 type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 type Period = 'AM' | 'PM'
 type Clock = [Hour, Period]
-\end{verbatim}
+\end{code}
 
 Il tipo \texttt{Clock} ha $12 * 2 = 24$ abitanti.
 
@@ -3323,31 +3406,36 @@ Il tipo \texttt{Clock} ha $12 * 2 = 24$ abitanti.
 
 Così come i product types sono analoghi ai prodotti cartesiani di insiemi, i sum types sono analoghi alle unioni di insiemi disgiunti
 
-\begin{verbatim}
+\begin{code}
 type Action =
   | { type: 'INCREMENT' }
   | { type: 'DECREMENT' }
-\end{verbatim}
+\end{code}
 
 Product types e sum types possono essere mischiati
 
-\begin{verbatim}
+\begin{code}
 type Action =
-  | { type: 'ADD_TODO', text: string }
-  | { type: 'UPDATE_TODO', id: number, text: string, completed: boolean }
-  | { type: 'DELETE_TODO', id: number }
-\end{verbatim}
+  | { type: 'ADD_TODO'; text: string }
+  | {
+      type: 'UPDATE_TODO'
+      id: number
+      text: string
+      completed: boolean
+    }
+  | { type: 'DELETE_TODO'; id: number }
+\end{code}
 
 Il tipo \texttt{Array<A>} può essere interpretato come sum type
 
-\begin{verbatim}
+\begin{code}
 type Array<A> = [] | [A] | [A, A] | [A, A, A] | ...
-\end{verbatim}
+\end{code}
 
 \begin{example}
 Linked lists\footnote{E' possibile definire una istanza di funtore per \texttt{List<A>}
 
-\begin{verbatim}
+\begin{code}
 const map = <A, B>(f: (a: A) => B) => (
   fa: List<A>
 ): List<B> => {
@@ -3362,20 +3450,20 @@ const map = <A, B>(f: (a: A) => B) => (
       }
   }
 }
-\end{verbatim}
+\end{code}
 }
 
-\begin{verbatim}
+\begin{code}
 type List<A> =
   | { type: 'Nil' }
   | { type: 'Cons', head: A, tail: List<A> }
-\end{verbatim}
+\end{code}
 \end{example}
 
 \begin{example}
 Binary trees\footnote{E' possibile definire una istanza di funtore per \texttt{Tree<A>}
 
-\begin{verbatim}
+\begin{code}
 const map = <A, B>(f: (a: A) => B) => (
   fa: Tree<A>
 ): Tree<B> => {
@@ -3391,10 +3479,10 @@ const map = <A, B>(f: (a: A) => B) => (
       }
   }
 }
-\end{verbatim}
+\end{code}
 }
 
-\begin{verbatim}
+\begin{code}
 type Tree<A> =
   | { type: 'Empty' }
   | {
@@ -3403,7 +3491,7 @@ type Tree<A> =
       value: A
       right: Tree<A>
     }
-\end{verbatim}
+\end{code}
 \end{example}
 
 Perchè si chiamano sum types? E' facile convincersi che la cadinalità di un sum type è la somma delle cardinalità dei suoi membri
@@ -3422,16 +3510,16 @@ Vediamo un'altra tecnica per ottenere type safety, questa volta addirittura per 
 
 Sappiamo che la funzione \texttt{head} è parziale
 
-\begin{verbatim}
+\begin{code}
 const head = <A>(xs: Array<A>): A => xs[0]
-\end{verbatim}
+\end{code}
 
 e che per renderla totale occorre modificare il codominio
 
-\begin{verbatim}
+\begin{code}
 const head = <A>(xs: Array<A>): Option<A> =>
   xs.length > 0 ? some(xs[0]) : none
-\end{verbatim}
+\end{code}
 
 Tuttavia questo ci obbliga ad usare \texttt{Option}.
 
@@ -3439,13 +3527,13 @@ Un'altra opzione è quella di cambiare il dominio invece che estendere il codomi
 
 \subsection{Il tipo \texttt{NonEmptyArray}}
 
-\begin{verbatim}
+\begin{code}
 class NonEmptyArray<A> {
   constructor(readonly head: A, readonly tail: Array<A>) {}
 }
 
 const head = <A>(fa: NonEmptyArray<A>): A => fa.head
-\end{verbatim}
+\end{code}
 
 \subsection{Il tipo \texttt{Zipper}}
 
@@ -3457,12 +3545,12 @@ una lista non vuota di elementi di cui uno è considerato la selezione corrente
 
 Un modello semplice potrebbe essere questo
 
-\begin{verbatim}
+\begin{code}
 type Selection<A> = {
   items: Array<A>
   current: number
 }
-\end{verbatim}
+\end{code}
 
 Tuttavia questo modello ha diversi difetti
 
@@ -3473,22 +3561,22 @@ Tuttavia questo modello ha diversi difetti
 
 Uno \texttt{Zipper} invece è un modello perfetto e type safe per il problema
 
-\begin{verbatim}
+\begin{code}
 type Zipper<A> = {
   prev: Array<A>
   current: A
   next: Array<A>
 }
-\end{verbatim}
+\end{code}
 
 \subsection{Smart constructors}
 
 Consideriamo la funzione \texttt{inverse}
 
-\begin{verbatim}
+\begin{code}
 const inverse = (x: number): Option<number> =>
   x === 0 ? none : some(1 / x)
-\end{verbatim}
+\end{code}
 
 Un altro modo per ottenere lo stesso grado di type safety senza avere una funzione parziale è l'utilizzo degli \emph{smart constructors}.
 
@@ -3499,7 +3587,7 @@ In generale, se voglio rappresentare un raffinamento di un tipo \texttt{A} (come
 faccio in modo che il suo costruttore non sia invocabile al di fuori del suo modulo e fornisco un costruttore alternativo
 che però restituisce una \texttt{Option<A>} dato che a runtime verrà effettuato il controllo che il raffinamento sussista davvero.
 
-\begin{verbatim}
+\begin{code}
 class NonZero {
   // private
   private constructor(readonly value: number) {}
@@ -3510,7 +3598,7 @@ class NonZero {
 }
 
 const inverse = (x: NonZero): number => 1 / x.value
-\end{verbatim}
+\end{code}
 
 In questo modo spesso si spingono i controlli a runtime là dove dovrebbe essere il loro posto naturale: ai confini del sistema,
 dove vengono fatte tutte le validazioni dell'input.
@@ -3524,34 +3612,34 @@ dove vengono fatte tutte le validazioni dell'input.
 
 \subsection{Definizione}
 
-\begin{verbatim}
+\begin{code}
 interface Foldable<F> {
   reduce: <A, B>(fa: F<A>, b: B, f: (b: B, a: A) => B) => B
 }
-\end{verbatim}
+\end{code}
 
 Definizioni equivalenti\footnote{ovvero ogni operazione può essere derivata da una qualsiasi delle altre} di \texttt{Foldable}
 coinvolgono l'operazione
 
-\begin{verbatim}
+\begin{code}
 reduceRight: <A, B>(fa: F<A>, b: B, f: (a: A, b: B) => B) => B
-\end{verbatim}
+\end{code}
 
 (sinonimi: \texttt{foldRight}, \texttt{foldr}) oppure l'operazione
 
-\begin{verbatim}
+\begin{code}
 foldMap: <M>(M: Monoid<M>) =>
   <A>(fa: F<A>, f: (a: A) => M) => M
-\end{verbatim}
+\end{code}
 
 Un modo per afferrare il concetto di \texttt{Foldable} è che una struttura che ammette una sua istanza
 è in grado di essere rappresentata sotto forma di array.
 
 Infatti è sempre possibile definire la seguente funzione
 
-\begin{verbatim}
+\begin{code}
 const toArray = <F>(F: Foldable<F>) => <A>(fa: F<A>): Array<A>
-\end{verbatim}
+\end{code}
 
 \begin{exercise}
 Perchè? Suggerimento: usare \texttt{foldMap}.
@@ -3581,11 +3669,11 @@ $$
 \begin{example}
 Ridurre \texttt{Array<string>}
 
-\begin{verbatim}
+\begin{code}
 reduce(["a", "b", "c"], "", (b, a) => b + a) // "abc"
 
 reduceRight(["a", "b", "c"], "", (a, b) => b + a) // "cba"
-\end{verbatim}
+\end{code}
 \end{example}
 
 \subsection{\texttt{Foldable} e \texttt{Functor}}
@@ -3597,68 +3685,76 @@ reduceRight(["a", "b", "c"], "", (a, b) => b + a) // "cba"
 
 La seguente struttura dati
 
-\begin{verbatim}
+\begin{code}
 class Weird<A> {
   constructor(
     readonly value: A,
     readonly endo: (a: A) => A
   ) {}
 }
-\end{verbatim}
+\end{code}
 
 ammette una istanza di \texttt{Foldable}
 
-\begin{verbatim}
+\begin{code}
 const reduce = <A, B>(
   fa: Weird<A>,
   b: B,
   f: (b: B, a: A) => B
 ): B => f(b, fa.endo(fa.value))
-\end{verbatim}
+\end{code}
 
 ma non di \texttt{Functor} perchè \texttt{A} compare in posizione controvariante.
 
 \subsection{Esempi}
 
-\paragraph{Identity}
+\begin{example}
+Istanza per \texttt{Identity<A>}
 
-\begin{verbatim}
+\begin{code}
 const reduce = <A, B>(
   fa: Identity<A>,
   b: B,
   f: (b: B, a: A) => B
 ): B => f(b, fa.value)
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Option}
+\begin{example}
+Istanza per \texttt{Option<A>}
 
-\begin{verbatim}
+\begin{code}
 const reduce = <A, B>(
   fa: Option<A>,
   b: B,
   f: (b: B, a: A) => B
 ): B => (isSome(fa) ? f(b, fa.value) : b)
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Either}
+\begin{example}
+Istanza per \texttt{Either<L, A>}
 
-\begin{verbatim}
+\begin{code}
 const reduce = <L, A, B>(
   fa: Either<L, A>,
   b: B,
   f: (b: B, a: A) => B
 ): B => (isRight(fa) ? f(b, fa.value) : b)
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Array}
+\begin{example}
+Istanza per \texttt{Array<A>}
 
-\begin{verbatim}
+\begin{code}
 const reduce = <A, B>(
   fa: Array<A>,
   b: B,
   f: (b: B, a: A) => B
 ): B => fa.reduce(f, b)
-\end{verbatim}
+\end{code}
+\end{example}
 
 \begin{exercise}
 Mostrare che \texttt{reduce}, \texttt{reduceRight} e \texttt{foldMap} sono definizioni equivalenti per \texttt{Foldable}.
@@ -3667,7 +3763,7 @@ Mostrare che \texttt{reduce}, \texttt{reduceRight} e \texttt{foldMap} sono defin
 \begin{exercise}
 Definire una istanza di \texttt{Foldable} per \texttt{Tree<A>}
 
-\begin{verbatim}
+\begin{code}
 type Tree<A> =
   | { type: 'Empty' }
   | {
@@ -3676,7 +3772,7 @@ type Tree<A> =
       value: A
       right: Tree<A>
     }
-\end{verbatim}
+\end{code}
 \end{exercise}
 
 \begin{exercise}
@@ -3695,7 +3791,7 @@ ammette una istanza di \texttt{Foldable}.
 \begin{example}
 \texttt{ArrayOption<A>}
 
-\begin{verbatim}
+\begin{code}
 const reduce = <A, B>(
   fa: ArrayOption<A>,
   b: B,
@@ -3707,7 +3803,7 @@ reduce(
   "",
   (b, a) => b + a
 ) // "ab"
-\end{verbatim}
+\end{code}
 \end{example}
 
 \begin{demo}
@@ -3726,18 +3822,18 @@ reduce(
 
 \subsection{Definizione}
 
-\begin{verbatim}
+\begin{code}
 interface Traversable<T> extends Functor<T>, Foldable<T> {
   traverse: <F>(F: Applicative<F>) =>
     <A, B>(ta: T<A>, f: (a: A) => F<B>) => F<T<B>>
 }
-\end{verbatim}
+\end{code}
 
 Alternativamente \texttt{Traversable} può essere definita tramite la funzione
 
-\begin{verbatim}
+\begin{code}
 sequence: <F>(F: Applicative<F>) => <A>(tfa: T<F<A>>) => F<T<A>>
-\end{verbatim}
+\end{code}
 
 Una istanza di \texttt{Traversable} deve soddisfare le seguenti leggi
 
@@ -3758,16 +3854,17 @@ composition & \texttt{traverse(F)(a => compose(fa => A.map(g, fa), f), ta) = F.m
 
 Una applicative transformation è una funzione con la seguente firma
 
-\begin{verbatim}
+\begin{code}
 at: (F: Applicative<F>, g: Applicative<G>) =>
   <A>(fa: F<A>) => G<A>
-\end{verbatim}
+\end{code}
 
 \subsection{Esempi}
 
-\paragraph{Identity. }
+\begin{example}
+Istanza per \texttt{Identity<A>}
 
-\begin{verbatim}
+\begin{code}
 function traverse<F>(
   F: Applicative<F>
 ): <A, B>(
@@ -3776,11 +3873,13 @@ function traverse<F>(
 ) => F<Identity<B>> {
   return (ta, f) => F.map(identity.of, f(ta.value))
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Array. }
+\begin{example}
+Istanza per \texttt{Array<A>}
 
-\begin{verbatim}
+\begin{code}
 const snoc = <A>(as: Array<A>) => (a: A): Array<A> =>
   as.concat([a])
 
@@ -3794,7 +3893,8 @@ function traverse<F>(
   return (ta, f) =>
     reduce(ta, F.of([]), (fab, a) => snocLifted(fab)(f(a)))
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
 \begin{exercise}
 Definire una istanza di \texttt{Traversable} per \texttt{Option<A>}
@@ -3812,10 +3912,10 @@ E' possibile definire una istanza di \texttt{Traversable} per \texttt{Task<A>}?
 
 Da \texttt{traverse} è possibile derivare la seguente funzione \footnote{e viceversa}
 
-\begin{verbatim}
+\begin{code}
 sequence: <F, T>(F: Applicative<F>, T: Traversable<T>) =>
   (tfa: T<F<A>>) => F<T<A>>
-\end{verbatim}
+\end{code}
 
 \begin{center}
 \bgroup
@@ -3854,11 +3954,11 @@ Ovvero se sia \texttt{F<A>} che \texttt{G<A>} ammettono una istanza di \texttt{T
 
 \subsection{\texttt{Alt}}
 
-\begin{verbatim}
+\begin{code}
 interface Alt<F> extends Functor<F> {
   alt: <A>(fx: F<A>, fy: F<A>) => F<FA>
 }
-\end{verbatim}
+\end{code}
 
 \begin{center}
 \bgroup
@@ -3875,11 +3975,11 @@ distributivity & \texttt{A.map(f, A.alt(a, b)) = A.alt(A.map(f, a), A.map(f, b))
 
 \subsection{\texttt{Plus}}
 
-\begin{verbatim}
+\begin{code}
 interface Plus<F> extends Alt<F> {
   zero: <A>() => F<A>
 }
-\end{verbatim}
+\end{code}
 
 \begin{center}
 \bgroup
@@ -3898,9 +3998,9 @@ annihilation & \texttt{P.map(f, P.zero()) = P.zero()} \\
 
 \subsection{\texttt{Alternative}}
 
-\begin{verbatim}
+\begin{code}
 interface Alternative<F> extends Applicative<F>, Plus<F> {}
-\end{verbatim}
+\end{code}
 
 \begin{center}
 \bgroup
@@ -3917,9 +4017,10 @@ annihilation & \texttt{A.ap(A.zero(), a) = A.zero()} \\
 
 \subsection{Esempi}
 
-\paragraph{Option.}
+\begin{example}
+Istanza per \texttt{Option<A>}
 
-\begin{verbatim}
+\begin{code}
 const alt = <A>(fx: Option<A>, fy: Option<A>): Option<A> => {
   return isSome(fx) ? fx : fy
 }
@@ -3927,26 +4028,36 @@ const alt = <A>(fx: Option<A>, fy: Option<A>): Option<A> => {
 const zero = <A>(): Option<A> => {
   return none
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Either.} \texttt{Either} possiede una istanza di \texttt{Alt}
+\begin{example}
+Istanza per \texttt{Either<L, A>}
 
-\begin{verbatim}
+\begin{code}
 const alt = <L, A>(
   fx: Either<L, A>,
   fy: Either<L, A>
 ): Either<L, A> => {
   return isRight(fx) ? fx : fy
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{Array.}
+\begin{example}
+Istanza per \texttt{Array<A>}
 
-\begin{verbatim}
+\begin{code}
 const zero = <A>(): Array<A> => []
 
 const alt = concat
-\end{verbatim}
+\end{code}
+\end{example}
+
+\begin{exercise}
+Perchè l'implementazione di \texttt{alt} per \texttt{Array} è proprio \texttt{concat}?
+Suggerimento: si ricordi che l'effetto codificato da \texttt{Array} è l'indeterminismo.
+\end{exercise}
 
 \begin{demo}
 \begin{center}
@@ -4025,39 +4136,39 @@ Ecco lo stesso diagramma ma con l'aggiunta degli oggetti $X$, $Y$ e il morfismo 
 
 Dal punto di vista implementativo una trasformazione naturale ha il seguente tipo
 
-\begin{verbatim}
+\begin{code}
 type NaturalTransformation<F, G> = <A>(fa: F<A>) => G<A>
-\end{verbatim}
+\end{code}
 
 \subsection{Esempi}
 
 \subsubsection{Da \texttt{Option<A>} a \texttt{Array<A>}}
 
-\begin{verbatim}
+\begin{code}
 const fromOption = <A>(fa: Option<A>): Array<A> =>
   fa.fold([], a => [a])
-\end{verbatim}
+\end{code}
 
 \subsubsection{Da \texttt{Array<A>} a \texttt{Option<A>}}
 
-\begin{verbatim}
+\begin{code}
 const head = <A>(fa: Array<A>): Option<A> =>
   fromNullable(fa[0])
-\end{verbatim}
+\end{code}
 
 \subsubsection{Da \texttt{Either<L, A>} a \texttt{Option<A>}}
 
-\begin{verbatim}
+\begin{code}
 const fromEither = <L, A>(fa: Either<L, A>): Option<A> =>
   fa.fold(() => none, some)
-\end{verbatim}
+\end{code}
 
 \subsubsection{Da \texttt{IO<A>} a \texttt{Task<A>}}
 
-\begin{verbatim}
+\begin{code}
 const fromIO = <A>(fa: IO<A>): Task<A> =>
   new Task(() => Promise.resolve(fa.run()))
-\end{verbatim}
+\end{code}
 
 \newpage
 
@@ -4068,18 +4179,17 @@ Cambiare lo stato in modo compatibile alla programmazione funzionale vuol dire r
 
 Il modello che descrive nel modo più generale un cambiamento di stato è quello definito dalla seguente firma
 
-\begin{verbatim}
+\begin{code}
 (s: S) => [A, S]
-\end{verbatim}
+\end{code}
 
 ove \texttt{S} è il tipo dello stato e \texttt{A} è il tipo del valore restituito dalla computazione.
 
 Definiamo l'istanza di monade
 
-\begin{verbatim}
+\begin{code}
 class State<S, A> {
   constructor(readonly run: (s: S) => [A, S]) {}
-  // monad instance
   map<B>(f: (a: A) => B): State<S, B> {
     return this.chain(a => of(f(a))) // <= derived
   }
@@ -4103,53 +4213,67 @@ class State<S, A> {
 
 const of = <S, A>(a: A): State<S, A> =>
   new State(s => [a, s])
-\end{verbatim}
+\end{code}
 
-\subsection{Combinatori}
+\subsection{Funzioni associate a \texttt{State}}
 
-\paragraph{get}
+\begin{function}
+Get the current state
 
-\begin{verbatim}
-/** Get the current state */
+\begin{code}
 const get = <S>(): State<S, S> =>
   new State(s => [s, s])
-\end{verbatim}
+\end{code}
+\end{function}
 
-\paragraph{put}
+\begin{function}
+Set the state
 
-\begin{verbatim}
-/** Set the state */
+\begin{code}
 const put = <S>(s: S): State<S, undefined> =>
   new State(() => [undefined, s])
-\end{verbatim}
+\end{code}
+\end{function}
 
-\paragraph{modify}
+\begin{function}
+Modify the state by applying a function to the current state
 
-\begin{verbatim}
-/** Modify the state by applying a function to the current state */
+\begin{code}
 const modify = <S>(
   f: (s: S) => S
 ): State<S, undefined> => new State(s => [undefined, f(s)])
-\end{verbatim}
+\end{code}
+\end{function}
 
-\paragraph{gets}
+\begin{function}
+Get a value which depends on the current state
 
-\begin{verbatim}
-/** Get a value which depends on the current state */
+\begin{code}
 const gets = <S, A>(f: (s: S) => A): State<S, A> =>
   new State(s => [f(s), s])
-\end{verbatim}
+\end{code}
+\end{function}
 
+\begin{example}
 Vediamo qualche semplice esempio
 
-\begin{verbatim}
-/** `of` set the result value but leave the state unchanged */
+\begin{code}
+/**
+ * `of` set the result value but
+ * leave the state unchanged
+ */
 of('foo').run(1) // [ 'foo', 1 ]
 
-/** `get` set the result value to the state and leave the state unchanged */
+/**
+ * `get` set the result value to
+ * the state and leave the state unchanged
+ */
 get().run(1) // [ 1, 1 ]
 
-/** `put` set the result value to `undefined` and set the state value */
+/**
+ * `put` set the result value to `undefined`
+ * and set the state value
+ */
 put(5).run(1) // [ undefined, 5 ]
 
 const inc = (n: number): number => n + 1
@@ -4157,11 +4281,13 @@ const inc = (n: number): number => n + 1
 modify(inc).run(1) // [ undefined, 2 ]
 
 gets(inc).run(1) // [ 2, 1 ]
-\end{verbatim}
+\end{code}
+\end{example}
 
+\begin{example}
 Vediamo ora un semplice programma che gestisce un contatore
 
-\begin{verbatim}
+\begin{code}
 type S = number
 
 const increment = modify<S>(n => n + 1)
@@ -4174,7 +4300,8 @@ const program = increment
   .chain(() => decrement)
 
 console.log(program.run(0)) // [undefined, 2]
-\end{verbatim}
+\end{code}
+\end{example}
 
 Si noti che \texttt{increment} è un \emph{valore} che rappresenta un programma, che se eseguito
 modificherà lo stato incrementando il contatore.
@@ -4185,16 +4312,16 @@ ma \texttt{increment} è definito una volta sola.
 
 alla fine decido di eseguire il programma fornendo lo stato iniziale
 
-\begin{verbatim}
+\begin{code}
 console.log(program.run(0)) // [undefined, 2]
-\end{verbatim}
+\end{code}
 
 naturalmente rappresentando \texttt{program} l'intero programma posso eseguirlo tutte le volte che voglio,
 anche cambiando lo stato iniziale
 
-\begin{verbatim}
+\begin{code}
 console.log(program.run(2)) // [undefined, 4]
-\end{verbatim}
+\end{code}
 
 \begin{demo}
 \begin{center}
@@ -4217,15 +4344,15 @@ Se leggere da uno stato mutabile può invalidare la trasparenza referenziale, co
 Ancora una volta la risposta è nelle funzioni, il modello che descrive nel modo più generale la lettura da una configurazione globale
 è quello definito dalla seguente firma
 
-\begin{verbatim}
+\begin{code}
 (e: E) => A
-\end{verbatim}
+\end{code}
 
 ove \texttt{E} è il tipo della configurazione e \texttt{A} è il tipo del valore restituito dalla computazione.
 
 Definiamo una istanza di monade
 
-\begin{verbatim}
+\begin{code}
 class Reader<E, A> {
   constructor(readonly run: (e: E) => A) {}
   map<B>(f: (a: A) => B): Reader<E, B> {
@@ -4241,37 +4368,37 @@ class Reader<E, A> {
 
 const of = <E, A>(a: A): Reader<E, A> =>
   new Reader(() => a)
-\end{verbatim}
+\end{code}
 
-\subsection{Combinatori}
+\subsection{Funzioni associate a \texttt{Reader}}
 
-\paragraph{ask}
+\begin{function}
+Reads the current context
 
-\begin{verbatim}
-/** Reads the current context */
+\begin{code}
 const ask = <E>(): Reader<E, E> => new Reader(e => e)
-\end{verbatim}
+\end{code}
+\end{function}
 
-\paragraph{asks}
+\begin{function}
+Projects a value from the global context in a Reader
 
-\begin{verbatim}
-/** Projects a value from the global context in a Reader */
+\begin{code}
 const asks = <E, A>(f: (e: E) => A): Reader<E, A> =>
   new Reader(f)
 
-\end{verbatim}
+\end{code}
+\end{function}
 
-\paragraph{local}
+\begin{function}
+Changes the value of the local context during the execution of the action \texttt{fa}
 
-\begin{verbatim}
-/**
- * Changes the value of the local context
- * during the execution of the action `fa`
- */
+\begin{code}
 const local = <E>(f: (e: E) => E) => <A>(
   fa: Reader<E, A>
 ): Reader<E, A> => new Reader((e: E) => fa.run(f(e)))
-\end{verbatim}
+\end{code}
+\end{function}
 
 \begin{demo}
 \begin{center}
@@ -4287,15 +4414,15 @@ const local = <E>(f: (e: E) => E) => <A>(
 
 Il modello che descrive nel modo più generale una operazione con logging è quello definito dalla seguente firma
 
-\begin{verbatim}
+\begin{code}
 () => [A, W]
-\end{verbatim}
+\end{code}
 
 ove \texttt{A} è il tipo del valore restituito dalla computazione e \texttt{W} è il tipo del valore usato come log.
 
 Definiamo una istanza di funtore
 
-\begin{verbatim}
+\begin{code}
 class Writer<W, A> {
   constructor(readonly run: () => [A, W]) {}
   map<B>(f: (a: A) => B): Writer<W, B> {
@@ -4309,20 +4436,20 @@ class Writer<W, A> {
     return this.run()[1]
   }
 }
-\end{verbatim}
+\end{code}
 
 Proviamo a definire una istanza di monade, incominciamo da \texttt{of}
 
-\begin{verbatim}
+\begin{code}
 const of = <W, A>(a: A): Writer<W, A> =>
   new Writer(() => [a, w]) // w ???
-\end{verbatim}
+\end{code}
 
 C'è un problema: non so cosa usare come \texttt{w}.
 
 Vediamo adesso \texttt{chain}
 
-\begin{verbatim}
+\begin{code}
 class Writer<W, A> {
   ...
   chain<B>(f: (a: A) => Writer<W, B>): Writer<W, B> {
@@ -4333,7 +4460,7 @@ class Writer<W, A> {
     })
   }
 }
-\end{verbatim}
+\end{code}
 
 Anche qui c'è un problema: non so cosa usare come \texttt{w}, inoltre intuitivamente dovrebbe contenere l'informazione sia di \texttt{w1} sia
 di \texttt{w2}.
@@ -4347,7 +4474,7 @@ Ricapitolando
 
 \subsection{\texttt{Monoid} to the rescue}
 
-\begin{verbatim}
+\begin{code}
 const of = <W>(M: Monoid<W>) => <A>(a: A): Writer<W, A> => {
   return new Writer(() => [a, M.empty])
 }
@@ -4362,11 +4489,11 @@ const chain = <W>(S: Semigroup<W>) => <A, B>(
     return [b, S.concat(w1, w2)]
   })
 }
-\end{verbatim}
+\end{code}
 
 Infine defininiamo \texttt{ap} (anche se si potrebbe derivare)
 
-\begin{verbatim}
+\begin{code}
 const ap = <W>(S: Semigroup<W>) => <A, B>(
   fab: Writer<W, (a: A) => B>,
   fa: Writer<W, A>
@@ -4377,28 +4504,24 @@ const ap = <W>(S: Semigroup<W>) => <A, B>(
     return [f(a), S.concat(w1, w2)]
   })
 }
-\end{verbatim}
+\end{code}
 
-\subsection{Combinatori}
+\subsection{Funzioni associate a \texttt{Writer}}
 
-\paragraph{tell}
+\begin{function}
+Appends a value to the accumulator
 
-\begin{verbatim}
-/**
- * Appends a value to the accumulator
- */
+\begin{code}
 export const tell = <W>(w: W): Writer<W, void> => {
   return new Writer(() => [undefined, w])
 }
-\end{verbatim}
+\end{code}
+\end{function}
 
-\paragraph{listen}
+\begin{function}
+Modifies the result to include the changes to the accumulator
 
-\begin{verbatim}
-/**
- * Modifies the result to include the
- * changes to the accumulator
- */
+\begin{code}
 export const listen = <W, A>(
   fa: Writer<W, A>
 ): Writer<W, [A, W]> => {
@@ -4407,14 +4530,13 @@ export const listen = <W, A>(
     return [tuple(a, w), w]
   })
 }
-\end{verbatim}
+\end{code}
+\end{function}
 
-\paragraph{pass}
+\begin{function}
+Applies the returned function to the accumulator
 
-\begin{verbatim}
-/**
- * Applies the returned function to the accumulator
- */
+\begin{code}
 export const pass = <W, A>(
   fa: Writer<W, [A, (w: W) => W]>
 ): Writer<W, A> => {
@@ -4423,15 +4545,13 @@ export const pass = <W, A>(
     return [a, f(w)]
   })
 }
-\end{verbatim}
+\end{code}
+\end{function}
 
-\paragraph{listens}
+\begin{function}
+Projects a value from modifications made to the accumulator during an action
 
-\begin{verbatim}
-/**
- * Projects a value from modifications made
- * to the accumulator during an action
- */
+\begin{code}
 export const listens = <W, A, B>(
   fa: Writer<W, A>,
   f: (w: W) => B
@@ -4441,14 +4561,13 @@ export const listens = <W, A, B>(
     return [tuple(a, f(w)), w]
   })
 }
-\end{verbatim}
+\end{code}
+\end{function}
 
-\paragraph{censor}
+\begin{function}
+Modify the final accumulator value by applying a function
 
-\begin{verbatim}
-/**
- * Modify the final accumulator value by applying a function
- */
+\begin{code}
 export const censor = <W, A>(
   fa: Writer<W, A>,
   f: (w: W) => W
@@ -4458,7 +4577,8 @@ export const censor = <W, A>(
     return [a, f(w)]
   })
 }
-\end{verbatim}
+\end{code}
+\end{function}
 
 \begin{demo}
 \begin{center}
@@ -4504,10 +4624,10 @@ In due modi
 
 Diciamo che sono interessato al primo dei due modi
 
-\begin{verbatim}
+\begin{code}
 // type alias
 type TaskEither<L, A> = Task<Either<L, A>>
-\end{verbatim}
+\end{code}
 
 è possibile definire una istanza di monade per \texttt{TaskEither}?
 
@@ -4575,9 +4695,10 @@ Notate come questi tipi collassino in quelli già conosciuti quando il type cons
 
 Vediamo la funzione \texttt{swap} per i quattro casi in esame
 
-\paragraph{OptionT}
+\begin{example}
+La funzione \texttt{swap} per \texttt{OptionT}
 
-\begin{verbatim}
+\begin{code}
 import { HKT } from 'fp-ts/lib/HKT'
 import { Monad } from 'fp-ts/lib/Monad'
 
@@ -4588,11 +4709,13 @@ const swapOption = <M>(M: Monad<M>) => <A>(
 ): HKT<M, Option<A>> => {
   return nma.fold(M.of(none), ma => M.map(ma, some))
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{EitherT}
+\begin{example}
+La funzione \texttt{swap} per \texttt{EitherT}
 
-\begin{verbatim}
+\begin{code}
 import { Either, left, right } from 'fp-ts/lib/Either'
 
 const swapEither = <M>(M: Monad<M>) => <L, A>(
@@ -4603,11 +4726,13 @@ const swapEither = <M>(M: Monad<M>) => <L, A>(
     ma => M.map(ma, a => right(a))
   )
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{ReaderT}
+\begin{example}
+La funzione \texttt{swap} per \texttt{ReaderT}
 
-\begin{verbatim}
+\begin{code}
 import { Reader } from 'fp-ts/lib/Reader'
 
 const swapReader = <M>(M: Monad<M>) => <E, A>(
@@ -4617,21 +4742,24 @@ const swapReader = <M>(M: Monad<M>) => <E, A>(
     M.map(nma, reader => reader.run(e))
   )
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-\paragraph{StateT}
+\begin{example}
+La funzione \texttt{swap} per \texttt{StateT}
 
-\begin{verbatim}
+\begin{code}
 const swapState = <M>(M: Monad<M>) => <S, A>(
   nma: HKT<M, (s: S) => [A, S]>
 ): ((s: S) => HKT<M, [A, S]>) => {
   return s => M.chain(nma, state => M.of(state(s)))
 }
-\end{verbatim}
+\end{code}
+\end{example}
 
-Ora vediamo una implementazione completa \texttt{TaskEither}
+Ora vediamo una implementazione completa: \texttt{TaskEither}
 
-\begin{verbatim}
+\begin{code}
 import { Task, task } from 'fp-ts/lib/Task'
 import { Either, either, left } from 'fp-ts/lib/Either'
 
@@ -4653,23 +4781,32 @@ class TaskEither<L, A> {
     )
   }
 }
-\end{verbatim}
+\end{code}
 
 e due utili combinatori
 
-\begin{verbatim}
-import { TaskEither, fromLeft, taskEither } from 'fp-ts/lib/TaskEither'
+\begin{code}
+import {
+  TaskEither,
+  fromLeft,
+  taskEither
+} from 'fp-ts/lib/TaskEither'
 import { Either } from 'fp-ts/lib/Either'
 
-/** Return `Right` if the given action succeeds, `Left` if it throws */
-export const attempt = <L, A>(fa: TaskEither<L, A>): TaskEither<L, Either<L, A>> => {
+/**
+ * Return `Right` if the given action succeeds,
+ * `Left` if it throws
+ */
+export const attempt = <L, A>(
+  fa: TaskEither<L, A>
+): TaskEither<L, Either<L, A>> => {
   return new TaskEither(fa.value.map(e => e.map(() => e)))
 }
 
 /**
- * Make sure that a resource is cleaned up in the event of an exception. The
- * release action is called regardless of whether the body action throws or
- * returns.
+ * Make sure that a resource is cleaned up in the event of
+ * an exception. The release action is called regardless of
+ * whether the body action throws or returns.
  */
 export const bracket = <L, A, R>(
   acquire: TaskEither<L, R>,
@@ -4677,10 +4814,17 @@ export const bracket = <L, A, R>(
   release: (r: R) => TaskEither<L, void>
 ): TaskEither<L, A> => {
   return acquire.chain(r =>
-    attempt(program(r)).chain(result => release(r).chain(() => result.fold<TaskEither<L, A>>(fromLeft, taskEither.of)))
+    attempt(program(r)).chain(result =>
+      release(r).chain(() =>
+        result.fold<TaskEither<L, A>>(
+          fromLeft,
+          taskEither.of
+        )
+      )
+    )
   )
 }
-\end{verbatim}
+\end{code}
 
 \begin{demo}
 \begin{center}
@@ -4699,7 +4843,7 @@ export const bracket = <L, A, R>(
 Si consideri il problema di modificare delle strutture dati immutabili.
 Per capire la ragione per cui potremmo voler utilizzare l'ottica funzionale vediamo un semplice esempio, definiamo due record
 
-\begin{verbatim}
+\begin{code}
 type Street = {
   num: number
   name: string
@@ -4708,21 +4852,21 @@ type Address = {
   city: string
   street: Street
 }
-\end{verbatim}
+\end{code}
 
 Data una istanza di \texttt{Address}, ricavare il nome della strada è immediato
 
-\begin{verbatim}
+\begin{code}
 const a1: Address = {
   city: 'london',
   street: { num: 23, name: 'high street' }
 }
 const name = a1.street.name
-\end{verbatim}
+\end{code}
 
 Tuttavia sostituirne il valore è laborioso
 
-\begin{verbatim}
+\begin{code}
 const a2: Address = {
   ...a1,
   street: {
@@ -4730,7 +4874,7 @@ const a2: Address = {
     name: 'main street'
   }
 }
-\end{verbatim}
+\end{code}
 
 L'ottica funzionale serve a manipolare (leggere, scrivere, modificare) le strutture dati immutabili in modo semplice e componibile.
 
@@ -4746,14 +4890,14 @@ Il tipo \texttt{Iso<S, A>} rappresenta un isomorfismo tra \texttt{S} e \texttt{A
 }
 \]
 
-\begin{verbatim}
+\begin{code}
 class Iso<S, A> {
   constructor(
     readonly get: (s: S) => A,
     readonly reverseGet: (a: A) => S
   ) {}
 }
-\end{verbatim}
+\end{code}
 
 Devono valere le seguenti leggi
 
@@ -4766,7 +4910,7 @@ Devono valere le seguenti leggi
 
 Convertire metri in chilometri e chilometri in miglia
 
-\begin{verbatim}
+\begin{code}
 const mTokm = new Iso<number, number>(
   m => m / 1000,
   km => km * 1000
@@ -4775,7 +4919,7 @@ const kmToMile = new Iso<number, number>(
   km => km * 0.621371,
   mile => mile / 0.621371
 )
-\end{verbatim}
+\end{code}
 \end{example}
 
 E' possibile effettuare il lifting di un endomorfismo\footnote{Un \emph{endomorfismo} di un insieme $A$ è una funzione $f: A \rightarrow A$}
@@ -4791,7 +4935,7 @@ Inoltre gli \texttt{Iso} compongono
 }
 \]
 
-\begin{verbatim}
+\begin{code}
 class Iso<S, A> {
   constructor(
     readonly get: (s: S) => A,
@@ -4807,13 +4951,13 @@ class Iso<S, A> {
     )
   }
 }
-\end{verbatim}
+\end{code}
 
 Usando la composizione si ottiene facilmente un isomorfismo tra metri e miglia
 
-\begin{verbatim}
+\begin{code}
 const mToMile = mTokm.compose(kmToMile)
-\end{verbatim}
+\end{code}
 
 \subsection{Lens}
 
@@ -4838,18 +4982,18 @@ Una lente non è altro che una coppia di funzioni, un getter e un setter. Il tip
 }
 \]
 
-\begin{verbatim}
+\begin{code}
 class Lens<S, A> {
   constructor(
     readonly get: (s: S) => A,
     readonly set: (a: A) => (s: S) => S
   ) {}
 }
-\end{verbatim}
+\end{code}
 
 Definiamo una lente per il tipo \texttt{Address} con focus sul campo \texttt{street}
 
-\begin{verbatim}
+\begin{code}
 const address = new Lens<Address, Street>(
   s => s.street,
   a => s => ({ ...s, street: a })
@@ -4860,16 +5004,16 @@ address.get(a1)
 
 address.set({ num: 23, name: 'main street' })(a1)
 // { city: "london", street: { num: 23, name: "main street" } }
-\end{verbatim}
+\end{code}
 
 Ora definiamo una lente per il tipo \texttt{Street} con focus sul campo \texttt{name}
 
-\begin{verbatim}
+\begin{code}
 const street = new Lens<Street, string>(
   s => s.name,
   a => s => ({ ...s, name: a })
 )
-\end{verbatim}
+\end{code}
 
 C'è un modo per ottenere una lente per il tipo \texttt{Address} con focus sul campo innestato \texttt{name}?
 
@@ -4884,7 +5028,7 @@ Le lenti, così come gli \texttt{Iso}, compongono
 }
 \]
 
-\begin{verbatim}
+\begin{code}
 class Lens<S, A> {
   constructor(
     readonly get: (s: S) => A,
@@ -4897,11 +5041,11 @@ class Lens<S, A> {
     )
   }
 }
-\end{verbatim}
+\end{code}
 
 Ora gestire il campo \texttt{name} risulta banale
 
-\begin{verbatim}
+\begin{code}
 const name = address.compose(street)
 
 name.get(a1)
@@ -4909,13 +5053,13 @@ name.get(a1)
 
 name.set('main street')(a1)
 // { city: "london", street: { num: 23, name: "main street" } }
-\end{verbatim}
+\end{code}
 
 Come per gli \texttt{Iso} è possibile definire una funzione \texttt{modify} per le lenti.
 
 Per esempio supponiamo di volere il nome della via tutto in maiuscolo
 
-\begin{verbatim}
+\begin{code}
 class Lens<S, A> {
   constructor(
     readonly get: (s: S) => A,
@@ -4936,21 +5080,21 @@ const toUpperCase = (s: string): string => s.toUpperCase()
 
 name.modify(toUpperCase)(a1)
 // { city: 'london', street: { num: 23, name: 'HIGH STREET' } }
-\end{verbatim}
+\end{code}
 
 \subsection{Prism}
 
 Il tipo \texttt{Prism} è in qualche modo il duale di \texttt{Lens}, ovvero è la reificazione dell'operazione di focalizzazione
 su una parte di un sum type.
 
-\begin{verbatim}
+\begin{code}
 class Prism<S, A> {
   constructor(
     readonly getOption: (s: S) => Option<A>,
     readonly reverseGet: (a: A) => S
   ) {}
 }
-\end{verbatim}
+\end{code}
 
 Il tipo \texttt{S} rappresenta l'intera unione mentre \texttt{A} un suo membro.
 
@@ -4966,18 +5110,18 @@ Il tipo \texttt{S} rappresenta l'intera unione mentre \texttt{A} un suo membro.
 \begin{example}
 Convertire un valore di tipo $A | null$ in un valore di tipo $Option(A)$
 
-\begin{verbatim}
+\begin{code}
 const fromNullable = new Prism<
   string | null,
   string
 >(s => (s === null ? none : some(s)), a => a)
-\end{verbatim}
+\end{code}
 
 \end{example}
 
 Un altro esempio tipico di prisma è una coppia di parser / formatter
 
-\begin{verbatim}
+\begin{code}
 const number = new Prism<string, number>(
   s => {
     const n = parseFloat(s)
@@ -4985,16 +5129,16 @@ const number = new Prism<string, number>(
   },
   a => String(a)
 )
-\end{verbatim}
+\end{code}
 
 Un altro prisma, questa volta tra numeri e interi
 
-\begin{verbatim}
+\begin{code}
 const integer = new Prism<number, number>(
   s => (s % 1 === 0 ? some(s) : none),
   a => a
 )
-\end{verbatim}
+\end{code}
 
 Anche i prismi compongono
 
@@ -5008,7 +5152,7 @@ Anche i prismi compongono
 }
 \]
 
-\begin{verbatim}
+\begin{code}
 class Prism<S, A> {
   constructor(
     readonly getOption: (s: S) => Option<A>,
@@ -5021,17 +5165,17 @@ class Prism<S, A> {
     )
   }
 }
-\end{verbatim}
+\end{code}
 
 Posso perciò facilmente ottenere un prisma tra una stringa e un intero
 
-\begin{verbatim}
+\begin{code}
 const integerFromString = number.compose(integer)
-\end{verbatim}
+\end{code}
 
 Anche per i prismi è possibile definire una funzione \texttt{modify}
 
-\begin{verbatim}
+\begin{code}
 class Prism<S, A> {
   constructor(
     readonly getOption: (s: S) => Option<A>,
@@ -5050,7 +5194,7 @@ class Prism<S, A> {
         .fold(() => s, s => s)
   }
 }
-\end{verbatim}
+\end{code}
 
 \subsection{Optional}
 
