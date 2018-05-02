@@ -2250,6 +2250,159 @@ A system that does neither, composes for “free” and represents a promise of 
 
 \newpage
 
+\section{Le funzioni come modelli dei programmi}
+
+Abbiamo visto che le categorie possono essere interpretate come modelli dei linguaggi di programmazione,
+come possono essere modellati i programmi?
+
+\subsection{Programmi senza effetti}
+
+$$
+f: A \rightarrow B
+$$
+
+La funzione $f$ modella un programma con un input di tipo $A$ e che produce un output di tipo $B$.
+
+\begin{example}
+Il programma \texttt{len}
+
+\begin{code}
+const len = (s: string): number => s.length
+\end{code}
+
+è modellato dalla funzione
+
+$$
+\texttt{len}: A \rightarrow B
+$$
+
+\begin{itemize}
+  \item $A = \texttt{string}$ (input)
+  \item $B = \texttt{number}$ (output)
+\end{itemize}
+\end{example}
+
+\subsection{Programmi con effetti}
+
+$$
+f: A \rightarrow M \texttt{<} B \texttt{>}
+$$
+
+La funzione $f$ modella un programma con un input di tipo $A$ e che produce un output di tipo $B$ insieme ad un effetto di tipo $M$.
+
+\begin{example}
+Il programma \texttt{len}
+
+\begin{code}
+const head = (as: Array<string>): Option<string> =>
+  as.length === 0 ? none : some(as[0])
+\end{code}
+
+è modellato dalla funzione
+
+$$
+\texttt{head}: A \rightarrow M \texttt{<} B \texttt{>}
+$$
+
+\begin{itemize}
+  \item $A = \texttt{Array<string>}$ (input)
+  \item $B = \texttt{string}$ (output)
+  \item $M = \texttt{Option}$ (effetto)
+\end{itemize}
+\end{example}
+
+\subsection{Composizione di programmi}
+
+Come si compongono i programmi? Dato che i programmi sono modellati da funzioni, il problema si riduce alla composizione di funzioni.
+
+Consideriamo i seguenti quattro casi
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|c| }
+\hline
+Programma \texttt{g} & Programma \texttt{f} \\
+\hline
+senza effetti & senza effetti \\
+\hline
+con effetti & senza effetti e arità 1 \\
+\hline
+con effetti & senza effetti e arità $n > 1$ \\
+\hline
+con effetti & con effetti \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+Per comporre due programmi senza effetti è sufficiente che le funzioni siano componibili
+
+\[
+\xymatrixrowsep{2.5cm}
+\xymatrixcolsep{2.5cm}
+\xymatrix{
+  \texttt{A} \ar[r]^{g} \ar@/^1cm/[rr]^{h} & \texttt{B} \ar[r]^{f} & \texttt{C}
+}
+\]
+
+Soluzione
+
+$$
+h = f \circ g
+$$
+
+Per comporre un programma con effetti con un programma senza effetti abbiamo bisogno di una istanza di funtore
+
+\[
+\xymatrixrowsep{2.5cm}
+\xymatrixcolsep{2.5cm}
+\xymatrix{
+  & \texttt{M<B>} \ar[r]^{\texttt{map(}f\texttt{)}} & \texttt{M<C>}  \\
+  \texttt{A} \ar[ur]^{g} \ar[urr]_{h} & \texttt{B} \ar@{-->}[u] \ar[r]^{f} & \texttt{C} \ar@{-->}[u]
+}
+\]
+
+Soluzione
+
+$$
+h = map(f) \circ g
+$$
+
+Rimangono sul tavolo due domande
+
+\begin{itemize}
+\item come si compone un programma con effetti con un programma senza effetti con più parametri?
+\item come si compone un programma con effetti con un altro programma con effetti?
+\end{itemize}
+
+Per rispondere al primo punto abbiamo bisogno del concetto di \emph{Funtore Applicativo}.
+
+Per rispondere al secondo punto abbiamo bisogno del concetto di \emph{Monade}.
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|c|c| }
+\hline
+Programma \texttt{g} & Programma \texttt{f} & Soluzione \\
+\hline
+senza effetti & senza effetti & $\circ$ \\
+\hline
+con effetti & senza effetti e arità 1 & Funtori \\
+\hline
+con effetti & senza effetti e arità $n > 1$ & Funtori Applicativi \\
+\hline
+con effetti & con effetti & Monadi \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+(L'\emph{arità} di una funzione è il numero dei suoi argomenti)
+
+\newpage
+
 \section{Funtori applicativi}
 
 Nel capitolo sui funtori abbiamo visto come trasformare, tramite l'operazione \texttt{lift},
