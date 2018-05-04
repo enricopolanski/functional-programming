@@ -1115,7 +1115,11 @@ interface Bifunctor<F> {
 }
 \end{code}
 
-Tale che \texttt{bimap(x, identity, identity) = x}
+e deve valere la seguente identità
+
+\begin{code}
+bimap(x, identity, identity) = x
+\end{code}
 
 Vediamo un esempio, una istanza per \texttt{Either}
 
@@ -2291,7 +2295,7 @@ $$
 La funzione $f$ modella un programma con un input di tipo $A$ e che produce un output di tipo $B$ insieme ad un effetto di tipo $M$.
 
 \begin{example}
-Il programma \texttt{len}
+Il programma \texttt{head}
 
 \begin{code}
 const head = (as: Array<string>): Option<string> =>
@@ -2830,6 +2834,10 @@ const sum = (a: number, b: number): [number, string] => [
 
 fondamentalmente creando un DSL per gli effetti.
 
+\begin{exercise}
+Mostrare che la funzione \texttt{sum} è davvero pura.
+\end{exercise}
+
 \paragraph{Thunk.} La computazione viene racchiusa bel body di una funzione senza argomenti
 
 \begin{code}
@@ -2847,6 +2855,10 @@ const sum = (a: number, b: number): IO<number> =>
 
 Il programma \texttt{sum}, quando viene eseguito, non provoca immediatamente il side effect ma restituisce un valore che rappresenta
 la computazione (detta anche \emph{azione}).
+
+\begin{exercise}
+Mostrare che la funzione \texttt{sum} è davvero pura.
+\end{exercise}
 
 Vediamo un altro esempio, leggere e scrivere sul \texttt{localStorage}
 
@@ -2946,7 +2958,8 @@ const flatten = <A>(mma: IO<IO<A>>): IO<A> =>
   new IO(() => mma.run().run())
 \end{code}
 
-Cosa dire di \texttt{Either}, \texttt{Array} e degli altri funtori?
+Cosa dire di \texttt{Either}, \texttt{Array} e delle altre istanze di funtore?
+
 E' possibile individuare un nuovo pattern funzionale?
 
 Si, le monadi.
@@ -3150,16 +3163,15 @@ ovvero
 
 \paragraph{Perchè le categorie sono importanti?}
 
-Perchè sono alla base del concetto di composizione e di monade.
+Perchè sono alla base del concetto di composizione e di monade e modellano i linguaggi di programmazione.
 
 \paragraph{Cos'è una monade?}
 
-$M$ è una monade quanto le funzioni $A \rightarrow M(B)$, che rappresentano un programma che ha per input $A$, per output $B$
-e che produce un effetto $M$, sono i morfismi di una categoria.
+$M$ è una monade quando i programmi con effetti $A \rightarrow M(B)$ costituiscono i morfismi di una categoria.
 
 \paragraph{Perchè le monadi sono importanti?}
 
-Perchè se $M$ è una monade posso comporre i programmi $A \rightarrow M(B)$ tra loro.
+Perchè se $M$ è una monade posso comporre i programmi con effetti $A \rightarrow M(B)$ tra loro.
 
 \paragraph{Una monade per ogni occasione.}
 
@@ -3395,9 +3407,15 @@ Che cosa è successo? La spiegazione è che l'implementazione di \texttt{ap} der
 
 \subsection{Trasparenza referenziale}
 
-Vediamo un piccolo programma che legge / scrive su un file
+Vediamo ora come, grazie alla trasparenza referenziale e al concetto di monade, possiamo manipolare i programmi programmaticamente.
+
+Ecco un piccolo programma che legge / scrive su un file
 
 \begin{code}
+//
+// funzioni di libreria
+//
+
 const readFile = (filename: string): IO<string> =>
   new IO(() => fs.readFileSync(filename, 'utf-8'))
 
@@ -3412,6 +3430,10 @@ const writeFile = (
 const log = (message: string): IO<void> =>
   new IO(() => console.log(message))
 
+//
+// programma
+//
+
 const program1 = readFile('file.txt')
   .chain(log)
   .chain(() => writeFile('file.txt', 'hello'))
@@ -3419,7 +3441,13 @@ const program1 = readFile('file.txt')
   .chain(log)
 \end{code}
 
-L'azione \texttt{readFile('file.txt')} è ripetuta due volte ma dato che vale la trasparenza referenziale
+L'azione
+
+\begin{code}
+readFile('file.txt').chain(log)
+\end{code}
+
+è ripetuta due volte nel programma, ma dato che vale la trasparenza referenziale
 possiamo mettere a fattor comune l'azione assegnandone l'espressione ad una costante
 
 \begin{code}
@@ -3433,10 +3461,14 @@ const program2 = read
 Possiamo anche definire un combinatore e sfruttarlo per rendere più compatto il codice
 
 \begin{code}
-const aba = <A, B>(a: IO<A>, b: IO<B>): IO<A> =>
+// a -> b -> a
+const interleave = <A, B>(a: IO<A>, b: IO<B>): IO<A> =>
   a.chain(() => b).chain(() => a)
 
-const program3 = aba(read, writeFile('file.txt', 'foo'))
+const program3 = interleave(
+  read,
+  writeFile('file.txt', 'foo')
+)
 \end{code}
 
 \begin{demo}

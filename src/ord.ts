@@ -23,8 +23,6 @@ interface User {
   rememberMe: boolean
 }
 
-// const empty = getF
-
 const byName = contramap((p: User) => p.name, ordString)
 
 const byAge = contramap((p: User) => p.age, ordNumber)

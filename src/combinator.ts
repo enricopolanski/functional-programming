@@ -1,3 +1,5 @@
+import { fstat } from 'fs'
+
 /*
 
   Problema: trasformare il seguente CSV

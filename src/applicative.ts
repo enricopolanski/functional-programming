@@ -2,12 +2,20 @@
 
   Problema:
 
-  - dato l'id di un utente, il cui record contiene il valore del suo conto corrente in EUR,
+  Dato
+  - dato l'id di un utente (il cui record contiene il valore del suo conto corrente in EUR)
   - e il codice di una valuta
-  - calcolare il valore del suo conto corrente in quella valuta.
+  Calcolare
+  - il valore del suo conto corrente in quella valuta.
 
   I servizi che restituiscono il record dell'utente e il cambio relativo
   alla valuta sono asincroni
+
+*/
+
+/*
+
+  Prima di tutto iniziamo con il modello
 
 */
 
@@ -26,7 +34,13 @@ interface API {
   fetchRate: (currency: Currency) => Task<number>
 }
 
-/** fake APIs */
+/*
+
+  Poi una istanza di API che simula le chiamate
+  per poter testare il programma
+
+*/
+
 const API: API = {
   fetchUser: (id: string): Task<User> =>
     new Task(() =>
@@ -36,7 +50,7 @@ const API: API = {
         amount: 100
       })
     ),
-  fetchRate: (currency: Currency): Task<number> =>
+  fetchRate: (_: Currency): Task<number> =>
     new Task(() => Promise.resolve(0.12))
 }
 
@@ -73,6 +87,12 @@ export const liftA2 = <A, B, C>(
 ) => (fb: Task<B>) => Task<C>) => fa => fb =>
   fb.ap(fa.map(f))
 
+/*
+
+  Il programma finale
+
+*/
+
 const getAmountAsync = (
   api: API,
   userId: string,
@@ -80,9 +100,11 @@ const getAmountAsync = (
 ): Task<number> => {
   const amount = api
     .fetchUser(userId)
+    // Task ha una istanza di funtore
     .map(user => user.amount)
   const rate = api.fetchRate(currency)
-  return liftA2(getAmountSync)(amount)(rate)
+  const liftedgetAmountSync = liftA2(getAmountSync)
+  return liftedgetAmountSync(amount)(rate)
 }
 
 const result = getAmountAsync(API, '42', 'USD')

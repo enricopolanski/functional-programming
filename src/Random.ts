@@ -1,4 +1,4 @@
-import { Task } from './Task'
+import { Task } from 'fp-ts/lib/Task'
 
 export const random: Task<number> = new Task(() =>
   Promise.resolve(Math.random())

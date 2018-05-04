@@ -19,6 +19,16 @@
 \usepackage[utf8]{inputenc}
 \usepackage{cancel}
 \usepackage[all]{xy}
+\usepackage{verbatim}
+\usepackage{xcolor}
+\usepackage{minted}
+
+\definecolor{LightGray}{rgb}{0.98,0.98,0.98}
+\newminted{typescript}{fontfamily=tt,bgcolor=LightGray}
+
+\newenvironment{code}
+  {\vspace{0.5cm} \VerbatimEnvironment\begin{typescriptcode}}
+  {\end{typescriptcode} \vspace{0.2cm}}
 
 \mode<presentation> {
 
@@ -77,13 +87,9 @@ La funzione $f$ modella un programma con un input di tipo $A$ e che produce un o
 \begin{frame}[fragile]
 \frametitle{Programmi senza effetti}
 
-\begin{example}
-\begin{verbatim}
-function len(s: string): number {
-  return s.length
-}
-\end{verbatim}
-\end{example}
+\begin{code}
+const len = (s: string): number => s.length
+\end{code}
 
 Come funzione:
 
@@ -112,13 +118,10 @@ La funzione $f$ modella un programma con un input di tipo $A$ e che produce un o
 \begin{frame}[fragile]
 \frametitle{Programmi con effetti}
 
-\begin{example}
-\begin{verbatim}
-function head(as: Array<string>): Option<string> {
-  return as.length === 0 ? none : some(as[0])
-}
-\end{verbatim}
-\end{example}
+\begin{code}
+const head = (as: Array<string>): Option<string> =>
+  as.length === 0 ? none : some(as[0])
+\end{code}
 
 Come funzione:
 
@@ -261,22 +264,22 @@ Condizione: Output($g$) = \texttt{M<}Input($f$)\texttt{>}
 \begin{frame}[fragile]
 \frametitle{Functor}
 
-\begin{verbatim}
+\begin{code}
 interface Functor<M> {
   map: <A, B>(f: (a: A) => B) => (ma: M<A>) => M<B>
 }
-\end{verbatim}
+\end{code}
 
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Functor}
 
-\begin{verbatim}
+\begin{code}
 interface Functor<M> {
   map: <A, B>(f: (a: A) => B) => ( (ma: M<A>) => M<B> )
 }
-\end{verbatim}
+\end{code}
 
 \end{frame}
 
@@ -354,19 +357,15 @@ $$
 \begin{frame}[fragile]
 \frametitle{Funzioni con due parametri}
 
-\begin{example}
-\begin{verbatim}
+\begin{code}
 const sum = (a: number, b: number): number => a + b
-\end{verbatim}
-\end{example}
+\end{code}
 
 Currying
 
-\begin{example}
-\begin{verbatim}
+\begin{code}
 const sum = (a: number) => (b: number): number => a + b
-\end{verbatim}
-\end{example}
+\end{code}
 
 \end{frame}
 
@@ -409,24 +408,24 @@ Condizione: \texttt{M} ammette una istanza di \texttt{Functor}
 \begin{frame}[fragile]
 \frametitle{Applicative}
 
-\begin{verbatim}
+\begin{code}
 interface Applicative<M> extends Functor<M> {
   of: <A>(a: A) => M<A>,
   ap: <A, B>(mab: M<(a: A) => B>) => (ma: M<A>) => M<B>
 }
-\end{verbatim}
+\end{code}
 
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Applicative}
 
-\begin{verbatim}
+\begin{code}
 interface Applicative<M> extends Functor<M> {
   of: <A>(a: A) => M<A>,
   ap: <A, B>(mab: M<(a: A) => B>) => ( (ma: M<A>) => M<B> )
 }
-\end{verbatim}
+\end{code}
 
 \end{frame}
 
@@ -513,24 +512,24 @@ Condizione: Output($g$) = \texttt{M<}Input($f$)\texttt{>}
 \begin{frame}[fragile]
 \frametitle{Monad}
 
-\begin{verbatim}
+\begin{code}
 interface Monad<M> extends Functor<M> {
   of: <A>(a: A) => M<A>,
   chain: <A, B>(f: (a: A) => M<B>) => (ma: M<A>) => M<B>
 }
-\end{verbatim}
+\end{code}
 
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Monad}
 
-\begin{verbatim}
+\begin{code}
 interface Monad<M> extends Functor<M> {
   of: <A>(a: A) => M<A>,
   chain: <A, B>(f: (a: A) => M<B>) => ( (ma: M<A>) => M<B> )
 }
-\end{verbatim}
+\end{code}
 
 \end{frame}
 
@@ -571,6 +570,32 @@ Soluzione
 $$
 h = chain(f) \circ g
 $$
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Soluzioni}
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|c|c| }
+\hline
+Programma \texttt{g} & Programma \texttt{f} & Composizione \\
+\hline
+senza effetti & senza effetti & $h = f \circ g$ \\
+\hline
+con effetti & senza effetti & $h = liftA_n(f) \circ g$ \\
+\hline
+con effetti & con effetti & $h = chain(f) \circ g$ \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+\begin{center}
+ove $liftA_1 = map$
+\end{center}
 
 \end{frame}
 

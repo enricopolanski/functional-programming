@@ -65,4 +65,4 @@ const loop = (secret: number): Task<void> =>
 
 const program: Task<void> = secret.chain(loop)
 
-// program.run()
+program.run()
