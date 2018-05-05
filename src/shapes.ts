@@ -8,19 +8,19 @@
   restituisce `true` se il punto appartiene alla forma e `false` altrimenti
 
 */
-type Shape<S> = (point: S) => boolean
+export type Shape<S> = (point: S) => boolean
 
 /*
 
   Definiamo una forma in uno spazio bidimensionale
 
 */
-interface Point2D {
+export interface Point2D {
   x: number
   y: number
 }
 
-type Shape2D = Shape<Point2D>
+export type Shape2D = Shape<Point2D>
 
 /*
 
@@ -29,7 +29,7 @@ type Shape2D = Shape<Point2D>
 
 */
 
-const outside2D = (s: Shape2D): Shape2D => point =>
+export const outside2D = (s: Shape2D): Shape2D => point =>
   !s(point)
 
 /*
@@ -39,8 +39,9 @@ const outside2D = (s: Shape2D): Shape2D => point =>
 
 */
 
-const outside = <S>(s: Shape<S>): Shape<S> => point =>
-  !s(point)
+export const outside = <S>(
+  s: Shape<S>
+): Shape<S> => point => !s(point)
 
 /*
 
@@ -49,7 +50,7 @@ const outside = <S>(s: Shape<S>): Shape<S> => point =>
 
 */
 
-const disk = (
+export const disk = (
   center: Point2D,
   radius: number
 ): Shape2D => point => distance(point, center) <= radius
@@ -61,7 +62,7 @@ const distance = (p1: Point2D, p2: Point2D) =>
       Math.pow(Math.abs(p1.y - p2.y), 2)
   )
 
-const show = (s: Shape2D): string => {
+export const show = (s: Shape2D): string => {
   let r = '───────────────────────\n'
   for (let j = 10; j >= -10; j--) {
     r += '│'
@@ -107,7 +108,7 @@ const intersect: Monoid<Shape2D> = getFunctionMonoid(
 //   )
 // )
 
-const union: Monoid<Shape2D> = getFunctionMonoid(
+export const union: Monoid<Shape2D> = getFunctionMonoid(
   monoidAny
 )()
 
@@ -120,7 +121,7 @@ const union: Monoid<Shape2D> = getFunctionMonoid(
 //   )
 // )
 
-const ring = (
+export const ring = (
   point: Point2D,
   bigRadius: number,
   smallRadius: number
@@ -139,4 +140,4 @@ const shapes: Array<Shape2D> = [
 ]
 
 // mickey mouse
-// console.log(show(fold(union)(shapes)))
+console.log(show(fold(union)(shapes)))

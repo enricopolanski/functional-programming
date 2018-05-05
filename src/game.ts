@@ -36,7 +36,7 @@ const answer: Task<number> = question.chain(s =>
         'Devi inserire un intero da 1 a 100',
         answer
       ),
-    task.of
+    a => task.of(a)
   )
 )
 
