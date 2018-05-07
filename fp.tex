@@ -2817,28 +2817,27 @@ La risposta è modellando i side effect tramite effetti, ovvero valori che rappr
 \paragraph{DSL.} Il programma
 
 \begin{code}
-const sum = (a: number, b: number): number => {
+const log = (message: string): void => {
   console.log(a, b) // side effect
-  return a + b
 }
 \end{code}
 
 viene modellato con una funzione pura modificando il codominio e restituendo una descrizione dell'effetto
 
 \begin{code}
-const sum = (a: number, b: number): [number, string] => [
-  a + b,
-  `please log: ${a}, ${b}`
-]
+const log = (message: string): string => ({
+  type: "log",
+  message
+})
 \end{code}
 
 fondamentalmente creando un DSL per gli effetti.
 
 \begin{exercise}
-Mostrare che la funzione \texttt{sum} è davvero pura.
+Mostrare che la funzione \texttt{log} è davvero pura.
 \end{exercise}
 
-\paragraph{Thunk.} La computazione viene racchiusa bel body di una funzione senza argomenti
+\paragraph{Thunk.} La computazione viene racchiusa in un \emph{thunk}
 
 \begin{code}
 class IO<A> {
@@ -2846,18 +2845,17 @@ class IO<A> {
   ...
 }
 
-const sum = (a: number, b: number): IO<number> =>
+const log = (message: string): IO<number> =>
   new IO(() => {
     console.log(a, b)
-    return a + b
   })
 \end{code}
 
-Il programma \texttt{sum}, quando viene eseguito, non provoca immediatamente il side effect ma restituisce un valore che rappresenta
+Il programma \texttt{log}, quando viene eseguito, non provoca immediatamente il side effect ma restituisce un valore che rappresenta
 la computazione (detta anche \emph{azione}).
 
 \begin{exercise}
-Mostrare che la funzione \texttt{sum} è davvero pura.
+Mostrare che la funzione \texttt{log} è davvero pura.
 \end{exercise}
 
 Vediamo un altro esempio, leggere e scrivere sul \texttt{localStorage}
