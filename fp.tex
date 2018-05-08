@@ -84,7 +84,7 @@ Ecco un parziale elenco di concetti sfruttati dalla programmazione funzionale
 Nella programmazione funzionale sono innanzitutto le proprietà del codice ad essere portate in primo piano.
 
 \begin{example}
-Perchè \texttt{map} è "più funzionale" di un ciclo \texttt{for}?
+Perché \texttt{map} è "più funzionale" di un ciclo \texttt{for}?
 
 \begin{code}
 const xs = [1, 2, 3]
@@ -308,7 +308,7 @@ Consideriamo la funzione
 const inverse = (x: number): number => 1 / x
 \end{code}
 
-Tale funzione è parziale perchè non è definita per $x = 0$. Come possiamo gestire questa situazione?
+Tale funzione è parziale perché non è definita per $x = 0$. Come possiamo gestire questa situazione?
 
 Una soluzione potrebbe essere lanciare un'eccezione
 
@@ -320,7 +320,7 @@ const inverse = (x: number): number => {
 \end{code}
 
 ma così la funzione non sarebbe più da considerarsi pura
-\footnote{Le eccezioni sono considerate un side effect inaccettabile perchè modificano la normale esecuzione del codice
+\footnote{Le eccezioni sono considerate un side effect inaccettabile perché modificano la normale esecuzione del codice
 e violano la trasparenza referenziale}.
 
 Un'altra possibile soluzione è restituire \texttt{null}
@@ -603,7 +603,7 @@ occorre prima introdurre il concetto di \emph{categoria}.
 
 \section{Teoria delle categorie}
 
-\subsection{Perchè è importante?}
+\subsection{Perché è importante?}
 
 \begin{quote}
 And how do we solve problems? We decompose bigger problems into smaller problems. If the smaller problems are still too big,
@@ -639,7 +639,7 @@ Una \emph{categoria} $\mathcal{C}$ è una coppia $(O, M)$ ove
 \begin{itemize}
   \item $O$ è una collezione di \emph{oggetti}, non meglio specificati. Considerate un oggetto come un corpo imperscrutabile,
   senza struttura né proprietà distintive, a meno della sua identità (ovvero considerati due oggetti sappiamo solo se sono uguali oppure diversi
-  ma non il perchè).
+  ma non il perché).
   \item $M$ è una collezione di \emph{frecce} (o \emph{morfismi}) che collegano gli oggetti. Tipicamente un morfismo $f$ è denotato con $f: A \rightarrow B$
   per rendere chiaro che è una freccia che parte da $A$ detta \emph{sorgente} e arriva a $B$ detta \emph{destinazione}.
 \end{itemize}
@@ -1397,7 +1397,7 @@ L'operazione fondamentale del semigruppo (\texttt{concat}) combina solo due elem
 La soluzione è definire una generica funzione \texttt{fold} che accetta una istanza di semigruppo come strategia di merging, e un array
 di elementi da combinare.
 
-Notate che ho bisogno anche di un valore di tipo \texttt{A} perchè l'array potrebbe essere vuoto.
+Notate che ho bisogno anche di un valore di tipo \texttt{A} perché l'array potrebbe essere vuoto.
 
 \begin{code}
 const fold = <A>(S: Semigroup<A>) => (
@@ -1435,7 +1435,7 @@ const assign = (as: Array<Object>): Object =>
   fold(semigroupObject)({}, as)
 \end{code}
 
-E' possibile definire una versione alternativa di \texttt{fold} nel caso non esista un valore sensato da restituire quando l'array è vuoto
+È possibile definire una versione alternativa di \texttt{fold} nel caso non esista un valore sensato da restituire quando l'array è vuoto
 
 \begin{code}
 const tryFold = <A>(S: Semigroup<A>) => (
@@ -1512,7 +1512,7 @@ Il semigruppo libero di $A$ è il semigruppo i cui elementi sono tutte le possib
 Il semigruppo libero di $A$ può essere visto come un modo \emph{lazy} di concatenare elementi di $A$.
 \end{demo}
 
-Anche se ho a disposizione una istanza di semigruppo per $A$, potrei decidere di usare ugualmente il semigruppo libero perchè
+Anche se ho a disposizione una istanza di semigruppo per $A$, potrei decidere di usare ugualmente il semigruppo libero perché
 
 \begin{itemize}
   \item evita di eseguire computazioni possibilmente inutili
@@ -1734,7 +1734,7 @@ const join: Semigroup<number> = {
 }
 \end{code}
 
-E' possibile catturare la nozione di \emph{totalmente ordinabile}? Per farlo prima dobbiamo catturare la nozione di \emph{uguaglianza}.
+È possibile catturare la nozione di \emph{totalmente ordinabile}? Per farlo prima dobbiamo catturare la nozione di \emph{uguaglianza}.
 
 \subsection{Relazioni di equivalenza}
 
@@ -1776,7 +1776,7 @@ transitiva & se \texttt{equals(x, y) = true} e \texttt{equals(y, z) = true} allo
 
 \subsubsection{Il combinatore \texttt{contramap}}
 
-E' possibile derivare una istanza di \texttt{Setoid} da una istanza precedentemente definita tramite il combinatore \texttt{contramap}
+È possibile derivare una istanza di \texttt{Setoid} da una istanza precedentemente definita tramite il combinatore \texttt{contramap}
 
 \begin{code}
 const contramap = <A, B>(
@@ -1890,7 +1890,7 @@ compatibilità & \texttt{compare(x, y) = 0} se e solo se \texttt{equals(x, y) = 
 
 \subsubsection{Le funzioni \texttt{sort}, \texttt{min} e \texttt{max}}
 
-E' ora possibile definire le funzioni \texttt{sort}, \texttt{min} e \texttt{max} in modo del tutto generale
+È ora possibile definire le funzioni \texttt{sort}, \texttt{min} e \texttt{max} in modo del tutto generale
 
 \begin{code}
 const sort = <A>(O: Ord<A>) => (as: Array<A>): Array<A> =>
@@ -1925,7 +1925,7 @@ tryFold(getJoinSemigroup(ordNumber))([1, 2, 3]) // some(3)
 
 \subsubsection{Il combinatore \texttt{contramap}}
 
-E' possibile derivare una istanza di \texttt{Ord} da una istanza precedentemente definita tramite il combinatore \texttt{contramap}
+È possibile derivare una istanza di \texttt{Ord} da una istanza precedentemente definita tramite il combinatore \texttt{contramap}
 
 \begin{code}
 const contramap = <A, B>(
@@ -1981,7 +1981,7 @@ const getDualOrd = <A>(
 \end{demo}
 
 
-Qui sopra abbiamo dovuto usare \texttt{tryFold} perchè non c'è un valore iniziale sensato per \texttt{fold}.
+Qui sopra abbiamo dovuto usare \texttt{tryFold} perché non c'è un valore iniziale sensato per \texttt{fold}.
 
 Tuttavia esistono semigruppi per i quali questo valore esiste: i \emph{monoidi}.
 
@@ -2166,7 +2166,7 @@ const fold = <A>(M: Monoid<A>) => (
 ): A => as.reduce((a, b) => M.concat(a, b), M.empty)
 \end{code}
 
-Notate che non c'è più bisogno di un elemento iniziale \texttt{a: A} perchè ora possiamo sfruttare \texttt{empty()}
+Notate che non c'è più bisogno di un elemento iniziale \texttt{a: A} perché ora possiamo sfruttare \texttt{empty()}
 
 \begin{code}
 const product: Monoid<number> = {
@@ -2211,11 +2211,11 @@ ove
   \item $Y = { u, a, b, ab, ba, aa, bb, aab, aba, ... }$
 \end{itemize}
 
-Attenzione, perchè valga la proprietà associativa dobbiamo anche identificare alcuni elementi generati, ad esempio $(aa)b = a(ab)$
+Attenzione, perché valga la proprietà associativa dobbiamo anche identificare alcuni elementi generati, ad esempio $(aa)b = a(ab)$
 
 Gli elementi di $X$ vengono detti \emph{elementi generatori} di $M(X)$.
 
-E' possibile dimostrare che:
+È possibile dimostrare che:
 
 \begin{itemize}
   \item $M(X)$ è il \emph{più piccolo} monoide che contiene $X$\footnote{il termine libero si usa quando sussiste questa proprietà}
@@ -2454,7 +2454,7 @@ F(f): F(A) \rightarrow F(B \rightarrow C)
 $$
 
 Ma a questo punto siamo bloccati.
-Perchè non c'è nessuna operazione lecita che ci permette di passare dal tipo $F(B \rightarrow C)$ al tipo $F(B) \rightarrow F(C)$.
+Perché non c'è nessuna operazione lecita che ci permette di passare dal tipo $F(B \rightarrow C)$ al tipo $F(B) \rightarrow F(C)$.
 
 Il fatto che $F$ ammetta una istanza di funtore non basta, deve avere una proprietà in più, quella cioè di ammettere una operazione che permette di
 spacchettare il tipo delle funzioni da $B$ a $C$ mandandolo nel tipo delle funzioni da $F(B)$ a $F(C)$.
@@ -2582,7 +2582,7 @@ Consideriamo la seguente funzione \texttt{sum}
 const sum = (a: number) => (b: number): number => a + b
 \end{code}
 
-E' possibile sfruttare \texttt{of} e \texttt{ap} per ottenere il suo lifting
+È possibile sfruttare \texttt{of} e \texttt{ap} per ottenere il suo lifting
 
 \begin{code}
 const sumOptions = (fa: Option<number>) => (
@@ -2615,7 +2615,7 @@ const sumOptions = liftA2(sum)
 
 Analogamente è possibile definire \texttt{liftA3} per funzioni con 3 argomenti, \texttt{liftA4}, etc \ldots
 
-E' importante sottolineare che mentre abbiamo avuto bisogno di una nuova astrazione per poter operare un lifting di una funzione binaria,
+È importante sottolineare che mentre abbiamo avuto bisogno di una nuova astrazione per poter operare un lifting di una funzione binaria,
 per operare un lifting di una funzione $n$-aria un funtore applicativo è sufficiente.
 
 \begin{exercise}
@@ -2885,7 +2885,7 @@ Un intero programma che produce un valore di tipo \texttt{A} è rappresentato da
 
 Come faccio a scrivere la funzione \texttt{main}? Davvero si pretende di scrivere tutta l'applicazione in una unica funzione?
 
-E' possibile applicare la tecnica \emph{divide et impera} ovvero decomporre il problema in sotto problemi più piccoli,
+È possibile applicare la tecnica \emph{divide et impera} ovvero decomporre il problema in sotto problemi più piccoli,
 per poi ricomporre le soluzioni trovate per i sotto problemi.
 
 Cosa c'è di nuovo però? Il fatto che nella programmazione funzionale come decomporre e poi ricomporre il problema non è lasciato
@@ -2894,7 +2894,7 @@ all'istinto del programmatore, la metodologia suggerita è quella di descrivere 
 
 C'è un ostacolo però: \textbf{il fatto che due funzioni compongano è un evento raro!}
 
-Perchè due funzioni $g$ e $f$ compongano, il codominio di $g$ deve coincidere col dominio di $f$
+Perché due funzioni $g$ e $f$ compongano, il codominio di $g$ deve coincidere col dominio di $f$
 
 $$
 g: A \rightarrow B, f: B \rightarrow C
@@ -2958,7 +2958,7 @@ const flatten = <A>(mma: IO<IO<A>>): IO<A> =>
 
 Cosa dire di \texttt{Either}, \texttt{Array} e delle altre istanze di funtore?
 
-E' possibile individuare un nuovo pattern funzionale?
+È possibile individuare un nuovo pattern funzionale?
 
 Si, le monadi.
 
@@ -3022,9 +3022,9 @@ Associativity & \texttt{chain(g, chain(f, ma)) = chain(x => chain(g, f(x)), mx)}
 Possibili sinonimi di \texttt{of}\footnote{Nome contenuto nella specifica https://github.com/fantasyland/fantasy-land} sono \texttt{return}, \texttt{pure} e \texttt{point}, sinonimi di \texttt{chain} sono \texttt{bind} e \texttt{flatMap}.
 
 \begin{itemize}
-  \item perchè ci sono esattamente quelle due funzioni?
-  \item perchè hanno quelle firme?
-  \item perchè devono valere quelle leggi?
+  \item perché ci sono esattamente quelle due funzioni?
+  \item perché hanno quelle firme?
+  \item perché devono valere quelle leggi?
 \end{itemize}
 
 Per rispondere a queste domande introduciamo un concetto equivalente a quello di monade: le \emph{categorie di Kleisli}
@@ -3159,17 +3159,17 @@ ovvero
 
 \subsection{Ricapitolando}
 
-\paragraph{Perchè le categorie sono importanti?}
+\paragraph{Perché le categorie sono importanti?}
 
-Perchè sono alla base del concetto di composizione e di monade e modellano i linguaggi di programmazione.
+Perché sono alla base del concetto di composizione e di monade e modellano i linguaggi di programmazione.
 
 \paragraph{Cos'è una monade?}
 
 $M$ è una monade quando i programmi con effetti $A \rightarrow M(B)$ costituiscono i morfismi di una categoria.
 
-\paragraph{Perchè le monadi sono importanti?}
+\paragraph{Perché le monadi sono importanti?}
 
-Perchè se $M$ è una monade posso comporre i programmi con effetti $A \rightarrow M(B)$ tra loro.
+Perché se $M$ è una monade posso comporre i programmi con effetti $A \rightarrow M(B)$ tra loro.
 
 \paragraph{Una monade per ogni occasione.}
 
@@ -3568,7 +3568,7 @@ class Person {
 
 in cui \texttt{constructor} realizza la funzione $f$.
 
-Perchè si chiamano product types? Se indichiamo con $\|A\|$, detta \emph{cardinalità} o \emph{ordine} di $A$, il numero di elementi
+Perché si chiamano product types? Se indichiamo con $\|A\|$, detta \emph{cardinalità} o \emph{ordine} di $A$, il numero di elementi
 dell'insieme $A$ è facile convincersi che vale la seguente formula
 
 $$
@@ -3616,7 +3616,7 @@ type Array<A> = [] | [A] | [A, A] | [A, A, A] | ...
 \end{code}
 
 \begin{example}
-Linked lists\footnote{E' possibile definire una istanza di funtore per \texttt{List<A>}
+Linked lists\footnote{È possibile definire una istanza di funtore per \texttt{List<A>}
 
 \begin{code}
 const map = <A, B>(f: (a: A) => B) => (
@@ -3644,7 +3644,7 @@ type List<A> =
 \end{example}
 
 \begin{example}
-Binary trees\footnote{E' possibile definire una istanza di funtore per \texttt{Tree<A>}
+Binary trees\footnote{È possibile definire una istanza di funtore per \texttt{Tree<A>}
 
 \begin{code}
 const map = <A, B>(f: (a: A) => B) => (
@@ -3677,7 +3677,7 @@ type Tree<A> =
 \end{code}
 \end{example}
 
-Perchè si chiamano sum types? E' facile convincersi che la cadinalità di un sum type è la somma delle cardinalità dei suoi membri
+Perché si chiamano sum types? È facile convincersi che la cadinalità di un sum type è la somma delle cardinalità dei suoi membri
 
 $$
 \|A | B\| = \|A\| + \|B\|
@@ -3825,10 +3825,10 @@ const toArray = <F>(F: Foldable<F>) => <A>(fa: F<A>): Array<A>
 \end{code}
 
 \begin{exercise}
-Perchè? Suggerimento: usare \texttt{foldMap}.
+Perché? Suggerimento: usare \texttt{foldMap}.
 \end{exercise}
 
-E' importante notare che affinchè sia possibile scrivere una istanza di \texttt{Foldable} è necessario che la produzione di valori
+È importante notare che affinchè sia possibile scrivere una istanza di \texttt{Foldable} è necessario che la produzione di valori
 di tipo \texttt{A} abbia un ordine deterministico.
 
 \begin{exercise}
@@ -3887,7 +3887,7 @@ const reduce = <A, B>(
 ): B => f(b, fa.endo(fa.value))
 \end{code}
 
-ma non di \texttt{Functor} perchè \texttt{A} compare in posizione controvariante.
+ma non di \texttt{Functor} perché \texttt{A} compare in posizione controvariante.
 
 \subsection{Esempi}
 
@@ -3959,11 +3959,11 @@ type Tree<A> =
 \end{exercise}
 
 \begin{exercise}
-E' possibile definire una istanza di \texttt{Foldable} per \texttt{Set<A>}?
+È possibile definire una istanza di \texttt{Foldable} per \texttt{Set<A>}?
 \end{exercise}
 
 \begin{exercise}
-E' possibile definire una istanza di \texttt{Foldable} per \texttt{Task<A>}?
+È possibile definire una istanza di \texttt{Foldable} per \texttt{Task<A>}?
 \end{exercise}
 
 \subsection{I \texttt{Foldable} compongono}
@@ -4088,7 +4088,7 @@ Definire una istanza di \texttt{Traversable} per \texttt{Either<L, A>}
 \end{exercise}
 
 \begin{exercise}
-E' possibile definire una istanza di \texttt{Traversable} per \texttt{Task<A>}?
+È possibile definire una istanza di \texttt{Traversable} per \texttt{Task<A>}?
 \end{exercise}
 
 \subsection{La funzione \texttt{sequence}}
@@ -4238,7 +4238,7 @@ const alt = concat
 \end{example}
 
 \begin{exercise}
-Perchè l'implementazione di \texttt{alt} per \texttt{Array} è proprio \texttt{concat}?
+Perché l'implementazione di \texttt{alt} per \texttt{Array} è proprio \texttt{concat}?
 Suggerimento: si ricordi che l'effetto codificato da \texttt{Array} è l'indeterminismo.
 \end{exercise}
 
@@ -4818,7 +4818,7 @@ In generale le monadi non compongono, ovvero date due istanze di monade, una per
 allora a \texttt{M<N<A>>} non è detto che possa ancora essere associata una istanza di monade.
 
 \begin{exercise}
-In generale le monadi non compongono, perchè?
+In generale le monadi non compongono, perché?
 \end{exercise}
 
 Che non compongano in generale però non vuol dire che non esistano dei casi particolari ove questo succede.
@@ -5105,7 +5105,7 @@ const kmToMile = new Iso<number, number>(
 \end{code}
 \end{example}
 
-E' possibile effettuare il lifting di un endomorfismo\footnote{Un \emph{endomorfismo} di un insieme $A$ è una funzione $f: A \rightarrow A$}
+È possibile effettuare il lifting di un endomorfismo\footnote{Un \emph{endomorfismo} di un insieme $A$ è una funzione $f: A \rightarrow A$}
 di \texttt{A} ad un endomorfismo di \texttt{S} tramite la funzione \texttt{modify}.
 
 Inoltre gli \texttt{Iso} compongono
