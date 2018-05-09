@@ -9,7 +9,7 @@ import {
   contramap,
   ordString,
   ordNumber,
-  fromCompare,
+  getDualOrd,
   getSemigroup
 } from 'fp-ts/lib/Ord'
 import {
@@ -26,10 +26,6 @@ import {
 } from 'fp-ts/lib/Array'
 import { fold } from 'fp-ts/lib/Semigroup'
 
-const getDualOrd = <A>(O: Ord<A>): Ord<A> => {
-  return fromCompare((x, y) => O.compare(y, x))
-}
-
 const sortBy = <A>(
   ords: Array<Ord<A>>
 ): Option<(as: Array<A>) => Array<A>> =>
@@ -37,7 +33,7 @@ const sortBy = <A>(
     some(sort(fold(getSemigroup<A>())(head)(tail)))
   )
 
-interface Person {
+export interface Person {
   name: string
   age: number
 }
@@ -107,7 +103,7 @@ const parseProtocol = (
   return sequenceOptions(ords)
 }
 
-const sortPersons = (
+export const sortPersons = (
   s: string,
   persons: Array<Person>
 ): Array<Person> =>
@@ -116,7 +112,7 @@ const sortPersons = (
     .map(sort => sort(persons))
     .getOrElse(persons)
 
-const persons = [
+export const persons = [
   { name: 'a', age: 1 },
   { name: 'b', age: 3 },
   { name: 'c', age: 2 },

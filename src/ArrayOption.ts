@@ -32,3 +32,31 @@ console.log(
     (b, a) => b + a
   )
 ) // ab
+
+import { Applicative1 } from 'fp-ts/lib/Applicative'
+import { URIS, Type } from 'fp-ts/lib/HKT'
+import { task } from 'fp-ts/lib/Task'
+import { traverse as t } from 'fp-ts/lib/Traversable'
+
+const traverse = <F extends URIS>(F: Applicative1<F>) => <
+  A,
+  B
+>(
+  ta: ArrayOption<A>,
+  f: (a: A) => Type<F, B>
+): Type<F, ArrayOption<B>> => {
+  return F.map(
+    t(F, array)(ta.value, o => t(F, option)(o, f)),
+    a => new ArrayOption(a)
+  )
+}
+
+traverse(task)(
+  new ArrayOption([some('foo'), none, some('quux')]),
+  a => task.of(a.length)
+)
+  .run()
+  .then(x => console.log(x))
+/*
+ArrayOption([some(3), none, some(4)])
+*/

@@ -804,24 +804,33 @@ Definire un (endo)funtore $F$ nella categoria $\mathcal{TS}$ significa due cose:
 Perciò un funtore è una coppia $F = (\texttt{F<X>}, \texttt{lift})$ ove
 
 \begin{itemize}
-  \item \texttt{F<X>} è un \emph{type constructor}\footnote{
+  \item \texttt{F} è un \emph{type constructor}\footnote{
+    ovvero una procedura che, dato un qualunque tipo \texttt{X} produce un tipo \texttt{F<X>} come per esempio \texttt{Option} o \texttt{Array}
     \begin{itemize}
       \item \texttt{number} è un $0$-type constructor (kind $*$)
       \item \texttt{Option<A>} è un $1$-type constructor (kind $* \rightarrow *$)
       \item \texttt{Either<L, A>} è un $2$-type constructor (kind $* \rightarrow * \rightarrow *$)
     \end{itemize}
-  }, ovvero una procedura che, dato un qualunque tipo \texttt{X} produce un tipo \texttt{F<X>}
-  \item \texttt{lift} è una funzione con la seguente firma\footnote{Si noti che la sintassi usata non è valida in TypeScript dato che non supporta gli Higher Kinded Types}
+  }
+  \item \texttt{lift} è una funzione con la seguente firma
 \end{itemize}
 
 \begin{code}
-lift: <A, B>(f: (a: A) => B) => ( (fa: F<A>) => F<B> )
+lift: <A, B>(f: (a: A) => B) => (fa: F<A>) => F<B>
 \end{code}
 
 La funzione \texttt{lift} è meglio conosciuta nella sua forma equivalente \texttt{map}.
 
 \begin{code}
 map: <A, B>(f: (a: A) => B, fa: F<A>) => F<B>
+\end{code}
+
+Possiamo rappresentare il concetto di funtore mediante una interfaccia
+
+\begin{code}
+interface Functor<F> {
+  map: <A, B>(f: (a: A) => B, fa: F<A>) => F<B>
+}
 \end{code}
 
 Vediamo l'implementazione per \texttt{Option} e \texttt{Either}
@@ -843,7 +852,7 @@ const functorEither = {
 \end{code}
 
 Per comodità di utilizzo (\emph{chainable APIs}) abbiamo già visto che è utile implementare \texttt{map} in modo che
-l'argomento \texttt{fa} sia implicito (ovvero come metodo)
+l'argomento \texttt{fa} sia implicito (ovvero implementare \texttt{map} come metodo del type constructor \texttt{F})
 
 \begin{code}
 // Option
@@ -2777,8 +2786,8 @@ I funtori applicativi compongono, ovvero dati due funtori applicativi \texttt{F}
 allora la composizione \texttt{F(G)} è ancora un funtore applicativo.
 
 \begin{code}
-import { Option, option } from 'fp-ts/lib/Option'
-import { array } from 'fp-ts/lib/Array'
+import { Option, option } from "fp-ts/lib/Option'
+import { array } from "fp-ts/lib/Array'
 
 export const of = <A>(a: A) =>
   new ArrayOption(array.of(option.of(a)))
@@ -3815,10 +3824,14 @@ foldMap: <M>(M: Monoid<M>) =>
   <A>(fa: F<A>, f: (a: A) => M) => M
 \end{code}
 
+\begin{exercise}
+Mostrare che le definizioni tramite \texttt{reduce}, \texttt{foldr} e \texttt{foldMap} sono equivalenti.
+\end{exercise}
+
 Un modo per afferrare il concetto di \texttt{Foldable} è che una struttura che ammette una sua istanza
 è in grado di essere rappresentata sotto forma di array.
 
-Infatti è sempre possibile definire la seguente funzione
+Infatti è possibile definire la seguente funzione
 
 \begin{code}
 const toArray = <F>(F: Foldable<F>) => <A>(fa: F<A>): Array<A>
@@ -3829,7 +3842,11 @@ Perché? Suggerimento: usare \texttt{foldMap}.
 \end{exercise}
 
 È importante notare che affinchè sia possibile scrivere una istanza di \texttt{Foldable} è necessario che la produzione di valori
-di tipo \texttt{A} abbia un ordine deterministico.
+di tipo \texttt{A} abbia un ordine deterministico dato che la riduzione passa attraverso la funzione
+
+\begin{code}
+f: (b: B, a: A) => B
+\end{code}
 
 \begin{exercise}
 \texttt{Option<A>} ammette una istanza di \texttt{Foldable}, qual'è la sua rappresentazione come array?
@@ -3850,7 +3867,7 @@ reduceRight(b, f, [x_1, x_2, \ldots , x_n])  == f(f( \ldots f(b, x_n) \ldots , x
 $$
 
 \begin{example}
-Ridurre \texttt{Array<string>}
+Ridurre \texttt{Array<string>} tramite concatenazione
 
 \begin{code}
 reduce(["a", "b", "c"], "", (b, a) => b + a) // "abc"
@@ -3940,10 +3957,6 @@ const reduce = <A, B>(
 \end{example}
 
 \begin{exercise}
-Mostrare che \texttt{reduce}, \texttt{reduceRight} e \texttt{foldMap} sono definizioni equivalenti per \texttt{Foldable}.
-\end{exercise}
-
-\begin{exercise}
 Definire una istanza di \texttt{Foldable} per \texttt{Tree<A>}
 
 \begin{code}
@@ -3963,8 +3976,63 @@ type Tree<A> =
 \end{exercise}
 
 \begin{exercise}
-È possibile definire una istanza di \texttt{Foldable} per \texttt{Task<A>}?
+È possibile definire una istanza di \texttt{Foldable} per \texttt{IO<A>}?
 \end{exercise}
+
+\subsection{Funzioni associate a \texttt{Foldable}}
+
+\begin{function}
+Una generalizzazione della funzione \texttt{fold} che lavora con gli array
+
+\begin{code}
+fold: <F, M>(F: Foldable<F>, M: Monoid<M>) => (fa: F<M>) => M
+\end{code}
+\end{function}
+
+\begin{function}
+Simile a \texttt{reduce} ma il risultato è incapsulato in una monade
+
+\begin{code}
+foldM: <F, M>(F: Foldable<F>, M: Monad<M>) => <A, B>(
+  f: (b: B, a: A) => M<B>,
+  b: B,
+  fa: F<A>
+) => M<B>
+\end{code}
+\end{function}
+
+\begin{function}
+Attraversa una struttura dati eseguendo un qualche effetto codificato da una funtore applicativo per ogni valore, ignorando il risultato finale
+
+\begin{code}
+traverse_: <M, F>(
+  M: Applicative<M>,
+  F: Foldable<F>
+) => <A, B>(
+  f: (a: A) => M<B>,
+  fa: F<A>
+) => M<void>
+\end{code}
+\end{function}
+
+\begin{function}
+Esegue tutti gli effetti contenuti in una struttura dati nell'ordine dato dall'istanza di \texttt{Foldable}, ignorando il risultato finale
+
+\begin{code}
+sequence_: <M, F>(
+  M: Applicative<M>,
+  F: Foldable<F>
+) => <A>(fa: F<M<A>>): M<void>
+\end{code}
+\end{function}
+
+\begin{observation}
+\texttt{sequence\_} può essere derivato da \texttt{traverse\_}
+
+\begin{code}
+sequence_(M, F)(x) = traverse_(M, F)(identity, x)
+\end{code}
+\end{observation}
 
 \subsection{I \texttt{Foldable} compongono}
 
@@ -3975,6 +4043,8 @@ ammette una istanza di \texttt{Foldable}.
 \texttt{ArrayOption<A>}
 
 \begin{code}
+import { option } from "fp-ts/lib/Option"
+
 const reduce = <A, B>(
   fa: ArrayOption<A>,
   b: B,
@@ -3993,6 +4063,7 @@ reduce(
 \begin{center}
 \textbf{DEMO}
 
+\texttt{BinaryTree.ts} \\
 \texttt{wizard.ts}
 \end{center}
 \end{demo}
@@ -4001,9 +4072,26 @@ reduce(
 
 \section{Traversable}
 
-\texttt{Traversable} rappresenta una struttura che può essere attraversata da sinistra a destra, eseguendo una azione per ogni elemento.
+Data una istanza di \texttt{Applicative} per \texttt{F} é possibile definire la seguente funzione
+
+\begin{code}
+traverseA: <F>(F: Applicative<F>) => <A, B>(
+  ta: Array<A>,
+  f: (a: A) => F<B>
+) => F<Array<B>>
+\end{code}
+
+\begin{exercise}
+(Difficile) Implementare la funzione \texttt{traverseA}
+\end{exercise}
+
+È possibile generalizzare la funzione \texttt{traverseA} sopra definita per strutture dati diverse da \texttt{Array}?
+
+La risposta é affermativa e conduce al concetto di \texttt{Traversable}
 
 \subsection{Definizione}
+
+\texttt{Traversable} rappresenta una struttura che può essere attraversata eseguendo una azione per ogni elemento.
 
 \begin{code}
 interface Traversable<T> extends Functor<T>, Foldable<T> {
@@ -4011,6 +4099,11 @@ interface Traversable<T> extends Functor<T>, Foldable<T> {
     <A, B>(ta: T<A>, f: (a: A) => F<B>) => F<T<B>>
 }
 \end{code}
+
+\begin{observation}
+È importante notare che, al contrario di quanto succede con \texttt{Foldable} in cui la struttura originale viene persa,
+con \texttt{Traversable} la struttura viene preservata.
+\end{observation}
 
 Alternativamente \texttt{Traversable} può essere definita tramite la funzione
 
@@ -4035,7 +4128,7 @@ composition & \texttt{traverse(F)(a => compose(fa => A.map(g, fa), f), ta) = F.m
 \egroup
 \end{center}
 
-Una applicative transformation è una funzione con la seguente firma
+Una \emph{applicative transformation} è una funzione con la seguente firma
 
 \begin{code}
 at: (F: Applicative<F>, g: Applicative<G>) =>
@@ -4100,6 +4193,8 @@ sequence: <F, T>(F: Applicative<F>, T: Traversable<T>) =>
   (tfa: T<F<A>>) => F<T<A>>
 \end{code}
 
+Ecco alcuni esempi di come lavora la funzione \texttt{sequence}
+
 \begin{center}
 \bgroup
 \def\arraystretch{1.5}
@@ -4122,6 +4217,40 @@ From & To \\
 \subsection{I \texttt{Traversable} compongono}
 
 Ovvero se sia \texttt{F<A>} che \texttt{G<A>} ammettono una istanza di \texttt{Traversable}, allora \texttt{F<G<A>>} ammette una istanza di \texttt{Traversable}
+
+\begin{example}
+\texttt{ArrayOption<A>}
+
+\begin{code}
+import { Applicative1 } from "fp-ts/lib/Applicative"
+import { URIS, Type } from "fp-ts/lib/HKT"
+import { task } from "fp-ts/lib/Task"
+import { traverse as t } from "fp-ts/lib/Traversable"
+
+const traverse = <F extends URIS>(F: Applicative1<F>) => <
+  A,
+  B
+>(
+  ta: ArrayOption<A>,
+  f: (a: A) => Type<F, B>
+): Type<F, ArrayOption<B>> => {
+  return F.map(
+    t(F, array)(ta.value, o => t(F, option)(o, f)),
+    a => new ArrayOption(a)
+  )
+}
+
+traverse(task)(
+  new ArrayOption([some('foo'), none, some('quux')]),
+  a => task.of(a.length)
+)
+  .run()
+  .then(x => console.log(x))
+/*
+ArrayOption([some(3), none, some(4)])
+*/
+\end{code}
+\end{example}
 
 \begin{demo}
 \begin{center}
@@ -4882,10 +5011,10 @@ Vediamo la funzione \texttt{swap} per i quattro casi in esame
 La funzione \texttt{swap} per \texttt{OptionT}
 
 \begin{code}
-import { HKT } from 'fp-ts/lib/HKT'
-import { Monad } from 'fp-ts/lib/Monad'
+import { HKT } from "fp-ts/lib/HKT'
+import { Monad } from "fp-ts/lib/Monad'
 
-import { Option, none, some } from 'fp-ts/lib/Option'
+import { Option, none, some } from "fp-ts/lib/Option'
 
 const swapOption = <M>(M: Monad<M>) => <A>(
   nma: Option<HKT<M, A>>
@@ -4899,7 +5028,7 @@ const swapOption = <M>(M: Monad<M>) => <A>(
 La funzione \texttt{swap} per \texttt{EitherT}
 
 \begin{code}
-import { Either, left, right } from 'fp-ts/lib/Either'
+import { Either, left, right } from "fp-ts/lib/Either'
 
 const swapEither = <M>(M: Monad<M>) => <L, A>(
   nma: Either<L, HKT<M, A>>
@@ -4916,7 +5045,7 @@ const swapEither = <M>(M: Monad<M>) => <L, A>(
 La funzione \texttt{swap} per \texttt{ReaderT}
 
 \begin{code}
-import { Reader } from 'fp-ts/lib/Reader'
+import { Reader } from "fp-ts/lib/Reader'
 
 const swapReader = <M>(M: Monad<M>) => <E, A>(
   nma: HKT<M, Reader<E, A>>
@@ -4943,8 +5072,8 @@ const swapState = <M>(M: Monad<M>) => <S, A>(
 Ora vediamo una implementazione completa: \texttt{TaskEither}
 
 \begin{code}
-import { Task, task } from 'fp-ts/lib/Task'
-import { Either, either, left } from 'fp-ts/lib/Either'
+import { Task, task } from "fp-ts/lib/Task'
+import { Either, either, left } from "fp-ts/lib/Either'
 
 const of = <L, A>(a: A): TaskEither<L, A> =>
   new TaskEither(task.of(either.of(a)))
@@ -4973,8 +5102,8 @@ import {
   TaskEither,
   fromLeft,
   taskEither
-} from 'fp-ts/lib/TaskEither'
-import { Either } from 'fp-ts/lib/Either'
+} from "fp-ts/lib/TaskEither'
+import { Either } from "fp-ts/lib/Either'
 
 /**
  * Return `Right` if the given action succeeds,
