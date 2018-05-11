@@ -1,6 +1,6 @@
 # Risorse
 
-## C# / F#
+## C# / F
 
 ### Blog
 
@@ -13,6 +13,7 @@
 
 * Learn You a Haskell for Great Good! http://learnyouahaskell.com/
 * The Haskell Book http://haskellbook.com/
+* [A curated collection of free eBooks about Haskell](https://github.com/TechBookHunter/Free-Haskell-Books)
 
 ### Corso
 
