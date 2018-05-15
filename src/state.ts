@@ -1,8 +1,10 @@
 /*
 
-  Problema: gestire uno store chiave / valore
+  # Summary
 
-  Cominciamo con un approccio naive:
+  In questa demo vedremo come gestire uno store chiave / valore
+
+  Un primo approccio potrebbe essere quello di usare `IO`
 
 */
 
@@ -25,6 +27,14 @@ const setValue = (key: string, value: number): IO<void> =>
 
 const double = (n: number): number => n * 2
 
+/*
+
+  - set a = 1
+  - set b = 2
+  - get c
+  - if found, modify c through double
+
+*/
 const program: IO<void> = setValue('a', 1)
   .chain(() => setValue('b', 2))
   .chain(() => getValue('c'))
@@ -62,7 +72,8 @@ export const program2: IO<void> = setValue('a', 1)
 
 /*
 
-  Queste API non sono soddisfacenti, è vero che sono molto semplici ma:
+  Queste API non sono del tutto soddisfacenti,
+  è vero che sono molto semplici ma:
 
   - il tipo dei valori è fissato
   - può lavorare con un solo store globale
@@ -95,10 +106,36 @@ const update2 = <A>(
     o.fold(state.of(undefined), n => setValue2(key, f(n)))
   )
 
-// che tipo ha `program3`?
+/*
+
+  Notate come il codice dell'implementazione con `State`
+  sia pressoché identico a quello con `IO`
+
+  ```
+  const update = (
+    key: string,
+    f: (n: number) => number
+  ): IO<void> =>
+    getValue(key).chain(o =>
+      o.fold(io.of(undefined), n => setValue(key, f(n)))
+    )
+  ```
+
+  Ora posso riscrivere il programma in funzione
+  delle nuove API
+
+*/
+
 export const program3 = setValue2('a', 1)
   .chain(() => setValue2('b', 2))
   .chain(() => update2('c', double))
+
+/*
+
+    Questa volta però posso facilmente
+    testarlo in divrese condizioni
+
+*/
 
 // console.log(program3.exec({})) // { a: 1, b: 2 }
 // console.log(program3.exec({ c: 3 })) // { c: 6, a: 1, b: 2 }

@@ -4434,7 +4434,7 @@ Suggerimento: si ricordi che l'effetto codificato da \texttt{Array} è l'indeter
 
 \[
 \xymatrix{
-  & Alt \ar[ldd] & Plus \ar[l] & Alternative \ar[l] \ar[ld] \\
+  & Alt \ar[ldd] & & Alternative \ar[ll] \ar[ld] \\
   & Apply \ar[ld] & Applicative \ar[l] & Monad \ar[l] \ar[ld] \\
   Functor & & Chain \ar[lu] \\
   & Extend \ar[lu] & Comonad \ar[l] \\
@@ -4577,7 +4577,7 @@ const of = <S, A>(a: A): State<S, A> =>
 \subsection{Funzioni associate a \texttt{State}}
 
 \begin{function}
-Get the current state
+Ricava lo stato corrente
 
 \begin{code}
 const get = <S>(): State<S, S> =>
@@ -4586,16 +4586,16 @@ const get = <S>(): State<S, S> =>
 \end{function}
 
 \begin{function}
-Set the state
+Imposta lo stato corrente
 
 \begin{code}
-const put = <S>(s: S): State<S, undefined> =>
+const put = <S>(s: S): State<S, void> =>
   new State(() => [undefined, s])
 \end{code}
 \end{function}
 
 \begin{function}
-Modify the state by applying a function to the current state
+Modifica lo stato applicando una funzione allo stato corrente
 
 \begin{code}
 const modify = <S>(
@@ -4605,7 +4605,7 @@ const modify = <S>(
 \end{function}
 
 \begin{function}
-Get a value which depends on the current state
+Restituisce un valore basato sullo stato corrente
 
 \begin{code}
 const gets = <S, A>(f: (s: S) => A): State<S, A> =>
@@ -4621,7 +4621,7 @@ Vediamo qualche semplice esempio
  * `of` set the result value but
  * leave the state unchanged
  */
-of('foo').run(1) // [ 'foo', 1 ]
+of("foo").run(1) // [ "foo", 1 ]
 
 /**
  * `get` set the result value to
