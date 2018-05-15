@@ -1,6 +1,7 @@
 import { createInterface } from 'readline'
 import { Task } from 'fp-ts/lib/Task'
 
+/** legge dallo standard input */
 export const getLine: Task<string> = new Task(
   () =>
     new Promise(resolve => {
@@ -15,6 +16,7 @@ export const getLine: Task<string> = new Task(
     })
 )
 
+/** scrive dallo standard output */
 export const putStrLn = (message: string): Task<void> =>
   new Task(
     () =>

@@ -3799,7 +3799,15 @@ dove vengono fatte tutte le validazioni dell'input.
 
 \section{Foldable}
 
-\texttt{Foldable} rappresenta una struttura che può essere ridotta tramite l' operazione \texttt{reduce}
+È possibile generalizzare la funzione \texttt{reduce} definita per \texttt{Array}?
+
+\begin{code}
+reduce: <A, B>(fa: Array<A>, b: B, f: (b: B, a: A) => B) => B
+\end{code}
+
+La risposta è affermativa e conduce al concetto di \texttt{Foldable}.
+
+\texttt{Foldable} rappresenta una struttura che può essere ridotta tramite una operazione \texttt{reduce}
 (sinonimi: \texttt{reduceLeft}, \texttt{foldLeft}, \texttt{foldl})
 
 \subsection{Definizione}
@@ -4087,7 +4095,7 @@ traverseA: <F>(F: Applicative<F>) => <A, B>(
 
 È possibile generalizzare la funzione \texttt{traverseA} sopra definita per strutture dati diverse da \texttt{Array}?
 
-La risposta é affermativa e conduce al concetto di \texttt{Traversable}
+La risposta è affermativa e conduce al concetto di \texttt{Traversable}
 
 \subsection{Definizione}
 
@@ -4256,6 +4264,7 @@ ArrayOption([some(3), none, some(4)])
 \begin{center}
 \textbf{DEMO}
 
+\texttt{BinaryTree.ts} \\
 \texttt{traversable.ts}
 \end{center}
 \end{demo}
@@ -4285,10 +4294,10 @@ distributivity & \texttt{A.map(f, A.alt(a, b)) = A.alt(A.map(f, a), A.map(f, b))
 \egroup
 \end{center}
 
-\subsection{\texttt{Plus}}
+\subsection{\texttt{Alternative}}
 
 \begin{code}
-interface Plus<F> extends Alt<F> {
+interface Alternative<F> extends Applicative<F> {
   zero: <A>() => F<A>
 }
 \end{code}
@@ -4304,21 +4313,6 @@ left identity & \texttt{P.alt(P.zero(), a) = a} \\
 \hline
 annihilation & \texttt{P.map(f, P.zero()) = P.zero()} \\
 \hline
-\end{tabular}
-\egroup
-\end{center}
-
-\subsection{\texttt{Alternative}}
-
-\begin{code}
-interface Alternative<F> extends Applicative<F>, Plus<F> {}
-\end{code}
-
-\begin{center}
-\bgroup
-\def\arraystretch{1.5}
-\begin{tabular}{ |c|p{10cm}| }
-\hline
 distributivity & \texttt{A.ap(A.alt(a, b), c) = A.alt(A.ap(a, c), A.ap(b, c))} \\
 \hline
 annihilation & \texttt{A.ap(A.zero(), a) = A.zero()} \\
@@ -4326,6 +4320,15 @@ annihilation & \texttt{A.ap(A.zero(), a) = A.zero()} \\
 \end{tabular}
 \egroup
 \end{center}
+
+\texttt{Monoid} è parametrizzato su argomento con kind \texttt{*}.
+
+\texttt{Alternative} invece è parametrizzato su argomento con kind \texttt{* -> *} e non solo ha una struttura monoidale,
+ma questa struttura non dipende dal tipo passato al type constructor.
+
+$$
+\texttt{Alt} : \texttt{Semigroup} = \texttt{Alternative} : \texttt{Monoid}
+$$
 
 \subsection{Esempi}
 
@@ -4343,6 +4346,48 @@ const zero = <A>(): Option<A> => {
 \end{code}
 \end{example}
 
+Istanza di \texttt{Monoid<Option<A>>} (richiede una istanza di \texttt{Semigroup} per \texttt{A})
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|c|c| }
+\hline
+\texttt{x} & \texttt{y} & Risultato \\
+\hline
+\texttt{None} & \texttt{None} & \texttt{None} \\
+\hline
+\texttt{Some(a)} & \texttt{None} & \texttt{Some(a)} \\
+\hline
+\texttt{None} & \texttt{Some(a)} & \texttt{Some(a)} \\
+\hline
+\texttt{Some(a)} & \texttt{Some(b)} & \texttt{Some(concat(a, b))} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+Istanza di \texttt{Alternative<Option>} (non dipende da alcun \texttt{A})
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|c|c| }
+\hline
+\texttt{x} & \texttt{y} & Risultato \\
+\hline
+\texttt{None} & \texttt{None} & \texttt{None} \\
+\hline
+\texttt{Some(a)} & \texttt{None} & \texttt{Some(a)} \\
+\hline
+\texttt{None} & \texttt{Some(a)} & \texttt{Some(a)} \\
+\hline
+\texttt{Some(a)} & \texttt{Some(b)} & \texttt{Some(a)} \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
 \begin{example}
 Istanza per \texttt{Either<L, A>}
 
@@ -4355,6 +4400,10 @@ const alt = <L, A>(
 }
 \end{code}
 \end{example}
+
+\begin{observation}
+Si noti che \texttt{Either} ammette solo una istanza per \texttt{Alt} e non per \texttt{Alternative}.
+\end{observation}
 
 \begin{example}
 Istanza per \texttt{Array<A>}
@@ -4385,8 +4434,6 @@ Suggerimento: si ricordi che l'effetto codificato da \texttt{Array} è l'indeter
 
 \[
 \xymatrix{
-  Semigroup & Monoid \ar[l] \\
-  Setoid & Ord \ar[l] \\
   & Alt \ar[ldd] & Plus \ar[l] & Alternative \ar[l] \ar[ld] \\
   & Apply \ar[ld] & Applicative \ar[l] & Monad \ar[l] \ar[ld] \\
   Functor & & Chain \ar[lu] \\
@@ -4904,7 +4951,44 @@ export const censor = <W, A>(
 
 \section{Monad transformer}
 
-Supponiamo di avere una computazione con le seguenti proprietà
+\subsection{A cosa servono?}
+
+Vediamo due scenari.
+
+\paragraph{Scenario 1}
+
+Supponiamo di avere definto le seguenti API
+
+\begin{code}
+const head = <A>(as: Array<A>): Option<A> => {
+  return as.length === 0 ? none : some(as[0])
+}
+
+const fetchUserComments = (
+  id: string
+): Task<Array<string>> => task.of(["comment1", "comment2"])
+
+const fetchFirstComment = (
+  id: string
+): Task<Option<string>> => fetchUserComments(id).map(head)
+\end{code}
+
+Il tipo del codominio della funzione \texttt{fetchFirstComment} è
+
+\begin{code}
+Task<Option<string>>
+\end{code}
+
+ovvero una struttura dati innestata.
+
+È possibile associare una istanza di monade?
+
+\paragraph{Scenario 2}
+
+Per modellare una chiamata AJAX, il type constructor \texttt{Task} non è sufficiente dato che rappresenta una computazione
+asincrona che non può mai fallire, come possiamo modellare anche i possibili errori restituiti dalla chiamata (\texttt{403}, \texttt{500}, etc\ldots)?
+
+Più in  generale supponiamo di avere una computazione con le seguenti proprietà
 
 \begin{itemize}
 \item asincrona
@@ -4922,10 +5006,10 @@ Sappiamo che questi due effetti possono essere rispettivamente codificati dai se
 
 e che ambedue hanno una istanza di monade.
 
-Potremmo anche dire che l'istanza di monade di \texttt{Task<A>} rappresenta la feature di asincronicità, mentre l'istanza
-di monade di \texttt{Either<L, A>} rappresenta la feature di fallimento.
+L'istanza di monade di \texttt{Task<A>} rappresenta l'effetto asincronicità, mentre l'istanza
+di monade di \texttt{Either<L, A>} rappresenta l'effetto fallimento.
 
-Come posso combinare queste due feature?
+Come posso combinare questi due effetti?
 
 In due modi
 
@@ -4937,26 +5021,34 @@ In due modi
 Diciamo che sono interessato al primo dei due modi
 
 \begin{code}
-// type alias
 type TaskEither<L, A> = Task<Either<L, A>>
 \end{code}
 
-è possibile definire una istanza di monade per \texttt{TaskEither}?
+\[
+\xymatrixrowsep{3cm}
+\xymatrixcolsep{3cm}
+\xymatrix{
+  & \texttt{TaskEither<L, R>} \\
+  \texttt{Task<A>} \ar[ur] & & \texttt{Either<L, R>} \ar[ul] \\
+}
+\]
+
+È possibile definire una istanza di monade per \texttt{TaskEither}?
 
 In generale le monadi non compongono, ovvero date due istanze di monade, una per \texttt{M<A>} e una per \texttt{N<A>},
 allora a \texttt{M<N<A>>} non è detto che possa ancora essere associata una istanza di monade.
 
 \begin{exercise}
-In generale le monadi non compongono, perché?
+In generale le monadi non compongono, perché? \\
+Suggerimento: provare a definire la funzione \texttt{flatten} per la monade composizione
 \end{exercise}
 
 Che non compongano in generale però non vuol dire che non esistano dei casi particolari ove questo succede.
 
-\begin{demo}
-Cosa sono i monad transformer?
-Sono un elenco di ricette specifiche che mostrano come a \texttt{M<N<A>>} può essere associata una istanza di monade
+\subsection{Cosa sono?}
+
+I monad transformer sono un elenco di ricette specifiche che mostrano come a \texttt{M<N<A>>} può essere associata una istanza di monade
 quando \texttt{M} e \texttt{N} ammettono una istanza di monade
-\end{demo}
 
 Obiettivo: poter definire la seguente funzione
 
@@ -5011,10 +5103,10 @@ Vediamo la funzione \texttt{swap} per i quattro casi in esame
 La funzione \texttt{swap} per \texttt{OptionT}
 
 \begin{code}
-import { HKT } from "fp-ts/lib/HKT'
-import { Monad } from "fp-ts/lib/Monad'
+import { HKT } from "fp-ts/lib/HKT"
+import { Monad } from "fp-ts/lib/Monad"
 
-import { Option, none, some } from "fp-ts/lib/Option'
+import { Option, none, some } from "fp-ts/lib/Option"
 
 const swapOption = <M>(M: Monad<M>) => <A>(
   nma: Option<HKT<M, A>>
@@ -5028,7 +5120,7 @@ const swapOption = <M>(M: Monad<M>) => <A>(
 La funzione \texttt{swap} per \texttt{EitherT}
 
 \begin{code}
-import { Either, left, right } from "fp-ts/lib/Either'
+import { Either, left, right } from "fp-ts/lib/Either"
 
 const swapEither = <M>(M: Monad<M>) => <L, A>(
   nma: Either<L, HKT<M, A>>
@@ -5045,7 +5137,7 @@ const swapEither = <M>(M: Monad<M>) => <L, A>(
 La funzione \texttt{swap} per \texttt{ReaderT}
 
 \begin{code}
-import { Reader } from "fp-ts/lib/Reader'
+import { Reader } from "fp-ts/lib/Reader"
 
 const swapReader = <M>(M: Monad<M>) => <E, A>(
   nma: HKT<M, Reader<E, A>>
@@ -5072,8 +5164,8 @@ const swapState = <M>(M: Monad<M>) => <S, A>(
 Ora vediamo una implementazione completa: \texttt{TaskEither}
 
 \begin{code}
-import { Task, task } from "fp-ts/lib/Task'
-import { Either, either, left } from "fp-ts/lib/Either'
+import { Task, task } from "fp-ts/lib/Task"
+import { Either, either, left } from "fp-ts/lib/Either"
 
 const of = <L, A>(a: A): TaskEither<L, A> =>
   new TaskEither(task.of(either.of(a)))
@@ -5095,48 +5187,34 @@ class TaskEither<L, A> {
 }
 \end{code}
 
-e due utili combinatori
+\subsection{Lifting}
+
+Per operare comodamente abbiamo bisogno di operazioni che permettono di immergere le computazioni che girano
+nelle monadi base nella monade target
+
+\begin{itemize}
+\item \texttt{Either<L, A>} $\rightarrow$ \texttt{TaskEither<L, A>}
+\item \texttt{Task<A>} $\rightarrow$ \texttt{TaskEither<L, A>}
+\item \texttt{Task<L>} $\rightarrow$ \texttt{TaskEither<L, A>}
+\end{itemize}
 
 \begin{code}
-import {
-  TaskEither,
-  fromLeft,
-  taskEither
-} from "fp-ts/lib/TaskEither'
-import { Either } from "fp-ts/lib/Either'
-
-/**
- * Return `Right` if the given action succeeds,
- * `Left` if it throws
- */
-export const attempt = <L, A>(
-  fa: TaskEither<L, A>
-): TaskEither<L, Either<L, A>> => {
-  return new TaskEither(fa.value.map(e => e.map(() => e)))
+const fromEither = <L, A>(
+  fa: Either<L, A>
+): TaskEither<L, A> => {
+  return new TaskEither(task.of(fa))
 }
 
-/**
- * Make sure that a resource is cleaned up in the event of
- * an exception. The release action is called regardless of
- * whether the body action throws or returns.
- */
-export const bracket = <L, A, R>(
-  acquire: TaskEither<L, R>,
-  program: (r: R) => TaskEither<L, A>,
-  release: (r: R) => TaskEither<L, void>
-): TaskEither<L, A> => {
-  return acquire.chain(r =>
-    attempt(program(r)).chain(result =>
-      release(r).chain(() =>
-        result.fold<TaskEither<L, A>>(
-          fromLeft,
-          taskEither.of
-        )
-      )
-    )
-  )
+const right = <L, A>(fa: Task<A>): TaskEither<L, A> => {
+  return new TaskEither(fa.map(a => either.right(a)))
+}
+
+const left = <L, A>(fa: Task<L>): TaskEither<L, A> => {
+  return new TaskEither(fa.map(a => either.left(a)))
 }
 \end{code}
+
+Le funzioni \texttt{fromEither}, \texttt{right} e \texttt{left} sono esempi di \emph{trasformazioni naturali}.
 
 \begin{demo}
 \begin{center}

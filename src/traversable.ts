@@ -1,6 +1,21 @@
 /*
 
-  Protocollo: name:asc,age:desc
+  # Summary
+
+  In questa demo vedremo come gestire l'ordinamento
+  di una tabella contenente una serie di utenti
+  tramite un protocollo che specifica
+  i campi (e la direzione) su cui ordinare.
+
+  Il protocollo ha eusta forma
+
+  <field>:<direction>*
+
+  Esempio:
+
+  la stringa "name:asc,age:desc" indica di
+  ordinare prima per il campo `name` in ordine
+  ascendente, e poi sul campo `age` in ordine discendente
 
 */
 
@@ -9,8 +24,7 @@ import {
   contramap,
   ordString,
   ordNumber,
-  getDualOrd,
-  getSemigroup
+  getDualOrd
 } from 'fp-ts/lib/Ord'
 import {
   Option,
@@ -18,47 +32,43 @@ import {
   none,
   option
 } from 'fp-ts/lib/Option'
-import { sequence } from 'fp-ts/lib/Traversable'
-import {
-  array,
-  fold as foldArray,
-  sort
-} from 'fp-ts/lib/Array'
-import { fold } from 'fp-ts/lib/Semigroup'
+import { traverse } from 'fp-ts/lib/Traversable'
+import { array, sortBy } from 'fp-ts/lib/Array'
 
-const sortBy = <A>(
-  ords: Array<Ord<A>>
-): Option<(as: Array<A>) => Array<A>> =>
-  foldArray(ords, none, (head, tail) =>
-    some(sort(fold(getSemigroup<A>())(head)(tail)))
-  )
+/*
 
-export interface Person {
+  Incominciamo col modellare i dati dell'utente
+
+*/
+
+export interface User {
   name: string
   age: number
 }
-
-const byName = contramap((p: Person) => p.name, ordString)
-
-const byAge = contramap((p: Person) => p.age, ordNumber)
 
 type Direction = 'asc' | 'desc'
 
 type Field = 'name' | 'age'
 
-const parserFromGuard = <A, B extends A>(
-  p: (a: A) => a is B
-): ((a: A) => Option<B>) => a => (p(a) ? some(a) : none)
+/*
 
-const parseDirection = parserFromGuard(
-  (s: string): s is Direction => s === 'asc' || s === 'desc'
-)
+  Definiamo tutti gli ordinamenti possibili
+  sottoforma di istanze di `Ord`
 
-const parseField = parserFromGuard(
-  (s: string): s is Field => s === 'name' || s === 'age'
-)
+*/
 
-const fromField = (field: Field): Ord<Person> => {
+const byName = contramap((p: User) => p.name, ordString)
+
+const byAge = contramap((p: User) => p.age, ordNumber)
+
+/*
+
+  Definiamo ora una funzione che converte
+  un `Field` nella corrispondente istanza di `Ord`
+
+*/
+
+const fromField = (field: Field): Ord<User> => {
   switch (field) {
     case 'name':
       return byName
@@ -67,26 +77,53 @@ const fromField = (field: Field): Ord<Person> => {
   }
 }
 
+/*
+
+  Gestire l'ordinamento discendente per una istanza di `Ord`
+  vuol dire prenderne il suo duale
+
+*/
+
 const fromDirection = <A>(
   direction: Direction,
   ord: Ord<A>
 ): Ord<A> => (direction === 'asc' ? ord : getDualOrd(ord))
 
-const isTuple = <A>(as: Array<A>): as is [A, A] =>
-  as.length === 2
+/*
 
-const parseTuple = (
-  s: string,
-  sep: string
-): Option<[string, string]> => {
-  const ss = s.split(sep)
-  return isTuple(ss) ? some(ss) : none
+  Definiamo le varie funzioni di parsing.
+
+  Una funzione di parsing per il tipo `A` in generale ha la forma
+
+  (s: string) => Option<A>
+
+*/
+
+const parseDirection = (s: string): Option<Direction> => {
+  return s === 'asc' || s === 'desc'
+    ? some<Direction>(s)
+    : none
 }
 
-const parseProtocolFragment = (
-  s: string
-): Option<Ord<Person>> =>
-  parseTuple(s, ':').chain(([fst, snd]) =>
+const parseField = (s: string): Option<Field> => {
+  return s === 'name' || s === 'age' ? some<Field>(s) : none
+}
+
+type Pair<A> = [A, A]
+
+const isPair = <A>(as: Array<A>): as is Pair<A> =>
+  as.length === 2
+
+const parsePair = (
+  s: string,
+  sep: string
+): Option<Pair<string>> => {
+  const ss = s.split(sep)
+  return isPair(ss) ? some(ss) : none
+}
+
+const parseFragment = (s: string): Option<Ord<User>> =>
+  parsePair(s, ':').chain(([fst, snd]) =>
     parseDirection(snd).chain(direction =>
       parseField(fst).map(field =>
         fromDirection(direction, fromField(field))
@@ -94,21 +131,21 @@ const parseProtocolFragment = (
     )
   )
 
-const sequenceOptions = sequence(option, array)
+// traverse!
 
 const parseProtocol = (
   s: string
-): Option<Array<Ord<Person>>> => {
-  const ords = s.split(',').map(parseProtocolFragment)
-  return sequenceOptions(ords)
+): Option<Array<Ord<User>>> => {
+  const fragments = s.split(',')
+  return traverse(option, array)(fragments, parseFragment)
 }
 
 export const sortPersons = (
   s: string,
-  persons: Array<Person>
-): Array<Person> =>
+  persons: Array<User>
+): Array<User> =>
   parseProtocol(s)
-    .chain(sortBy)
+    .chain(ords => sortBy(ords))
     .map(sort => sort(persons))
     .getOrElse(persons)
 
@@ -119,7 +156,7 @@ export const persons = [
   { name: 'b', age: 2 }
 ]
 
-// console.log(sortPersons('name:asc,age:asc', persons))
+console.log(sortPersons('name:asc,age:asc', persons))
 // console.log(sortPersons('name:asc,age:desc', persons))
 // console.log(sortPersons('age:asc,name:asc', persons))
 // console.log(sortPersons('name:asc', persons))

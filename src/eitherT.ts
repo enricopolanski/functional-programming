@@ -18,8 +18,8 @@ const fromArray = fromFoldable(array)
 
 type S3Error = 'notFound'
 
-const getUrl = (banck: string): string =>
-  `https://s3.buckets.my-buckets/${banck}/config`
+const getUrl = (bank: string): string =>
+  `https://s3.buckets.my-buckets/${bank}/config`
 
 /** fake API */
 const s3ListObjects = (

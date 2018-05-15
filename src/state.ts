@@ -9,7 +9,7 @@
 import { Option, fromNullable } from 'fp-ts/lib/Option'
 import { IO, io } from 'fp-ts/lib/IO'
 
-interface Store<A> {
+export interface Store<A> {
   [key: string]: A
 }
 
@@ -56,7 +56,7 @@ const update = (
     o.fold(io.of(undefined), n => setValue(key, f(n)))
   )
 
-const program2: IO<void> = setValue('a', 1)
+export const program2: IO<void> = setValue('a', 1)
   .chain(() => setValue('b', 2))
   .chain(() => update('c', double))
 
@@ -96,7 +96,7 @@ const update2 = <A>(
   )
 
 // che tipo ha `program3`?
-const program3 = setValue2('a', 1)
+export const program3 = setValue2('a', 1)
   .chain(() => setValue2('b', 2))
   .chain(() => update2('c', double))
 

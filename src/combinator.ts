@@ -1,5 +1,3 @@
-import { fstat } from 'fs'
-
 /*
 
   Problema: trasformare il seguente CSV
@@ -120,7 +118,10 @@ const getTokens = (csv: string): Array<Pair<string>> =>
 // mapping
 const toContactInfo = ([name, email]: Pair<
   string
->): ContactInfo => ({ name, email })
+>): ContactInfo => ({
+  name,
+  email
+})
 
 const toContactInfos3 = (
   csv: string,

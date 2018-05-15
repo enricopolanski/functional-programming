@@ -1,3 +1,15 @@
+/*
+
+  # Summary
+
+  In questa demo vediamo una nuova struttura dati,
+  gli alberi binari, e definiamo una istanza per
+
+  - `Foldable`
+  - `Traversable`
+
+*/
+
 //
 // data
 //
@@ -8,15 +20,18 @@ export class Leaf<A> {
   readonly _tag: 'Leaf' = 'Leaf'
   constructor(readonly value: A) {}
   toString(): string {
-    return `Leaf(${this.value})`
+    return `leaf(${this.value})`
   }
 }
 
 export class Node<A> {
   readonly _tag: 'Node' = 'Node'
-  constructor(readonly left: BinaryTree<A>, readonly right: BinaryTree<A>) {}
+  constructor(
+    readonly left: BinaryTree<A>,
+    readonly right: BinaryTree<A>
+  ) {}
   toString(): string {
-    return `Node(${this.left}, ${this.right})`
+    return `node(${this.left}, ${this.right})`
   }
 }
 
@@ -28,7 +43,7 @@ export const node = <A>(
 ): BinaryTree<A> => new Node(left, right)
 
 //
-// instances
+// Foldable instance
 //
 
 export const reduce = <A, B>(
@@ -45,8 +60,18 @@ export const reduce = <A, B>(
 }
 
 const tree = node(node(leaf('a'), leaf('b')), leaf('c'))
+/*
+   c
+  / b
+  \/
+   \a
+*/
 
 console.log(reduce(tree, '', (b, a) => b + a)) // 'abc
+
+//
+// Traversable instance
+//
 
 import { Applicative1 } from 'fp-ts/lib/Applicative'
 import { URIS, Type } from 'fp-ts/lib/HKT'
@@ -60,15 +85,19 @@ export function traverse<F extends URIS>(
 ) => Type<F, BinaryTree<B>> {
   const nodeLifted: <A>(
     fa: Type<F, BinaryTree<A>>
-  ) => (fb: Type<F, BinaryTree<A>>) => Type<F, BinaryTree<A>> = liftA2(F)(
-    left => right => node(left, right)
+  ) => (
+    fb: Type<F, BinaryTree<A>>
+  ) => Type<F, BinaryTree<A>> = liftA2(F)(left => right =>
+    node(left, right)
   )
   return (fa, f) => {
     switch (fa._tag) {
       case 'Leaf':
         return F.map(f(fa.value), leaf)
       case 'Node':
-        return nodeLifted(traverse(F)(fa.left, f))(traverse(F)(fa.right, f))
+        return nodeLifted(traverse(F)(fa.left, f))(
+          traverse(F)(fa.right, f)
+        )
     }
   }
 }

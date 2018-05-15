@@ -18,7 +18,7 @@
 
 import { Task, task } from 'fp-ts/lib/Task'
 
-interface MonadDB {
+export interface MonadDB {
   getEmail(userId: number): Task<string>
   updateProfile(
     userId: number,
@@ -27,14 +27,14 @@ interface MonadDB {
   ): Task<void>
 }
 
-interface MonadEmail {
+export interface MonadEmail {
   sendEmailChangedNotification(
     newEmail: string,
     oldEmail: string
   ): Task<void>
 }
 
-interface UpdateProfileRequest {
+export interface UpdateProfileRequest {
   userId: number
   name: string
   email: string
@@ -52,7 +52,7 @@ declare const monadEmail: MonadEmail
 */
 
 /** Restituisce `true` se è stata inviata una notifica */
-const updateCustomerProfile1 = (
+export const updateCustomerProfile1 = (
   request: UpdateProfileRequest
 ): Task<boolean> =>
   monadDB.getEmail(request.userId).chain(oldEmail =>
@@ -84,7 +84,7 @@ const updateCustomerProfile1 = (
 
 */
 
-declare const updateCustomerProfile2: (
+export declare const updateCustomerProfile2: (
   monadDB: MonadDB,
   monadEmail: MonadEmail
 ) => (request: UpdateProfileRequest) => Task<boolean>
@@ -106,12 +106,12 @@ declare const updateCustomerProfile2: (
 
 */
 
-interface Deps {
+export interface Deps {
   db: MonadDB
   email: MonadEmail
 }
 
-declare const updateCustomerProfile3: (
+export declare const updateCustomerProfile3: (
   request: UpdateProfileRequest
 ) => (dependencies: Deps) => Task<boolean>
 
@@ -130,7 +130,7 @@ declare const updateCustomerProfile3: (
 
 import { Reader } from 'fp-ts/lib/Reader'
 
-declare const updateCustomerProfile4: (
+export declare const updateCustomerProfile4: (
   request: UpdateProfileRequest
 ) => Reader<Deps, Task<boolean>>
 
@@ -156,7 +156,7 @@ class ReaderTask<E, A> {
 }
 
 const of = <E, A>(a: A): ReaderTask<E, A> =>
-  new ReaderTask(e => task.of(a))
+  new ReaderTask(_ => task.of(a))
 
 /*
 
@@ -228,8 +228,8 @@ const db: MonadDB = {
       `[DEBUG]: getting email for ${userId}: ${_email}`
     ).map(() => _email),
   updateProfile: (
-    userId: number,
-    name: string,
+    _userId: number,
+    _name: string,
     email: string
   ) =>
     putStrLn(
@@ -246,7 +246,7 @@ const db: MonadDB = {
 const email: MonadEmail = {
   sendEmailChangedNotification: (
     newEmail: string,
-    oldEmail: string
+    _oldEmail: string
   ) =>
     putStrLn(
       `[DEBUG]: sending change notification to ${newEmail}`
