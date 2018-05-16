@@ -47,6 +47,8 @@ export type Parser3<A> = (
 
   Proviamo ora a definire una istanza di `Monad`
 
+  (tentare un live coding qui?)
+
 */
 
 const tuple = <A, B>(a: A, b: B): [A, B] => [a, b]

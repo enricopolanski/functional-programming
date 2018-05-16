@@ -4700,7 +4700,7 @@ and execute sub-computations in a modified environment
 \end{quote}
 
 Se leggere da uno stato mutabile può invalidare la trasparenza referenziale, come è possibile leggere da una configurazione globale?
-Ancora una volta la risposta è nelle funzioni, il modello che descrive nel modo più generale la lettura da una configurazione globale
+Ancora una volta la risposta è nelle funzioni, il modello che descrive nel modo più generale la lettura da una configurazione
 è quello definito dalla seguente firma
 
 \begin{code}
@@ -4732,7 +4732,7 @@ const of = <E, A>(a: A): Reader<E, A> =>
 \subsection{Funzioni associate a \texttt{Reader}}
 
 \begin{function}
-Reads the current context
+Legge la configurazione corrente
 
 \begin{code}
 const ask = <E>(): Reader<E, E> => new Reader(e => e)
@@ -4740,7 +4740,7 @@ const ask = <E>(): Reader<E, E> => new Reader(e => e)
 \end{function}
 
 \begin{function}
-Projects a value from the global context in a Reader
+Ricava un valore in base alla configurazione corrente
 
 \begin{code}
 const asks = <E, A>(f: (e: E) => A): Reader<E, A> =>
@@ -4750,7 +4750,7 @@ const asks = <E, A>(f: (e: E) => A): Reader<E, A> =>
 \end{function}
 
 \begin{function}
-Changes the value of the local context during the execution of the action \texttt{fa}
+Cambia il valore della configurazione corrente durante l'esecuzione di una azione
 
 \begin{code}
 const local = <E>(f: (e: E) => E) => <A>(

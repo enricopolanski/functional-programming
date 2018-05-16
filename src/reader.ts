@@ -1,5 +1,7 @@
 /*
 
+  # Summary
+
   Supponiamo di avere una web app con utenti,
   ogni utente ha un suo profilo, e di dover implementare
   la feature modifica profilo (updateCustomerProfile).
@@ -34,6 +36,17 @@ export interface MonadEmail {
   ): Task<void>
 }
 
+/*
+
+  `MonadDB` e `MonadEmail` rappresentano le
+  "capabilities" di cui ha bisogno l'applicazione.
+
+  Il prefisso `Monad` sta ad inidicare che il codominio
+  di ogni operazione ha un effetto a cui corrisponde una
+  istanza di monade (in questo caso specifico `Task`)
+
+*/
+
 export interface UpdateProfileRequest {
   userId: number
   name: string
@@ -51,7 +64,11 @@ declare const monadEmail: MonadEmail
 
 */
 
-/** Restituisce `true` se è stata inviata una notifica */
+/**
+ * Restituisce `true` se è stata inviata una notifica
+ *
+ * In questa versione le dipendenze sono cablate nel codice
+ */
 export const updateCustomerProfile1 = (
   request: UpdateProfileRequest
 ): Task<boolean> =>
@@ -91,15 +108,16 @@ export declare const updateCustomerProfile2: (
 
 /*
 
-  Il problema di questa soluzione è che
+  Il "problema" di questa soluzione è che
   ogni consumer di updateCustomerProfile2 deve
   preoccuparsi di passare gli argomenti
-  MonadDB e MonadEmail.
+  `MonadDB` e `MonadEmail`.
 
   Ora, forte dell'adagio che in programmazione funzionale
   essere pigri è una qualità invece di un difetto,
   faccio una operazione a prima vista bizzarra:
-  scambio l'ordine dei due gruppi di argomenti nella funzione curried.
+  scambio l'ordine dei due gruppi di argomenti nella funzione curried,
+  postponendo la necessità di avere a disposizione le dipendenze.
 
   Aggiungo anche un nuovo type alias per avere un solo
   parametro contenente tutte le dipendenze.
@@ -119,7 +137,7 @@ export declare const updateCustomerProfile3: (
 
   In pratica sto ritardando il più possibile il binding
   delle dipendenze invece di farlo il prima possibile.
-  Adesso dovrebbe essere chiaro come si ricava Reader,
+  Adesso dovrebbe essere chiaro come si ottiene `Reader`,
   guardate l'ultima parte della firma
 
   (dependencies: Deps) => Task<boolean>
@@ -137,7 +155,8 @@ export declare const updateCustomerProfile4: (
 /*
 
   Avendo due monadi innestate (Reader e Task) conviene definire una terza
-  monade che le comprende (vedi monad transformer)
+  monade che le comprende. Vedremo più avanti che questa operazione
+  può essere standardizzata (con i monad transformer).
 
 */
 
@@ -151,7 +170,7 @@ class ReaderTask<E, A> {
     )
   }
   map<B>(f: (a: A) => B): ReaderTask<E, B> {
-    return this.chain(a => of(f(a)))
+    return this.chain(a => of(f(a))) // <- derived
   }
 }
 
@@ -160,8 +179,8 @@ const of = <E, A>(a: A): ReaderTask<E, A> =>
 
 /*
 
-  Addesso definisco qualche funzione di utility
-  in funzione di ReaderTask
+  Addesso ridefinisco le capabilities
+  in funzione di `ReaderTask`
 
 */
 
@@ -184,16 +203,10 @@ const updateProfile = (
 const sendEmailChangedNotification = (
   newEmail: string,
   oldEmail: string
-): ReaderTask<Deps, boolean> => {
-  if (newEmail !== oldEmail) {
-    return new ReaderTask(e =>
-      e.email
-        .sendEmailChangedNotification(newEmail, oldEmail)
-        .map(() => true)
-    )
-  } else {
-    return of(false)
-  }
+): ReaderTask<Deps, void> => {
+  return new ReaderTask(e =>
+    e.email.sendEmailChangedNotification(newEmail, oldEmail)
+  )
 }
 
 /*
@@ -206,15 +219,24 @@ const updateCustomerProfile5 = (
   request: UpdateProfileRequest
 ): ReaderTask<Deps, boolean> =>
   getEmail(request.userId).chain(oldEmail =>
-    updateProfile(request).chain(() =>
-      sendEmailChangedNotification(request.email, oldEmail)
-    )
+    updateProfile(request).chain(() => {
+      if (request.email !== oldEmail) {
+        return sendEmailChangedNotification(
+          request.email,
+          oldEmail
+        ).map(() => true)
+      } else {
+        return of(false)
+      }
+    })
   )
 
 /*
 
-  Definisco delle istanze
-  di test
+  Ora come è possibile testare il nostro programma?
+
+  Semplicemente defininendo delle istanze di test
+  per per `MonadDB` e `MonadEmail`
 
 */
 
@@ -222,24 +244,36 @@ import { putStrLn } from './Console'
 
 let _email = 'a@gmail.com'
 
+const withMessage = <A>(
+  message: string,
+  fa: Task<A>
+): Task<A> => {
+  return putStrLn(message).chain(() => fa)
+}
+
+const setEmail = (email: string): Task<void> =>
+  new Task(() => {
+    _email = email
+    return Promise.resolve(undefined)
+  })
+
 const db: MonadDB = {
   getEmail: (userId: number) =>
-    putStrLn(
-      `[DEBUG]: getting email for ${userId}: ${_email}`
-    ).map(() => _email),
+    withMessage(
+      `getting email for ${userId}: ${_email}`,
+      task.of(_email)
+    ),
   updateProfile: (
     _userId: number,
     _name: string,
     email: string
   ) =>
-    putStrLn(
-      `[DEBUG]: changing email from ${_email} to ${email}`
-    ).chain(
-      () =>
-        new Task(() => {
-          _email = email
-          return Promise.resolve(undefined)
-        })
+    withMessage(
+      `updating profile` +
+        (_email !== email
+          ? ` and changing email from ${_email} to ${email}`
+          : ''),
+      setEmail(email)
     )
 }
 
@@ -248,12 +282,10 @@ const email: MonadEmail = {
     newEmail: string,
     _oldEmail: string
   ) =>
-    putStrLn(
-      `[DEBUG]: sending change notification to ${newEmail}`
-    )
+    putStrLn(`sending change notification to ${newEmail}`)
 }
 
-const deps: Deps = {
+const testDeps: Deps = {
   db,
   email
 }
@@ -270,14 +302,14 @@ program
   // .chain(notified =>
   //   program.map(notified2 => notified || notified2)
   // )
-  .run(deps)
+  .run(testDeps)
   .run()
   .then(notified => {
     console.log(notified)
   })
 /*
-[DEBUG]: getting email for 1: a@gmail.com
-[DEBUG]: changing email from a@gmail.com to b@gmail.com
-[DEBUG]: sending change notification to b@gmail.com
+getting email for 1: a@gmail.com
+changing email from a@gmail.com to b@gmail.com
+sending change notification to b@gmail.com
 true
 */
