@@ -4785,8 +4785,10 @@ Definiamo una istanza di funtore
 class Writer<W, A> {
   constructor(readonly run: () => [A, W]) {}
   map<B>(f: (a: A) => B): Writer<W, B> {
-    const [a, w] = this.run()
-    return new Writer(() => [f(a), w])
+    return new Writer(() => {
+      const [a, w] = this.run()
+      return [f(a), w]
+    })
   }
   eval(): A {
     return this.run()[0]
@@ -4865,10 +4867,13 @@ const ap = <W>(S: Semigroup<W>) => <A, B>(
 }
 \end{code}
 
+In conclusione, per poter definire una istanza di monade per \texttt{Writer<W, A>}
+occorre fornire una istanza di \texttt{Monoid} per \texttt{W}.
+
 \subsection{Funzioni associate a \texttt{Writer}}
 
 \begin{function}
-Appends a value to the accumulator
+Appende un valore al log
 
 \begin{code}
 export const tell = <W>(w: W): Writer<W, void> => {
@@ -4878,7 +4883,7 @@ export const tell = <W>(w: W): Writer<W, void> => {
 \end{function}
 
 \begin{function}
-Modifies the result to include the changes to the accumulator
+Modifica il risultato includendo il log
 
 \begin{code}
 export const listen = <W, A>(
@@ -4893,7 +4898,7 @@ export const listen = <W, A>(
 \end{function}
 
 \begin{function}
-Applies the returned function to the accumulator
+Applica la funzione contenuta nel valore al log
 
 \begin{code}
 export const pass = <W, A>(
@@ -4908,7 +4913,7 @@ export const pass = <W, A>(
 \end{function}
 
 \begin{function}
-Projects a value from modifications made to the accumulator during an action
+Ricava e include un valore dal log risultante da un'azione
 
 \begin{code}
 export const listens = <W, A, B>(
@@ -4924,7 +4929,7 @@ export const listens = <W, A, B>(
 \end{function}
 
 \begin{function}
-Modify the final accumulator value by applying a function
+Modifica il log applicandogli una funzione
 
 \begin{code}
 export const censor = <W, A>(
