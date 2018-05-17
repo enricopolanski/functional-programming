@@ -15,12 +15,15 @@ export interface Store<A> {
   [key: string]: A
 }
 
-const store: Store<number> = { c: 3 }
+export const store: Store<number> = { c: 3 }
 
-const getValue = (key: string): IO<Option<number>> =>
+export const getValue = (key: string): IO<Option<number>> =>
   new IO(() => fromNullable(store[key]))
 
-const setValue = (key: string, value: number): IO<void> =>
+export const setValue = (
+  key: string,
+  value: number
+): IO<void> =>
   new IO(() => {
     store[key] = value
   })
@@ -35,14 +38,14 @@ const double = (n: number): number => n * 2
   - if found, modify c through double
 
 */
-const program: IO<void> = setValue('a', 1)
+export const program: IO<void> = setValue('a', 1)
   .chain(() => setValue('b', 2))
   .chain(() => getValue('c'))
   .chain(o =>
     o.fold(io.of(undefined), n => setValue('c', double(n)))
   )
 
-program.run()
+// program.run()
 // console.log(store) // { c: 6, a: 1, b: 2 }
 
 /*
@@ -83,12 +86,12 @@ export const program2: IO<void> = setValue('a', 1)
 
 import { State, gets, modify, state } from 'fp-ts/lib/State'
 
-const getValue2 = <A>(
+export const getValue2 = <A>(
   key: string
 ): State<Store<A>, Option<A>> =>
   gets(store => fromNullable(store[key]))
 
-const setValue2 = <A>(
+export const setValue2 = <A>(
   key: string,
   value: A
 ): State<Store<A>, void> =>

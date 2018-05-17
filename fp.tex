@@ -5005,14 +5005,11 @@ Come possiamo modellarla?
 Sappiamo che questi due effetti possono essere rispettivamente codificati dai seguenti tipi
 
 \begin{itemize}
-\item \texttt{Task<A>}
-\item \texttt{Either<L, A>}
+\item \texttt{Task<A>} (asincronicità)
+\item \texttt{Either<L, A>} (possibile fallimento)
 \end{itemize}
 
 e che ambedue hanno una istanza di monade.
-
-L'istanza di monade di \texttt{Task<A>} rappresenta l'effetto asincronicità, mentre l'istanza
-di monade di \texttt{Either<L, A>} rappresenta l'effetto fallimento.
 
 Come posso combinare questi due effetti?
 
@@ -5049,6 +5046,8 @@ Suggerimento: provare a definire la funzione \texttt{flatten} per la monade comp
 \end{exercise}
 
 Che non compongano in generale però non vuol dire che non esistano dei casi particolari ove questo succede.
+
+Meglio ancora, il numero di combinazioni in cui succede è piuttosto vasto. Nella pratica raramente è un problema.
 
 \subsection{Cosa sono?}
 
