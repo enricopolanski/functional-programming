@@ -1,6 +1,6 @@
 # Risorse
 
-## C# / F
+## C# / F#
 
 ### Blog
 
