@@ -55,7 +55,8 @@ export const reduce = <A, B>(
     case 'Leaf':
       return f(b, fa.value)
     case 'Node':
-      return reduce(fa.right, reduce(fa.left, b, f), f)
+      const b2 = reduce(fa.left, b, f)
+      return reduce(fa.right, b2, f)
   }
 }
 
@@ -67,7 +68,7 @@ const tree = node(node(leaf('a'), leaf('b')), leaf('c'))
    \a
 */
 
-console.log(reduce(tree, '', (b, a) => b + a)) // 'abc
+console.log(reduce(tree, '', (b, a) => b + a)) // 'abc'
 
 //
 // Traversable instance

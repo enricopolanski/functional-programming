@@ -122,6 +122,7 @@ const parsePair = (
   return isPair(ss) ? some(ss) : none
 }
 
+// name:desc
 const parseFragment = (s: string): Option<Ord<User>> =>
   parsePair(s, ':').chain(([fst, snd]) =>
     parseDirection(snd).chain(direction =>
@@ -133,6 +134,7 @@ const parseFragment = (s: string): Option<Ord<User>> =>
 
 // traverse!
 
+// name:asc,age:asc
 const parseProtocol = (
   s: string
 ): Option<Array<Ord<User>>> => {
@@ -140,14 +142,14 @@ const parseProtocol = (
   return traverse(option, array)(fragments, parseFragment)
 }
 
-export const sortPersons = (
+export const sortUsers = (
   s: string,
-  persons: Array<User>
+  users: Array<User>
 ): Array<User> =>
   parseProtocol(s)
     .chain(ords => sortBy(ords))
-    .map(sort => sort(persons))
-    .getOrElse(persons)
+    .map(sort => sort(users))
+    .getOrElse(users)
 
 export const persons = [
   { name: 'a', age: 1 },
@@ -156,7 +158,7 @@ export const persons = [
   { name: 'b', age: 2 }
 ]
 
-console.log(sortPersons('name:asc,age:asc', persons))
+console.log(sortUsers('name:asc,age:asc', persons))
 // console.log(sortPersons('name:asc,age:desc', persons))
 // console.log(sortPersons('age:asc,name:asc', persons))
 // console.log(sortPersons('name:asc', persons))

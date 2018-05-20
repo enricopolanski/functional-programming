@@ -113,8 +113,10 @@ export const wizard2: Wizard = monoidWizard.concat(
 
 import { identity } from 'fp-ts/lib/function'
 
-export const runWizard = (w: Wizard) =>
-  w.chain(identity).run()
+export const runWizard = (w: Wizard) => {
+  const x = w.chain(identity)
+  return x.run()
+}
 
 // runWizard(wizard2)
 

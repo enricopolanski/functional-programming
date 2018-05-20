@@ -1,0 +1,11 @@
+{
+  "name": "functional-programming",
+  "version": "0.1.0",
+  "scripts": {},
+  "keywords": [],
+  "author": "Giulio Canti <giulio.canti@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "fp-ts": "^1.4.0"
+  }
+}

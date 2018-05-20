@@ -91,7 +91,7 @@ const monadStoreState: MonadStore<'State', number> = {
 export const ioResult = program(monadStoreIO) as IO<void>
 
 // ioResult.run()
-console.log(store) // { c: 6, a: 1, b: 2 }
+// console.log(store) // { c: 6, a: 1, b: 2 }
 
 export const stateResult = program(
   monadStoreState

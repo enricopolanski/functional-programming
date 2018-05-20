@@ -4277,7 +4277,7 @@ ArrayOption([some(3), none, some(4)])
 
 \begin{code}
 interface Alt<F> extends Functor<F> {
-  alt: <A>(fx: F<A>, fy: F<A>) => F<FA>
+  alt: <A>(fx: F<A>, fy: F<A>) => F<A>
 }
 \end{code}
 
@@ -4297,7 +4297,7 @@ distributivity & \texttt{A.map(f, A.alt(a, b)) = A.alt(A.map(f, a), A.map(f, b))
 \subsection{\texttt{Alternative}}
 
 \begin{code}
-interface Alternative<F> extends Applicative<F> {
+interface Alternative<F> extends Applicative<F>, Alt<F> {
   zero: <A>() => F<A>
 }
 \end{code}
@@ -4321,9 +4321,9 @@ annihilation & \texttt{A.ap(A.zero(), a) = A.zero()} \\
 \egroup
 \end{center}
 
-\texttt{Monoid} è parametrizzato su argomento con kind \texttt{*}.
+\texttt{Monoid} è parametrizzato da un argomento con kind \texttt{*}.
 
-\texttt{Alternative} invece è parametrizzato su argomento con kind \texttt{* -> *} e non solo ha una struttura monoidale,
+\texttt{Alternative} invece è parametrizzato da un argomento con kind \texttt{* -> *} e non solo ha una struttura monoidale,
 ma questa struttura non dipende dal tipo passato al type constructor.
 
 $$
@@ -4437,8 +4437,7 @@ Suggerimento: si ricordi che l'effetto codificato da \texttt{Array} è l'indeter
   & Alt \ar[ldd] & & Alternative \ar[ll] \ar[ld] \\
   & Apply \ar[ld] & Applicative \ar[l] & Monad \ar[l] \ar[ld] \\
   Functor & & Chain \ar[lu] \\
-  & Extend \ar[lu] & Comonad \ar[l] \\
-  Foldable & Traversable \ar[l] \ar[uul] \\
+  Foldable & Traversable \ar[l] \ar[ul] \\
 }
 \]
 
@@ -4449,7 +4448,7 @@ Suggerimento: si ricordi che l'effetto codificato da \texttt{Array} è l'indeter
 In Teoria delle Categorie, una \emph{trasformazione naturale} offre una modo per trasformare un funtore in un altro rispettando
 la struttura interna, ovvero la composizione di morfismi, delle categorie coinvolte.
 
-Una trasformazione naturale può essere considerata come un morfismo tra funtori. In effetti questa intuizione può essere formalizzata
+Una trasformazione naturale può essere considerata come un mappa tra funtori. In effetti questa intuizione può essere formalizzata
 definendo la \emph{categoria dei funtori}: date due categorie $\mathcal{C}$ e $\mathcal{D}$, i funtori tra $\mathcal{C}$ e $\mathcal{D}$
 costituiscono gli oggetti mentre i morfismi sono le trasformazioni naturali tra i funtori.
 
