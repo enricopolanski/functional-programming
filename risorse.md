@@ -45,3 +45,6 @@
 ### Blog
 
 * Category Theory for Programmers https://bartoszmilewski.com (avanzato)
+
+### Vari
+* Jargon from the functional programming world in simple terms! https://github.com/hemanth/functional-programming-jargon
