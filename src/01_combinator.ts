@@ -13,7 +13,7 @@ bar;bar@hotmail.com`
 
 */
 
-type ContactInfo = {
+interface ContactInfo {
   name: string
   email: string
 }
@@ -94,11 +94,10 @@ const toContactInfos2 = (
 
 /*
 
-  La soluzione sembra funzionare ma cosa ne pensate?
+  La soluzione pare funzionare ma
 
-*/
-
-/*
+  - l'API non è soddisfacente
+  - l'implementazione non è del tutto chiara
 
   Separiamo la logica di parsing da quella di filtering e mapping
 
@@ -106,6 +105,7 @@ const toContactInfos2 = (
 
 type Pair<A> = [A, A]
 
+// helper
 const toPair = (xs: Array<string>): Pair<string> => [
   xs.length > 0 ? xs[0].trim() : '',
   xs.length > 1 ? xs[1].trim() : ''
@@ -183,8 +183,8 @@ const toContactInfos4 = (
 /*
 
   Fino ad ora ho fatto un refactoring che non ha modificato in alcun modo la funzionlità
-  Ma adesso è evidente che i parametri aggiuntivi servono solo per creare il predicato.
-  Ma allora passiamo direttamente il predicato come argomento!
+  Ma adesso è evidente che i parametri aggiuntivi servono solo per creare il filtro.
+  Ma allora passiamo direttamente il filtro come argomento!
 
 */
 
@@ -193,7 +193,7 @@ const toContactInfos = (
   filter: Filter
 ): Array<ContactInfo> =>
   getTokens(csv)
-    .filter(filter)
+    .filter(filter) // <= tutta la personalizzazione va qui
     .map(toContactInfo)
 
 /*
@@ -210,11 +210,17 @@ type Combinator = (filter: Filter) => Filter
 
 const all: Filter = () => true
 
-const nameRequired: Combinator = next => pair =>
-  pair[0] === '' ? false : next(pair)
+const nameRequired: Combinator = (
+  nextFilter: Filter
+): Filter => {
+  return pair => (pair[0] === '' ? false : nextFilter(pair))
+}
 
-const emailRequired: Combinator = next => pair =>
-  pair[1] === '' ? false : next(pair)
+const emailRequired: Combinator = (
+  nextFilter: Filter
+): Filter => {
+  return pair => (pair[1] === '' ? false : nextFilter(pair))
+}
 
 console.log(toContactInfos(bad, all))
 /*

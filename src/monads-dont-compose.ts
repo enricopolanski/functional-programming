@@ -57,7 +57,15 @@ export const composeK = <A, B, C>(
   return a => g(a).chain(f)
 }
 
-console.log(composeK(f, composeK(f, f))(0))
+console.log(
+  composeK(
+    f,
+    composeK(
+      f,
+      f
+    )
+  )(0)
+)
 /*
 ArrayArray {
   run:
@@ -68,7 +76,15 @@ ArrayArray {
      [ 0, 1, 1, 0 ],
      [ 0, 1, 1, 1 ] ] }
 */
-console.log(composeK(composeK(f, f), f)(0))
+console.log(
+  composeK(
+    composeK(
+      f,
+      f
+    ),
+    f
+  )(0)
+)
 /*
 ArrayArray {
   run:

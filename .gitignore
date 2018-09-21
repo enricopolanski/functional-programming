@@ -1,3 +1,8 @@
 _*
 node_modules
 package-lock.json
+fp.aux
+fp.log
+fp.out
+fp.toc
+fp.synctex.gz

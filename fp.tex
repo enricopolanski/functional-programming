@@ -55,7 +55,6 @@
 \tableofcontents
 
 \newpage
-
 \section{Che cos'è la programmazione funzionale}
 
 \begin{quote}
@@ -124,11 +123,11 @@ che fanno qualcosa di specifico in grado di essere combinate al fine di ottenere
 \begin{center}
 \textbf{DEMO}
 
-\texttt{combinator.ts}
+\texttt{01\_combinator.ts}
 \end{center}
 \end{demo}
 
-Una gran parte delle tecniche utilizzate nella programmazione funzionale sono mutuate dalla matematica.
+Una buona parte dei modelli utilizzati nella programmazione funzionale sono mutuati dalla matematica.
 
 Facciamo due esempi che ci saranno utili anche in seguito
 
@@ -142,14 +141,14 @@ Facciamo due esempi che ci saranno utili anche in seguito
 Il concetto di computazione parallelizzabile (e distribuibile) può essere catturato dalla nozione di operazione associativa.
 
 \begin{definition}
-Sia $A$ un insieme, una operazione $*: A \times A \rightarrow A$ si dice \emph{associativa} se per ogni $a, b, c \in A$ vale
+Sia $A$ un insieme, una operazione $*: (x: A, y: A) => A$ si dice \emph{associativa} se per ogni $a, b, c \in A$ vale
 
 $$
 (a * b) * c = a * ( b * c )
 $$
 \end{definition}
 
-In altre parole la proprietà associativa garantisce che non importa l'ordine in cui vengono fatte le operazioni, il risultato sarà sempre lo stesso.
+In altre parole la proprietà associativa garantisce che non importa l'ordine in cui vengono raggruppate le operazioni, il risultato sarà sempre lo stesso.
 
 Possiamo quindi eliminare le parentesi, senza pericolo di ambiguità
 
@@ -187,11 +186,17 @@ Un tale enunciato informale può lasciare spazio a qualche dubbio
 \item ma soprattutto, cosa si intende con "stesso"?
 \end{itemize}
 
-Vediamo una definizione formale del concetto di funzione
+Vediamo una definizione formale del concetto di funzione.
+
+Nota. Ricordiamo che se $X$ e $Y$ sono due insiemi, allora con $X \times Y$ si indica il loro \emph{prodotto cartesiano}, ovvero l'insieme
+
+$$
+X \times Y = \Big\{ \quad (x, y) \quad | \quad x \in X, y \in Y \Big\}
+$$
 
 \begin{definition}
-Una \emph{funzione} $f: X \rightarrow Y$ è un sottoinsieme $f$ di $X \times Y$ (il \emph{prodotto cartesiano} di $X$ e $Y$) tale che
-per ogni $x \in X$ esiste esattamente un $y \in Y$ tale che $(x, y) \in f$\footnote{Questa definizione risale ad un secolo fa https://en.wikipedia.org/wiki/History\_of\_the\_function\_concept}.
+Una \emph{funzione}\footnote{Questa definizione risale ad un secolo fa https://en.wikipedia.org/wiki/History\_of\_the\_function\_concept} $f: X \rightarrow Y$ è un sottoinsieme $f$ di $X \times Y$ tale che
+per ogni $x \in X$ esiste esattamente un $y \in Y$ tale che $(x, y) \in f$.
 \end{definition}
 
 L'insieme $X$ si dice il \emph{dominio} di $f$, $Y$ il suo \emph{codominio}.
@@ -1985,7 +1990,7 @@ const getDualOrd = <A>(
 \begin{center}
 \textbf{DEMO}
 
-\texttt{ord.ts}
+\texttt{02\_ord.ts}
 \end{center}
 \end{demo}
 
@@ -2257,7 +2262,7 @@ A system that does neither, composes for “free” and represents a promise of 
 \begin{center}
 \textbf{DEMO}
 
-\texttt{shapes.ts}
+\texttt{03\_shapes.ts}
 \end{center}
 \end{demo}
 
@@ -2761,7 +2766,7 @@ definire una istanza di funtore applicativo.
 \begin{center}
 \textbf{DEMO}
 
-\texttt{applicative.ts}
+\texttt{04\_applicative.ts}
 \end{center}
 \end{demo}
 
@@ -3482,10 +3487,43 @@ const program3 = interleave(
 \begin{center}
 \textbf{DEMO}
 
-\texttt{game.ts}
+\texttt{05\_game.ts}
 \end{center}
 \end{demo}
 
+\newpage
+\subsection{Cheatsheet}
+
+Composizione di programmi
+
+\begin{center}
+\bgroup
+\def\arraystretch{1.5}
+\begin{tabular}{ |c|c|c| }
+\hline
+Programma \texttt{g} & Programma \texttt{f} & Composizione \\
+\hline
+senza effetti & senza effetti & $h = f \circ g$ \\
+\hline
+con effetti & senza effetti & $h = liftA_n(f) \circ g$ \\
+\hline
+con effetti & con effetti & $h = chain(f) \circ g$ \\
+\hline
+\end{tabular}
+\egroup
+\end{center}
+
+\begin{center}
+ove $liftA_1 = map$
+\end{center}
+
+Composizione di valori\footnote{Fonte: https://twitter.com/jdegoes/status/1041950447718866944}
+
+\begin{center}
+\includegraphics[scale=0.4]{composition}
+\end{center}
+
+\newpage
 \subsection{Le monadi non compongono}
 
 In generale le monadi non compongono, ovvero date due istanze di monade, una per \texttt{M<A>} e una per \texttt{N<A>},
@@ -4071,14 +4109,18 @@ reduce(
 \begin{center}
 \textbf{DEMO}
 
-\texttt{BinaryTree.ts} \\
-\texttt{wizard.ts}
+\texttt{06\_BinaryTree.ts} \\
+\texttt{07\_wizard.ts}
 \end{center}
 \end{demo}
 
 \newpage
 
 \section{Traversable}
+
+\begin{quote}
+There are two basic answers to "how do I" questions in Scala. One is "don't do that". The other is "traverse". - Rúnar Bjarnason
+\end{quote}
 
 Data una istanza di \texttt{Applicative} per \texttt{F} é possibile definire la seguente funzione
 
@@ -4264,8 +4306,8 @@ ArrayOption([some(3), none, some(4)])
 \begin{center}
 \textbf{DEMO}
 
-\texttt{BinaryTree.ts} \\
-\texttt{traversable.ts}
+\texttt{06\_BinaryTree.ts} \\
+\texttt{08\_traversable.ts}
 \end{center}
 \end{demo}
 
@@ -4424,7 +4466,7 @@ Suggerimento: si ricordi che l'effetto codificato da \texttt{Array} è l'indeter
 \begin{center}
 \textbf{DEMO}
 
-\texttt{router.ts}
+\texttt{09\_router.ts}
 \end{center}
 \end{demo}
 
@@ -4685,7 +4727,7 @@ console.log(program.run(2)) // [undefined, 4]
 \begin{center}
 \textbf{DEMO}
 
-\texttt{state.ts}
+\texttt{10\_state.ts}
 \end{center}
 \end{demo}
 
@@ -4762,7 +4804,7 @@ const local = <E>(f: (e: E) => E) => <A>(
 \begin{center}
 \textbf{DEMO}
 
-\texttt{reader.ts}
+\texttt{11\_reader.ts}
 \end{center}
 \end{demo}
 
@@ -4947,7 +4989,7 @@ export const censor = <W, A>(
 \begin{center}
 \textbf{DEMO}
 
-\texttt{writer.ts}
+\texttt{12\_writer.ts}
 \end{center}
 \end{demo}
 
@@ -5223,7 +5265,7 @@ Le funzioni \texttt{fromEither}, \texttt{right} e \texttt{left} sono esempi di \
 \begin{center}
 \textbf{DEMO}
 
-\texttt{eitherT.ts}
+\texttt{13\_eitherT.ts}
 \end{center}
 \end{demo}
 

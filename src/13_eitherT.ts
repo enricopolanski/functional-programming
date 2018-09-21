@@ -17,7 +17,7 @@ import { StrMap, fromFoldable } from 'fp-ts/lib/StrMap'
 import { array } from 'fp-ts/lib/Array'
 import { traverse } from 'fp-ts/lib/Traversable'
 import { tuple, identity } from 'fp-ts/lib/function'
-import { delay } from './Task'
+import { delay } from 'fp-ts/lib/Task'
 
 /** il tipo degli errori restituiti dall'API di S3 */
 type S3Error = 'notFound'
@@ -39,21 +39,20 @@ const s3ListObjects = (
   switch (url) {
     case getUrl('banca1'):
       return right(
-        // <- lifting
-        delay(500)(['payload-banca1-1', 'payload-banca1-2'])
-      )
+        delay(500, ['payload-banca1-1', 'payload-banca1-2'])
+      ) // <- lifting
     case getUrl('banca2'):
       return right(
-        delay(500)([
+        delay(500, [
           'payload-banca2-1',
           'payload-banca2-2',
           'payload-banca2-3'
         ])
       )
     case getUrl('banca3'):
-      return right(delay(500)(['payload-banca3-1']))
+      return right(delay(500, ['payload-banca3-1']))
     default:
-      return left(delay(2000)<S3Error>('notFound')) // <- lifting
+      return left(delay<S3Error>(2000, 'notFound')) // <- lifting
   }
 }
 

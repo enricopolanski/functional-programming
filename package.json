@@ -6,7 +6,7 @@
   "author": "Giulio Canti <giulio.canti@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "fp-ts": "^1.4.0"
+    "fp-ts": "^1.8.1"
   },
   "devDependencies": {
     "@types/node": "^10.1.3"

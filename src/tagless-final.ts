@@ -68,9 +68,8 @@ import {
   setValue,
   getValue2,
   setValue2,
-  store,
   Store
-} from './state'
+} from './10_state'
 import { IO, io } from 'fp-ts/lib/IO'
 import { State, state } from 'fp-ts/lib/State'
 
