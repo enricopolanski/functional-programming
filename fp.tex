@@ -243,17 +243,9 @@ Nella programmazione funzionale l'implementazione delle funzioni deve avvicinars
 Che una funzione sia pura non implica necessariamente che sia bandita la mutabilità, localmente è ammissibile
 se non esce dai confini della implementazione.
 
-\begin{verbatim}
-              Mutable
-                 ^
-      (Good)     |      (Bad)
-                 |
-  Non-Shared ----------> Shared
-    State        |       State
-                 |
-      (Good)     |      (Good)
-             Immutable
-\end{verbatim}
+\begin{center}
+	\includegraphics[scale=0.5]{mutable-immutable}
+\end{center}
 
 Lo scopo ultimo è garantirne le proprietà fondamentali: purezza e trasparenza referenziale.
 
