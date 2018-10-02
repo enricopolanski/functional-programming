@@ -101,7 +101,7 @@ const zs = xs.map(double)
 
 Un ciclo \texttt{for} è più flessibile: posso modificare l'indice di partenza, la condizione di fine e il passo.
 Ma questo vuol dire anche che ci sono più possibilità di introdurre bachi e non ho alcuna garanzia sul risultato.
-Una \texttt{map} invece mi da delle garanzie: gli elementi dell'input verrano processati tutti dal primo all'ultimo e
+Una \texttt{map} invece mi dà delle garanzie: gli elementi dell'input verrano processati tutti dal primo all'ultimo e
 qualunque sia l'operazione che viene fatta nella callback, il risultato sarà sempre un array con lo stesso numero di elementi
 dell'array di input.
 
@@ -262,7 +262,7 @@ si dice \emph{composizione} di $f$ e $g$ e si scrive $h = f \circ g$
 
 \end{definition}
 
-Si noti che affinchè due funzioni $f$ e $g$ possano comporre, il codominio di $g$ deve coincidere col dominio di $f$.
+Si noti che affinché due funzioni $f$ e $g$ possano comporre, il codominio di $g$ deve coincidere col dominio di $f$.
 
 \subsection{Funzioni parziali}
 
@@ -3061,7 +3061,7 @@ Una Kleisli arrow $f: A \rightarrow M(B)$ può essere interpretata come un progr
 \end{demo}
 
 Le Kleisli arrows $g: A \rightarrow M(B)$, $f: B \rightarrow M(C)$ non compongono rispetto a $\circ$, l'operazione di composizione della categoria $\mathcal{C}$,
-poichè $M(B)$ è diverso da $B$.
+poiché $M(B)$ è diverso da $B$.
 
 Si consideri allora la seguente costruzione $K_{\mathcal{C}}$
 
@@ -3879,7 +3879,7 @@ const toArray = <F>(F: Foldable<F>) => <A>(fa: F<A>): Array<A>
 Perché? Suggerimento: usare \texttt{foldMap}.
 \end{exercise}
 
-È importante notare che affinchè sia possibile scrivere una istanza di \texttt{Foldable} è necessario che la produzione di valori
+È importante notare che affinché sia possibile scrivere una istanza di \texttt{Foldable} è necessario che la produzione di valori
 di tipo \texttt{A} abbia un ordine deterministico dato che la riduzione passa attraverso la funzione
 
 \begin{code}
