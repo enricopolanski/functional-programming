@@ -61,7 +61,7 @@ const API: API = {
 
 */
 
-const getAmountSync = (amount: number) => (
+const getAmount = (amount: number) => (
   rate: number
 ): number => amount * rate
 
@@ -69,7 +69,7 @@ const getAmountSync = (amount: number) => (
 
   Quello che vorrei è definire la seguente funzione
 
-  const getAmountAsync = (
+  const fetchAmount = (
     userId: string,
     currency: Currency
   ): Task<number> => ???
@@ -89,12 +89,11 @@ export const liftA2 = <A, B, C>(
 
 /*
 
-  Il programma finale
+  L'API finale
 
 */
 
-const getAmountAsync = (
-  api: API,
+const getAmountAsync = (api: API) => (
   userId: string,
   currency: Currency
 ): Task<number> => {
@@ -103,11 +102,15 @@ const getAmountAsync = (
     // Task ha una istanza di funtore
     .map(user => user.amount)
   const rate = api.fetchRate(currency)
-  const liftedgetAmountSync = liftA2(getAmountSync)
+  const liftedgetAmountSync = liftA2(getAmount)
   return liftedgetAmountSync(amount)(rate)
 }
 
-const result = getAmountAsync(API, '42', 'USD')
+// fetchAmount: (userId: string, currency: Currency) => Task<number>
+const fetchAmount = getAmountAsync(API)
 
+const result: Task<number> = fetchAmount('42', 'USD')
+
+// run del programma
 result.run().then(x => console.log(x))
 // 12

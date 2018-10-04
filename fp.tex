@@ -2431,10 +2431,10 @@ f: A \times B \rightarrow C
 $$
 
 ove $A \times B$ indica il prodotto cartesiano degli insiemi $A$ e $B$.
-La funzione $f$ può essere riscritta in modo che sia una composizione di due funzioni, ognuna con un solo argomento
+La funzione $f$ può essere riscritta in modo che abbia un solo argomento ma che restituisca a sua volta una funzione
 
 $$
-f: A \rightarrow B \rightarrow C
+f: A \rightarrow (B \rightarrow C)
 $$
 
 Questo processo di riscrittura prende il nome di \emph{currying}\footnote{Fu introdotta da Gottlob Frege (filosofo, logico e matematico tedesco), sviluppata da Moses Schönfinkel (logico e matematico russo), e sviluppata ulteriormente da Haskell Curry (logico e matematico americano)}.
@@ -2446,14 +2446,7 @@ F(f): F(A) \rightarrow F(B) \rightarrow F(C)
 $$
 
 Proviamo a costruire $F(f)$ con i soli mezzi che abbiamo a disposizione.
-Siccome sappiamo che la composizione di funzioni è associativa possiamo evidenziare il secondo elemento della composizione di $f$
-vedendola come una funzione che accetta un solo parametro di tipo $A$ e restituisce un valore di tipo $B \rightarrow C$.
-
-$$
-f: A \rightarrow (B \rightarrow C)
-$$
-
-ora che ci siamo ricondotti ad avere una funzione con un solo parametro, possiamo operare un lifting tramite il funtore $F$
+Ora che tramite currying ci siamo ricondotti ad avere una funzione con un solo parametro, possiamo operare un lifting tramite il funtore $F$
 
 $$
 F(f): F(A) \rightarrow F(B \rightarrow C)
@@ -2464,7 +2457,7 @@ Perché non c'è nessuna operazione lecita che ci permette di passare dal tipo $
 
 Il fatto che $F$ ammetta una istanza di funtore non basta, deve avere una proprietà in più, quella cioè di ammettere una operazione che permette di
 spacchettare il tipo delle funzioni da $B$ a $C$ mandandolo nel tipo delle funzioni da $F(B)$ a $F(C)$.
-Indichiamo questa operazione con il nome \texttt{ap} e la corrispondente asptrazione con \texttt{Apply}.
+Indichiamo questa operazione con il nome \texttt{ap} e la corrispondente astrazione con \texttt{Apply}.
 
 Inoltre sarebbe oppurtuno avere un'altra operazione che, dato un valore di tipo $A$ associa un valore di tipo $F(A)$.
 In questo modo, una volta ottenuta la funzione $F(f) = F(A) \rightarrow F(B) \rightarrow F(C)$ e avendo a disposizione un valore di tipo $F(A)$
@@ -2474,7 +2467,12 @@ Chiamiamo questa operazione \texttt{of}.
 
 \subsection{Definizione}
 
-Sia $F$ un funtore, allora si dice \emph{funtore applicativo} (\texttt{Applicative}) se esistono due operazioni
+Sia $F$ un funtore, allora $F$ si dice \emph{funtore applicativo} (\texttt{Applicative})
+se esistono due operazioni \texttt{ap}
+\footnote{\texttt{ap} può essere presentata anche nella sua forma curried ed equivalente:\\
+\texttt{ap: <A, B>(f: F<(a: A) => B>) => (fa: F<A>) => F<B>}
+}
+e \texttt{of}
 
 \begin{code}
 interface Apply<F> extends Functor<F> {
@@ -2486,7 +2484,7 @@ interface Applicative<F> extends Apply<F> {
 }
 \end{code}
 
-tali che valgono le seguenti leggi
+tali che valgano le seguenti leggi
 
 \begin{center}
 \bgroup
@@ -2588,6 +2586,16 @@ Consideriamo la seguente funzione \texttt{sum}
 const sum = (a: number) => (b: number): number => a + b
 \end{code}
 
+L'obiettivo è ottenere una funzione
+
+\begin{code}
+type sumOptions = (
+  fa: Option<number>
+) => (fb: Option<number>) => Option<number>
+\end{code}
+
+\subsubsection{Primo metodo: \texttt{of} e \texttt{ap}}
+
 È possibile sfruttare \texttt{of} e \texttt{ap} per ottenere il suo lifting
 
 \begin{code}
@@ -2596,12 +2604,31 @@ const sumOptions = (fa: Option<number>) => (
 ): Option<number> => fb.ap(fa.ap(of(sum)))
 \end{code}
 
-oppure usando \texttt{map} e \texttt{ap}
+Infatti
+
+\begin{code}
+const x: Option<(a: number) => (b: number) => number> = of(
+  sum
+)
+const y: Option<(b: number) => number> = fa.ap(x)
+const z: Option<number> = fb.ap(y)
+\end{code}
+
+\subsubsection{Secondo metodo: \texttt{map} e \texttt{ap}}
+
+Oppure si possono sfruttare \texttt{map} e \texttt{ap}
 
 \begin{code}
 const sumOptions = (fa: Option<number>) => (
   fb: Option<number>
 ): Option<number> => fb.ap(fa.map(sum))
+\end{code}
+
+Infatti
+
+\begin{code}
+const x: Option<(b: number) => number> = fa.map(sum)
+const y: Option<number> = fb.ap(x)
 \end{code}
 
 \subsection{La funzione \texttt{liftA2}}
@@ -2774,7 +2801,7 @@ interface Monoidal<F> extends Functor<F> {
 \end{code}
 
 \begin{exercise}
-Dimostrare che sono equivalenti.
+Provare che sono equivalenti.
 \end{exercise}
 
 \subsection{Composizione di funtori applicativi}
@@ -2783,8 +2810,8 @@ I funtori applicativi compongono, ovvero dati due funtori applicativi \texttt{F}
 allora la composizione \texttt{F(G)} è ancora un funtore applicativo.
 
 \begin{code}
-import { Option, option } from "fp-ts/lib/Option'
-import { array } from "fp-ts/lib/Array'
+import { Option, option } from "fp-ts/lib/Option"
+import { array } from "fp-ts/lib/Array"
 
 export const of = <A>(a: A) =>
   new ArrayOption(array.of(option.of(a)))
@@ -2908,7 +2935,7 @@ $$
 
 Ma in generale non è così.
 
-E in particolare non sappiamo ancora come comporre gli effetti, guardate cosa può accadere con \texttt{Option}
+E in particolare non sappiamo ancora come comporre prohgrammi con effetti, guardate cosa può accadere con \texttt{Option}
 
 \begin{code}
 const head = <A>(as: Array<A>): Option<A> =>
@@ -2921,8 +2948,8 @@ const inverse = (x: number): Option<number> =>
 const program = head([2, 3]).map(inverse)
 \end{code}
 
-Qui il risultato è incapsulato due volte in una \texttt{Option}, circostanza affatto desiderabile.
-Vediamo se è possibile definire una funzione che \emph{appiattisce} il risultato, chiamiamola \texttt{flatten}
+Qui il risultato è "incapsulato" due volte in una \texttt{Option}, circostanza affatto desiderabile.
+Vediamo se è possibile definire una funzione che "srotola" il risultato, chiamiamola \texttt{flatten}
 
 \begin{code}
 const flatten = <A>(
@@ -2966,7 +2993,7 @@ Cosa dire di \texttt{Either}, \texttt{Array} e delle altre istanze di funtore?
 
 È possibile individuare un nuovo pattern funzionale?
 
-Si, le monadi.
+Sì, le monadi.
 
 \subsection{Un po' di storia}
 
@@ -3474,6 +3501,26 @@ const program3 = interleave(
   writeFile('file.txt', 'foo')
 )
 \end{code}
+
+\begin{example}
+Implementare una funzione simile a \texttt{time} di Unix (la parte relativa al tempo di esecuzione reale) per \texttt{Task}
+
+\begin{code}
+import { Task } from 'fp-ts/lib/Task'
+
+const tuple = <A, B>(a: A, b: B): [A, B] => [a, b]
+
+const now = new Task(() =>
+  Promise.resolve(new Date().getTime())
+)
+
+const time = <A>(fa: Task<A>): Task<[A, number]> => {
+  return now.chain(start =>
+    fa.chain(a => now.map(end => tuple(a, end - start)))
+  )
+}
+\end{code}
+\end{example}
 
 \begin{demo}
 \begin{center}
@@ -5634,9 +5681,9 @@ TODO
 \xymatrixrowsep{3cm}
 \xymatrixcolsep{3cm}
 \xymatrix{
-  & Iso \\
-  Lens \ar[ur] & & Prism \ar[ul] \\
-  & Optional \ar[ul] \ar[ur] \\
+  & Iso \ar[dl] \ar[dr] \\
+  Lens \ar[dr] & & Prism \ar[dl] \\
+  & Optional \\
 }
 \]
 \end{example}
