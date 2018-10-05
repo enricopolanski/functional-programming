@@ -59,7 +59,10 @@ class Employee {
     readonly email: string
   ) {}
   isBirthday(today: Date): boolean {
-    return this.dateOfBirth.getMonth() === today.getMonth() && this.dateOfBirth.getDate() === today.getDate()
+    return (
+      this.dateOfBirth.getMonth() === today.getMonth() &&
+      this.dateOfBirth.getDate() === today.getDate()
+    )
   }
 }
 
@@ -71,32 +74,70 @@ const sendMessage = (
   body: string,
   recipient: string
 ): void => {
-  console.log(smtpHost, smtpPort, from, subject, body, recipient)
+  console.log(
+    smtpHost,
+    smtpPort,
+    from,
+    subject,
+    body,
+    recipient
+  )
 }
 
-const sendGreetings = (fileName: string, today: Date, smtpHost: string, smtpPort: number): void => {
-  const input = fs.readFileSync(fileName, { encoding: 'utf8' })
+const sendGreetings = (
+  fileName: string,
+  today: Date,
+  smtpHost: string,
+  smtpPort: number
+): void => {
+  const input = fs.readFileSync(fileName, {
+    encoding: 'utf8'
+  })
   const lines = input.split('\n').slice(1) // skip header
   for (let i = 0; i < lines.length; i++) {
     const employeeData = lines[i].split(', ')
-    const employee = new Employee(employeeData[0], employeeData[1], new Date(employeeData[2]), employeeData[3])
+    const employee = new Employee(
+      employeeData[0],
+      employeeData[1],
+      new Date(employeeData[2]),
+      employeeData[3]
+    )
     if (employee.isBirthday(today)) {
       const recipient = employee.email
-      const body = `Happy Birthday, dear ${employee.firstName}!`
+      const body = `Happy Birthday, dear ${
+        employee.firstName
+      }!`
       const subject = 'Happy Birthday!'
-      sendMessage(smtpHost, smtpPort, 'sender@here.com', subject, body, recipient)
+      sendMessage(
+        smtpHost,
+        smtpPort,
+        'sender@here.com',
+        subject,
+        body,
+        recipient
+      )
     }
   }
 }
 
-sendGreetings('src/refactoring/employee_data.txt', new Date(2008, 9, 8), 'localhost', 80)
+sendGreetings(
+  'src/refactoring/employee_data.txt',
+  new Date(2008, 9, 8),
+  'localhost',
+  80
+)
 ```
 
 # Primo refactoring: estrarre le funzioni
 
 ```ts
 class Email {
-  constructor(readonly from: string, readonly subject: string, readonly body: string, readonly recipient: string) {}
+  constructor(
+    readonly from: string,
+    readonly subject: string,
+    readonly body: string,
+    readonly recipient: string
+  ) {}
 }
 
 // pure
@@ -104,12 +145,22 @@ const toEmail = (employee: Employee): Email => {
   const recipient = employee.email
   const body = `Happy Birthday, dear ${employee.firstName}!`
   const subject = 'Happy Birthday!'
-  return new Email('sender@here.com', subject, body, recipient)
+  return new Email(
+    'sender@here.com',
+    subject,
+    body,
+    recipient
+  )
 }
 
 // pure
-const getGreetings = (today: Date, employees: Array<Employee>): Array<Email> => {
-  return employees.filter(e => e.isBirthday(today)).map(toEmail)
+const getGreetings = (
+  today: Date,
+  employees: Array<Employee>
+): Array<Email> => {
+  return employees
+    .filter(e => e.isBirthday(today))
+    .map(toEmail)
 }
 
 // pure
@@ -117,12 +168,21 @@ const parse = (input: string): Array<Employee> => {
   const lines = input.split('\n').slice(1) // skip header
   return lines.map(line => {
     const employeeData = line.split(', ')
-    return new Employee(employeeData[0], employeeData[1], new Date(employeeData[2]), employeeData[3])
+    return new Employee(
+      employeeData[0],
+      employeeData[1],
+      new Date(employeeData[2]),
+      employeeData[3]
+    )
   })
 }
 
 // impure
-const sendMessage = (smtpHost: string, smtpPort: number, email: Email): void => {
+const sendMessage = (
+  smtpHost: string,
+  smtpPort: number,
+  email: Email
+): void => {
   console.log(smtpHost, smtpPort, email)
 }
 
@@ -132,11 +192,18 @@ const read = (fileName: string): string => {
 }
 
 // impure
-const sendGreetings = (fileName: string, today: Date, smtpHost: string, smtpPort: number): void => {
+const sendGreetings = (
+  fileName: string,
+  today: Date,
+  smtpHost: string,
+  smtpPort: number
+): void => {
   const input = read(fileName)
   const employees = parse(input)
   const emails = getGreetings(today, employees)
-  emails.forEach(email => sendMessage(smtpHost, smtpPort, email))
+  emails.forEach(email =>
+    sendMessage(smtpHost, smtpPort, email)
+  )
 }
 ```
 
@@ -157,10 +224,15 @@ interface FileSystemService {
   read: (fileName: string) => string
 }
 
-interface AppService extends EmailService, FileSystemService {}
+interface AppService
+  extends EmailService,
+    FileSystemService {}
 
 // impure
-const sendGreetings = (services: AppService) => (fileName: string, today: Date): void => {
+const sendGreetings = (services: AppService) => (
+  fileName: string,
+  today: Date
+): void => {
   const input = services.read(fileName)
   const employees = parse(input)
   const emails = getGreetings(today, employees)
@@ -171,7 +243,10 @@ const sendGreetings = (services: AppService) => (fileName: string, today: Date):
 // adapters
 //
 
-const getAppService = (smtpHost: string, smtpPort: number): AppService => {
+const getAppService = (
+  smtpHost: string,
+  smtpPort: number
+): AppService => {
   return {
     sendMessage: (email: Email): void => {
       console.log(smtpHost, smtpPort, email)
@@ -182,8 +257,13 @@ const getAppService = (smtpHost: string, smtpPort: number): AppService => {
   }
 }
 
-const program = sendGreetings(getAppService('localhost', 80))
-program('src/refactoring/employee_data.txt', new Date(2008, 9, 8))
+const program = sendGreetings(
+  getAppService('localhost', 80)
+)
+program(
+  'src/refactoring/employee_data.txt',
+  new Date(2008, 9, 8)
+)
 ```
 
 Il codice ora è "funzionale"?
@@ -264,10 +344,15 @@ const sequence_ = (fas: Array<IO<void>>): IO<void> => {
 Finiamo il refactoring di `sendGreetings`
 
 ```ts
-const sendGreetings = (M: MonadApp) => (fileName: string, today: Date): IO<void> => {
+const sendGreetings = (M: MonadApp) => (
+  fileName: string,
+  today: Date
+): IO<void> => {
   const input: IO<string> = M.read(fileName)
   const employees: IO<Array<Employee>> = input.map(parse)
-  const emails: IO<Array<Email>> = employees.map(employees => getGreetings(today, employees))
+  const emails: IO<Array<Email>> = employees.map(
+    employees => getGreetings(today, employees)
+  )
   const result: IO<void> = emails.chain(es => {
     const ios: Array<IO<void>> = es.map(M.sendMessage)
     return sequence_(ios)
@@ -279,7 +364,10 @@ const sendGreetings = (M: MonadApp) => (fileName: string, today: Date): IO<void>
 o, in modo più compatto,
 
 ```ts
-const sendGreetings = (M: MonadApp) => (fileName: string, today: Date): IO<void> => {
+const sendGreetings = (M: MonadApp) => (
+  fileName: string,
+  today: Date
+): IO<void> => {
   return M.read(fileName)
     .map(input => getGreetings(today, parse(input)))
     .chain(emails => sequence_(emails.map(M.sendMessage)))
@@ -289,10 +377,17 @@ const sendGreetings = (M: MonadApp) => (fileName: string, today: Date): IO<void>
 Rimane solo di rifattorizzare `getMonadApp`
 
 ```ts
-const getMonadApp = (smtpHost: string, smtpPort: number): MonadApp => {
+const getMonadApp = (
+  smtpHost: string,
+  smtpPort: number
+): MonadApp => {
   return {
-    sendMessage: email => new IO(() => console.log(smtpHost, smtpPort, email)),
-    read: fileName => new IO(() => fs.readFileSync(fileName, { encoding: 'utf8' }))
+    sendMessage: email =>
+      new IO(() => console.log(smtpHost, smtpPort, email)),
+    read: fileName =>
+      new IO(() =>
+        fs.readFileSync(fileName, { encoding: 'utf8' })
+      )
   }
 }
 ```
@@ -301,7 +396,10 @@ Ed eseguire il programma chiamando `run()`
 
 ```ts
 const program = sendGreetings(getMonadApp('localhost', 80))
-program('src/refactoring/employee_data.txt', new Date(2008, 9, 8)).run()
+program(
+  'src/refactoring/employee_data.txt',
+  new Date(2008, 9, 8)
+).run()
 ```
 
 # E se volessimo far girare il programma in un contesto asincrono?
