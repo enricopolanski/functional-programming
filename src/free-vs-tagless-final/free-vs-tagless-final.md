@@ -176,15 +176,14 @@ class PutStrLn<A> {
 Se togliamo il boilerplate dovuto a questioni tecniche di `fp-ts` il sum type `Console<A>` è
 
 ```ts
-type Console<A> = ReadLine<A> | PutStrLn<A>
-
-class ReadLine<A> {
-  constructor(readonly more: (input: string) => A) {}
-}
-
-class PutStrLn<A> {
-  constructor(readonly message: string, readonly more: A) {}
-}
+type Console<A> =
+  | {
+      readonly more: (input: string) => A
+    }
+  | {
+      readonly message: string
+      readonly more: A
+    }
 ```
 
 Se lo confrontiamo con la versione tagless final possiamo vedere applicata la regola
@@ -205,16 +204,16 @@ interface MonadConsole<M extends URIS> extends Monad1<M> {
 
 ## Fase 2
 
-Ora dobbiamo fare in modo che il nostro DSL abbia una istanza di monade, per fare questp viene in aiuto il modulo `fp-ts/lib/Free`.
+Ora dobbiamo fare in modo che il nostro DSL abbia una istanza di monade, per fare questo viene in aiuto il modulo `fp-ts/lib/Free`.
 
 Dal punto di vista operativo dobbiamo definire un costruttore apposito per ogni membro del sum type che inserisce la struttura dati nella Free monad
 
 ```ts
 import * as free from 'fp-ts/lib/Free'
 
-const readLine: free.Free<'Console', string> = free.liftF(new ReadLine(a => a))
+const readLine: free.Free<URI, string> = free.liftF(new ReadLine(a => a))
 
-const putStrLn = (message: string): free.Free<'Console', void> => free.liftF(new PutStrLn(message, undefined))
+const putStrLn = (message: string): free.Free<URI, void> => free.liftF(new PutStrLn(message, undefined))
 ```
 
 ## Fase 3
@@ -296,3 +295,11 @@ const actualEchoIOTest = free.foldFree(I.io)(interpretIOTest, echo)
 actualEchoIOTest.run()
 assert.deepEqual(logger, ['hello'])
 ```
+
+# Osservazioni
+
+Free e tagless final sono *teoricamente* ugualmente espressive, nel senso che si può passare da l'una all'altra e viceversa.
+
+Dal punto di vista pratico invece ci sono delle differenze quando ho più di una algebra e le voglio comporre, nel qual caso tagless final risulta di molto più comoda.
+
+Intuitivamente tagless final permette di aumentare una monade già esistente con operazioni extra che corrispondono ad un mio DSL, Free viceversa permette di prendere un mio DSL espresso come struttra dati e farlo diventare una monade
