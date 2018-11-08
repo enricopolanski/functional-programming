@@ -3,7 +3,7 @@ import { Monad1 } from 'fp-ts/lib/Monad'
 
 interface MonadConsole<M extends URIS> extends Monad1<M> {
   readLine: Type<M, string>
-  putStrLn: (s: string) => Type<M, void>
+  putStrLn: (message: string) => Type<M, void>
 }
 
 const echo = <M extends URIS>(M: MonadConsole<M>): Type<M, void> => {
@@ -11,11 +11,12 @@ const echo = <M extends URIS>(M: MonadConsole<M>): Type<M, void> => {
 }
 
 import * as I from 'fp-ts/lib/IO'
+import * as U from './utils'
 
 const monadConsoleIO: MonadConsole<I.URI> = {
   ...(I.io as Monad1<I.URI>),
-  readLine: new I.IO(() => window.prompt() || ''),
-  putStrLn: s => new I.IO(() => alert(s))
+  readLine: U.prompt,
+  putStrLn: U.alert
 }
 
 const actualEchoIO = echo(monadConsoleIO)
@@ -24,39 +25,25 @@ const actualEchoIO = echo(monadConsoleIO)
 // mostra un prompt e poi un alert nel browser
 
 import * as T from 'fp-ts/lib/Task'
-import { createInterface } from 'readline'
-import * as C from 'fp-ts/lib/Console'
 
 const monadConsoleTask: MonadConsole<T.URI> = {
   ...(T.task as Monad1<T.URI>),
-  readLine: new T.Task(
-    () =>
-      new Promise(resolve => {
-        const rl = createInterface({
-          input: process.stdin,
-          output: process.stdout
-        })
-        rl.question('', answer => {
-          rl.close()
-          resolve(answer)
-        })
-      })
-  ),
-  putStrLn: s => T.fromIO(C.log(s))
+  readLine: U.question,
+  putStrLn: U.log
 }
 
 const actualEchoTask = echo(monadConsoleTask)
 
 // actualEchoTask.run()
 
-const log: Array<string> = []
+const logger: Array<string> = []
 
 const monadConsoleIOTest: MonadConsole<I.URI> = {
   ...(I.io as Monad1<I.URI>),
   readLine: new I.IO(() => 'hello'), // simulo l'input utente
-  putStrLn: s =>
+  putStrLn: message =>
     new I.IO(() => {
-      log.push(s) // scrivo su un log invece che sulla console
+      logger.push(message) // scrivo sul `logger` invece che sulla console
     })
 }
 
@@ -65,4 +52,4 @@ import * as assert from 'assert'
 const actualEchoIOTest = echo(monadConsoleIOTest)
 
 actualEchoIOTest.run()
-assert.deepEqual(log, ['hello'])
+assert.deepEqual(logger, ['hello'])
