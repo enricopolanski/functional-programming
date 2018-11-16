@@ -1316,7 +1316,7 @@ L'insieme $S$ si dice insieme \emph{sostegno} del semigruppo.
 
 La proprietà associativa ci assicura che non ci dobbiamo preoccupare di utilizzare le parentesi in una espressione\footnote{ovvero possiamo scrivere semplicemente $a * b * c$}.
 
-Come abbiamo visto nell'introduzione, i semigruppi catturano l'essenza di una operazione parallelizzabile
+Come abbiamo visto nell'introduzione, i semigruppi catturano l'essenza di una operazione parallelizzabile.
 
 Ma possono anche essere usati per rappresentare l'idea astratta di
 
@@ -1974,7 +1974,7 @@ const getDualOrd = <A>(
   O: Ord<A>
 ): Ord<A> => ({
   equals: O.equals,
-  comapre: (x, y) => O.compare(y, x)
+  compare: (x, y) => O.compare(y, x)
 })
 \end{code}
 
@@ -2194,7 +2194,7 @@ fold(product)([]) // 1
 
 Cosa succede se ho un insieme $X$ al quale non posso associare facilmente un'istanza di monoide?
 Esiste un'operazione su $X$ che produce in modo \emph{automatico} un monoide?
-E se si, il monoide generato che caratteristiche ha?
+E se sì, il monoide generato che caratteristiche ha?
 
 Consideriamo come $X$ l'insieme costituito dalle due stringhe \texttt{'a'} e \texttt{'b'} e come operazione $*$ la giustapposizione:
 
@@ -2217,7 +2217,7 @@ ove
   \item $Y = { u, a, b, ab, ba, aa, bb, aab, aba, ... }$
 \end{itemize}
 
-Attenzione, perché valga la proprietà associativa dobbiamo anche identificare alcuni elementi generati, ad esempio $(aa)b = a(ab)$
+Attenzione: perché valga la proprietà associativa dobbiamo anche identificare alcuni elementi generati, ad esempio $(aa)b = a(ab)$
 
 Gli elementi di $X$ vengono detti \emph{elementi generatori} di $M(X)$.
 
@@ -2646,7 +2646,7 @@ const liftA2 = <A, B, C>(
 const sumOptions = liftA2(sum)
 \end{code}
 
-Analogamente è possibile definire \texttt{liftA3} per funzioni con 3 argomenti, \texttt{liftA4}, etc \ldots
+Analogamente è possibile definire \texttt{liftA3} per funzioni con 3 argomenti, \texttt{liftA4} etc \ldots
 
 È importante sottolineare che mentre abbiamo avuto bisogno di una nuova astrazione per poter operare un lifting di una funzione binaria,
 per operare un lifting di una funzione $n$-aria un funtore applicativo è sufficiente.
@@ -2935,7 +2935,7 @@ $$
 
 Ma in generale non è così.
 
-E in particolare non sappiamo ancora come comporre prohgrammi con effetti, guardate cosa può accadere con \texttt{Option}
+E in particolare non sappiamo ancora come comporre programmi con effetti, guardate cosa può accadere con \texttt{Option}
 
 \begin{code}
 const head = <A>(as: Array<A>): Option<A> =>
@@ -3081,7 +3081,7 @@ Sia $M$ un endofuntore nella categoria $\mathcal{C}$ e si considerino i due morf
 }
 \]
 
-Chiamiamo \emph{Kleisli arrow} i morfismi come $g$ ed $f$, ovvero i morifismi il cui target è l'immagine di $M$.
+Chiamiamo \emph{Kleisli arrow} i morfismi come $g$ ed $f$, ovvero i morfismi il cui target è l'immagine di $M$.
 
 \begin{demo}
 Una Kleisli arrow $f: A \rightarrow M(B)$ può essere interpretata come un programma che accetta un input di tipo $A$ e che produce un output di tipo $B$ insieme ad un effetto di tipo $M$
@@ -3344,7 +3344,7 @@ Se abbiamo un \texttt{Task}
   \item possiamo far partire la computazione che rappresenta (per esempio una richiesta network)
   \item possiamo scegliere di non far partire la computazione
   \item possiamo farlo partire più di una volta (e potenzialmente ottenere risultati diversi)
-  \item mentre la computazione si sta svolgendo, possiamo notificagli che non siamo più interessati al risultato e la computazione può scegliere di terminarsi da sola
+  \item mentre la computazione si sta svolgendo, possiamo notificargli che non siamo più interessati al risultato e la computazione può scegliere di terminarsi da sola
   \item quando la computazione finisce otteniamo il risultato
 \end{itemize}
 
@@ -3603,7 +3603,7 @@ ovvero se esiste una funzione $f^{-1}: B \rightarrow A$, detta \emph{funzione in
 al prodotto cartesiano $\prod_i A_i$.
 
 Esponenti notevoli di questa famiglia sono le $n$-tuple, ove $I$ è un intervallo non vuoto dei numeri naturali
-\footnote{$\{0\}$ per \texttt{Tuple1}, $\{0, 1\}$ per \texttt{Tuple2}, $\{0, 1, 2\}$ per \texttt{Tuple2}}
+\footnote{$\{0\}$ per \texttt{Tuple1}, $\{0, 1\}$ per \texttt{Tuple2}, $\{0, 1, 2\}$ per \texttt{Tuple3}}
 
 \begin{code}
 type Tuple1 = [string]
@@ -3661,7 +3661,7 @@ $$
 \|A \times B\| = \|A\| * \|B\|
 $$
 
-ovvero la cardinalità del prodotto cartesiano è il prodotto delle cadinalità.
+ovvero la cardinalità del prodotto cartesiano è il prodotto delle cardinalità.
 
 \begin{code}
 type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
@@ -3763,7 +3763,7 @@ type Tree<A> =
 \end{code}
 \end{example}
 
-Perché si chiamano sum types? È facile convincersi che la cadinalità di un sum type è la somma delle cardinalità dei suoi membri
+Perché si chiamano sum types? È facile convincersi che la cardinalità di un sum type è la somma delle cardinalità dei suoi membri
 
 $$
 \|A | B\| = \|A\| + \|B\|
@@ -4161,7 +4161,7 @@ reduce(
 There are two basic answers to "how do I" questions in Scala. One is "don't do that". The other is "traverse". - Rúnar Bjarnason
 \end{quote}
 
-Data una istanza di \texttt{Applicative} per \texttt{F} é possibile definire la seguente funzione
+Data una istanza di \texttt{Applicative} per \texttt{F} è possibile definire la seguente funzione
 
 \begin{code}
 traverseA: <F>(F: Applicative<F>) => <A, B>(
@@ -4614,6 +4614,7 @@ const fromIO = <A>(fa: IO<A>): Task<A> =>
 \section{Gestire lo stato in modo funzionale: la monade \texttt{State}}
 
 Se sono bandite le mutazioni, come è possibile gestire lo stato?
+
 Cambiare lo stato in modo compatibile alla programmazione funzionale vuol dire restituirne una nuova copia modificata.
 
 Il modello che descrive nel modo più generale un cambiamento di stato è quello definito dalla seguente firma
@@ -5073,7 +5074,7 @@ ovvero una struttura dati innestata.
 Per modellare una chiamata AJAX, il type constructor \texttt{Task} non è sufficiente dato che rappresenta una computazione
 asincrona che non può mai fallire, come possiamo modellare anche i possibili errori restituiti dalla chiamata (\texttt{403}, \texttt{500}, etc\ldots)?
 
-Più in  generale supponiamo di avere una computazione con le seguenti proprietà
+Più in generale supponiamo di avere una computazione con le seguenti proprietà
 
 \begin{itemize}
 \item asincrona
