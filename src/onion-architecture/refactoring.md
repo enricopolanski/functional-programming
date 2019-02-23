@@ -104,9 +104,7 @@ const sendGreetings = (
     )
     if (employee.isBirthday(today)) {
       const recipient = employee.email
-      const body = `Happy Birthday, dear ${
-        employee.firstName
-      }!`
+      const body = `Happy Birthday, dear ${employee.firstName}!`
       const subject = 'Happy Birthday!'
       sendMessage(
         smtpHost,
@@ -128,7 +126,7 @@ sendGreetings(
 )
 ```
 
-# Primo refactoring: estrarre le funzioni
+# Primo refactoring: estrarre le funzioni
 
 ```ts
 class Email {
@@ -207,7 +205,7 @@ const sendGreetings = (
 }
 ```
 
-# Secondo refactoring: inversion of control
+# Secondo refactoring: inversion of control
 
 Le funzioni impure le trasformo in dipendenze
 

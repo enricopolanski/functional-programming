@@ -59,9 +59,7 @@ const sendGreetings = (
     )
     if (employee.isBirthday(today)) {
       const recipient = employee.email
-      const body = `Happy Birthday, dear ${
-        employee.firstName
-      }!`
+      const body = `Happy Birthday, dear ${employee.firstName}!`
       const subject = 'Happy Birthday!'
       sendMessage(
         smtpHost,
