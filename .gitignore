@@ -1,8 +1,6 @@
-_*
+*.log
 node_modules
-package-lock.json
-fp.aux
-fp.log
-fp.out
-fp.toc
-fp.synctex.gz
+lib
+es6
+dev
+coverage

@@ -27,11 +27,11 @@ interface User {
 
 type Currency = 'USD' | 'CHF'
 
-import { Task } from 'fp-ts/lib/Task'
+import * as T from 'fp-ts/lib/Task'
 
 interface API {
-  fetchUser: (id: string) => Task<User>
-  fetchRate: (currency: Currency) => Task<number>
+  fetchUser: (id: string) => T.Task<User>
+  fetchRate: (currency: Currency) => T.Task<number>
 }
 
 /*
@@ -42,16 +42,14 @@ interface API {
 */
 
 const API: API = {
-  fetchUser: (id: string): Task<User> =>
-    new Task(() =>
-      Promise.resolve({
-        id,
-        name: 'Foo',
-        amount: 100
-      })
-    ),
-  fetchRate: (_: Currency): Task<number> =>
-    new Task(() => Promise.resolve(0.12))
+  fetchUser: (id: string): T.Task<User> => () =>
+    Promise.resolve({
+      id,
+      name: 'Foo',
+      amount: 100
+    }),
+  fetchRate: (_: Currency): T.Task<number> => () =>
+    Promise.resolve(0.12)
 }
 
 /*
@@ -72,7 +70,7 @@ const getAmount = (amount: number) => (
   const fetchAmount = (
     userId: string,
     currency: Currency
-  ): Task<number> => ???
+  ): T.Task<number> => ???
 
 /*
 
@@ -80,12 +78,11 @@ const getAmount = (amount: number) => (
 
 */
 
-export const liftA2 = <A, B, C>(
+export function liftA2<A, B, C>(
   f: (a: A) => (b: B) => C
-): ((
-  fa: Task<A>
-) => (fb: Task<B>) => Task<C>) => fa => fb =>
-  fb.ap(fa.map(f))
+): (fa: T.Task<A>) => (fb: T.Task<B>) => T.Task<C> {
+  return fa => fb => T.task.ap(T.task.map(fa, f), fb)
+}
 
 /*
 
@@ -93,24 +90,27 @@ export const liftA2 = <A, B, C>(
 
 */
 
+import { pipe } from 'fp-ts/lib/pipeable'
+
 const getAmountAsync = (api: API) => (
   userId: string,
   currency: Currency
-): Task<number> => {
-  const amount = api
-    .fetchUser(userId)
-    // Task ha una istanza di funtore
-    .map(user => user.amount)
+): T.Task<number> => {
+  const amount = pipe(
+    api.fetchUser(userId),
+    T.map(user => user.amount)
+  )
   const rate = api.fetchRate(currency)
   const liftedgetAmountSync = liftA2(getAmount)
   return liftedgetAmountSync(amount)(rate)
 }
 
-// fetchAmount: (userId: string, currency: Currency) => Task<number>
+// fetchAmount: (userId: string, currency: Currency) => T.Task<number>
 const fetchAmount = getAmountAsync(API)
 
-const result: Task<number> = fetchAmount('42', 'USD')
+const result: T.Task<number> = fetchAmount('42', 'USD')
 
 // run del programma
-result.run().then(x => console.log(x))
+// tslint:disable-next-line: no-floating-promises
+result().then(console.log)
 // 12
