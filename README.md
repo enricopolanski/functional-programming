@@ -1673,7 +1673,7 @@ type Either<E, A> =
 Costruttori e pattern matching:
 
 ```ts
-const left = <E, A>(left: L): Either<E, A> => ({ _tag: 'Left', left })
+const left = <E, A>(left: E): Either<E, A> => ({ _tag: 'Left', left })
 
 const right = <E, A>(right: A): Either<E, A> => ({ _tag: 'Right', right })
 
