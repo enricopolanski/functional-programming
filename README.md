@@ -1716,15 +1716,13 @@ declare function readFile(
 e consumare l'API in questo modo:
 
 ```ts
-import { pipe } from 'fp-ts/lib/pipeable'
+import { flow } from 'fp-ts/lib/function'
 
-readFile('./myfile', e => {
-  const message = pipe(
-    e,
-    fold(err => `Error: ${err.message}`, data => `Data: ${data.trim()}`)
+readFile('./myfile', flow(
+    fold(err => `Error: ${err.message}`, data => `Data: ${data.trim()}`),
+    console.log
   )
-  console.log(message)
-})
+)
 ```
 
 # Teoria delle categorie
