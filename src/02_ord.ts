@@ -1,6 +1,6 @@
 /*
 
-  Dato un tipo `A` è possibile definire una istanza di semigrouppo
+  Dato un tipo `A` è possibile definire una istanza di semigruppo
   per `Ord<A>`. Cosa rappresenta?
 
 */

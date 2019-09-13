@@ -1322,6 +1322,8 @@ type Action =
 
 Il campo `type` fa da tag e assicura che i suoi membri siano disgiunti.
 
+**Nota**. Il nome del campo che fa da tag è a discrezione dello sviluppatore, non deve essere necessariamente "type".
+
 ### Costruttori
 
 Un sum type con `n` membri necessita di (almeno) `n` **costruttori**, uno per ogni membro:
@@ -1916,8 +1918,7 @@ function log(message: string): IO<number> {
 }
 ```
 
-Il programma `log`, quando viene eseguito, non provoca immediatamente il side effect ma restituisce un valore che rappresenta
-la computazione (detta anche *azione*).
+Il programma `log`, quando viene eseguito, non provoca immediatamente il side effect ma restituisce **un valore che rappresenta la computazione** (detta anche *azione*).
 
 Vediamo un altro esempio che usa i thunk, leggere e scrivere sul `localStorage`:
 
@@ -1929,7 +1930,7 @@ const write = (name: string, value: string): IO<void> =>
   () => localStorage.setItem(name, value)
 ```
 
-Nella programmazione funzionale si tende a spingere i side effect ai confini del sistema (ovvero la funzione `main`)
+Nella programmazione funzionale si tende a spingere i side effect (sottoforma di effetti) ai confini del sistema (ovvero la funzione `main`)
 ove vengono eseguiti da un interprete ottenendo il seguente schema:
 
 > system = pure core + imperative shell
@@ -1972,6 +1973,8 @@ Il programma `head`:
 const head = (as: Array<string>): Option<string> =>
   as.length === 0 ? none : some(as[0])
 ```
+
+è un programma con effetto `Option`.
 
 Quando parliamo di effetti siamo interessati a type constructor `n`-ari con `n >= 1`, per esempio:
 
