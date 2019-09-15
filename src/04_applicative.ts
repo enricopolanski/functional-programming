@@ -36,30 +36,12 @@ interface API {
 
 /*
 
-  Poi una istanza di API che simula le chiamate
-  per poter testare il programma
-
-*/
-
-const API: API = {
-  fetchUser: (id: string): T.Task<User> => () =>
-    Promise.resolve({
-      id,
-      name: 'Foo',
-      amount: 100
-    }),
-  fetchRate: (_: Currency): T.Task<number> => () =>
-    Promise.resolve(0.12)
-}
-
-/*
-
   Se potessi ricavare il valore del conto corrente e il cambio
   in modo sincrono, il calcolo sarebbe facile
 
 */
 
-const getAmount = (amount: number) => (
+const getAmountSync = (amount: number) => (
   rate: number
 ): number => amount * rate
 
@@ -92,7 +74,7 @@ export function liftA2<A, B, C>(
 
 import { pipe } from 'fp-ts/lib/pipeable'
 
-const getAmountAsync = (api: API) => (
+const getResult = (api: API) => (
   userId: string,
   currency: Currency
 ): T.Task<number> => {
@@ -101,16 +83,35 @@ const getAmountAsync = (api: API) => (
     T.map(user => user.amount)
   )
   const rate = api.fetchRate(currency)
-  const liftedgetAmountSync = liftA2(getAmount)
-  return liftedgetAmountSync(amount)(rate)
+  const getAmountAsync = liftA2(getAmountSync)
+  return getAmountAsync(amount)(rate)
 }
 
-// fetchAmount: (userId: string, currency: Currency) => T.Task<number>
-const fetchAmount = getAmountAsync(API)
+/*
 
-const result: T.Task<number> = fetchAmount('42', 'USD')
+  Definiamo una istanza di `API` che simula le chiamate
+  per poter testare il programma
+
+*/
+
+const API: API = {
+  fetchUser: (id: string): T.Task<User> => () =>
+    Promise.resolve({
+      id,
+      name: 'Foo',
+      amount: 100
+    }),
+  fetchRate: (_: Currency): T.Task<number> => () =>
+    Promise.resolve(0.12)
+}
+
+// program: (userId: string, currency: Currency) => T.Task<number>
+const program = getResult(API)
+
+const result: T.Task<number> = program('42', 'USD')
 
 // run del programma
-// tslint:disable-next-line: no-floating-promises
 result().then(console.log)
 // 12
+
+// See also: `sequenceT`, `sequenceS` in `fp-ts/lib/Apply`

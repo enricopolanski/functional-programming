@@ -2673,6 +2673,145 @@ const followersOfFollowers: Array<User> = array.chain(getFollowers(user), getFol
 const headInverse: Option<number> = option.chain(head([1, 2, 3]), inverse)
 ```
 
+## Trasparenza referenziale
+
+Vediamo ora come, grazie alla trasparenza referenziale e al concetto di monade, possiamo manipolare i programmi programmaticamente.
+
+Ecco un piccolo programma che legge / scrive su un file
+
+```ts
+import { log } from 'fp-ts/lib/Console'
+import { IO, chain } from 'fp-ts/lib/IO'
+import { pipe } from 'fp-ts/lib/pipeable'
+import * as fs from 'fs'
+
+//
+// funzioni di libreria
+//
+
+const readFile = (filename: string): IO<string> => () =>
+  fs.readFileSync(filename, 'utf-8')
+
+const writeFile = (
+  filename: string,
+  data: string
+): IO<void> => () =>
+  fs.writeFileSync(filename, data, { encoding: 'utf-8' })
+
+//
+// programma
+//
+
+const program1 = pipe(
+  readFile('file.txt'),
+  chain(log),
+  chain(() => writeFile('file.txt', 'hello')),
+  chain(() => readFile('file.txt')),
+  chain(log)
+)
+```
+
+L'azione:
+
+```ts
+pipe(
+  readFile('file.txt'),
+  chain(log)
+)
+```
+
+è ripetuta due volte nel programma, ma dato che vale la trasparenza referenziale
+possiamo mettere a fattor comune l'azione assegnandone l'espressione ad una costante.
+
+```ts
+const read = pipe(
+  readFile('file.txt'),
+  chain(log)
+)
+
+const program2 = pipe(
+  read,
+  chain(() => writeFile('file.txt', 'hello')),
+  chain(() => read)
+)
+```
+
+Possiamo persino definire un combinatore e sfruttarlo per rendere più compatto il codice:
+
+```ts
+function interleave<A, B>(
+  a: IO<A>,
+  b: IO<B>
+): IO<A> {
+  return pipe(
+    a,
+    chain(() => b),
+    chain(() => a)
+  )
+}
+
+const program3 = interleave(
+  read,
+  writeFile('file.txt', 'foo')
+)
+```
+
+Un altro esempio: implementare una funzione simile a `time` di Unix (la parte relativa al tempo di esecuzione reale) per `IO`.
+
+```ts
+import { IO, io } from 'fp-ts/lib/IO'
+import { now } from 'fp-ts/lib/Date'
+import { log } from 'fp-ts/lib/Console'
+
+export function time<A>(ma: IO<A>): IO<A> {
+  return io.chain(now, start =>
+    io.chain(ma, a =>
+      io.chain(now, end =>
+        io.map(log(`Elapsed: ${end - start}`), () => a)
+      )
+    )
+  )
+}
+```
+
+Esempio di utilizzo
+
+```ts
+import { randomInt } from 'fp-ts/lib/Random'
+import { fold, monoidVoid } from 'fp-ts/lib/Monoid'
+import { getMonoid } from 'fp-ts/lib/IO'
+import { replicate } from 'fp-ts/lib/Array'
+import { pipe } from 'fp-ts/lib/pipeable'
+import { chain } from 'fp-ts/lib/IO'
+
+function fib(n: number): number {
+  return n <= 1 ? 1 : fib(n - 1) + fib(n - 2)
+}
+
+const printFib: IO<void> = pipe(
+  randomInt(30, 35),
+  chain(n => log(fib(n)))
+)
+
+function replicateIO(n: number, mv: IO<void>): IO<void> {
+  return fold(getMonoid(monoidVoid))(replicate(n, mv))
+}
+
+time(replicateIO(3, printFib))()
+/*
+2178309
+9227465
+14930352
+Elapsed: 233
+*/
+```
+
+Stampando anche i parziali
+
+```ts
+time(replicateIO(3, time(printFib)))()
+```
+
 **Demo**
 
 [`05_game.ts`](src/05_game.ts)
