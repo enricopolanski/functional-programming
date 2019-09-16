@@ -66,6 +66,7 @@
   - [Costruzione della composizione passo dopo passo](#costruzione-della-composizione-passo-dopo-passo)
   - [Le leggi](#le-leggi)
   - [Monadi in `fp-ts`](#monadi-in-fp-ts)
+  - [Trasparenza referenziale](#trasparenza-referenziale-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
