@@ -10,23 +10,24 @@ import { between, ordNumber } from 'fp-ts/lib/Ord'
 import { pipe } from 'fp-ts/lib/pipeable'
 
 // il numero da indovinare
-export const secret: T.Task<number> = T.task.fromIO(
+export const secret: T.Task<number> = T.fromIO(
   randomInt(1, 100)
 )
 
 // combinatore: stampa un messaggio prima di una azione
-const withMessage = <A>(
+function withMessage<A>(
   message: string,
   next: T.Task<A>
-): T.Task<A> =>
-  pipe(
+): T.Task<A> {
+  return pipe(
     putStrLn(message),
     T.chain(() => next)
   )
+}
 
 // l'input è una stringa perciò dobbiamo validarlo
 const isValidInteger = between(ordNumber)(1, 100)
-const parseGuess = (s: string): O.Option<number> => {
+function parseGuess(s: string): O.Option<number> {
   const n = parseInt(s, 10)
   return isNaN(n) || !isValidInteger(n) ? O.none : O.some(n)
 }
@@ -53,12 +54,12 @@ const answer: T.Task<number> = pipe(
   )
 )
 
-const check = <A>(
+function check<A>(
   secret: number,
   guess: number,
   ok: T.Task<A>,
   ko: T.Task<A>
-): T.Task<A> => {
+): T.Task<A> {
   if (guess > secret) {
     return withMessage('Troppo alto', ko)
   } else if (guess < secret) {
@@ -71,18 +72,18 @@ const check = <A>(
 const end: T.Task<void> = putStrLn('Hai indovinato!')
 
 // mantengo lo stato (secret) come argomento della funzione (alla Erlang)
-const loop = (secret: number): T.Task<void> =>
-  pipe(
+function loop(secret: number): T.Task<void> {
+  return pipe(
     answer,
     T.chain(guess =>
       check(secret, guess, end, loop(secret))
     )
   )
+}
 
 const program: T.Task<void> = pipe(
   secret,
   T.chain(loop)
 )
 
-// tslint:disable-next-line: no-floating-promises
 program()
