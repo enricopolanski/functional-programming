@@ -1912,9 +1912,9 @@ interface IO<A> {
   (): A
 }
 
-function log(message: string): IO<number> {
+function log(message: string): IO<void> {
   return () => {
-    console.log(a, b)
+    console.log(message)
   }
 }
 ```
