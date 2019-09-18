@@ -2663,7 +2663,7 @@ chain:   <A, B>(ma: HKT<M, A>, f: (a: A) => HKT<M, B>) => HKT<M, B>
 
 Notate che `chain` può essere derivata da `flatMap` (e viceversa).
 
-Se adesso torniamo agli esempi che mostravano il problema con i contesti innestati possiamo risolverli usando `chain`
+Se adesso torniamo agli esempi che mostravano il problema con i contesti innestati possiamo risolverli usando `chain`:
 
 ```ts
 import { array, head } from 'fp-ts/lib/Array'
@@ -2721,8 +2721,7 @@ pipe(
 )
 ```
 
-è ripetuta due volte nel programma, ma dato che vale la trasparenza referenziale
-possiamo mettere a fattor comune l'azione assegnandone l'espressione ad una costante.
+è ripetuta due volte nel programma, ma dato che vale la trasparenza referenziale possiamo mettere a fattor comune l'azione assegnandone l'espressione ad una costante.
 
 ```ts
 const read = pipe(
@@ -2800,10 +2799,10 @@ function replicateIO(n: number, mv: IO<void>): IO<void> {
 
 time(replicateIO(3, printFib))()
 /*
-2178309
-9227465
+5702887
+1346269
 14930352
-Elapsed: 233
+Elapsed: 193
 */
 ```
 
@@ -2811,6 +2810,15 @@ Stampando anche i parziali
 
 ```ts
 time(replicateIO(3, time(printFib)))()
+/*
+3524578
+Elapsed: 32
+14930352
+Elapsed: 125
+3524578
+Elapsed: 32
+Elapsed: 189
+*/
 ```
 
 **Demo**
