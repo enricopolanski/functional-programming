@@ -2644,7 +2644,7 @@ E per quanto riguarda `of`? Ebbene, `of` proviene dai morfismi identità in *K*:
 
 ## Le leggi
 
-Ultima domanda: da dove nascono le leggi? Esse non altro che le leggi categoriali in *K* tradotte in *TS*:
+Ultima domanda: da dove nascono le leggi? Esse non sono altro che le leggi categoriali in *K* tradotte in *TS*:
 
 | Law            | _K_                               | _TS_                                                            |
 | -------------- | --------------------------------- | --------------------------------------------------------------- |
