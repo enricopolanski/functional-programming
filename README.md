@@ -1,8 +1,15 @@
+## Introduction
+
+This is a fork of [Giulio Canti](https://gcanti.github.io/about.html)'s ["Introduction to Functional Programming (Italian)"](https://github.com/gcanti/functional-programming). The author uses this repository as a reference for his lectures and workshops on functional programming.
+
+The spirit of this fork is to provide a reference and an introduction to functional programming targetting the modern web developer based on Giulio's work. Additions to the translation are listed in the final section. 
+
+Contributions are welcome, see the contribution file.
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-  - [Introduction](#introduction)
 - [1. What is functional programming](#1-what-is-functional-programming)
 - [2. What is love? <a id="baby"></a>](#2-what-is-love-a-idbabya)
 - [3. I due pilastri della programmazione funzionale](#3-i-due-pilastri-della-programmazione-funzionale)
@@ -69,16 +76,6 @@
   - [11.8. Trasparenza referenziale](#118-trasparenza-referenziale)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-## Introduction
-
-This is a fork of [Giulio Canti](https://gcanti.github.io/about.html)'s ["Introduction to Functional Programming (Italian)"](https://github.com/gcanti/functional-programming). The author uses this repository as a reference for his lectures and workshops on functional programming.
-
-The spirit of this fork is to provide a reference and an introduction to functional programming targetting the modern web developer based on Giulio's work. Additions to the translation are listed in the final section. 
-
-Contributions are welcome, see the contribution file.
-
-
 
 # 1. What is functional programming
 
