@@ -6,6 +6,8 @@ The spirit of this fork is to provide a reference and an introduction to functio
 
 Contributions are welcome, see the contribution file.
 
+# Table of Content:
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
