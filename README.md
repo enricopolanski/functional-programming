@@ -12,15 +12,15 @@ Contributions are welcome, see the contribution file.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-- [1. What is functional programming](#1-what-is-functional-programming)
-- [2. What is love? <a id="baby"></a>](#2-what-is-love-a-idbabya)
-- [3. I due pilastri della programmazione funzionale](#3-i-due-pilastri-della-programmazione-funzionale)
-  - [3.1. Trasparenza referenziale](#31-trasparenza-referenziale)
-  - [3.2. Composizione](#32-composizione)
-    - [3.2.1. oups. Combinaoups](#321-oups-combinaoups)
-  - [3.3. Definizione generale](#33-definizione-generale)
-  - [3.4. Implementazione](#34-implementazione)
-  - [3.5. La funzione `fold`](#35-la-funzione-fold)
+- [What is functional programming](#what-is-functional-programming)
+- [The two pillars of functional programming](#the-two-pillars-of-functional-programming)
+  - [Referential transparency](#referential-transparency)
+  - [Composition](#composition)
+    - [Combinators](#combinators)
+- [Semigruppi](#semigruppi)
+  - [Definizione generale](#definizione-generale)
+  - [Implementazione](#implementazione)
+  - [La funzione `fold`](#la-funzione-fold)
   - [3.6. Il semigruppo duale](#36-il-semigruppo-duale)
   - [3.7. Non riesco a trovare una istanza!](#37-non-riesco-a-trovare-una-istanza)
   - [3.8. Semigruppo prodotto](#38-semigruppo-prodotto)
@@ -79,7 +79,7 @@ Contributions are welcome, see the contribution file.
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# 1. What is functional programming
+# What is functional programming
 
 > Though programming was born in mathematics, it has since largely been divorced from it.
 > The idea is that there's some higher level than the code in which you need to be able to think precisely,
@@ -89,9 +89,9 @@ Functional programming's goal is to dominate a system's complexity through the u
 
 > Functional programming will help teach people the mathematics behind program construction: how to write composable code, how to reason about effects, how to write consistent, general, less ad-hoc APIs
 
-**Esempio**
+**Example**
 
-Perché `map` è "più funzionale" di un ciclo `for`?
+Why's `map` "more functional" than a `for` loop?
 
 ```ts
 const xs = [1, 2, 3]
@@ -108,25 +108,21 @@ for (let i = 0; i < xs.length; i++) {
 const zs = xs.map(double)
 ```
 
-Un ciclo `for` è più flessibile: posso modificare l'indice di partenza, la condizione di fine e il passo.
-Ma questo vuol dire anche che ci sono più possibilità di introdurre errori e non ho alcuna garanzia sul risultato.
+A `for` loop offers more flexibility: I can modify the starting index (initialization), the looping condition (condition), and the final expression.
+This also implies that I may introduce errors and that I have no guarantee about the returned value.
 
-Una `map` invece mi dà delle garanzie: gli elementi dell'input verrano processati tutti dal primo all'ultimo e
-qualunque sia l'operazione che viene fatta nella callback, il risultato sarà sempre un array con lo stesso numero di elementi
-dell'array di input.
+A `map`ping function gives me several guarantees: all the input elements will be passed to the mapping function, regardless of the content of the callback function provided, the resulting array will **always** have the same number of elements of the starting one.
 
-# 2. What is love? <a id="baby"></a>
+# The two pillars of functional programming
 
-# 3. I due pilastri della programmazione funzionale
+- Referential transparency
+- Composition (as universal design pattern)
 
-- trasparenza referenziale
-- composizione (come design pattern universale)
-
-## 3.1. Trasparenza referenziale
+## Referential transparency
 
 > An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
 
-**Esempio**
+**Example**
 
 ```ts
 function double(n: number): number {
@@ -137,16 +133,16 @@ const x = double(2)
 const y = double(2)
 ```
 
-L'espressione `double(2)` gode della proprietà di trasparenza referenziale perchè posso sostituirla con il suo valore
+The expression `double(2)` benefits the referential transparency property because I can substitute it with its value.
 
 ```ts
 const x = 4
 const y = x
 ```
 
-Non tutte le espressioni godono della proprietà di trasparenza referenziale, vediamo un esempio.
+Not every expression benefits from referential transparency, let's see an example.
 
-**Esempio**
+**Example**
 
 ```ts
 function inverse(n: number): number {
@@ -157,14 +153,14 @@ function inverse(n: number): number {
 const x = inverse(0) + 1
 ```
 
-Non posso sostituire l'espressione `inverse(0)` con il suo valore, perciò non gode della proprietà di trasparenza referenziale.
+I can't replace `inverse(0)` with its value, thus it doesn't benefits from referential transparency.
 
-Perchè è così importante la trasparenza referenziale? Perchè permette di:
+Why is referential transparency so important? Because it allows us to:
 
-- ragionare meglio sul codice
-- **rifattorizzare** senza cambiare il comportamento del programma
+- reason better about our code
+- **refactor** without changing our system's behavior
 
-**Esempio**
+**Example**
 
 ```ts
 declare function question(message: string): Promise<string>
@@ -173,24 +169,36 @@ const x = await question('What is your name?')
 const y = await question('What is your name?')
 ```
 
-Posso rifattorizzare in questo modo?
+Can I refactor in this way?
 
 ```ts
 const x = await question('What is your name?')
 const y = x
 ```
 
-## 3.2. Composizione
+<!-- 
+  TODO: Type systems honesty
+ -->
 
-Il pattern fondamentale della programmazione funzionale è la _componibilità_, ovvero la costruzione di piccole unità
-che fanno qualcosa di specifico in grado di essere combinate al fine di ottenere entità più grandi e complesse.
+## Composition
 
-Ad un livello più alto si spinge verso la _programmazione modulare_
+Functional programming's fundamental pattern is  _composition_: we compose small units of code accomplishing very specific tasks into larger and complex units.
+
+<!--
+   TODO: Complex vs complicated
+-->
+
+At a higher level the aim is _modular programming_:
 
 > By modular programming I mean the process of building large programs by gluing together smaller programs - Simon Peyton Jones
 
-### 3.2.1. oups. Combinaoups
-General definitiontionral-definition** si riferisce al [combinator pattern](https://wikiThe `fold` functionthe-fold-function A style of organizing libraries centered The the-dual-semigroup. Usually there is some type `T`, some "primitiveI can't i-cant-find-an'-instance combine values of type `T` in various Product semigroupbuild  moreproduct-semigroup values Equality aering`equality-and-orderinge di un combinatore è:
+### Combinators
+
+Il termine **combinatore** si riferisce al [combinator pattern](https://wiki.haskell.org/Combinator):
+
+> A style of organizing libraries centered around the idea of combining things. Usually there is some type `T`, some "primitive" values of type `T`, and some "combinators" which can combine values of type `T` in various ways to build up more complex values of type `T`
+
+La forma generale di un combinatore è:
 
 ```ts
 combinator: Thing -> Thing
@@ -198,8 +206,30 @@ combinator: Thing -> Thing
 
 Lo scopo di un combinatore è quello di creare nuove "cose" da "cose" definite precedentemente.
 
-Dato che il risultato può essere nuovamente passato come input, si ottiene una esplosione Combinatorsa di possibilità, il che rende questo pattern mooupspoteoups
-General definition general-definition Combinators insieme, si ottiene una etionione The `fold` functiondefinition the-The `fold` functionin un modulo funzionale è the-The the-dual-semigroup The dual the-dual-I can't find an instancei-cant-find-an'-instance, the implementationimplementation is just a functionProduct semigroup`fold functionaproduct-semigroup-fold-function. Just a functionEqualityering dual semigroupequality-and-orderingn't find i-cant-find-an'-instance in `01_retry.ts` una menzione speciale Product semigroup`concat doupscoupstionibileproduct-semigroup ad una astrazione molto The `fold` functionthe-Equalitydandering 3The dual equality-and-orderingp "I can't find i-cant-find-an'-instance Le algebre possono essere Product Equality andellering-semigroup equality-and-ordering*algebra** si intende generalmente una qualunque combinazione di:
+Dato che il risultato può essere nuovamente passato come input, si ottiene una esplosione combinatoria di possibilità, il che rende questo pattern molto potente.
+
+Se si mischiano diversi combinatori insieme, si ottiene una esplosione combinatoria ancora più grande.
+
+Perciò il design generale che potete spesso trovare in un modulo funzionale è questo:
+
+- un insieme di semplici "primitive"
+- un insieme di combinatori per combinare le primitive in strutture più complesse
+
+**Demo**
+
+> Sometimes, the elegant implementation is just a function. Not a method. Not a class. Not a framework. Just a function. - John Carmack
+
+[`01_retry.ts`](src/01_retry.ts)
+
+Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat` dato che è possibile riferirlo ad una astrazione molto importante in programmazione funzionale: i semigruppi.
+
+# Semigruppi
+
+Potremmo accostare al termine "programmazione funzionale" quello di "programmazione algebrica", infatti:
+
+> Le algebre possono essere considerate i design pattern della programmazione funzionale
+
+Per **algebra** si intende generalmente una qualunque combinazione di:
 
 - insiemi
 - operazioni
@@ -237,7 +267,7 @@ interface Magma<A> {
 
 Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo un'algebra che ne definisce una: i semigruppi.
 
-## 3.3. Definizione generale
+## Definizione generale
 
 Sia `(A, *)` un magma, se `*` è **associativa** allora è un _semigruppo_.
 
@@ -279,7 +309,7 @@ Ci sono molti esempi familiari di semigruppi:
 - `(boolean, &&)` dove `&&` è l'usuale congiunzione
 - `(boolean, ||)` dove `||` è l'usuale disgiunzione
 
-## 3.4. Implementazione
+## Implementazione
 
 Come accade spesso in `fp-ts` l'algebra `Semigroup`, contenuta nel modulo `fp-ts/lib/Semigroup`, è implementata con una `interface` di TypeScript:
 
@@ -336,7 +366,7 @@ const semigroupString: Semigroup<string> = {
 }
 ```
 
-## 3.5. La funzione `fold`
+## La funzione `fold`
 
 Per definizione `concat` combina solo due elementi di `A` alla volta, è possibile combinare più elementi?
 
