@@ -2,75 +2,75 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-- [Che cos'è la programmazione funzionale](#che-cos%C3%A8-la-programmazione-funzionale)
-- [I due pilastri della programmazione funzionale](#i-due-pilastri-della-programmazione-funzionale)
-  - [Trasparenza referenziale](#trasparenza-referenziale)
+- [What is functional programming](#what-is-functional-programming)
+- [The two pillars of functional programming](#the-two-pillars-of-functional-programming)
+  - [Referential transparency](#referential-transparency)
   - [Composizione](#composizione)
-    - [Combinatori](#combinatori)
-- [Semigruppi](#semigruppi)
-  - [Definizione generale](#definizione-generale)
-  - [Implementazione](#implementazione)
-  - [La funzione `fold`](#la-funzione-fold)
-  - [Il semigruppo duale](#il-semigruppo-duale)
-  - [Non riesco a trovare una istanza!](#non-riesco-a-trovare-una-istanza)
-  - [Semigruppo prodotto](#semigruppo-prodotto)
-  - [Uguaglianza e ordinamento](#uguaglianza-e-ordinamento)
+    - [Combinators](#combinators)
+- [Semigroups](#semigroups)
+  - [General definition](#general-definition)
+  - [Implementation](#implementation)
+  - [The `fold` function](#the-fold-function)
+  - [The dual semigroup](#the-dual-semigroup)
+  - [I can't find an instance!](#i-can't-find-an-instance)
+  - [Product semigroup](#product-semigroup)
+  - [Equality and ordering](#equality-and-ordering)
 - [Eq](#eq)
-  - [Relazioni di equivalenza come partizioni](#relazioni-di-equivalenza-come-partizioni)
+  - [Equivalence Relationships like partitions](#equivalence-relationships-like-partitions)
 - [Ord](#ord)
-- [Monoidi](#monoidi)
-  - [Implementazione](#implementazione-1)
+- [Monoids](#monoids)
+  - [Implementation](#implementation-1)
   - [Folding](#folding)
-- [Funzioni pure e funzioni parziali](#funzioni-pure-e-funzioni-parziali)
-  - [Funzioni parziali](#funzioni-parziali)
-- [ADT e error handling funzionale](#adt-e-error-handling-funzionale)
-  - [Che cos'è un ADT?](#che-cos%C3%A8-un-adt)
+- [Pure and partial functions](#pure-and-partial-functions)
+  - [Partial functions](#partial-functions)
+- [ADT and functional error handling](#adt-and-functional-error-handling)
+  - [What is an ADT?](#what-is-an-adt)
   - [Product types](#product-types)
-    - [Perchè "product" types?](#perch%C3%A8-product-types)
-    - [Quando posso usare un product type?](#quando-posso-usare-un-product-type)
+    - [Why "product" types?](#perch%C3%A8-product-types)
+    - [When can I use a product type?](#quando-posso-usare-un-product-type)
   - [Sum types](#sum-types)
-    - [Costruttori](#costruttori)
+    - [Constructors](#constructors)
     - [Pattern matching](#pattern-matching)
-    - [Perchè "sum" types?](#perch%C3%A8-sum-types)
-    - [Quando dovrei usare un sum type?](#quando-dovrei-usare-un-sum-type)
+    - [Why "sum" types?](#why-sum-types)
+    - [When should I use a sum type?](#when-should-I-use-a-sum-type)
   - [Functional error handling](#functional-error-handling)
-    - [Il tipo `Option`](#il-tipo-option)
-    - [Il tipo `Either`](#il-tipo-either)
-- [Teoria delle categorie](#teoria-delle-categorie)
-  - [Definizione](#definizione)
-    - [Parte I (Costituenti)](#parte-i-costituenti)
-    - [Parte II (Composizione)](#parte-ii-composizione)
-  - [Categorie come linguaggi di programmazione](#categorie-come-linguaggi-di-programmazione)
-  - [Una categoria per TypeScript](#una-categoria-per-typescript)
-  - [Il problema centrale della composizione](#il-problema-centrale-della-composizione)
-- [Funtori](#funtori)
-  - [Funzioni come programmi](#funzioni-come-programmi)
-  - [Come il vincolo `B = F<C>` conduce ai funtori...](#come-il-vincolo-b--fc-conduce-ai-funtori)
-    - [Definizione](#definizione-1)
-  - [Funtori in `fp-ts`](#funtori-in-fp-ts)
-  - [Composizione di funtori](#composizione-di-funtori)
-  - [Abbiamo risolto il problema generale?](#abbiamo-risolto-il-problema-generale)
-  - [Funtori controvarianti](#funtori-controvarianti)
-- [Funtori applicativi](#funtori-applicativi)
+    - [The `Option` type](#option-type)
+    - [The `Either` type](#either-type)
+- [Category theory](#category-theory)
+  - [Definition](#definition)
+    - [Part I (Costituentis)](#part-i-costituents)
+    - [Part II (Composition)](#part-ii-composizion)
+  - [Categories like programming languages](#categories-like-programming-languages)
+  - [The TypeScript Category](#the-typescript-category)
+  - [Composition's core problem](#composition's-core-problem)
+- [Functors](#functors)
+  - [Functions like programs](#functions-like-programs)
+  - [How does the `B = F<C>` constraint leads to functors...](#how-does-the-b-f-c-constraint-leads-to-functors)
+    - [Definition](#definition-1)
+  - [Functors in `fp-ts`](#functors-in-fp-ts)
+  - [Functor composition](#functor-composition)
+  - [Did we solve the general problem?](#abbiamo-risolto-il-problema-generale)
+  - [Contravariant functors](#funtori-controvarianti)
+- [Applicative functors](#funtori-applicativi)
   - [Currying](#currying)
   - [Apply](#apply)
   - [Applicative](#applicative)
   - [Lifting](#lifting)
-  - [Composizione di funtori applicativi](#composizione-di-funtori-applicativi)
-  - [Abbiamo risolto il problema generale?](#abbiamo-risolto-il-problema-generale-1)
+  - [Applicative functor composition](#composizione-di-funtori-applicativi)
+  - [Did we solve the general problem?](#abbiamo-risolto-il-problema-generale-1)
 - [Monadi](#monadi)
-  - [Il problema: nested contexts](#il-problema-nested-contexts)
-  - [Definizione](#definizione-2)
-  - [Ok ma... perchè?](#ok-ma-perch%C3%A8)
-  - [La categoria di Kleisli](#la-categoria-di-kleisli)
-  - [Costruzione della composizione passo dopo passo](#costruzione-della-composizione-passo-dopo-passo)
-  - [Le leggi](#le-leggi)
-  - [Monadi in `fp-ts`](#monadi-in-fp-ts)
-  - [Trasparenza referenziale](#trasparenza-referenziale-1)
+  - [Problem: nested contexts](#il-problema-nested-contexts)
+  - [Definition](#definition-2)
+  - [Ok but why?](#ok-but-why)
+  - [Kleisli Category](#la-categoria-di-kleisli)
+  - [Constructing the composition step-by-step ](#constructing-the-composition-step-by-step)
+  - [Laws](#laws)
+  - [Monads in `fp-ts`](#monads-in-fp-ts)
+  - [Referential transparency](#referential-transparency-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Che cos'è la programmazione funzionale
+# 1. What is functional programming
 
 > Though programming was born in mathematics, it has since largely been divorced from it.
 > The idea is that there's some higher level than the code in which you need to be able to think precisely,
@@ -106,12 +106,14 @@ Una `map` invece mi dà delle garanzie: gli elementi dell'input verrano processa
 qualunque sia l'operazione che viene fatta nella callback, il risultato sarà sempre un array con lo stesso numero di elementi
 dell'array di input.
 
-# I due pilastri della programmazione funzionale
+# 2. What is love? <a id="baby"></a>
+
+# 3. I due pilastri della programmazione funzionale
 
 - trasparenza referenziale
 - composizione (come design pattern universale)
 
-## Trasparenza referenziale
+## 3.1. Trasparenza referenziale
 
 > An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
 
@@ -169,7 +171,7 @@ const x = await question('What is your name?')
 const y = x
 ```
 
-## Composizione
+## 3.2. Composizione
 
 Il pattern fondamentale della programmazione funzionale è la _componibilità_, ovvero la costruzione di piccole unità
 che fanno qualcosa di specifico in grado di essere combinate al fine di ottenere entità più grandi e complesse.
@@ -178,13 +180,8 @@ Ad un livello più alto si spinge verso la _programmazione modulare_
 
 > By modular programming I mean the process of building large programs by gluing together smaller programs - Simon Peyton Jones
 
-### Combinatori
-
-Il termine **combinatore** si riferisce al [combinator pattern](https://wiki.haskell.org/Combinator):
-
-> A style of organizing libraries centered around the idea of combining things. Usually there is some type `T`, some "primitive" values of type `T`, and some "combinators" which can combine values of type `T` in various ways to build up more complex values of type `T`
-
-La forma generale di un combinatore è:
+### 3.2.1. oups. Combinaoups
+General definitiontionral-definition** si riferisce al [combinator pattern](https://wikiThe `fold` functionthe-fold-function A style of organizing libraries centered The the-dual-semigroup. Usually there is some type `T`, some "primitiveI can't i-cant-find-an'-instance combine values of type `T` in various Product semigroupbuild  moreproduct-semigroup values Equality aering`equality-and-orderinge di un combinatore è:
 
 ```ts
 combinator: Thing -> Thing
@@ -192,30 +189,8 @@ combinator: Thing -> Thing
 
 Lo scopo di un combinatore è quello di creare nuove "cose" da "cose" definite precedentemente.
 
-Dato che il risultato può essere nuovamente passato come input, si ottiene una esplosione combinatoria di possibilità, il che rende questo pattern molto potente.
-
-Se si mischiano diversi combinatori insieme, si ottiene una esplosione combinatoria ancora più grande.
-
-Perciò il design generale che potete spesso trovare in un modulo funzionale è questo:
-
-- un insieme di semplici "primitive"
-- un insieme di combinatori per combinare le primitive in strutture più complesse
-
-**Demo**
-
-> Sometimes, the elegant implementation is just a function. Not a method. Not a class. Not a framework. Just a function. - John Carmack
-
-[`01_retry.ts`](src/01_retry.ts)
-
-Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat` dato che è possibile riferirlo ad una astrazione molto importante in programmazione funzionale: i semigruppi.
-
-# Semigruppi
-
-Potremmo accostare al termine "programmazione funzionale" quello di "programmazione algebrica", infatti:
-
-> Le algebre possono essere considerate i design pattern della programmazione funzionale
-
-Per **algebra** si intende generalmente una qualunque combinazione di:
+Dato che il risultato può essere nuovamente passato come input, si ottiene una esplosione Combinatorsa di possibilità, il che rende questo pattern mooupspoteoups
+General definition general-definition Combinators insieme, si ottiene una etionione The `fold` functiondefinition the-The `fold` functionin un modulo funzionale è the-The the-dual-semigroup The dual the-dual-I can't find an instancei-cant-find-an'-instance, the implementationimplementation is just a functionProduct semigroup`fold functionaproduct-semigroup-fold-function. Just a functionEqualityering dual semigroupequality-and-orderingn't find i-cant-find-an'-instance in `01_retry.ts` una menzione speciale Product semigroup`concat doupscoupstionibileproduct-semigroup ad una astrazione molto The `fold` functionthe-Equalitydandering 3The dual equality-and-orderingp "I can't find i-cant-find-an'-instance Le algebre possono essere Product Equality andellering-semigroup equality-and-ordering*algebra** si intende generalmente una qualunque combinazione di:
 
 - insiemi
 - operazioni
@@ -253,7 +228,7 @@ interface Magma<A> {
 
 Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo un'algebra che ne definisce una: i semigruppi.
 
-## Definizione generale
+## 3.3. Definizione generale
 
 Sia `(A, *)` un magma, se `*` è **associativa** allora è un _semigruppo_.
 
@@ -295,7 +270,7 @@ Ci sono molti esempi familiari di semigruppi:
 - `(boolean, &&)` dove `&&` è l'usuale congiunzione
 - `(boolean, ||)` dove `||` è l'usuale disgiunzione
 
-## Implementazione
+## 3.4. Implementazione
 
 Come accade spesso in `fp-ts` l'algebra `Semigroup`, contenuta nel modulo `fp-ts/lib/Semigroup`, è implementata con una `interface` di TypeScript:
 
@@ -352,7 +327,7 @@ const semigroupString: Semigroup<string> = {
 }
 ```
 
-## La funzione `fold`
+## 3.5. La funzione `fold`
 
 Per definizione `concat` combina solo due elementi di `A` alla volta, è possibile combinare più elementi?
 
@@ -397,7 +372,7 @@ function assign(as: Array<object>): object {
 }
 ```
 
-## Il semigruppo duale
+## 3.6. Il semigruppo duale
 
 Data una istanza di semigruppo, è possibile ricavarne un'altra semplicemente scambiando l'ordine in cui sono combinati gli elementi:
 
@@ -412,7 +387,7 @@ function getDualSemigroup<A>(S: Semigroup<A>): Semigroup<A> {
 
 **Quiz**. Questo combinatore ha senso perchè in generale l'operazione `concat` non è **commutativa**, potete trovare un esempio?
 
-## Non riesco a trovare una istanza!
+## 3.7. Non riesco a trovare una istanza!
 
 Cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operazione associativa su `A`?
 
@@ -468,7 +443,7 @@ Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di
 - evita di passare in giro l'istanza di semigruppo
 - permette al consumer delle mie API di stabilire la strategia di merging
 
-## Semigruppo prodotto
+## 3.8. Semigruppo prodotto
 
 Proviamo a definire delle istanze di semigruppo per tipi più complessi:
 
@@ -522,16 +497,9 @@ const semigroupVector: Semigroup<Vector> = getStructSemigroup({
 
 **Nota**. Esiste un combinatore simile a `getStructSemigroup` ma che lavora con le tuple: `getTupleSemigroup`.
 
-Ci sono altri combinatori messi a disposizione da `fp-ts`, ecco un combinatore che permette di derivare una istanza di semigruppo per le funzioni: data una istanza di semigruppo per `B` possiamo derivare una istanza di semigruppo per le funzioni con le seguente firma `(a: A) => B` (per ogni possibile `A`)
-
-**Esempio**
-
-```ts
-import { Predicate } from 'fp-ts/lib/function'
-import { getFunctionSemigroup, semigroupAll } from 'fp-ts/lib/Semigroup'
-
-/** `semigroupAll` is the boolean semigroup under conjunction */
-const semigroupPredicate: Semigroup<Predicate<Point>> = getFunctionSemigroup(
+Ci sono altri Combinators messi a disposizione da `fp-ts`, ecco un combinatoupsche permoups di derivare una istanza di semigruppo per le funzioni: data General definition general-definition `B` possiamo derivare una istanza di semigruppo tione funzioni con le implementationguente firma `(a: A) => BThe `fold` function`the-fold-The dual semigroup
+the-dual-semigroup Predicate }' from 'fp-ts/I can't find an i-cant-find-anProduct semigroup/lib/'
+product-semigroup `semigroupAll` is the Equality andering under equality-and-orderinge: Semigroup<Predicate<Point>> = getFunctionSemigroup(
   semigroupAll
 )<Point>()
 ```
@@ -550,7 +518,7 @@ isPositiveXY({ x: -1, y: 1 }) // false
 isPositiveXY({ x: -1, y: -1 }) // false
 ```
 
-## Uguaglianza e ordinamento
+## 3.7. Uguaglianza e ordinamento
 
 Dato che `number` è **totalmente ordinabile** (ovvero dati due qualsiasi numeri `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) possiamo definire due ulteriori istanze di semigruppo usando `min` (o `max`) come operazioni:
 
@@ -568,7 +536,7 @@ const join: Semigroup<number> = {
 
 È possibile catturare la nozione di totalmente ordinabile per altri tipi oltre a `number`? Per farlo prima dobbiamo catturare la nozione di *uguaglianza*.
 
-# Eq
+# 4. Eq
 
 Le *relazioni di equivalenza* catturano il concetto di **uguaglianza** di elementi appartenenti ad uno stesso insieme. Il concetto di relazione di equivalenza può essere implementato in TypeScript con la seguente type class:
 
@@ -664,18 +632,9 @@ const eqVector: Eq<Vector> = getStructEq({
 
 **Nota**. Esiste un combinatore simile a `getStructEq` ma che lavora con le tuple: `getTupleEq`.
 
-Ci sono altri combinatori messi a disposizione da `fp-ts`, ecco un combinatore che permette di derivare una istanza di `Eq` per gli array:
-
-```ts
-import { getEq } from 'fp-ts/lib/Array'
-
-const eqArrayOfPoints: Eq<Array<Point>> = getEq(eqPoint)
-```
-
-Infine un altro utile combinatore per costruire nuove istanze di `Eq` è il combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
-
-```ts
-import { contramap, eqNumber } from 'fp-ts/lib/Eq'
+Ci sono altri Combinators messi a disposizione da `fp-ts`, ecco un combinatoupsche permoups di derivare una istanza dition per gli array:
+General definitiontsgeneral-definition getEq } from The `fold` functionlibthe-fold-function eqArrayOfPoints: Eq<Array<Point>> = The dual semigroup)the-dual-semigroup un altro utile combinatore per costruire nuove I can't find i-cant-find-an'-instance di `Eq` per `A` e una funzione da `B` ad Product semigroup`,  derivareproduct-semigroup istanza di `EqEquality ering`
+equality-and-orderingt { contramap, eqNumber } from 'fp-ts/lib/Eq'
 import { pipe } from 'fp-ts/lib/pipeable'
 
 type User = {
@@ -695,7 +654,7 @@ eqUser.equals({ userId: 1, name: 'Giulio' }, { userId: 2, name: 'Giulio' }) // f
 
 **Spoiler**. `contramap` è l'operazione fondamentale dei [funtori controvarianti](#funtori-controvarianti).
 
-## Relazioni di equivalenza come partizioni
+## 3.9. Relazioni di equivalenza come partizioni
 
 Definire una istanza di `Eq` per `A` equivale a definire una *partizione* di `A` in cui due
 elementi `x`, `y` in `A` appartengono alla stessa partizione se e solo se `equals(x, y) = true`.
@@ -710,7 +669,7 @@ per ogni `x`, `y` in `A`.
 
 **Spoiler**. Vedremo come questa nozione ci sarà utile nella demo: `03_shapes.ts`
 
-# Ord
+# 4. Ord
 
 Nel capitolo precedente riguardante `Eq` avevamo a che fare con il concetto di **uguaglianza**. In questo capitolo avremo a che fare con il concetto di **ordinamento**.
 
@@ -934,7 +893,7 @@ semigroupCustomer.concat(
 
 [`02_ord.ts`](src/02_ord.ts)
 
-# Monoidi
+# 5. Monoidi
 
 Se aggiungiamo una condizione in più alla definizione di un semigruppo `(A, *)`, ovvero che esista un elemento `u` in `A`
 tale che per ogni elemento `a` in `A` vale:
@@ -946,7 +905,7 @@ u * a = a * u = a
 allora la terna `(A, *, u)` viene detta *monoide* e l'elemento `u` viene detto *unità*
 (sinonimi: *elemento neutro*, *elemento identità*).
 
-## Implementazione
+## 5.1. Implementazione
 
 ```ts
 import { Semigroup } from 'fp-ts/lib/Semigroup'
@@ -1083,7 +1042,7 @@ const monoidVector: Monoid<Vector> = getStructMonoid({
 
 **Nota**. Esiste un combinatore simile a `getStructMonoid` ma che lavora con le tuple: `getTupleMonoid`.
 
-## Folding
+## 5.2. Folding
 
 Quando usiamo un monoide invece di un semigruppo, il folding è ancora più semplice: non è necessario fornire esplicitamente un valore iniziale (l'implementazione può usare l'elemento neutro per quello):
 
@@ -1108,7 +1067,7 @@ fold(monoidAny)([true, false, true]) // true
 
 [`03_shapes.ts`](src/03_shapes.ts)
 
-# Funzioni pure e funzioni parziali
+# 6. Funzioni pure e funzioni parziali
 
 > Una funzione pura è una procedura che dato lo stesso input restituisce sempre lo stesso output e non ha alcun side effect osservabile.
 
@@ -1189,7 +1148,7 @@ si dice _composizione_ di `f` e `g` e si scrive `h = f ∘ g`
 
 Si noti che affinché due funzioni `f` e `g` possano comporre, il dominio di `f` deve essere contenuto nel codominio di `g`.
 
-## Funzioni parziali
+## 6.1. Funzioni parziali
 
 **Definizione**. Una funzione _parziale_ è una funzione che non è definita per tutti i valori del dominio.
 
@@ -1220,11 +1179,11 @@ In ambito funzionale si tende a definire solo funzioni pure e totali.
 
 E' possibile definire `Option` in TypeScript?
 
-# ADT e error handling funzionale
+# 7. ADT e error handling funzionale
 
 Un buon primo passo quando si sta construendo una nuova applicazione è quello di definire il suo modello di dominio. TypeScript offre molti strumenti che aiutano in questo compito. Gli **Algebraic Data Types** (abbreviato in ADT) sono uno di questi strumenti.
 
-## Che cos'è un ADT?
+## 7.1. Che cos'è un ADT?
 
 > In computer programming, especially functional programming and type theory, an algebraic data type is a kind of composite type, i.e., **a type formed by combining other types**.
 
@@ -1235,7 +1194,7 @@ Due famiglie comuni di algebraic data types sono:
 
 Cominciamo da quelli più familiari: i product type.
 
-## Product types
+## 7.2. Product types
 
 Un product type è una collezione di tipi T<sub>i</sub> inidicizzati da un insieme `I`.
 
@@ -1265,7 +1224,7 @@ type Name = Person['name'] // string
 type Age = Person['age'] // number
 ```
 
-### Perchè "product" types?
+### 7.2.1. Perchè "product" types?
 
 Se indichiamo con `C(A)` il numero di abitanti del tipo `A` (ovvero la sua **cardinalità**) allora vale la seguente uguaglianza:
 
@@ -1285,7 +1244,7 @@ type Clock = [Hour, Period]
 
 Il tipo `Clock` ha `12 * 2 = 24` abitanti.
 
-### Quando posso usare un product type?
+### 7.2.2. Quando posso usare un product type?
 
 Ogniqualvolta le sue conponenti sono **indipendenti**.
 
@@ -1295,7 +1254,7 @@ type Clock = [Hour, Period]
 
 Qui `Hour` e `Period` sono indipendenti, ovvero il valore di `Hour` non influisce sul valore di `Period` e viceversa, tutte le coppie sono legali e hanno senso.
 
-## Sum types
+## 7.3. Sum types
 
 Un sum type è una struttura dati che contiene un valore che può assumere diversi tipi (ma fissi). Solo uno dei tipi può essere in uso in un dato momento, e un campo che fa da "tag" indica quale di questi è in uso.
 
@@ -1325,7 +1284,7 @@ Il campo `type` fa da tag e assicura che i suoi membri siano disgiunti.
 
 **Nota**. Il nome del campo che fa da tag è a discrezione dello sviluppatore, non deve essere necessariamente "type".
 
-### Costruttori
+### 7.3.1. Costruttori
 
 Un sum type con `n` membri necessita di (almeno) `n` **costruttori**, uno per ogni membro:
 
@@ -1358,7 +1317,7 @@ type List<A> = { type: 'Nil' } | { type: 'Cons'; head: A; tail: List<A> }
 //                                                              ↑ recursion
 ```
 
-### Pattern matching
+### 7.3.2. Pattern matching
 
 JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo in modo grezzo tramite una funzione `fold`:
 
@@ -1376,7 +1335,7 @@ const fold = <A, R>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
 const length: <A>(fa: List<A>) => number = fold(() => 0, (_, tail) => 1 + length(tail))
 ```
 
-### Perchè "sum" types?
+### 7.3.3. Perchè "sum" types?
 
 Vale la seguente uguaglianza:
 
@@ -1399,7 +1358,7 @@ type Option<A> =
 
 Dalla formula generale `C(Option<A>) = 1 + C(A)` possiamo derivare per esempio la cardinalità di `Option<boolean>`: `1 + 2 = 3` abitanti.
 
-### Quando dovrei usare un sum type?
+### 7.3.4. Quando dovrei usare un sum type?
 
 Quando le sue componenti sarebbero **dipendenti** se implementate con un product type.
 
@@ -1473,11 +1432,11 @@ tuttavia le sue componenti sono **dipendenti**: si riceve un errore **oppure** u
 
 Un sum type sarebbe una scelta migliore, ma quale?
 
-## Functional error handling
+## 7.4. Functional error handling
 
 Vediamo come gestire gli errori in modo funzionale.
 
-### Il tipo `Option`
+### 7.4.1. Il tipo `Option`
 
 Il tipo `Option` rappresenta l'effetto di una computazione che può fallire oppure restituire un valore di tipo `A`:
 
@@ -1663,7 +1622,7 @@ monoidSettings.concat(workspaceSettings, userSettings)
 */
 ```
 
-### Il tipo `Either`
+### 7.4.2. Il tipo `Either`
 
 Un uso comune di `Either` è come alternativa ad `Option` per gestire la possibilità di un valore mancante. In questo uso, `None` è sostituito da `Left` che contiene informazione utile. `Right` invece sostituisce `Some`. Per convenzione `Left` è usato per il fallimento mentre `Right` per il successo.
 
@@ -1728,7 +1687,7 @@ readFile('./myfile', flow(
 )
 ```
 
-# Teoria delle categorie
+# 8. Teoria delle categorie
 
 Storicamente la prima astrazione avanzata contenuta in `fp-ts` è `Functor`, ma prima di poter parlare di funtori dobbiamo imparare qualcosa sulle **categorie** dato che i funtori sono costruiti su di esse.
 
@@ -1739,15 +1698,8 @@ we decompose them further, and so on. Finally, we write code that solves all the
 
 Ma cosa significa esattamente? Quando possiamo dire che due cose *compongono*? E quando possiamo dire che due cose compongono *bene*?
 
-> Entities are composable if we can easily and generally combine their behaviors in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for acheiving reuse, and for achieving a combinatorial expansion of what is succinctly expressible in a programming model. - Paul Chiusano
-
-Occorre poter fare riferimento ad una **teoria rigorosa** che possa fornire risposte a domande così fondamentali.
-Ci occorre una **definizione formale** del concetto di composizione.
-
-Fortunatamente da più di 60 anni un vasto gruppo di studiosi appartenenti al più longevo e mastodontico progetto open source nella storia
-dell'umanità (la matematica) si occupa di sviluppare una teoria specificatamente dedicata a questo argomento: la **teoria delle categorie**.
-
-> Categories capture the essence of composition.
+> Entities are composable if we can easily and generally combine their behaviors in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for acheiving reuse, and for achieving a Combinatorsal expansion of what is succinctly expressible in a programming moupoups Paul Chiusano
+General definition general-definition ad una **teoria rigorosa** che possa fornire tionste a domande così implementationamentaliThe `fold` function**the-fold-function di The dual semigroupthe-dual-semigroup 60 anni un vasto gruppo I can't find i-cant-find-an'-instance'umanità (la matematica) si Product semigroupsviluppare  teoriaproduct-semigroup dedicata a questo argomento: la Equality*ering equality-and-ordering> Categories capture the essence of composition.
 
 Saunders Mac Lane
 
@@ -1757,14 +1709,14 @@ Samuel Eilenberg
 
 <img src="images/eilenberg.jpg" width="300" alt="Samuel Eilenberg" />
 
-## Definizione
+## 8.1. Definizione
 
 La definizione di categoria, anche se non particolarmente complicata, è un po' lunga perciò la dividerò in due parti:
 
 - la prima è tecnica (prima di tutto dobbiamo definire i suoi costituenti)
 - la seconda parte contiene ciò a cui siamo più interessati: una nozione di composizione
 
-### Parte I (Costituenti)
+### 8.1.1. Parte I (Costituenti)
 
 Una categoria è una coppia `(Objects, Morphisms)` ove:
 
@@ -1775,7 +1727,7 @@ Una categoria è una coppia `(Objects, Morphisms)` ove:
 
 Ogni morfismo `f` possiede un oggetto sorgente `A` e un oggetto target `B`, dove sia `A` che `B` sono contenuti in `Objects`. Scriviamo `f: A ⟼ B` e diciamo che "f è un morfismo da A a B"
 
-### Parte II (Composizione)
+### 8.1.2. Parte II (Composizione)
 
 Esiste una operazione `∘`, chiamata "composizione", tale che valgono le seguenti proprietà:
 
@@ -1791,7 +1743,7 @@ Esiste una operazione `∘`, chiamata "composizione", tale che valgono le seguen
 
 Questa categoria è molto semplice, ci sono solo tre oggetti e sei morfismi (1<sub>A</sub>, 1<sub>B</sub>, 1<sub>C</sub> sono i morfismi identità di `A`, `B`, `C`).
 
-## Categorie come linguaggi di programmazione
+## 8.2. Categorie come linguaggi di programmazione
 
 Una categoria può essere interpretata come un modello semplificato di un **typed programming language**, ove:
 
@@ -1831,7 +1783,7 @@ function h(s: string): boolean {
 }
 ```
 
-## Una categoria per TypeScript
+## 8.3. Una categoria per TypeScript
 
 Possiamo definire una categoria, chiamiamola *TS*, come modello semplificato del linguaggio TypeScript, ove:
 
@@ -1842,7 +1794,7 @@ Possiamo definire una categoria, chiamiamola *TS*, come modello semplificato del
 
 Come modello di TypeScript, la categoria *TS* a prima vista può sembrare troppo limitata: non ci sono cicli, niente `if`, non c'è *quasi* nulla... e tuttavia questo modello semplificato è abbastanza ricco per soddisfare il nostro obbiettivo principale: ragionare su una nozione ben definita di composizione.
 
-## Il problema centrale della composizione
+## 8.4. Il problema centrale della composizione
 
 In _TS_ possiamo comporre due funzioni generiche `f: (a: A) => B` and `g: (c: C) => D` fintanto che `C = B`
 
@@ -1856,7 +1808,7 @@ Ma che succede se `B != C`? Come possiamo comporre due tali funzioni? Dobbiamo l
 
 Nella prossima sezione vedremo sotto quali condizioni una tale composizione è possibile. Parleremo di **funtori**.
 
-# Funtori
+# 9. Funtori
 
 Nell'ultima sezione riguardante le categorie ho presentato la categoria *TS* (la categoria di TypeScript) e il problema centrale con la composizione di funzioni:
 
@@ -1869,7 +1821,7 @@ Perchè, se è vero che le categorie possono essere usate per modellare i lingua
 Perciò risolvere quel problema astratto significa anche trovare una via concreta di **comporre i programmi in modo generico**.
 E *questo* sì che è molto interessante per uno sviluppatore, non è vero?
 
-## Funzioni come programmi
+## 9.1. Funzioni come programmi
 
 > Come è possibile modellare un programma che produce side effect con una funzione pura?
 
@@ -2008,7 +1960,7 @@ function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
 
 Ma cosa dire degli altri casi?
 
-## Come il vincolo `B = F<C>` conduce ai funtori...
+## 9.2. Come il vincolo `B = F<C>` conduce ai funtori...
 
 Consideriamo il seguente vincolo: `B = F<C>` per un qualche type constructor `F`, o in altre parole (e dopo un po' di renaming):
 
@@ -2070,7 +2022,7 @@ D'ora in poi, se non diversamente specificato, quando scrivo "funtore" intendo u
 
 Ora che sappiamo qual'è l'aspetto pratico che ci interessa dei funtori, vediamone la definizione formale.
 
-### Definizione
+### 9.2.1. Definizione
 
 Un funtore è una coppia `(F, lift)` ove:
 
@@ -2097,7 +2049,7 @@ map:  <A, B>(fa: F<A>, f: (a: A) => B) => F<B>
 
 Notate che `map` può essere derivata da `lift` (e viceversa).
 
-## Funtori in `fp-ts`
+## 9.3. Funtori in `fp-ts`
 
 Come facciamo a definire una istanza di funtore in `fp-ts`? Vediamo qualche esempio pratico.
 
@@ -2149,7 +2101,7 @@ export const functorResponse: Functor1<URI> = {
 }
 ```
 
-## Composizione di funtori
+## 9.4. Composizione di funtori
 
 I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione `F<G<A>>` è ancora un funtore e la `map` della composizione è la composizione delle `map`
 
@@ -2175,7 +2127,7 @@ import { option } from 'fp-ts/lib/Option'
 export const functorArrayOption = getFunctorComposition(array, option)
 ```
 
-## Abbiamo risolto il problema generale?
+## 9.5. Abbiamo risolto il problema generale?
 
 Non ancora. I funtori ci permettono di comporre un programma con effetti `f` con un programma puro `g`, ma `g` deve essere una funzione **unaria**, ovvero una funzione che accetta un solo argomento. Cosa succede se `g` accetta due o più argomenti?
 
@@ -2187,7 +2139,7 @@ Non ancora. I funtori ci permettono di comporre un programma con effetti `f` con
 
 Per poter gestire questa circostanza abbiamo bisogno di qualcosa in più, nel prossimo capitolo vedremo un'altra importante astrazione della programmazione funzionale: i **funtori applicativi**.
 
-## Funtori controvarianti
+## 9.6. Funtori controvarianti
 
 Prima di passare ai funtori applicativi voglio mostrarvi una variante del concetto di funtore che abbiamo visto nella sezione precedente: i **funtori controvarianti**.
 
@@ -2211,7 +2163,7 @@ export interface Contravariant<F> {
 
 Come esempi, abbiamo già visto due tipi notevoli che ammettono una istanza di funtore controvariante: `Eq` e `Ord`.
 
-# Funtori applicativi
+# 10. Funtori applicativi
 
 Nella sezione riguardante i funtori abbiamo visto che possiamo comporre un programma con effetti `f: (a: A) => F<B>` con un programma puro `g: (b: B) => C` tramite lifting di `g` ad una funzione `lift(g): (fb: F<B>) => F<C>`, ammesso che `F` ammetta una istanza di funtore.
 
@@ -2222,7 +2174,7 @@ Nella sezione riguardante i funtori abbiamo visto che possiamo comporre un progr
 
 Tuttavia `g` deve essere unaria, ovvero deve accettare un solo argomento in input. Che succede se `g` accetta due argomenti? Possiamo ancora fare un lifting di `g` usando solo l'istanza di funtore? Proviamoci!
 
-## Currying
+## 10.1. Currying
 
 Prima di tutto dobbiamo modellare una funzione che accetta due argomenti, diciamo di tipo `B` e `C` (possiamo usare una tupla per questo) e restituisce un valore di tipo `D`:
 
@@ -2256,7 +2208,7 @@ lift(g): (fb: F<B>) => F<(c: C) => D>
 
 Ma ora siamo bloccati: non c'è alcuna operazione legale fornita dalla istanza di funtore che ci permette di **spacchettare** (`unpack`) il valore `F<(c: C) => D>` in una funzione `(fc: F<C>) => F<D>`.
 
-## Apply
+## 10.2. Apply
 
 Introduciamo perciò una nuova astrazione `Apply` che possiede una tale operazione di spacchettamento (chiamata `ap`):
 
@@ -2275,7 +2227,7 @@ ap:     <C, D>(fcd: HKT<F, (c: C) => D>, fc: HKT<F, C>) => HKT<F, D>
 
 perciò `ap` può essere derivata da `unpack` (e viceversa).
 
-## Applicative
+## 10.3. Applicative
 
 In più sarebbe comodo se esistesse un'altra operazione che sia in grado di fare il **lifting di un valore** di tipo `A` in un valore di tipo `F<A>`. In questo modo potremo chiamare la funzione `liftA2(g)` sia fornendo valori di tipo `F<B>` e `F<C>`, sia tramite lifting di valori di tipo `B` e `C`.
 
@@ -2340,7 +2292,7 @@ export const applicativeTask = {
 }
 ```
 
-## Lifting
+## 10.4. Lifting
 
 Data una istanza di `Apply` per `F` possiamo quindi definire `liftA2`?
 
@@ -2390,7 +2342,7 @@ ove `liftA1 = lift`
 
 [`04_applicative.ts`](src/04_applicative.ts)
 
-## Composizione di funtori applicativi
+## 10.5. Composizione di funtori applicativi
 
 I funtori applicativi compongono, ovvero dati due funtori applicativi `F` e `G`,
 allora la loro composizione `F<G<A>>` è ancora un funtore applicativo.
@@ -2420,13 +2372,13 @@ import { option } from 'fp-ts/lib/Option'
 export const applicativeArrayOption = getApplicativeComposition(array, option)
 ```
 
-## Abbiamo risolto il problema generale?
+## 10.6. Abbiamo risolto il problema generale?
 
 Non ancora. C'è ancora un ultimo importante caso da considerare: quando **entrambi** i programmi sono con effetti.
 
 Ancora una volta abbiamo bisogno di qualche cosa in più, nel capitoloseguente parleremo di una delle astrazioni più importanti in programmazione funzionale: le **monadi**.
 
-# Monadi
+# 11. Monadi
 
 Eugenio Moggi is a professor of computer science at the University of Genoa, Italy. He first described the general use of monads to structure programs.
 
@@ -2456,7 +2408,7 @@ Qual'è la composizione di `f` e `g`?
 
 Per poter gestire questo ultimo caso abbiamo bisogno di qualcosa di più potente di `Functor` dato che è piuttosto semplice ritrovarsi con contesti innestati.
 
-## Il problema: nested contexts
+## 11.1. Il problema: nested contexts
 
 Per mostrare meglio perchè abbiamo bisogno di qualcosa in più, vediamo qualche esempio pratico.
 
@@ -2524,7 +2476,7 @@ Dunque cos'è una monade?
 
 Ecco come spesso sono presentate le monadi...
 
-## Definizione
+## 11.2. Definizione
 
 Una monade è definita da tre cose:
 
@@ -2552,7 +2504,7 @@ Le funzioni `of` e `flatMap` devono obbedire a tre leggi:
 
 ove `f`, `g`, `h` sono tutte funzioni con effetto e `∘` è l'usuale composizione di funzioni.
 
-## Ok ma... perchè?
+## 11.3. Ok ma... perchè?
 
 Quando vidi per la prima volta questa definizione la mia prima reazione fu di sconcerto.
 
@@ -2577,7 +2529,7 @@ Un momento... abbiamo già incontrato una astrazione che parla specificatamente 
 
 Possiamo trasformare il nostro problema in un problema categoriale: possiamo trovare una categoria che modella la composizione delle Kleisli arrows?
 
-## La categoria di Kleisli
+## 11.4. La categoria di Kleisli
 
 Heinrich Kleisli (Swiss mathematician)
 
@@ -2604,7 +2556,7 @@ Quindi un buon candidato per la composizione di `f` e `g` in *TS* è ancora una 
 
 Come facciamo a costruire una tale funzione? Beh, proviamoci!
 
-## Costruzione della composizione passo dopo passo
+## 11.5. Costruzione della composizione passo dopo passo
 
 Il punto (1) della definizione di monade ci dice che `M` ammette una istanza di funtore, percò possiamo usare `lift` per trasformare la funzione `g: (b: B) => M<C>` in una funzione `lift(g): (mb: M<B>) => M<M<C>>` (qui sotto sto usando il nome `map` al posto di `lift`, ma sappiamo che sono equivalenti)
 
@@ -2642,7 +2594,7 @@ E per quanto riguarda `of`? Ebbene, `of` proviene dai morfismi identità in *K*:
 
 (da dove nasce `of`)
 
-## Le leggi
+## 11.6. Le leggi
 
 Ultima domanda: da dove nascono le leggi? Esse non sono altro che le leggi categoriali in *K* tradotte in *TS*:
 
@@ -2652,7 +2604,7 @@ Ultima domanda: da dove nascono le leggi? Esse non sono altro che le leggi categ
 | Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `flatMap(f) ∘ of = f`                                           |
 | Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `flatMap(h) ∘ (flatMap(g) ∘ f) = flatMap((flatMap(h) ∘ g)) ∘ f` |
 
-## Monadi in `fp-ts`
+## 11.7. Monadi in `fp-ts`
 
 In `fp-ts` la funzione `flatMap` è modellata con una sua variante equivalente chiamata `chain`, che è fondamentalmente `flatMap` con gli argomenti riarrangiati:
 
@@ -2674,7 +2626,7 @@ const followersOfFollowers: Array<User> = array.chain(getFollowers(user), getFol
 const headInverse: Option<number> = option.chain(head([1, 2, 3]), inverse)
 ```
 
-## Trasparenza referenziale
+## 11.8. Trasparenza referenziale
 
 Vediamo ora come, grazie alla trasparenza referenziale e al concetto di monade, possiamo manipolare i programmi programmaticamente.
 
