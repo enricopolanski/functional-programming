@@ -1,15 +1,15 @@
 /*
 
-  Questo modulo è diviso in 3 sezioni
+  This module is split in 3 parts:
 
-  - modello
-  - primitive
-  - combinatori
+  - the model
+  - primitives
+  - combinators
 
 */
 
 //
-// modello
+// model
 //
 
 export interface RetryStatus {
@@ -31,7 +31,7 @@ export interface RetryPolicy {
 }
 
 //
-// primitive
+// primitives
 //
 
 /**
@@ -59,7 +59,7 @@ export function exponentialBackoff(
 }
 
 //
-// combinatori
+// combinators
 //
 
 /**
