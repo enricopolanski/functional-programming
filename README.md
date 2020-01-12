@@ -194,26 +194,26 @@ At a higher level the aim is _modular programming_:
 
 ### Combinators
 
-Il termine **combinatore** si riferisce al [combinator pattern](https://wiki.haskell.org/Combinator):
+The term **combinator** refers to the [combinator pattern](https://wiki.haskell.org/Combinator):
 
 > A style of organizing libraries centered around the idea of combining things. Usually there is some type `T`, some "primitive" values of type `T`, and some "combinators" which can combine values of type `T` in various ways to build up more complex values of type `T`
 
-La forma generale di un combinatore è:
+The general form of a combinator is:
 
 ```ts
 combinator: Thing -> Thing
 ```
 
-Lo scopo di un combinatore è quello di creare nuove "cose" da "cose" definite precedentemente.
+The goal of a combinator is to create new _things_ from _things_ defined before.
 
-Dato che il risultato può essere nuovamente passato come input, si ottiene una esplosione combinatoria di possibilità, il che rende questo pattern molto potente.
+Since this new _Thing_ result can be passed around as input we obtain a combinatory explosion of opportunities, which makes this pattern extremely powerful.
 
-Se si mischiano diversi combinatori insieme, si ottiene una esplosione combinatoria ancora più grande.
+If we mix several different combinators together we can obtain an even _bigger_ combinatory explosion.
 
-Perciò il design generale che potete spesso trovare in un modulo funzionale è questo:
+Thus the usual design you can find in a functional module is:
 
-- un insieme di semplici "primitive"
-- un insieme di combinatori per combinare le primitive in strutture più complesse
+- a small set of "primitives"
+- a set of combinators to combine the primitives in largers structures
 
 **Demo**
 
@@ -221,41 +221,45 @@ Perciò il design generale che potete spesso trovare in un modulo funzionale è 
 
 [`01_retry.ts`](src/01_retry.ts)
 
-Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat` dato che è possibile riferirlo ad una astrazione molto importante in programmazione funzionale: i semigruppi.
+Of the two combiners in `01_retry.ts` a special mention goes to `concat` since it's possible to refert to with as another functional programming abstraction: semigroups.
 
-# Semigruppi
+# Semigroups
 
-Potremmo accostare al termine "programmazione funzionale" quello di "programmazione algebrica", infatti:
+Another term we could associate to _functional_ programming might be _algebraic_ programming:
 
-> Le algebre possono essere considerate i design pattern della programmazione funzionale
+> Algebras can be tought as the design patterns for functional programming
 
-Per **algebra** si intende generalmente una qualunque combinazione di:
+An **algebra** is generally defined as whavever combination of:
 
-- insiemi
-- operazioni
-- leggi
+- sets
+- operations
+- laws
 
-Le algebre sono il modo in cui i matematici tendono a catturare un concetto nel modo più puro,
-ovvero eliminando tutto ciò che è superfluo.
+Algebras are how mathematicians try to capture an idea in its purest form, eliminating everything that is superfluous.
 
-Le algebre possono essere considerate come una versione astratta delle interfacce: quando si manipola una struttura algebrica
-sono permesse solo le operazioni definite dall'algebra in oggetto e in conformità alle sue leggi.
+Algebras can be thought as an abstraction of interfaces: when an algebraic structure is modifyed only the operations defined by the algebra are allowed in compliance with its own laws.
 
-I matematici lavorano con tali interfacce da secoli e funziona in modo egregio.
+Mathematicians work with such interfaces from centuries, and it works.
 
-Vediamo un primo semplice esempio di algebra, il magma.
+Let's see our first example of an algebra, a _magma_.
 
-**Definizione**. Sia `A` un insieme non vuoto e `*` un'operazione binaria _chiusa su_ (o _interna a_) `A` ovvero `*: A × A ⟶ A`,
-allora la coppia `(A, *)` si chiama _magma_.
+**Definition**. Given `A` a non empty set and `*` a binary operation _closed on_ (or _internal to_) `A` such as `*: A × A ⟶ A`,
+then the pair `(A, *)` is called a _magma_.
 
 > Because the binary operation of a magma takes two values of a given type and returns a new value of the same type (*closure property*), this operation can be chained indefinitely.
 
 Il fatto che l'operazione sia chiusa è una proprietà non banale, per esempio sui numeri naturali (ovvero i numeri interi positivi) la somma è una operazione chiusa mentre la sottrazione non lo è.
+The fact that the operation has to be _closed_ is a fundamental property. Example given, in the set of the natural numbers, sum is a closed operation, substraction is not.
 
+<!-- 
+  TODO: L’operazione di sottrazione non è un’operazione interna all’insieme \mathbb{N} dei numeri naturali.
+-->
+
+And this is the encoding of a magma in TypeScript:
 Ecco l'encoding di un magma in TypeScript:
 
-- l'insieme è codificato con un type parameter
-- l'operazione `*` è qui chiamata `concat`
+- the set is encoded in a type parameter
+- the `*` operation is here called `concat`
 
 ```ts
 // fp-ts/lib/Magma.ts
@@ -265,7 +269,7 @@ interface Magma<A> {
 }
 ```
 
-Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo un'algebra che ne definisce una: i semigruppi.
+Magmas do not obey any law, ther'e only the closure requirement. Let's see an algebra that do requires another law: semigroups.
 
 ## Definizione generale
 
