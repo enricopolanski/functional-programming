@@ -248,7 +248,6 @@ then the pair `(A, *)` is called a _magma_.
 
 > Because the binary operation of a magma takes two values of a given type and returns a new value of the same type (*closure property*), this operation can be chained indefinitely.
 
-Il fatto che l'operazione sia chiusa è una proprietà non banale, per esempio sui numeri naturali (ovvero i numeri interi positivi) la somma è una operazione chiusa mentre la sottrazione non lo è.
 The fact that the operation has to be _closed_ is a fundamental property. Example given, in the set of the natural numbers, sum is a closed operation, substraction is not.
 
 <!-- 
@@ -256,7 +255,6 @@ The fact that the operation has to be _closed_ is a fundamental property. Exampl
 -->
 
 And this is the encoding of a magma in TypeScript:
-Ecco l'encoding di un magma in TypeScript:
 
 - the set is encoded in a type parameter
 - the `*` operation is here called `concat`
@@ -271,51 +269,51 @@ interface Magma<A> {
 
 Magmas do not obey any law, ther'e only the closure requirement. Let's see an algebra that do requires another law: semigroups.
 
-## Definizione generale
+## General Definition
 
-Sia `(A, *)` un magma, se `*` è **associativa** allora è un _semigruppo_.
+Given `(A, *)` a magma, if `*` è **associative** then it's a _semigroup_.
 
-Il termine "associativa" vuol dire che l'equazione:
+The term "associative" means that the equation:
 
 ```ts
 (x * y) * z = x * (y * z)
 ```
 
-vale per ogni `x`, `y`, `z` in `A`.
+holds for any `x`, `y`, `z` in `A`.
 
-L'associatività ci dice che non dobbiamo preoccuparci delle parentesi nelle espressioni e che, volendo, possiamo scrivere semplicemente `x * y * z` (non c'è ambiguità).
+Associativity tells us that we do not have to need to worry about parentheses in expressions and that, we can simply write `x * y * z` (there's no ambiguity).
 
-**Esempio**
+**Example**
 
-La concatenazione di stringhe gode della proprietà associativa.
+String concatenation benefits from associativity.
 
 ```ts
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
 ```
 
-Una caratterizzazione della proprietà associativa è:
+A characteristic of associativity is that:
 
 > Semigroups capture the essence of parallelizable operations
 
-Se sappiamo che una data operazione gode della proprietà associativa possiamo suddividere una computazione in due sotto computazioni, ognuna delle quali può essere ulteriormente suddivisa
+If we know that there is such an operation that follows the associativity law we can further split a computation in two sub computations, each of them could be further split in sub computations.
 
 ```ts
 a * b * c * d * e * f * g * h = ((a * b) * (c * d)) * ((e * f) * (g * h))
 ```
 
-Le sotto computazioni possono essere distribuite ed eseguite parallelamente.
+Sub computations can be run in parallel mode.
 
-Ci sono molti esempi familiari di semigruppi:
+There are many examples of semigroups:
 
-- `(number, +)` dove `+` è l'usuale addizione di numeri
-- `(number, *)` dove `*` è l'usuale moltiplicazione di numeri
-- `(string, +)` dove `+` è l'usuale concatenazione di stringhe
-- `(boolean, &&)` dove `&&` è l'usuale congiunzione
-- `(boolean, ||)` dove `||` è l'usuale disgiunzione
+- `(number, +)` where `+` is the usual addition of numbers
+- `(number, *)` where `*` is the usual number moltiplication
+- `(string, +)` where `+` is the usual string concatenation
+- `(boolean, &&)` where `&&` is the [logical conjuction](https://en.wikipedia.org/wiki/Logical_conjunction)
+- `(boolean, ||)` where `||` is the [logical disjunction](https://en.wikipedia.org/wiki/Logical_disjunction)
 
-## Implementazione
+## Implementation
 
-Come accade spesso in `fp-ts` l'algebra `Semigroup`, contenuta nel modulo `fp-ts/lib/Semigroup`, è implementata con una `interface` di TypeScript:
+As usual in `fp-ts` the algebra `Semigroup`, contained in the the `fp-ts/lib/Semigroup` module, is implemented through a TypeScript `interface`:
 
 ```ts
 // fp-ts/lib/Semigroup.ts
@@ -323,26 +321,26 @@ Come accade spesso in `fp-ts` l'algebra `Semigroup`, contenuta nel modulo `fp-ts
 interface Semigroup<A> extends Magma<A> {}
 ```
 
-Deve valere la seguente legge:
+The following law has to hold true:
 
-- **Associativity**: `concat(concat(x, y), z) = concat(x, concat(y, z))`, per ogni `x`, `y`, `z` in `A`
+- **Associativity**: `concat(concat(x, y), z) = concat(x, concat(y, z))`, for every `x`, `y`, `z` in `A`
 
-**Nota**. Purtroppo questa legge non può essere codificata nel type system di TypeScript.
+**Note**. Sadly it is not possible to encode this law in TypeScript's type system.
 
-Il nome `concat` ha particolarmente senso per gli array (vedi dopo) ma, in base al contesto e al tipo `A` per il quale stiamo implementando una istanza, l'operazione di semigruppo `concat` può essere interpretata con diversi significati:
+The name `concat` makes sense for arrays (as we'll see later) but, depending on the context and the type `A` on whom we're implementing an instance, the `concat` semigroup operation may have different interpretations and meanings:
 
-- "concatenazione"
+- "concatenation"
 - "merging"
-- "fusione"
-- "selezione"
-- "addizione"
-- "sostituzione"
+- "fusion"
+- "selection"
+- "addition"
+- "substitution"
 
-e altri ancora.
+and many others.
 
-**Esempio**
+**Example**
 
-Ecco come implementare il semigruppo `(number, +)` dove `+` è l'usuale addizione di numeri:
+This is how to implement the semigroup `(number, +)` where `+` is the usual addition of numbers:
 
 ```ts
 /** number `Semigroup` under addition */
@@ -351,9 +349,10 @@ const semigroupSum: Semigroup<number> = {
 }
 ```
 
-Si noti che per lo stesso tipo si possono definire più **istanze** della **type class** `Semigroup`.
+Please note that for the same type it is possible to define more **instances** of the **type class* `Semigroup`.
+ 
 
-Ecco l'implementazione del semigruppo `(number, *)` dove `*` è l'usuale moltiplicazione di numeri:
+This is the implementation for the semigroup `(number, *)` where `*` is the usual number multiplication:
 
 ```ts
 /** number `Semigroup` under multiplication */
@@ -362,7 +361,7 @@ const semigroupProduct: Semigroup<number> = {
 }
 ```
 
-Un'altro esempio, con le stringhe questa volta:
+Another example, with two strings this time:
 
 ```ts
 const semigroupString: Semigroup<string> = {
@@ -370,11 +369,18 @@ const semigroupString: Semigroup<string> = {
 }
 ```
 
-## La funzione `fold`
+## The `fold` function
 
-Per definizione `concat` combina solo due elementi di `A` alla volta, è possibile combinare più elementi?
+By definition `concat` combines merely two elements of `A` every time, is it possible to combine any _n_ number of them?
 
-La funzione `fold` prende in input una istanza di semigruppo, un valore iniziale e un array di elementi:
+The `fold` function takes:
+  - an instance of a semigroup
+  - an initial value
+  - an array of elements
+
+<!--
+  TODO: Refactor with HM types.
+-->
 
 ```ts
 import { fold, semigroupSum, semigroupProduct } from 'fp-ts/lib/Semigroup'
@@ -388,11 +394,11 @@ const product = fold(semigroupProduct)
 product(1, [1, 2, 3, 4]) // 24
 ```
 
-**Quiz**. Perchè ho bisogno di un valore iniziale?
+**Quiz**. Why do I need to provide an initial value?
 
-**Esempio**
+**Example**
 
-Ora, come esempi di applicazione di `fold`, possiamo reimplementare alcune popolari funzioni della standard library di JavaScript:
+Lets provide some applications of `fold`, by reimplementing some popular functions of the JavaScript standard library.
 
 ```ts
 import { Predicate } from 'fp-ts/lib/function'
