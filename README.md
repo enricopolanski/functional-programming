@@ -315,6 +315,10 @@ There are many examples of semigroups:
 
 As usual in `fp-ts` the algebra `Semigroup`, contained in the the `fp-ts/lib/Semigroup` module, is implemented through a TypeScript `interface`:
 
+<!-- 
+  TODO: implementation of a Magma?
+-->
+
 ```ts
 // fp-ts/lib/Semigroup.ts
 
@@ -421,12 +425,12 @@ function assign(as: Array<object>): object {
 }
 ```
 
-## 3.6. Il semigruppo duale
+## 3.6. The dual semigroup
 
-Data una istanza di semigruppo, è possibile ricavarne un'altra semplicemente scambiando l'ordine in cui sono combinati gli elementi:
+Given a Semigroup instance, it is possible to obtain a new Semigroup instance simply swapping the order in which the operands are combined:
 
 ```ts
-// questo è un combinatore di semigruppi...
+// this is a Semigroup combinator
 function getDualSemigroup<A>(S: Semigroup<A>): Semigroup<A> {
   return {
     concat: (x, y) => S.concat(y, x)
@@ -434,13 +438,13 @@ function getDualSemigroup<A>(S: Semigroup<A>): Semigroup<A> {
 }
 ```
 
-**Quiz**. Questo combinatore ha senso perchè in generale l'operazione `concat` non è **commutativa**, potete trovare un esempio?
+**Quiz**. This combinator makes because generally speaking the `concat` operation is not **commutative**, can you find an example?
 
-## 3.7. Non riesco a trovare una istanza!
+## 3.7. Finding a Semigroup instance for any type
 
-Cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operazione associativa su `A`?
+What happens if, given a specific type `A` we can't find an associative binary operation on `A`?
 
-Potete **sempre** definire una istanza di semigruppo per un **qualsiasi** tipo usando le seguenti costruzioni:
+You can **always** define a semigroup instance for **any**instance for **any** given type using the following constructors:
 
 ```ts
 // fp-ts/lib/Semigroup.ts
@@ -460,9 +464,9 @@ function getLastSemigroup<A = never>(): Semigroup<A> {
 }
 ```
 
-**Quiz**: Potete spiegare la presenza del default `= never` per il type parameter `A`?
+**Quiz**: Can you explain the presence of the `= never` for the type parameter `A`? 
 
-Un'altra tecnica è quella di definire una istanza di semigruppo non per `A` ma per `Array<A>` (ad essere pignoli è una istanza di semigruppo per gli array non vuoti di `A`), chiamata il **semigruppo libero** di `A`
+Another technique is to define a semigroup instance not for the `A` type but for `Array<A>` (to be precise, it is a semigroup instance not for `A` but for the non-empty arrays of `A`) called the **free semigroup** of `A`.
 
 ```ts
 function getSemigroup<A = never>(): Semigroup<Array<A>> {
@@ -472,7 +476,7 @@ function getSemigroup<A = never>(): Semigroup<Array<A>> {
 }
 ```
 
-e poi mappare gli elementi di `A` ai "singoletti" di `Array<A>`, ovvero array con un solo elemento:
+and then we can map the elements of `A` to the singleton (a one-dimensional tuple) of `Array<A>` meaning an array with only one A element.
 
 ```ts
 function of<A>(a: A): Array<A> {
@@ -480,9 +484,10 @@ function of<A>(a: A): Array<A> {
 }
 ```
 
-**Note**. Qui `concat` è il metodo nativo degli array, il che spiega la scelta iniziale del nome dell'operazione fondamentale dei semigruppi.
+**Notes**. The `concat` in `getSemigroup` is the native array concat operation, this also explains why concat is the name of `*`, the binary associative operation of semigroups.
 
-Il semigruppo libero di `A` quindi non è altro che il semigruppo in cui gli elementi sono tutte le possibili sequenze finite e non vuote di elementi di `A`.
+
+The free semigroup of `A` thus is simply the semigroup whose elements are all the possible finite and non-empty combinations of `A` elements.
 
 Il semigruppo libero di `A` può essere visto come un modo *lazy* di concatenare elementi di `A`, mantenendo in tal modo tutto il contenuto informativo.
 
