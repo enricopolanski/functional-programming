@@ -489,17 +489,17 @@ function of<A>(a: A): Array<A> {
 
 The free semigroup of `A` thus is simply the semigroup whose elements are all the possible finite and non-empty combinations of `A` elements.
 
-Il semigruppo libero di `A` può essere visto come un modo *lazy* di concatenare elementi di `A`, mantenendo in tal modo tutto il contenuto informativo.
+The free semigroup of  `A` can be seen as a *lazy* way of concatenating elements of `A` while preserving the content of `A`.
 
-Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di usare ugualmente il semigruppo libero perché:
+Even tho I may have an instance of a semigroup for `A`, I could very well decide to use the free semigroup nonetheless becase:
 
-- evita di eseguire computazioni possibilmente inutili
-- evita di passare in giro l'istanza di semigruppo
-- permette al consumer delle mie API di stabilire la strategia di merging
+- it avoids executing potentially useless computations
+- it avoids passing around the semigroup instance
+- allows the consumer of my APIs to decide the merging strategy
 
-## 3.8. Semigruppo prodotto
+## 3.8. Product semigroup
 
-Proviamo a definire delle istanze di semigruppo per tipi più complessi:
+Let's try defining a semigroup instance for mor complex types:
 
 ```ts
 import { Semigroup, semigroupSum } from 'fp-ts/lib/Semigroup'
@@ -517,9 +517,9 @@ const semigroupPoint: Semigroup<Point> = {
 }
 ```
 
-Troppo boilerplate? La buona notizia è che possiamo costruire una istanza di semigruppo per una struct come `Point` se siamo in grado di fornire una istanza di semigruppo per ogni suo campo.
+Too much boilerplate? The good news is that we can construct a semigroup instance for a struct like `Point` if we are able to provide a semigroup instance for each of its fields.
 
-Convenientemente il modulo `fp-ts/lib/Semigroup` esporta una combinatore `getStructSemigroup`:
+Conveniently the `fp-ts/lib/Semigroup` module exports a `getStructSemigroup` instance:
 
 ```ts
 import { getStructSemigroup, Semigroup, semigroupSum } from 'fp-ts/lib/Semigroup'
@@ -535,7 +535,7 @@ const semigroupPoint: Semigroup<Point> = getStructSemigroup({
 })
 ```
 
-Possiamo continuare e passare a `getStructSemigroup` l'istanza appena definita:
+We can keep passing to `getStructSemigroup` the freshly defined `semigroupPoint` instance.:
 
 ```ts
 type Vector = {
@@ -549,16 +549,23 @@ const semigroupVector: Semigroup<Vector> = getStructSemigroup({
 })
 ```
 
-**Nota**. Esiste un combinatore simile a `getStructSemigroup` ma che lavora con le tuple: `getTupleSemigroup`.
+**Note**. There is a combinator similar to `getStructSemigroup` that works with tuples: `getTupleSemigroup`.
 
-Ci sono altri Combinators messi a disposizione da `fp-ts`, ecco un combinatoupsche permoups di derivare una istanza di semigruppo per le funzioni: data General definition general-definition `B` possiamo derivare una istanza di semigruppo tione funzioni con le implementationguente firma `(a: A) => BThe `fold` function`the-fold-The dual semigroup
-the-dual-semigroup Predicate }' from 'fp-ts/I can't find an i-cant-find-anProduct semigroup/lib/'
-product-semigroup `semigroupAll` is the Equality andering under equality-and-orderinge: Semigroup<Predicate<Point>> = getFunctionSemigroup(
+There are other combinators exported from `fp-ts`, here we can see a combinator that allows us to derive an instance of a semigroup for functions: given an instance of a semigroup `B` we can derive a new semigroup instance for functions with the following signatures: `(a: A) => B` (for every possible `A`).
+
+**Esempio**
+
+```ts
+import { Predicate } from 'fp-ts/lib/function'
+import { getFunctionSemigroup, semigroupAll } from 'fp-ts/lib/Semigroup'
+
+/** `semigroupAll` is the boolean semigroup under conjunction */
+const semigroupPredicate: Semigroup<Predicate<Point>> = getFunctionSemigroup(
   semigroupAll
 )<Point>()
 ```
 
-Ora possiamo fare un "merge" di due predicati definiti su `Point`:
+Now we can "merge" two predicates defined over `Point`.
 
 ```ts
 const isPositiveX = (p: Point): boolean => p.x >= 0
@@ -572,9 +579,9 @@ isPositiveXY({ x: -1, y: 1 }) // false
 isPositiveXY({ x: -1, y: -1 }) // false
 ```
 
-## 3.7. Uguaglianza e ordinamento
+## 3.7. Equality and ordering
 
-Dato che `number` è **totalmente ordinabile** (ovvero dati due qualsiasi numeri `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) possiamo definire due ulteriori istanze di semigruppo usando `min` (o `max`) come operazioni:
+Given that `number` is **a total order** (given any two `x` e `y`, one of those two conditions has to hold true: `x <= y` or `y <= x`) we can defined another two instances of semigrouo using `min` or `max` as operations.
 
 ```ts
 const meet: Semigroup<number> = {
@@ -586,9 +593,9 @@ const join: Semigroup<number> = {
 }
 ```
 
-**Quiz**. Perché è così importante che `number` sia *totalmente* ordinabile?
+**Quiz**. Why is it so important that `number` is a *total* order?
 
-È possibile catturare la nozione di totalmente ordinabile per altri tipi oltre a `number`? Per farlo prima dobbiamo catturare la nozione di *uguaglianza*.
+Is it possible to capture the notion of being _totally ordered_ for other types that are not `number`? To do so we rist need to capture the notion of *equality*.
 
 # 4. Eq
 
