@@ -291,6 +291,10 @@ String concatenation benefits from associativity.
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
 ```
 
+<!-- 
+  TODO: This part on computations being able to be further split in two sub computations isn't clear. How do I further split "a" + "b" without the presence of a neutral element ""?
+ -->
+
 A characteristic of associativity is that:
 
 > Semigroups capture the essence of parallelizable operations
@@ -438,7 +442,9 @@ function getDualSemigroup<A>(S: Semigroup<A>): Semigroup<A> {
 }
 ```
 
-**Quiz**. This combinator makes because generally speaking the `concat` operation is not **commutative**, can you find an example?
+**Quiz**. This combinator makes sense because generally speaking the `concat` operation is not **commutative**, can you find an example?
+
+<!--  -->
 
 ## 3.7. Finding a Semigroup instance for any type
 
@@ -488,6 +494,10 @@ function of<A>(a: A): Array<A> {
 
 
 The free semigroup of `A` thus is simply the semigroup whose elements are all the possible finite and non-empty combinations of `A` elements.
+
+<!-- 
+  TODO: Alphabet and words.
+-->
 
 The free semigroup of  `A` can be seen as a *lazy* way of concatenating elements of `A` while preserving the content of `A`.
 
@@ -551,9 +561,9 @@ const semigroupVector: Semigroup<Vector> = getStructSemigroup({
 
 **Note**. There is a combinator similar to `getStructSemigroup` that works with tuples: `getTupleSemigroup`.
 
-There are other combinators exported from `fp-ts`, here we can see a combinator that allows us to derive an instance of a semigroup for functions: given an instance of a semigroup `B` we can derive a new semigroup instance for functions with the following signatures: `(a: A) => B` (for every possible `A`).
+There are other combinators exported from `fp-ts`, here we can see a combinator that allows us to derive a semigroup instance for functions: given an instance of a semigroup `B` we can derive a new semigroup instance for functions with the following signatures: `(a: A) => B` (for every possible `A`).
 
-**Esempio**
+**Example**
 
 ```ts
 import { Predicate } from 'fp-ts/lib/function'
@@ -581,7 +591,7 @@ isPositiveXY({ x: -1, y: -1 }) // false
 
 ## 3.7. Equality and ordering
 
-Given that `number` is **a total order** (given any two `x` e `y`, one of those two conditions has to hold true: `x <= y` or `y <= x`) we can defined another two instances of semigrouo using `min` or `max` as operations.
+Given that `number` is **a total order** (meaning that whatever two `x` and `y` we choose, one of those two conditions has to hold true: `x <= y` or `y <= x`) we can define another two instances of semigroup using `min` or `max` as operations.
 
 ```ts
 const meet: Semigroup<number> = {
@@ -599,7 +609,7 @@ Is it possible to capture the notion of being _totally ordered_ for other types 
 
 # 4. Eq
 
-Le *relazioni di equivalenza* catturano il concetto di **uguaglianza** di elementi appartenenti ad uno stesso insieme. Il concetto di relazione di equivalenza può essere implementato in TypeScript con la seguente type class:
+*Equivalence relations* capture the concept of *equality* of elements of the same type. The concept of an *equivalence relation* can be implemented in TypeScript with the following type class:
 
 ```ts
 interface Eq<A> {
@@ -607,14 +617,14 @@ interface Eq<A> {
 }
 ```
 
-Intuitivamente:
+Intuitively:
 
-- se `equals(x, y) = true` allora `x = y`
-- se `equals(x, y) = false` allora `x ≠ y`
+- if `equals(x, y) = true` then `x = y`
+- if `equals(x, y) = false` then `x ≠ y`
 
-**Esempio**
+**Example**
 
-Ecco un esempio di istanza di `Eq` per il tipo `number`:
+This is an instance of `Eq` for the `number` type:
 
 ```ts
 import { Eq } from 'fp-ts/lib/Eq'
@@ -624,15 +634,15 @@ const eqNumber: Eq<number> = {
 }
 ```
 
-Devono valere le seguenti leggi:
+The following laws have to hold:
 
-1. **Reflexivity**: `equals(x, x) === true`, per ogni `x` in `A`
-2. **Symmetry**: `equals(x, y) === equals(y, x)`, per ogni `x`, `y` in `A`
-3. **Transitivity**: se `equals(x, y) === true` e `equals(y, z) === true`, allora `equals(x, z) === true`, per ogni `x`, `y`, `z` in `A`
+1. **Reflexivity**: `equals(x, x) === true`, for every `x` in `A`
+2. **Symmetry**: `equals(x, y) === equals(y, x)`, for every `x`, `y` in `A`
+3. **Transitivity**: if `equals(x, y) === true` and `equals(y, z) === true`, then `equals(x, z) === true`, for every `x`, `y`, `z` in `A`
 
-**Esempio**
+**Example**
 
-Un programmatore può quindi definire una funzione `elem` (che indica se un valore compare in un array) nel modo seguente:
+A programmer can thus define a function `elem` (which indicates wheter a value appears in an array) in the following way:
 
 ```ts
 function elem<A>(E: Eq<A>): (a: A, as: Array<A>) => boolean {
@@ -643,7 +653,7 @@ elem(eqNumber)(1, [1, 2, 3]) // true
 elem(eqNumber)(4, [1, 2, 3]) // false
 ```
 
-Proviamo a definire delle istanze per tipi più complessi
+Let's define some instances of `Eq` for more complex types.
 
 ```ts
 type Point = {
@@ -656,7 +666,7 @@ const eqPoint: Eq<Point> = {
 }
 ```
 
-Possiamo anche tentare di ottimizzare `equals` testando prima se sussiste una *reference equality* (vedi `fromEquals` di `fp-ts`):
+We can also try to optimize `equals` by first testing whether there is a *reference equality* (see `fromEquals` in `fp-ts`).
 
 ```ts
 const eqPoint: Eq<Point> = {
@@ -664,9 +674,9 @@ const eqPoint: Eq<Point> = {
 }
 ```
 
-Troppo boilerplate? La buona notizia è che possiamo costruire una istanza di `Eq` per una struct come `Point` se siamo in grado di fornire una istanza di `Eq` per ogni suo campo.
+Too much boilerplate? The good news is that we can write an `Eq` instance for a struct like `Point` if we can provide an `Eq` instance for each of its fields.
 
-Convenientemente il modulo `fp-ts/lib/Eq` esporta un combinatore `getStructEq`:
+Conveniently, the `fp-ts/lib/Eq` module exports a combinator `getStructEq`:
 
 ```ts
 import { getStructEq } from 'fp-ts/lib/Eq'
@@ -677,7 +687,7 @@ const eqPoint: Eq<Point> = getStructEq({
 })
 ```
 
-Possiamo continuare e passare a `getStructEq` l'istanza appena definita:
+We can keep passing the just defined `eqPoint` to `getStructEq`.
 
 ```ts
 type Vector = {
