@@ -21,16 +21,16 @@ Contributions are welcome, see the contribution file.
   - [General Definition](#general-definition)
   - [Implementation](#implementation)
   - [The `fold` function](#the-fold-function)
-  - [3.6. Il semigruppo duale](#36-il-semigruppo-duale)
-  - [3.7. Non riesco a trovare una istanza!](#37-non-riesco-a-trovare-una-istanza)
-  - [3.8. Semigruppo prodotto](#38-semigruppo-prodotto)
-  - [3.7. Uguaglianza e ordinamento](#37-uguaglianza-e-ordinamento)
-- [4. Eq](#4-eq)
-- [4. Ord](#4-ord)
-- [5. Monoidi](#5-monoidi)
-  - [5.1. Implementazione](#51-implementazione)
-  - [5.2. Folding](#52-folding)
-- [6. Funzioni pure e funzioni parziali](#6-funzioni-pure-e-funzioni-parziali)
+  - [The dual semigroup](#the-dual-semigroup)
+  - [Finding a Semigroup instance for any type](#finding-a-semigroup-instance-for-any-type)
+  - [Semigroup product](#semigroup-product)
+  - [Equality and ordering](#equality-and-ordering)
+  - [Equivalence relations as partitions](#equivalence-relations-as-partitions)
+- [Ord](#ord)
+- [Monoids](#monoids)
+  - [Implementation](#implementation-1)
+  - [Folding](#folding)
+- [Pure and partial functions](#pure-and-partial-functions)
   - [6.1. Funzioni parziali](#61-funzioni-parziali)
 - [7. ADT e error handling funzionale](#7-adt-e-error-handling-funzionale)
   - [7.1. Che cos'è un ADT?](#71-che-cos%C3%A8-un-adt)
@@ -429,7 +429,7 @@ function assign(as: Array<object>): object {
 }
 ```
 
-## 3.6. The dual semigroup
+## The dual semigroup
 
 Given a Semigroup instance, it is possible to obtain a new Semigroup instance simply swapping the order in which the operands are combined:
 
@@ -446,7 +446,7 @@ function getDualSemigroup<A>(S: Semigroup<A>): Semigroup<A> {
 
 <!--  -->
 
-## 3.7. Finding a Semigroup instance for any type
+## Finding a Semigroup instance for any type
 
 What happens if, given a specific type `A` we can't find an associative binary operation on `A`?
 
@@ -507,7 +507,7 @@ Even tho I may have an instance of a semigroup for `A`, I could very well decide
 - it avoids passing around the semigroup instance
 - allows the consumer of my APIs to decide the merging strategy
 
-## 3.8. Product semigroup
+## Semigroup product
 
 Let's try defining a semigroup instance for mor complex types:
 
@@ -589,7 +589,7 @@ isPositiveXY({ x: -1, y: 1 }) // false
 isPositiveXY({ x: -1, y: -1 }) // false
 ```
 
-## 3.7. Equality and ordering
+## Equality and ordering
 
 Given that `number` is **a total order** (meaning that whatever two `x` and `y` we choose, one of those two conditions has to hold true: `x <= y` or `y <= x`) we can define another two instances of semigroup using `min` or `max` as operations.
 
@@ -734,7 +734,7 @@ eqUser.equals({ userId: 1, name: 'Giulio' }, { userId: 2, name: 'Giulio' }) // f
 
 **Spoiler**. `contramap` is the fundamental function of [controvariant functors](#controvariant-functors).
 
-## 3.9. Equivalence relations as partitions
+## Equivalence relations as partitions
 
 Defining an `Eq<A>` instance is equivalent to defining a *partition* of `A` where two elements `x`, `y` of `A` are members of the same partition if and only if `equals(x, y) = true`. 
 
@@ -799,7 +799,7 @@ The following laws have to hold true:
 equals: (x, y) => compare(x, y) === 0
 ```
 
-Infatti il modulo `fp-ts/lib/Ord` esporta un comodo helper `fromCompare` che permette di definire una istanza di `Ord` semplicemente specificando la funzione `compare`:
+In fact the `fp-ts/lib/Ord` module exports a handy helper `fromCompare` which allows us to define an `Ord` instance simply by supplying the `compare` function:
 
 ```ts
 import { fromCompare, Ord } from 'fp-ts/lib/Ord'
@@ -807,7 +807,7 @@ import { fromCompare, Ord } from 'fp-ts/lib/Ord'
 const ordNumber: Ord<number> = fromCompare((x, y) => (x < y ? -1 : x > y ? 1 : 0))
 ```
 
-Un programmatore può quindi definire una funzione `min` (che restituisce il minimo fra due valori) nel modo seguente:
+Thus a programmer can define a `min` function in the following way:
 
 ```ts
 function min<A>(O: Ord<A>): (x: A, y: A) => A {
@@ -817,7 +817,7 @@ function min<A>(O: Ord<A>): (x: A, y: A) => A {
 min(ordNumber)(2, 1) // 1
 ```
 
-La **totalità** (ovvero dati due qualsiasi `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) può sembrare ovvia quando parliamo di numeri, ma non è sempre così. Consideriamo un caso più complesso:
+The order's **totality** (thus given any `x` e `y`, one of the following conditions holds true: `x <= y` oppure `y <= x`) may look obvious when speaking about numbers, but that's not always the case. Let's consider a more complex case:
 
 ```ts
 type User = {
@@ -826,15 +826,15 @@ type User = {
 }
 ```
 
-Come possiamo definire un `Ord<User>`?
+How can we define an `Ord<User>`?
 
-Dipende davvero dal contesto, ma una possibile scelta è quella per esempio di ordinare gli utenti a seconda della loro età:
+It always depends on the context, but it's always possible to order the users based on their age:
 
 ```ts
 const byAge: Ord<User> = fromCompare((x, y) => ordNumber.compare(x.age, y.age))
 ```
 
-Possiamo eliminare un po' di boilerplate usando il combinatore `contramap`: data una istanza di `Ord` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Ord` per `B`:
+We can eliminate some boilerplate using the combinator `contramap`: given an `Ord` instance for `A` and a function from `B` to `A`, we can derive an instance of `Ord` for `B`
 
 ```ts
 import { contramap } from 'fp-ts/lib/Ord'
@@ -846,9 +846,9 @@ const byAge: Ord<User> = pipe(
 )
 ```
 
-**Spoiler**. `contramap` è l'operazione fondamentale dei [funtori controvarianti](#funtori-controvarianti).
+**Spoiler**. `contramap` is the fundamental function of [controvariant functors](#controvariant-functors).
 
-Ora possiamo ottenere il più giovane di due utenti usando `min`:
+Now we can obtain the youngest of two users using `min`:
 
 ```ts
 const getYounger = min(byAge)
@@ -856,9 +856,9 @@ const getYounger = min(byAge)
 getYounger({ name: 'Guido', age: 48 }, { name: 'Giulio', age: 45 }) // { name: 'Giulio', age: 45 }
 ```
 
-E se invece volessimo ottenere il più vecchio? Dobbiamo invertire l'ordine, o più tecnicamente, ottenere l'ordine **duale**.
+And what if we wanted to obtain the eldest one? We can invert the order, or better, obtain the *dual* order.
 
-Fortunatamente c'è un altro combinatore per questo:
+Luckily there's an another combinator for this:
 
 ```ts
 import { getDualOrd } from 'fp-ts/lib/Ord'
@@ -872,11 +872,11 @@ const getOlder = max(byAge)
 getOlder({ name: 'Guido', age: 48 }, { name: 'Giulio', age: 45 }) // { name: 'Guido', age: 48 }
 ```
 
-Abbiamo visto in precedenza che i semigruppi sono di aiuto ogni volta che vogliamo "concatenare", fare merge o "combinare" (scegliete la parola che più si addice alla vostra intuizione a al caso d'uso) diversi dati in uno solo.
+We've seen before that semigroups are helpful every time we want to "concat"enate or "merge" (choose the word that fits your intuition and use case better) different data in one.
 
-C'è una altro modo di costruire una istanza di semigruppo per un tipo `A`: se abbiamo già una istanza di `Ord` per `A`, allora possiamo derivarne una di semigruppo.
+There's another way of creating a semigroup instance for `A`: if we already have an `Ord<A>` then we can derive one of semigroup.
 
-In realtà possiamo derivarne **due**:
+Actually we can derive **two** of them:
 
 ```ts
 import { ordNumber } from 'fp-ts/lib/Ord'
@@ -892,11 +892,11 @@ semigroupMin.concat(2, 1) // 1
 semigroupMax.concat(2, 1) // 2
 ```
 
-**Esempio**
+**Example**
 
-Ricapitoliamo tutto con un esempio finale (adattato da [Fantas, Eel, and Specification 4: Semigroup](http://www.tomharding.me/2017/03/13/fantas-eel-and-specification-4/))
+Let's wrap it up with one finale example (taken from [Fantas, Eel, and Specification 4: Semigroup](http://www.tomharding.me/2017/03/13/fantas-eel-and-specification-4/))
 
-Supponiamo di dover costruire un sistema in cui sono salvati dei record di un cliente modellati nel seguente modo:
+Let's suppose of building a system where a client's record are modelled in the following way:
 
 ```ts
 interface Customer {
@@ -908,9 +908,9 @@ interface Customer {
 }
 ```
 
-Per qualche ragione potreste finire per avere dei record duplicati per la stessa persona.
+For some reason you may end up having duplicate records for the same person.
 
-Abbiamo bisogno di una strategia di merging. Ma questo è proprio quello di cui si occupano i semigruppi!
+We need a merging strategy and that's exactly what semigroups take care of!
 
 ```ts
 import { getMonoid } from 'fp-ts/lib/Array'
@@ -971,19 +971,18 @@ semigroupCustomer.concat(
 
 [`02_ord.ts`](src/02_ord.ts)
 
-# 5. Monoidi
+# Monoids
 
-Se aggiungiamo una condizione in più alla definizione di un semigruppo `(A, *)`, ovvero che esista un elemento `u` in `A`
-tale che per ogni elemento `a` in `A` vale:
+If we add another condition to the definition of a semigroup `(A, *)`, such as exists an element `u` in `A` such as for every element `a` in `A` holds true the following condition: 
 
 ```ts
 u * a = a * u = a
 ```
 
-allora la terna `(A, *, u)` viene detta *monoide* e l'elemento `u` viene detto *unità*
-(sinonimi: *elemento neutro*, *elemento identità*).
+then the triplet `(A, *, u)` is called a *monoid* and the element `u` is called *unity*.
+(sinonyms: *neutral element*, *identity element*).
 
-## 5.1. Implementazione
+## Implementation
 
 ```ts
 import { Semigroup } from 'fp-ts/lib/Semigroup'
@@ -993,14 +992,14 @@ interface Monoid<A> extends Semigroup<A> {
 }
 ```
 
-Devono valere le seguenti leggi:
+The following laws have to hold true:
 
-- **Right identity**: `concat(a, empty) = a`, per ogni `a` in `A`
-- **Left identity**: `concat(empty, a) = a`, per ogni `a` in `A`
+- **Right identity**: `concat(a, empty) = a`, for every `a` in `A`
+- **Left identity**: `concat(empty, a) = a`, for every `a` in `A`
 
-**Osservazione**. L'unità di un monoide è unica.
+**Note**. The monoids unity is unique.
 
-Molti dei semigruppi che abbiamo visto nelle sezioni precedenti sono in realtà dei monoidi:
+Many of the semigroups we've seen before are monoids as well:
 
 ```ts
 /** number `Monoid` under addition */
@@ -1033,10 +1032,9 @@ const monoidAny: Monoid<boolean> = {
 }
 ```
 
-Vediamo qualche esempio un poco più complesso.
+Let's see some more complex example.
 
-Dato un tipo `A`, gli *endomorfismi* (un endomorfismo non è altro che una funzione il cui dominio e codominio coincidono)
-su `A` ammettono una istanza di monoide:
+Given a type `A`, the *endomorphisms* (an endomorphism is simply a function whose domain and codomain are the same) on `A` allow a monoid instance:
 
 ```ts
 type Endomorphism<A> = (a: A) => A
@@ -1053,7 +1051,7 @@ function getEndomorphismMonoid<A = never>(): Monoid<Endomorphism<A>> {
 }
 ```
 
-Se il tipo `M` ammette una istanza di monoide allora il tipo `(a: A) => M` ammette una istanza di monoide per ogni tipo `A`:
+If the type `M` allows a monoid instance then the type `(a: A) => M` allows a monoid instance for every type `A`:
 
 ```ts
 function getFunctionMonoid<M>(M: Monoid<M>): <A = never>() => Monoid<(a: A) => M> {
@@ -1064,7 +1062,7 @@ function getFunctionMonoid<M>(M: Monoid<M>): <A = never>() => Monoid<(a: A) => M
 }
 ```
 
-Come conseguenza otteniamo che i reducer ammettono una istanza di monoide:
+As a consequence we can see that reducers allow a monoid instance:
 
 ```ts
 type Reducer<S, A> = (a: A) => (s: S) => S
@@ -1074,7 +1072,7 @@ function getReducerMonoid<S, A>(): Monoid<Reducer<S, A>> {
 }
 ```
 
-Potrebbe venire il dubbio che tutti i semigruppi siano anche dei monoidi. Non è così, come controesempio si consideri il seguente semigruppo:
+One could think that every semigroup is also a monoid. That's not the case. Let's see a counter example:
 
 ```ts
 const semigroupSpace: Semigroup<string> = {
@@ -1082,9 +1080,9 @@ const semigroupSpace: Semigroup<string> = {
 }
 ```
 
-Infatti non è possibile trovare un valore `empty` tale che `concat(x, empty) = x`.
+It is not possible to find such an `empty` value that `concat(x, empty) = x`.
 
-Infine possiamo costruire una istanza di monoide per struct come `Point`:
+Lastly we can construct a monoid instance for a structure like `Point`:
 
 ```ts
 type Point = {
@@ -1093,7 +1091,7 @@ type Point = {
 }
 ```
 
-se siamo in grado di fornire al combinatore `getStructMonoid` una istanza di monoide per ogni suo campo:
+if we are able to feed the `getStructMonoid` a monoid instance for each of its fields:
 
 ```ts
 import { getStructMonoid, Monoid, monoidSum } from 'fp-ts/lib/Monoid'
@@ -1104,7 +1102,7 @@ const monoidPoint: Monoid<Point> = getStructMonoid({
 })
 ```
 
-Possiamo andare oltre e passare a `getStructMonoid` l'istanza appena definita:
+We can move further through the freshly defined `getStructMonoid` instance:  
 
 ```ts
 type Vector = {
@@ -1118,11 +1116,11 @@ const monoidVector: Monoid<Vector> = getStructMonoid({
 })
 ```
 
-**Nota**. Esiste un combinatore simile a `getStructMonoid` ma che lavora con le tuple: `getTupleMonoid`.
+**Note**. There is a combinator similar to `getStructMonoid` that works with tuples: `getTupleMonoid`.  
 
-## 5.2. Folding
+## Folding
 
-Quando usiamo un monoide invece di un semigruppo, il folding è ancora più semplice: non è necessario fornire esplicitamente un valore iniziale (l'implementazione può usare l'elemento neutro per quello):
+When we use a monoid instead of a semigroup the folding operation is even easier: we no longer need to feed an initial value, we can use the neutral element for that:
 
 ```ts
 import {
@@ -1145,34 +1143,34 @@ fold(monoidAny)([true, false, true]) // true
 
 [`03_shapes.ts`](src/03_shapes.ts)
 
-# 6. Funzioni pure e funzioni parziali
+# Pure and partial functions
 
-> Una funzione pura è una procedura che dato lo stesso input restituisce sempre lo stesso output e non ha alcun side effect osservabile.
+> A pure function is a procedure that given the same input always gives the same output and does not have any observable side effect.
 
-Un tale enunciato informale può lasciare spazio a qualche dubbio
+Such an informal stament could leave space for some doubts
 
-- che cos'è un "side effect"?
-- cosa vuol dire "osservabile"?
-- cosa si intende con "stesso"?
+- what is a "side effect"?
+- what does it means "observable"?
+- what does it mean "same"?
 
-Vediamo una definizione formale del concetto di funzione.
+Let's see a formal definition of the concept of a function.
 
-**Nota**. Ricordiamo che se `X` e `Y` sono due insiemi, allora con `X × Y` si indica il loro _prodotto cartesiano_, ovvero l'insieme
+**Note**. If `X` e `Y` are sets, then with `X × Y`  we indicate their _cartesian product_, meaning the set
 
 ```
 X × Y = { (x, y) | x ∈ X, y ∈ Y }
 ```
 
-La [seguente definizione](https://en.wikipedia.org/wiki/History\_of\_the\_function\_concept) risale ad un secolo fa:
+The following [definition](https://en.wikipedia.org/wiki/History\_of\_the\_function\_concept) was given a century ago:
 
-**Definizione**. Una _funzione_ `f: X ⟶ Y` è un sottoinsieme `f` di `X × Y` tale che
-per ogni `x ∈ X` esiste esattamente un `y ∈ Y` tale che la coppia `(x, y) ∈ f`.
+**Definiton**. A _function:  `f: X ⟶ Y` is a subset of `X × Y` such as
+for every `x ∈ X` there's exactly one `y ∈ Y` such that `(x, y) ∈ f`.
 
-L'insieme `X` si dice il _dominio_ di `f`, `Y` il suo _codominio_.
+The set `X` is called _domain_ of `f`, `Y` it's his _codomain_.
 
-**Esempio**
+**Example**
 
-La funzione `double: Nat ⟶ Nat` è il sottoinsieme del prodotto cartesiano `Nat × Nat` dato da `{ (1, 2), (2, 4), (3, 6), ...}`.
+The function `double: Nat ⟶ Nat` is the subset of the cartesian product `Nat × Nat` given by `{ (1, 2), (2, 4), (3, 6), ...}`.
 
 In TypeScript
 
@@ -1185,15 +1183,15 @@ const f: { [key: number]: number } = {
 }
 ```
 
-Si noti che l'insieme `f` deve essere descritto _staticamente_ in fase di definizione della funzione
-(ovvero gli elementi di quell'insieme non possono variare nel tempo e per nessuna condizione interna o esterna).
-Ecco allora che viene esclusa ogni forma di side effect e il risultato è sempre quello atteso.
+Please note that the set `f` has to be described _statically_ when defining the function (meaning that the elements of that set cannot change with time for no reason).
+In this way we can exclude any form of side effect and the return value is always the same. 
 
-Quella dell'esempio viene detta definizione _estensionale_ di una funzione, ovvero si enumerano uno per uno gli elementi del dominio.
-Naturalmente quando l'insieme è infinito come in questo caso, la definizione può risultare un po' scomoda.
+The one in the example is called an _extensional_ definition of a function, meaning we enumerate one by one each of the elements of its domain.
+Obviously, when such a set is infinite this proves to be problematic.
 
-Si può ovviare a questo problema introducendo quella che viene detta definizione _intensionale_,
-ovvero si esprime una condizione che deve valere per tutte le coppie `(x, y) ∈ f` ovvero `y = x * 2`. Questa è la familiare forma con cui scriviamo la funzione `double` e come la definiamo in TypeScript:
+We can get around this issue by introducing the one that is called _intentional_ definition, meaning that we express a condition that has to hold for every couple
+Si può ovviare a questo problema introducendo quella che viene detta definizione _intensionale_, `(x, y) ∈ f` meaning `y = x * 2`.
+That's the familiar form in which we write the `double` function and its definition in TypeScript:
 
 ```ts
 function double(x: number): number {
@@ -1201,28 +1199,26 @@ function double(x: number): number {
 }
 ```
 
-La definizione di funzione come sottoinsieme di un prodotto cartesiano mostra come in matematica tutte le funzioni siano pure:
-non c'è azione, modifica di stato o modifica degli elementi (che sono considerati immutabili) degli insiemi coinvolti.
-Nella programmazione funzionale l'implementazione delle funzioni deve avvicinarsi il più possibile a questo modello ideale.
+The definition of a function as a subset of a cartesian product shows how in mathematics every function is pure: thereìs no action, no state mutation or elements being modified.
+In functional programming the implementation of functions has to follow as much as possible this ideal model.
 
-Che una funzione sia pura non implica necessariamente che sia bandita la mutabilità, localmente è ammissibile
-se non esce dai confini della implementazione.
+The fact that a function is pure does not imply automatically a ban on local mutability as long as it doesn't leaks out of its scope.
 
 ![mutable / immutable](images/mutable-immutable.jpg)
 
-Lo scopo ultimo è garantire la proprietà fondamentale: **la trasparenza referenziale**.
+The ultimate goal is to guarantee: **referential transparency**.
 
-> Una espressione contiene un "side effect" se non gode della trasparenza referenziale.
+> An expresion contains "sode effects" if it doesn't benefits from referential trnsparency 
 
-Le funzioni compongono:
+Functions compose:
 
-**Definizione**. Siano `f: Y ⟶ Z` e `g: X ⟶ Y` due funzioni, allora la funzione `h: X ⟶ Z` definita da
+**Definition**. Given `f: Y ⟶ Z` and `g: X ⟶ Y` two functions, then the function `h: X ⟶ Z` defined by:
 
 ```
 h(x) = f(g(x))
 ```
 
-si dice _composizione_ di `f` e `g` e si scrive `h = f ∘ g`
+is called _composition_ of `f` and `g` and is written `h = f ∘ g`
 
 Si noti che affinché due funzioni `f` e `g` possano comporre, il dominio di `f` deve essere contenuto nel codominio di `g`.
 
