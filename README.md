@@ -605,9 +605,9 @@ const join: Semigroup<number> = {
 
 **Quiz**. Why is it so important that `number` is a *total* order?
 
-Is it possible to capture the notion of being _totally ordered_ for other types that are not `number`? To do so we rist need to capture the notion of *equality*.
+Is it possible to capture the notion of being _totally ordered_ for other types that are not `number`? To do so we first need to capture the notion of *equality*.
 
-# 4. Eq
+Eq
 
 *Equivalence relations* capture the concept of *equality* of elements of the same type. The concept of an *equivalence relation* can be implemented in TypeScript with the following type class:
 
@@ -701,11 +701,20 @@ const eqVector: Eq<Vector> = getStructEq({
 })
 ```
 
-**Nota**. Esiste un combinatore simile a `getStructEq` ma che lavora con le tuple: `getTupleEq`.
+**Note**. There is a combinator similar to `getStructEq` that works on tuples: `getTupleEq`.
 
-Ci sono altri Combinators messi a disposizione da `fp-ts`, ecco un combinatoupsche permoups di derivare una istanza dition per gli array:
-General definitiontsgeneral-definition getEq } from The `fold` functionlibthe-fold-function eqArrayOfPoints: Eq<Array<Point>> = The dual semigroup)the-dual-semigroup un altro utile combinatore per costruire nuove I can't find i-cant-find-an'-instance di `Eq` per `A` e una funzione da `B` ad Product semigroup`,  derivareproduct-semigroup istanza di `EqEquality ering`
-equality-and-orderingt { contramap, eqNumber } from 'fp-ts/lib/Eq'
+There are other combinators exported by fp-ts, here we can see one that allows us to derive an `Eq` instance from an array:
+
+```ts
+import { getEq } from 'fp-ts/lib/Array'
+
+const eqArrayOfPoints: Eq<Array<Point>> = getEq(eqPoint)
+```
+
+At last, another combinator to create new `Eq` instances is `contramap`: given an `Eq<A>` instance and a function from `B` to `A` we can derive an instance `Eq<B>`
+
+```ts
+import { contramap, eqNumber } from 'fp-ts/lib/Eq'
 import { pipe } from 'fp-ts/lib/pipeable'
 
 type User = {
@@ -723,29 +732,27 @@ eqUser.equals({ userId: 1, name: 'Giulio' }, { userId: 1, name: 'Giulio Canti' }
 eqUser.equals({ userId: 1, name: 'Giulio' }, { userId: 2, name: 'Giulio' }) // false
 ```
 
-**Spoiler**. `contramap` è l'operazione fondamentale dei [funtori controvarianti](#funtori-controvarianti).
+**Spoiler**. `contramap` is the fundamental function of [controvariant functors](#controvariant-functors).
 
-## 3.9. Relazioni di equivalenza come partizioni
+## 3.9. Equivalence relations as partitions
 
-Definire una istanza di `Eq` per `A` equivale a definire una *partizione* di `A` in cui due
-elementi `x`, `y` in `A` appartengono alla stessa partizione se e solo se `equals(x, y) = true`.
+Defining an `Eq<A>` instance is equivalent to defining a *partition* of `A` where two elements `x`, `y` of `A` are members of the same partition if and only if `equals(x, y) = true`. 
 
-**Osservazione**. Ogni funzione `f: A ⟶ B` induce una istanza di `Eq` su `A` definita da
+**Note**. Every `f: A ⟶ B` function creates an `Eq<A>` instance defined by:
 
 ```ts
 equals(x, y) = (f(x) = f(y))
 ```
 
-per ogni `x`, `y` in `A`.
+for every `x`, `y` of `A`.
 
-**Spoiler**. Vedremo come questa nozione ci sarà utile nella demo: `03_shapes.ts`
+**Spoiler**. We'll see how this notion will come back useful in the demo: `03_shapes.ts`
 
-# 4. Ord
+# Ord
 
-Nel capitolo precedente riguardante `Eq` avevamo a che fare con il concetto di **uguaglianza**. In questo capitolo avremo a che fare con il concetto di **ordinamento**.
+In the previos chapter regarding `Eq` we were dealing with the concept of **equality**. In this one we'll deal with the concept of **ordering**.
 
-
-Il concetto di relazione d'ordine totale può essere implementato in TypeScript con la seguente type class:
+The concept of a total order relation can be implemented in TypScript with the following type class:
 
 ```ts
 import { Eq } from 'fp-ts/lib/Eq'
@@ -757,17 +764,17 @@ interface Ord<A> extends Eq<A> {
 }
 ```
 
-Intuitivamente:
+Resulting in:
 
-- `x < y` se e solo se `compare(x, y) = -1`
-- `x = y` se e solo se `compare(x, y) = 0`
-- `x > y` se e solo se `compare(x, y) = 1`
+- `x < y` if and only if `compare(x, y) = -1`
+- `x = y` if and only if `compare(x, y) = 0`
+- `x > y` if and only if `compare(x, y) = 1`
 
-Di conseguenza possiamo dire che `x <= y` se e solo se `compare(x, y) <= 0`
+Thus we can say that `x <= y` holds true only if `compare(x, y) <= 0`.
 
-**Esempio**
+**Example**
 
-Ecco un esempio di istanza di `Ord` per il tipo `number`:
+Here we can see an instance of `Ord` for the type `number`:
 
 ```ts
 const ordNumber: Ord<number> = {
@@ -776,17 +783,17 @@ const ordNumber: Ord<number> = {
 }
 ```
 
-Devono valere le seguenti leggi:
+The following laws have to hold true:
 
-1. **Reflexivity**: `compare(x, x) <= 0`, per ogni `x` in `A`
-2. **Antisymmetry**: se `compare(x, y) <= 0` e `compare(y, x) <= 0` allora `x = y`, per ogni `x`, `y` in `A`
-3. **Transitivity**: se `compare(x, y) <= 0` e `compare(y, z) <= 0` allora `compare(x, z) <= 0`, per ogni `x`, `y`, `z` in `A`
+1. **Reflexivity**: `compare(x, x) <= 0`, for every `x` in `A`
+2. **Antisymmetry**: if `compare(x, y) <= 0` and `compare(y, x) <= 0` then `x = y`, for every `x`, `y` in `A`
+3. **Transitivity**: if `compare(x, y) <= 0` and `compare(y, z) <= 0` then `compare(x, z) <= 0`, for every `x`, `y`, `z` in `A`
 
-In più `compare` deve essere compatibile con l'operazione `equals` di `Eq`:
+`compare` has also to be compatible with the `equals` operation from `Eq`: 
 
-`compare(x, y) === 0` se e solo se `equals(x, y) === true`, per ogni `x`, `y` in `A`
+`compare(x, y) === 0` if and only if `equals(x, y) === true`, for every `x`, `y` in `A`
 
-**Nota**. `equals` può essere derivato legalmente da `compare` nel modo seguente:
+**Nota**. `equals` can be lawfully derived from `compare` in the following way:
 
 ```ts
 equals: (x, y) => compare(x, y) === 0
