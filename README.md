@@ -1220,59 +1220,62 @@ h(x) = f(g(x))
 
 is called _composition_ of `f` and `g` and is written `h = f ∘ g`
 
-Si noti che affinché due funzioni `f` e `g` possano comporre, il dominio di `f` deve essere contenuto nel codominio di `g`.
+Please note that in order for `f` and `g` to combine, the domain of `f` has to be included in the codomain of `g`. 
 
-## 6.1. Funzioni parziali
+## Partial functions
 
-**Definizione**. Una funzione _parziale_ è una funzione che non è definita per tutti i valori del dominio.
+**Definition**. A function is said to be _partial_ if it is not defined for each value of its domain.
 
-Viceversa una funzione definita per tutti i valori del dominio è detta _totale_.
+Viceversa, a funcrtion defined for all values of its domain is said to be *total*
 
-**Esempio**
+**Example**
 
 ```
 f(x) = 1 / x
 ```
 
-La funzione `f: number ⟶ number` non è definita per `x = 0`.
+The function `f: number ⟶ number` is not defined for `x = 0`.
 
-Una funzione parziale `f: X ⟶ Y` può essere sempre ricondotta ad una funzione totale aggiungendo un valore speciale,
-chiamiamolo `None`, al codominio e associandolo ad ogni valore di `X` per cui `f` non è definita
+A partial function `f: X ⟶ Y` can always be "brought back" to a total one by adding a special value, let's call it `None`, to the codomain and by assigning it to the output of `f` for every value of `X` where the function is not defined.
 
 ```
 f': X ⟶ Y ∪ None
 ```
 
-Chiamiamo `Option(Y) = Y ∪ None`.
+Let's call it `Option(Y) = Y ∪ None`.
 
 ```
 f': X ⟶ Option(Y)
 ```
 
-In ambito funzionale si tende a definire solo funzioni pure e totali.
+In functional programming the tendency is to define only pure and and total functions.
 
-E' possibile definire `Option` in TypeScript?
+Is it possible to define `Option` in TypeScript?
 
-# 7. ADT e error handling funzionale
+# ADT e error handling funzionale
 
-Un buon primo passo quando si sta construendo una nuova applicazione è quello di definire il suo modello di dominio. TypeScript offre molti strumenti che aiutano in questo compito. Gli **Algebraic Data Types** (abbreviato in ADT) sono uno di questi strumenti.
+A good first step when writing an application or feature is to define it's domain model. TypeScript offers many tools that help accomplishing this task. **Algebraic Data Types** (in short, ADTs) are one of these tools.
 
-## 7.1. Che cos'è un ADT?
+<!--
+  What are the other tools?
+--> 
+
+## What is an ADT?
 
 > In computer programming, especially functional programming and type theory, an algebraic data type is a kind of composite type, i.e., **a type formed by combining other types**.
 
-Due famiglie comuni di algebraic data types sono:
+Two common families of algebraic data types are:
 
-- i **product types**
-- i **sum types**
+- **product types**
+- **sum types**
 
-Cominciamo da quelli più familiari: i product type.
+Let's begin with the more familiar ones: product types.
 
-## 7.2. Product types
+## Product types
 
-Un product type è una collezione di tipi T<sub>i</sub> inidicizzati da un insieme `I`.
+A product type is a collection of types T<sub>i</sub> indexed by a set `I`.
 
-Due membri comuni di questa famiglia sono le `n`-tuple, dove `I` è un intervallo di numeri naturali:
+Two members of this family are `n`-tuples, where `I` is an interval of natural numbers:
 
 ```ts
 type Tuple1 = [string] // I = [0]
@@ -1284,7 +1287,7 @@ type Fst = Tuple2[0] // string
 type Snd = Tuple2[1] // number
 ```
 
-e le struct, ove `I` è un insieme di label:
+and structs, where `I` is a set of labels:
 
 ```ts
 // I = {"name", "age"}
@@ -1298,15 +1301,15 @@ type Name = Person['name'] // string
 type Age = Person['age'] // number
 ```
 
-### 7.2.1. Perchè "product" types?
+### Why "product" types?
 
-Se indichiamo con `C(A)` il numero di abitanti del tipo `A` (ovvero la sua **cardinalità**) allora vale la seguente uguaglianza:
+If we label with `C(A)` the number of elements of type `A` (also called in mathematics, **cardinality**), then the following identities hold true:
 
 ```ts
 C([A, B]) = C(A) * C(B)
 ```
 
-> la cardinalità del prodotto è il prodotto delle cardinalità
+> the cardinality of a product is the product of the cardinalities
 
 **Example**
 
@@ -1316,23 +1319,23 @@ type Period = 'AM' | 'PM'
 type Clock = [Hour, Period]
 ```
 
-Il tipo `Clock` ha `12 * 2 = 24` abitanti.
+Type `Clock` has `12 * 2 = 24` elements.
 
-### 7.2.2. Quando posso usare un product type?
+### When can I use a product type?
 
-Ogniqualvolta le sue conponenti sono **indipendenti**.
+Each time it's components are **independent**.
 
 ```ts
 type Clock = [Hour, Period]
 ```
 
-Qui `Hour` e `Period` sono indipendenti, ovvero il valore di `Hour` non influisce sul valore di `Period` e viceversa, tutte le coppie sono legali e hanno senso.
+Here `Hour` and `Period` are independent: the value of `Hour` does not change the value of `Period`. Every legal pair of `[Hour, Period]` makes "sense" and is legal.
 
-## 7.3. Sum types
+## Sum types
 
-Un sum type è una struttura dati che contiene un valore che può assumere diversi tipi (ma fissi). Solo uno dei tipi può essere in uso in un dato momento, e un campo che fa da "tag" indica quale di questi è in uso.
+A sum type is a a data type that can hold a value of different (but limited) types. Only one of these types can be used in a single instance and there is generally a "tag" value differentiating those types.
 
-Nella documentazione ufficiale di TypeScript sono denominati _tagged union types_.
+In TypeScript official docs those are called _tagged union types_.
 
 **Example** (redux actions)
 
@@ -1354,13 +1357,13 @@ type Action =
     }
 ```
 
-Il campo `type` fa da tag e assicura che i suoi membri siano disgiunti.
+The `type` tag makes sure every member of the union is disjointed.
 
-**Nota**. Il nome del campo che fa da tag è a discrezione dello sviluppatore, non deve essere necessariamente "type".
+**Note**. The name of the field that acts as a tag is chosen by the developer. It doesn't have to be "type".
 
-### 7.3.1. Costruttori
+### Constructors
 
-Un sum type con `n` membri necessita di (almeno) `n` **costruttori**, uno per ogni membro:
+A sum type with `n` elements needs at least `n` **costructors**, one for each member:
 
 ```ts
 const add = (text: string): Action => ({
@@ -1381,7 +1384,7 @@ const del = (id: number): Action => ({
 })
 ```
 
-I sum type possono essere **polimorfici** e **ricorsivi**.
+Sum types can be **polimorphic** and **recursive**.
 
 **Example** (linked lists)
 
@@ -1391,9 +1394,9 @@ type List<A> = { type: 'Nil' } | { type: 'Cons'; head: A; tail: List<A> }
 //                                                              ↑ recursion
 ```
 
-### 7.3.2. Pattern matching
+### Pattern matching
 
-JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo in modo grezzo tramite una funzione `fold`:
+JavaScript doesn't have [pattern matching](https://github.com/tc39/proposal-pattern-matching) (neither does TypeScript) but we can simulate it with a `fold` function:
 
 ```ts
 const fold = <A, R>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
@@ -1401,7 +1404,7 @@ const fold = <A, R>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
 ): R => (fa.type === 'Nil' ? onNil() : onCons(fa.head, fa.tail))
 ```
 
-**Nota**. TypeScript offre una straordinaria feature legata ai sum type: **exhaustive check**. Ovvero il type checker è in grado di determinare se tutti i casi sono stati gestiti.
+**Note**. TypeScript offers a great feature for sum types: **exhaustive check**. The type checker is able to infer if all the cases are covered.
 
 **Example** (calculate the length of a `List` recursively)
 
@@ -1409,15 +1412,15 @@ const fold = <A, R>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
 const length: <A>(fa: List<A>) => number = fold(() => 0, (_, tail) => 1 + length(tail))
 ```
 
-### 7.3.3. Perchè "sum" types?
+### Why "sum" types?
 
-Vale la seguente uguaglianza:
+Because the following identity holds true:
 
 ```ts
 C(A | B) = C(A) + C(B)
 ```
 
-> la cardinalità della somma è la somma delle cardinalità
+> The sum of the cardinality is the sum of the cardinalities
 
 **Example** (the `Option` type)
 
@@ -1429,12 +1432,11 @@ type Option<A> =
       value: A
     }
 ```
+From the general formula `C(Option<A>) = 1 + C(A)` we can derive the cardinality of th `Option<boolean>` type: `1 + 2 = 3` abitanti.
 
-Dalla formula generale `C(Option<A>) = 1 + C(A)` possiamo derivare per esempio la cardinalità di `Option<boolean>`: `1 + 2 = 3` abitanti.
+### When should I use a sum type?
 
-### 7.3.4. Quando dovrei usare un sum type?
-
-Quando le sue componenti sarebbero **dipendenti** se implementate con un product type.
+When the components would be **dependent** if implemented with a product type.
 
 **Example** (component props)
 
@@ -1454,9 +1456,9 @@ class Textbox extends React.Component<Props> {
 }
 ```
 
-Il problema qui è che `Props` è modellato come un prodotto ma `onChange` **dipende** da `editable`.
+The problem here is that `Props` is modeled like a product but `onChange` **depends** on `editable`. 
 
-Un sum type è una scelta migliore:
+A sum type is a better choice:
 
 ```ts
 type Props =
@@ -1489,13 +1491,13 @@ declare function readFile(
 ): void
 ```
 
-Il risultato è modellato con un prodotto:
+The result is modeled with a product type:
 
 ```ts
 type CallbackArgs = [Error | undefined, string | undefined]
 ```
 
-tuttavia le sue componenti sono **dipendenti**: si riceve un errore **oppure** una stringa:
+there's an issue tho: it's components are **dependent**: we either receive an error **or** a string, but not both: but the components are 
 
 | err         | data        | legal? |
 | ----------- | ----------- | ------ |
@@ -1504,15 +1506,15 @@ tuttavia le sue componenti sono **dipendenti**: si riceve un errore **oppure** u
 | `Error`     | `string`    | ✘      |
 | `undefined` | `undefined` | ✘      |
 
-Un sum type sarebbe una scelta migliore, ma quale?
+A sum type would be a better choice...but which sum type?
 
-## 7.4. Functional error handling
+## Functional error handling
 
-Vediamo come gestire gli errori in modo funzionale.
+Let's see how to handle errors in a functional way.
 
-### 7.4.1. Il tipo `Option`
+### The `Option` type
 
-Il tipo `Option` rappresenta l'effetto di una computazione che può fallire oppure restituire un valore di tipo `A`:
+The type `Option` represents the effect of a computation which may fail or return a type `A`:
 
 ```ts
 type Option<A> =
@@ -1520,7 +1522,7 @@ type Option<A> =
   | { _tag: 'Some'; value: A } // represents a success
 ```
 
-Costruttori e pattern matching:
+Constructors and pattern matching:
 
 ```ts
 // a nullary constructor can be implemented as a constant
@@ -1532,7 +1534,7 @@ const fold = <A, R>(onNone: () => R, onSome: (a: A) => R) => (fa: Option<A>): R 
   fa._tag === 'None' ? onNone() : onSome(fa.value)
 ```
 
-Il tipo `Option` può essere usato per evitare di lanciare eccezioni e/o rappresentare i valori opzionali, così possiamo passare da...
+The `Option` type can be used to avoid throwing exceptions or representing the optional values, thus we can move from...
 
 ```ts
 //                this is a lie ↓
@@ -1551,7 +1553,7 @@ try {
 }
 ```
 
-...in cui il type system è all'oscuro di un possibile fallimento, a...
+...where the type systems is in the absolute dark about the possibility of a failure, to...
 
 ```ts
 //                              ↓ the type system "knows" that this computation may fail
@@ -1567,9 +1569,9 @@ const s = pipe(
 )
 ```
 
-...ove la possibilità di errore è codificata nel type system.
+...where **the possibility of an error is encoded in the type system**.
 
-Ora supponiamo di voler fare un "merge" di due `Option<A>`, ci sono quattro casi:
+Now, let's suppose we want to "merge" two different `Option<A>`s,: there are four different cases:
 
 | x       | y       | concat(x, y) |
 | ------- | ------- | ------------ |
@@ -1578,9 +1580,9 @@ Ora supponiamo di voler fare un "merge" di due `Option<A>`, ci sono quattro casi
 | none    | some(a) | none         |
 | some(a) | some(b) | ?            |
 
-C'è un problema nell'ultimo caso, ci occorre un modo per fare un "merge" di due `A`.
+There's an issue in the last case, we need to "merge" two different `A`s. 
 
-Ma questo è proprio il lavoro di `Semigroup`! Possiamo richiedere una istanza di semigruppo per `A` e quindi derivare una istanza di semigruppo per `Option<A>`. Questo è come lavora il combinatore `getApplySemigroup` di `fp-ts`:
+Isn't that the job our old good friends `Semigroup`s!? We can request an instance of a  `Semigroup<A>` and then derive an instance for the semigroup of `Option<A>`. That's exactly how the combinator `getApplySemigroup` from `fp-ts` works:
 
 ```ts
 import { semigroupSum } from 'fp-ts/lib/Semigroup'
@@ -1592,7 +1594,11 @@ S.concat(some(1), none) // none
 S.concat(some(1), some(2)) // some(3)
 ```
 
-Se abbiamo a disposizione una istanza di monoide per `A` allora possiamo derivare una istanza di monoide per `Option<A>` (via `getApplyMonoid`) e che lavora in questo modo (`some(empty)` fa da elemento neutro):
+If we have a monoid instance for `A` then we can derive a monoid instance for `Option<A>` (via `getApplyMonoid`) that works this way (`some(empty)` will be the neutral (identity) element):
+<!-- 
+  TODO: FIX
+-->
+
 
 | x       | y       | concat(x, y)       |
 | ------- | ------- | ------------------ |
@@ -1611,7 +1617,7 @@ M.concat(some(1), some(2)) // some(3)
 M.concat(some(1), M.empty) // some(1)
 ```
 
-Possiamo derivare altri due monoidi per `Option<A>` (per ogni `A`):
+We can derive another two monoids for `Option<A>` (for every `A`):
 
 1. `getFirstMonoid`...
 
@@ -1633,7 +1639,7 @@ M.concat(some(1), none) // some(1)
 M.concat(some(1), some(2)) // some(1)
 ```
 
-2. ...e il suo **duale**: `getLastMonoid`
+2. ...and it's **dual**: `getLastMonoid`
 
 Monoid returning the right-most non-`None` value:
 
@@ -1653,7 +1659,7 @@ M.concat(some(1), none) // some(1)
 M.concat(some(1), some(2)) // some(2)
 ```
 
-Come esempio, `getLastMonoid` può essere utile per gestire valori opzionali:
+Example given, `getLastMonoid` can be used to handle optional values:
 
 ```ts
 import { Monoid, getStructMonoid } from 'fp-ts/lib/Monoid'
@@ -1696,9 +1702,10 @@ monoidSettings.concat(workspaceSettings, userSettings)
 */
 ```
 
-### 7.4.2. Il tipo `Either`
+### The `Either` type
 
-Un uso comune di `Either` è come alternativa ad `Option` per gestire la possibilità di un valore mancante. In questo uso, `None` è sostituito da `Left` che contiene informazione utile. `Right` invece sostituisce `Some`. Per convenzione `Left` è usato per il fallimento mentre `Right` per il successo.
+A common usafe of `Either` is as an alternative for `Option` for handling the possibility of missing values. 
+In such use case, `None` is replaced by `Left` which holds the useful information. `Right` replaces `Some`. As a convention `Left` is usef for failure while `Right` is used for success.
 
 ```ts
 type Either<E, A> =
@@ -1706,7 +1713,7 @@ type Either<E, A> =
   | { _tag: 'Right'; right: A } // represents a success
 ```
 
-Costruttori e pattern matching:
+Constructors and pattern matching:
 
 ```ts
 const left = <E, A>(left: E): Either<E, A> => ({ _tag: 'Left', left })
@@ -1718,7 +1725,7 @@ const fold = <E, A, R>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
 ): R => (fa._tag === 'Left' ? onLeft(fa.left) : onRight(fa.right))
 ```
 
-Tornando all'esempio con la callback:
+Let's get back to the callback example:
 
 ```ts
 declare function readFile(
@@ -1740,7 +1747,7 @@ readFile('./myfile', (err, data) => {
 })
 ```
 
-possiamo cambiare la sua firma in:
+we can change the signature in:
 
 ```ts
 declare function readFile(
@@ -1749,7 +1756,7 @@ declare function readFile(
 ): void
 ```
 
-e consumare l'API in questo modo:
+and consume the API in this new way:
 
 ```ts
 import { flow } from 'fp-ts/lib/function'
@@ -1761,19 +1768,24 @@ readFile('./myfile', flow(
 )
 ```
 
-# 8. Teoria delle categorie
+# Category theory
 
-Storicamente la prima astrazione avanzata contenuta in `fp-ts` è `Functor`, ma prima di poter parlare di funtori dobbiamo imparare qualcosa sulle **categorie** dato che i funtori sono costruiti su di esse.
+Historically, the first advanced abstraction implemented in `fp-ts` has been `Functor`, but before we can talk about functors, we'll talk a bit about **categories** since functors are based on them.
 
-Una pietra miliare della programmazione funzionale è la **composizione**.
+One of functional's programming core characteristics is **composition**
 
 > And how do we solve problems? We decompose bigger problems into smaller problems. If the smaller problems are still too big,
 we decompose them further, and so on. Finally, we write code that solves all the small problems. And then comes the essence of programming: we compose those pieces of code to create solutions to larger problems. Decomposition wouldn't make sense if we weren't able to put the pieces back together. - Bartosz Milewski
 
-Ma cosa significa esattamente? Quando possiamo dire che due cose *compongono*? E quando possiamo dire che due cose compongono *bene*?
+But what does it means exactly? How can we say two things *compose*? And how can we say two things compose *well*?
 
-> Entities are composable if we can easily and generally combine their behaviors in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for acheiving reuse, and for achieving a Combinatorsal expansion of what is succinctly expressible in a programming moupoups Paul Chiusano
-General definition general-definition ad una **teoria rigorosa** che possa fornire tionste a domande così implementationamentaliThe `fold` function**the-fold-function di The dual semigroupthe-dual-semigroup 60 anni un vasto gruppo I can't find i-cant-find-an'-instance'umanità (la matematica) si Product semigroupsviluppare  teoriaproduct-semigroup dedicata a questo argomento: la Equality*ering equality-and-ordering> Categories capture the essence of composition.
+> Entities are composable if we can easily and generally combine their behaviors in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for acheiving reuse, and for achieving a combinatorial expansion of what is succinctly expressible in a programming model. - Paul Chiusano
+
+We need to refer to a **strict theory** able to answer such fundamental questions. We need a formal definition of the concept of composability.
+
+Luckily, for the last 60 years ago, a large number of researchers, members of the oldest and largest humanity's open source project (maths) occupies itself with developing a theory dedicated to composability: category theory.
+
+> Categories capture the essence of composition.
 
 Saunders Mac Lane
 
@@ -1783,31 +1795,33 @@ Samuel Eilenberg
 
 <img src="images/eilenberg.jpg" width="300" alt="Samuel Eilenberg" />
 
-## 8.1. Definizione
+## Definition
 
-La definizione di categoria, anche se non particolarmente complicata, è un po' lunga perciò la dividerò in due parti:
+The definition of a category, even tho isn't really complex, is a bit long, thus I'll split it in two parts:
 
-- la prima è tecnica (prima di tutto dobbiamo definire i suoi costituenti)
-- la seconda parte contiene ciò a cui siamo più interessati: una nozione di composizione
+- the first is merely technical (we need to define its laws)
+- the second one will be more relevant to what we care for: a notion of composition
 
-### 8.1.1. Parte I (Costituenti)
+### Part I (Constituents)
 
-Una categoria è una coppia `(Objects, Morphisms)` ove:
+A category is an `(Objects, Morphisms)` pair where:
 
-- `Objects` è una collezione di **oggetti**
-- `Morphisms` è una collezione di **morfismi** (dette anche "frecce") tra oggetti
+- `Objects` is a collection of **objects**
+- `Morphisms` is a collection of **morphisms** (also called "arrows") between objects
 
-**Nota**. Il termine "oggetto" non ha niente a che fare con la OOP, pensate agli oggetti come a scatole nere che non potete ispezionare, oppure come a dei semplici placeholder utili a definire i morfismi.
+**Note**. The term "object" has nothing to do with the concept of "objects" in programming and. Just think about those "objects" as black boxes we can't inspect, or simple placeholders useful to define the various morphisms.
 
-Ogni morfismo `f` possiede un oggetto sorgente `A` e un oggetto target `B`, dove sia `A` che `B` sono contenuti in `Objects`. Scriviamo `f: A ⟼ B` e diciamo che "f è un morfismo da A a B"
+Every morphism `f` owns a source object `A` and a target object `B`.
 
-### 8.1.2. Parte II (Composizione)
+In every morphism, both `A` and `B` are members of `Objects`. We write `f: A ⟼ B` and we say that"f is a morphism from A to B"
 
-Esiste una operazione `∘`, chiamata "composizione", tale che valgono le seguenti proprietà:
+### Part II (Composition)
 
-- (**composition of morphisms**) ogni volta che `f: A ⟼ B` and `g: B ⟼ C` sono due morfismi in `Morphisms` allora deve esistere un terzo morfismo `g ∘ f: A ⟼ C` in `Morphisms` che è detto la _composizione_ di `f` e `g`
-- (**associativity**) se `f: A ⟼ B`, `g: B ⟼ C` e `h: C ⟼ D` allora `h ∘ (g ∘ f) = (h ∘ g) ∘ f`
-- (**identity**) per ogni oggetto `X`, esiste un morfismo `identity: X ⟼ X` chiamato *il morfismo identità* di `X`, tale che per ogni morfismo `f: A ⟼ X` e ogni morfismo `g: X ⟼ B`, vale `identity ∘ f = f` e `g ∘ identity` = g.
+There is an operation, `∘`, called "composition", such as the following properties hold true:
+
+- (**composition of morphisms**) every time we have two morphisms `f: A ⟼ B` and `g: B ⟼ C` in `Morphisms` then there has to be a third `g ∘ f: A ⟼ C` in `Morphisms` which is the _composition_ of `f` and `g`
+- (**associativity**) if `f: A ⟼ B`, `g: B ⟼ C` and `h: C ⟼ D` then `h ∘ (g ∘ f) = (h ∘ g) ∘ f`
+- (**identity**) for every object `X`, there is a morphism `identity: X ⟼ X` called *identity morphism* of `X`, such as for every morphism `f: A ⟼ X` and `g: X ⟼ B`, the following equation holds true `identity ∘ f = f` and `g ∘ identity = g`.
 
 **Example**
 
@@ -1815,23 +1829,23 @@ Esiste una operazione `∘`, chiamata "composizione", tale che valgono le seguen
 
 <img src="images/category.png" width="300" alt="a simple category" />
 
-Questa categoria è molto semplice, ci sono solo tre oggetti e sei morfismi (1<sub>A</sub>, 1<sub>B</sub>, 1<sub>C</sub> sono i morfismi identità di `A`, `B`, `C`).
+This category is simple, there are three objects and six morphisms (1<sub>A</sub>, 1<sub>B</sub>, 1<sub>C</sub> are the identity morphisms for `A`, `B`, `C`).
 
-## 8.2. Categorie come linguaggi di programmazione
+## Categories as programming languages
 
-Una categoria può essere interpretata come un modello semplificato di un **typed programming language**, ove:
+A category can be seen as a simplified model for a **typed programming language**, where:
 
-- gli oggetto sono **tipi**
-- i morfismi sono **funzioni**
-- `∘` è l'usuale **composizione di funzioni**
+- the objects are **types**
+- morphisms are **functions**
+- `∘` is the usual **function composition**
 
-Il diagramma:
+The following diagram:
 
 <img src="images/category.png" width="300" alt="a simple programming language" />
 
-può perciò essere interpretato come un immaginario (e molto semplice) linguaggio di programmazione con solo tre tipi e una manciata di funzioni.
+can be seen as an imaginary (and simple) programming language with just three types and a handful of functions
 
-Per esempio potremmo pensare a:
+Example given:
 
 - `A = string`
 - `B = number`
@@ -1840,7 +1854,7 @@ Per esempio potremmo pensare a:
 - `g = number => boolean`
 - `g ∘ f = string => boolean`
 
-L'implementazione potrebbe essere qualcosa come:
+The implementation could be something like:
 
 ```ts
 function f(s: string): number {
@@ -1857,18 +1871,18 @@ function h(s: string): boolean {
 }
 ```
 
-## 8.3. Una categoria per TypeScript
+## A category for TypeScript
 
-Possiamo definire una categoria, chiamiamola *TS*, come modello semplificato del linguaggio TypeScript, ove:
+We can define a category, let's call it *TS*, as a simplified model of the TypeScript language, where:
 
-- gli **oggetti** sono tutti i tipi di TypeScript: `string`, `number`, `Array<string>`, ...
-- i **morfismi** sono tutte le funzioni di TypeScript: `(a: A) => B`, `(b: B) => C`, ... ove `A`, `B`, `C`, ... sono tipi di TypeScript
-- i **morfismi identità** sono tutti codificati da una singola funzione polimorfica `const identity = <A>(a: A): A => a`
-- la **composizione di morfismi** è l'usuale composizione di funzione (che è associativa)
+- the **objects** are all the possible TypeScript types: `string`, `number`, `Array<string>`, ...
+- the **morphisms** are all TypeScript functions: `(a: A) => B`, `(b: B) => C`, ... where `A`, `B`, `C`, ... are TypeScript types
+- the **identity morphisms** are all encoded in a single polymorphic function `const identity = <A>(a: A): A => a`
+- **morphism's composition** is the usual function composition (which we know to be associative)
 
-Come modello di TypeScript, la categoria *TS* a prima vista può sembrare troppo limitata: non ci sono cicli, niente `if`, non c'è *quasi* nulla... e tuttavia questo modello semplificato è abbastanza ricco per soddisfare il nostro obbiettivo principale: ragionare su una nozione ben definita di composizione.
+As a model of TypeScript, the *TS* category may seem a bit limited: no loops, no `if`s, there's *almost*  nothing... that being said that simplyfied model is rich enough to help us reach our goal: to reason about a well-defined notion of composition.
 
-## 8.4. Il problema centrale della composizione
+## Il problema centrale della composizione
 
 In _TS_ possiamo comporre due funzioni generiche `f: (a: A) => B` and `g: (c: C) => D` fintanto che `C = B`
 
