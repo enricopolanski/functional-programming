@@ -1882,9 +1882,9 @@ We can define a category, let's call it *TS*, as a simplified model of the TypeS
 
 As a model of TypeScript, the *TS* category may seem a bit limited: no loops, no `if`s, there's *almost*  nothing... that being said that simplyfied model is rich enough to help us reach our goal: to reason about a well-defined notion of composition.
 
-## Il problema centrale della composizione
+## Composition's core problem
 
-In _TS_ possiamo comporre due funzioni generiche `f: (a: A) => B` and `g: (c: C) => D` fintanto che `C = B`
+In the _TS_ category we can compose two generic functions `f: (a: A) => B` and `g: (c: C) => D` as long as `C = B`
 
 ```ts
 function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
@@ -1892,46 +1892,46 @@ function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
 }
 ```
 
-Ma che succede se `B != C`? Come possiamo comporre due tali funzioni? Dobbiamo lasciar perdere?
+But what happens if `B != C`? How can we compose two such functions? Should we give up?
 
-Nella prossima sezione vedremo sotto quali condizioni una tale composizione è possibile. Parleremo di **funtori**.
+In the next section we'll see under which conditions such a composition is possible. We'll talk about **functors**.
 
-# 9. Funtori
+# Functors
 
-Nell'ultima sezione riguardante le categorie ho presentato la categoria *TS* (la categoria di TypeScript) e il problema centrale con la composizione di funzioni:
+In the last section we've spoken about the *TS* category (the TypeScript category) and composition's core problem with functions:
 
-> Come possiamo comporre due funzioni generiche `f: (a: A) => B` e `g: (c: C) => D`?
+> How can we compose two generic functions  `f: (a: A) => B` e `g: (c: C) => D`?
 
-Ma perchè trovare soluzioni a questo problema è così importante?
+Why is finding solutions to these problem so important?
 
-Perchè, se è vero che le categorie possono essere usate per modellare i linguaggi di programmazione, i morfismi (ovvero le funzioni in *TS*) possono essere usate per modellare i **programmi**.
+Because, if it is true that categories can be used to model programming languages, morphisms (functions in the *TS* category) can be used to model **programs**.
 
-Perciò risolvere quel problema astratto significa anche trovare una via concreta di **comporre i programmi in modo generico**.
+Thus, solving this abstract problem means finding a concrete way of **composing programs in a generic way**. And *that* now is really interesting for us developers, isn't it?
 E *questo* sì che è molto interessante per uno sviluppatore, non è vero?
 
-## 9.1. Funzioni come programmi
+## Functions as programs
 
-> Come è possibile modellare un programma che produce side effect con una funzione pura?
+> How is it possible to model a program that produces side effects with a pure function?
 
-La risposta è modellare i side effect tramite **effetti**, ovvero tipi che **rappresentano** i side effect.
+The answer is to model it's side effects through **effects**, meaning types that **represent** side effects.
 
-Vediamo due tecniche possibili per farlo in JavaScript:
+Let's see two possible techniques to do so in JavaScript:
 
-- definire un DSL (domain specific language) per gli effetti
-- usare i *thunk*
+- define a DSL (domain specific language) for effects 
+- use a *thunk*
 
-La prima tecnica, usare cioè un DSL, significa modificare un programma come:
+The first technique, using a DSL, means modifying a program like:
 
 ```ts
 function log(message: string): void {
-  console.log(a, b) // side effect
+  console.log(message) // side effect
 }
 ```
 
-cambiando il suo codominio e facendo in modo che sia una funzione che restituisce una **descrizione** del side effect:
+changing its codomain and making possible that it'll be a function that returns a **description** of the side effect:
 
 ```ts
-type DSL = ... // sum type di tutti i possibili effetti gestiti dal sistema
+type DSL = ... // sum type of every possible effect handled by the system
 
 function log(message: string): DSL {
   return {
@@ -1941,11 +1941,11 @@ function log(message: string): DSL {
 }
 ```
 
-**Quiz**. La funzione `log` appena definita è davvero pura? Eppure `log('foo') !== log('foo')`!
+**Quiz**. Is the freshly defined `log` function really pure? Actually `log('foo') !== log('foo')`!
 
-Questa tecnica presuppone un modo per combinare gli effetti e la definizione di un interprete in grado di eseguire concretamente gli effetti.
+This technique requires a way to combine effects and the definition of an interpreter able to execute the side effects.
 
-Una seconda tecnica è racchiudere la computazione in un thunk:
+The second technique is to enclose the computation in a think:
 
 ```ts
 interface IO<A> {
@@ -1959,9 +1959,9 @@ function log(message: string): IO<void> {
 }
 ```
 
-Il programma `log`, quando viene eseguito, non provoca immediatamente il side effect ma restituisce **un valore che rappresenta la computazione** (detta anche *azione*).
+The `log` program, once executed, it won't instantly cayse a side effect, but returns **a value representing the computation** (also known as *action*).
 
-Vediamo un altro esempio che usa i thunk, leggere e scrivere sul `localStorage`:
+Let's see another example using thunks, reading and writing on `localStorage`:
 
 ```ts
 const read = (name: string): IO<string | null> =>
@@ -1971,53 +1971,53 @@ const write = (name: string, value: string): IO<void> =>
   () => localStorage.setItem(name, value)
 ```
 
-Nella programmazione funzionale si tende a spingere i side effect (sottoforma di effetti) ai confini del sistema (ovvero la funzione `main`)
+In functional programming there's a tendency to shove side effects (under the form of effects) to the border of the system (the `main` function) where they are executed by an interpreter obtaining the following schema:
 ove vengono eseguiti da un interprete ottenendo il seguente schema:
 
 > system = pure core + imperative shell
 
-Nei linguaggi *puramente funzionali* (come Haskell, PureScript o Elm) questa divisione è netta ed è imposta dal linguaggio stesso.
+In *purely functional* languages (like Haskell, PureScript or Elm) this division is strict and clear and imposed by the very languages.
 
-Anche con questa seconda tecnica (quella usata da `fp-ts`) occorre un modo per combinare gli effetti, vediamo come fare.
+Even with this thunk technique (the same technique used in `fp-ts`) we need a way to combine effects, let's see how.
 
-Innanzi tutto un po' di terminologia: chiamiamo **programma puro** una funzione con la seguente firma:
+We first need a bit of terminology: we'll call **pure program** a function with the following signature:
 
 ```ts
 (a: A) => B
 ```
 
-Una tale firma modella un programma che accetta un input di tipo `A` e restituisce un risultato di tipo `B`, senza alcun effetto.
+Such a signature models a program that takes an input of type `A` and returns a result of type `B` without any effect.
 
-**Esempio**
+**Example**
 
-Il programma `len`:
+The `len` program:
 
 ```ts
 const len = (s: string): number => s.length
 ```
 
-Chiamiamo **programma con effetti** una funzione con la seguente firma:
+We'll call an **effectful program** a function with the following signature:
 
 ```ts
 (a: A) => F<B>
 ```
 
-Una tale firma modella un programma che accetta un input di tipo `A` e restituisce un risultato di tipo `B` insieme ad un **effetto** `F`, ove `F` è un qualche type constructor.
+Such a signature models a program that takes an input of type `A` and returns a result of type `B` together with an **effect** `F`, where `F` is some sort of type constructor.
 
-Ricordiamo che un [type constructor](https://en.wikipedia.org/wiki/Type_constructor) è un operatore a livello di tipi `n`-ario che prende come argomento zero o più tipi e che restituisce un tipo.
+Let's recall that a [type constructor](https://en.wikipedia.org/wiki/Type_constructor) is an `n`-ary type operator that takes as argument one or more types and returns another type.
 
-**Esempio**
+**Example**
 
-Il programma `head`:
+The `head` program:
 
 ```ts
 const head = (as: Array<string>): Option<string> =>
   as.length === 0 ? none : some(as[0])
 ```
 
-è un programma con effetto `Option`.
+is a program with an `Option` effect.
 
-Quando parliamo di effetti siamo interessati a type constructor `n`-ari con `n >= 1`, per esempio:
+When we talk about effects we are interested in `n`-ary type constructors where `n >= 1`, example given:
 
 | Type constructor | Effect (interpretation)                     |
 | ---------------- | ------------------------------------------- |
@@ -2026,19 +2026,19 @@ Quando parliamo di effetti siamo interessati a type constructor `n`-ari con `n >
 | `IO<A>`          | a synchronous computation with side effects |
 | `Task<A>`        | an asynchronous computation                 |
 
-ove
+where
 
 ```ts
 interface Task<A> extends IO<Promise<A>> {}
 ```
 
-Torniamo ora al nostro problema principale:
+Let's get back to our core problem:
 
-> Come possiamo comporre due funzioni generiche `f: (a: A) => B` e `g: (c: C) => D`?
+> How do we compose two generic functions `f: (a: A) => B` e `g: (c: C) => D`?
+ 
+With our current set of rules this general problem is not solvable. We need to add some *boundaries* to `B` and `C`.
 
-Dato che il problema generale non è trattabile, dobbiamo aggiungere qualche *vincolo* a `B` e `C`.
-
-Sappiamo già che se `B = C` allora la soluzione è l'usuale composizione di funzioni
+We already know that if `B = C` then the solution is the usual function composition.
 
 ```ts
 function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
@@ -2046,20 +2046,20 @@ function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
 }
 ```
 
-Ma cosa dire degli altri casi?
+But what about other cases?
 
-## 9.2. Come il vincolo `B = F<C>` conduce ai funtori...
+## On how the `B = F<C>` boundary leads to functors...
 
-Consideriamo il seguente vincolo: `B = F<C>` per un qualche type constructor `F`, o in altre parole (e dopo un po' di renaming):
+Let's consider the following boundary: `B = F<C>` for some type constructor `F`, or in other words (and after some renaming):
 
-- `f: (a: A) => F<B>` è un programma con effetti
-- `g: (b: B) => C` è un programma puro
+- `f: (a: A) => F<B>` is an effectful program
+- `g: (b: B) => C` is a pure program
 
-Per poter comporre `f` con `g` dobbiamo trovare un procedimento (detto `lift`ing) che permetta di tramutare `g` da una funzione `(b: B) => C` ad una funzione `(fb: F<B>) => F<C>` in modo tale che possiamo usare la normale composizione di funzioni (infatti in questo modo il codominio di `f` sarebbe lo stesso insieme che fa da dominio della nuova funzione).
+In order to compose `f` with `g` we need to find a procedure (called `lift`ing) that allows us to derive a function `g` from a function `(b: B) => C` to a function `(fb: F<B>) => F<C>` in order to use the usual function composition (in fact, in this way the codomain of `f` would be the same of the new function's domain).
 
-Perciò abbiamo modificato il problema originale in uno nuovo e diverso: possiamo trovare una funzione `lift` che agisce in questo modo?
+That is, we have modyfied the original problem in a different and new one: can we find a `lift` function that operates this way?
 
-Vediamo qualche esempio pratico:
+Let's see some practical example:
 
 **Example** (`F = Array`)
 
@@ -2089,59 +2089,59 @@ function lift<B, C>(g: (b: B) => C): (fb: Task<B>) => Task<C> {
 }
 ```
 
-Tutte queste funzioni `lift` si assomigliano molto. Non è una coincidenza, c'è un pattern molto importante dietro le quinte: tutti questi type constructor (e molti altri) ammettono una **istanza di funtore**.
+All of these `lift` functions look pretty much similar. That's no coincidence, there's a very important pattrn behind the scenes: every of these type constructors (and many others) admit an **functor instance**.
 
-I funtori sono delle **mappe tra categorie** che preservano la struttura categoriale, ovvero che preservano i morfismi identità e l'operazione di composizione.
+Functors are **maps between categories** that preserve the structure of the category, meaning they preserve the identity morphisms and the composition operation.
 
-Dato che le categorie sono costituite da due cose (gli oggetti e i morfismi) anche un funtore è costituito da due cose:
+Since categories are pairs of objects and morphisms, a functor too is a pair of something:
 
-- una **mappa tra oggetti** che associa ad ogni oggetto in `X` in _C_ un oggetto in _D_
-- una **mappa tra morfismi** che associa ad ogni morfismo in _C_ un morfismo in _D_
+- a **map between objects** that binds every object `A` in _C_ an object in _D_.
+- a **map between morphisms** that binds every morphism in _C_ a morphism in _D_.
 
-ove _C_ e _D_ sono due categorie (aka due linguaggi di programmazione).
+where _C_ e _D_ are two categories (aka two programming languages).
 
 <img src="images/functor.jpg" width="300" alt="functor" />
 
 (source: [functor on ncatlab.org](https://ncatlab.org/nlab/show/functor))
 
-Anche se una mappa tra due linguaggi di programmazione è un'idea intrigante, siamo più interessati ad una mappa in cui _C_ and _D_ coincidono (con *TS*). In questo caso parliamo di **endofuntori** ("endo" significa "dentro", "interno").
+Even tho a map between two different programming languages is an interesting idea, we're more interestd in a map where _C_ and _D_ are the same (the *TS* category). In that case we're talking about **endofunctors** (from the greek "endo" meaning "inside"/"internal").
 
-D'ora in poi, se non diversamente specificato, quando scrivo "funtore" intendo un endofuntore in *TS*.
+From now on, unless specified differently, when I write "functor" I mean an endofunctor in the *TS* category.
 
-Ora che sappiamo qual'è l'aspetto pratico che ci interessa dei funtori, vediamone la definizione formale.
+Now we know the practical side of functors, let's see the formal definition.
 
-### 9.2.1. Definizione
+### Definition
 
-Un funtore è una coppia `(F, lift)` ove:
+A functor is a pair `(F, lift)` where:
 
-- `F` è un type constructor `n`-ario (`n >= 1`) che mappa ogni tipo `X` in un tipo `F<X>` (**mappa tra oggetti**)
-- `lift` è una funzione con la seguente firma:
+- `F` is an `n`-ary (`n >= 1`) type constructor mapping every type `X` in a type `F<X>` (**map between objects**)
+- `lift` is a function with the following signature:
 
 ```ts
 lift: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
 ```
 
-che mappa ciascuna funzione `f: (a: A) => B` in una funzione `lift(f): (fa: F<A>) => F<B>` (**mappa tra morfismi**)
+that maps every function `f: (a: A) => B` in a function `lift(f): (fa: F<A>) => F<B>` (**map between morphism**)
 
-Devono valere le seguenti proprietà:
+The following proprerties have to hold:
 
-- `lift(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**le identità vanno in identità**)
-- `lift(g ∘ f) = lift(g) ∘ lift(f)` (**l'immagine di una composizione è la composizione delle immagini**)
+- `lift(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**identities go to identities**)
+- `lift(g ∘ f) = lift(g) ∘ lift(f)` (**the image of a composition is the composition of its images**)
 
-La funzione `lift` è anche conosciuta sottoforma di una sua variante chiamata `map`, che è essenzialmente `lift` ma con gli argomenti riarrangiati:
+The `lift` function is also called under its variant `map`, which is essentially a `lift` with the argument's order rearranged:
 
 ```ts
 lift: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
 map:  <A, B>(fa: F<A>, f: (a: A) => B) => F<B>
 ```
 
-Notate che `map` può essere derivata da `lift` (e viceversa).
+Please note that `map` can be derived from `lift` (and viceversa).
 
-## 9.3. Funtori in `fp-ts`
+## Functors in `fp-ts`
 
-Come facciamo a definire una istanza di funtore in `fp-ts`? Vediamo qualche esempio pratico.
+How do we define a functor instance in `fp-ts`? Let's see some example:
 
-La seguente dichiarazione definisce il modello di una risposta di una chiamata ad una API:
+The following interface represents the model of a call to some API:
 
 ```ts
 interface Response<A> {
@@ -2152,9 +2152,9 @@ interface Response<A> {
 }
 ```
 
-Notate che il campo `body` è parametrico, questo fatto rende `Response` un buon candidato per cercare una istanza di funtore dato che `Response` è un type constructor `n`-ario con `n >= 1` (una condizione necessaria).
+Please note that since `body` is parametric, this makes `Response` a good candidate to find a functor instance since `Response` is a an `n`-ario type constructor with `n >= 1` (a necessary condition). 
 
-Per poter definire una istanza di funtore per `Response` dobbiamo definire una funzione `map` insieme ad alcuni [dettagli tecnici](https://gcanti.github.io/fp-ts/recipes/HKT.html) resi necessari da `fp-ts`.
+To define a functor instance for `Response` we need to define a `map` function along some [technical details](https://gcanti.github.io/fp-ts/recipes/HKT.html) required by `fp-ts`.
 
 ```ts
 // `Response.ts` module
@@ -2189,11 +2189,11 @@ export const functorResponse: Functor1<URI> = {
 }
 ```
 
-## 9.4. Composizione di funtori
+## Functor composition
 
-I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione `F<G<A>>` è ancora un funtore e la `map` della composizione è la composizione delle `map`
+Functor compose, given two functors `F` e `G`, then the composition `F<G<A>>` is still a functor and its `map` is the combination of `F`'s an `G`'s `map`, thus the composition
 
-**Esempio**
+**Example**
 
 ```ts
 import { Option, option } from 'fp-ts/lib/Option'
@@ -2205,7 +2205,7 @@ export const functorArrayOption = {
 }
 ```
 
-Per evitare boilerplate `fp-ts` esporta un helper:
+To avoid boilerplate `fp-ts` exports an helper:
 
 ```ts
 import { array } from 'fp-ts/lib/Array'
@@ -2215,9 +2215,9 @@ import { option } from 'fp-ts/lib/Option'
 export const functorArrayOption = getFunctorComposition(array, option)
 ```
 
-## 9.5. Abbiamo risolto il problema generale?
+## Did we solve the general problem?
 
-Non ancora. I funtori ci permettono di comporre un programma con effetti `f` con un programma puro `g`, ma `g` deve essere una funzione **unaria**, ovvero una funzione che accetta un solo argomento. Cosa succede se `g` accetta due o più argomenti?
+Not yet. Functors allow us to compose an effectful program `f` with a pure program `g`, but `g` has to be a **unary** function, accepting one single argument. What happens if `g` takes two or more arguments?
 
 | Program f | Program g               | Composition   |
 | --------- | ----------------------- | ------------- |
@@ -2225,80 +2225,81 @@ Non ancora. I funtori ci permettono di comporre un programma con effetti `f` con
 | effectful | pure (unary)            | `lift(g) ∘ f` |
 | effectful | pure (`n`-ary, `n > 1`) | ?             |
 
-Per poter gestire questa circostanza abbiamo bisogno di qualcosa in più, nel prossimo capitolo vedremo un'altra importante astrazione della programmazione funzionale: i **funtori applicativi**.
+To manage this circumstance we need something *more*, in the next chapter we'll see another important abstraction in functional programming: **applicative functors**.
 
-## 9.6. Funtori controvarianti
+## Contravariant functors
 
-Prima di passare ai funtori applicativi voglio mostrarvi una variante del concetto di funtore che abbiamo visto nella sezione precedente: i **funtori controvarianti**.
+Before we get into applicative functors I'd like to show you a variant of the functor concept we've seen in the last section: **contravariant functors**.
 
-Ad essere pignoli infatti quelli che abbiamo chiamato semplicemente "funtori" dovrebbero essere più propriamente chiamati **funtori covarianti**.
+If we want to be meticulous, those that we called "functors" should be more properly called **contravariant functors**.
 
-La definizione di funtore controvariante è del tutto analoga a quella di funtore covariante, eccetto per la firma della sua operazione fondamentale (che viene chiamata `contramap` invece di `map`)
+The definition of a contravariant functor is very close to the covariant functor, the only difference is the signature of its fundamental operation (called `contramap` invece di `map`).
 
 ```ts
-// funtore covariante
+// covariant functor
 export interface Functor<F> {
   readonly map: <A, B>(fa: HKT<F, A>, f: (a: A) => B) => HKT<F, B>
 }
 
-// funtore controvariante
+// controvariant functor
 export interface Contravariant<F> {
   readonly contramap: <A, B>(fa: HKT<F, A>, f: (b: B) => A) => HKT<F, B>
 }
 ```
 
-**Nota**: il tipo `HKT` è il modo in cui `fp-ts` rappresenta un generico type constructor (una tecnica proposta nel paper [Lightweight higher-kinded polymorphism](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf)) perciò quando vedete `HKT<F, X>` potete pensarlo come al type constructor `F` applicato al tipo `X` (ovvero `F<X>`).
+**Note**: the `HKT` type is the way `fp-ts` uses to represent a generic type constructor (a technique proposed in the following paper [Lightweight higher-kinded polymorphism](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf)) so when you see `HKT<F, X>` you can simply read it as `F` applied on the `X` type (thus `F<X>`).
 
-Come esempi, abbiamo già visto due tipi notevoli che ammettono una istanza di funtore controvariante: `Eq` e `Ord`.
+As examples, we've already seen two relevant types that allow an instance of a contravariant functor: `Eq` and `Ord`.
 
-# 10. Funtori applicativi
+# Applicative functors
 
-Nella sezione riguardante i funtori abbiamo visto che possiamo comporre un programma con effetti `f: (a: A) => F<B>` con un programma puro `g: (b: B) => C` tramite lifting di `g` ad una funzione `lift(g): (fb: F<B>) => F<C>`, ammesso che `F` ammetta una istanza di funtore.
+In the section regarding functors we've seen that we can compose an effectful program `f: (a: A) => F<B>` with a pure one `g: (b: B) => C` through the lifting of `g` to a function `lift(g): (fb: F<B>) => F<C>` (if and only if F has a functor instance).
 
 | Program f | Program g    | Composition   |
 | --------- | ------------ | ------------- |
 | pure      | pure         | `g ∘ f`       |
 | effectful | pure (unary) | `lift(g) ∘ f` |
 
-Tuttavia `g` deve essere unaria, ovvero deve accettare un solo argomento in input. Che succede se `g` accetta due argomenti? Possiamo ancora fare un lifting di `g` usando solo l'istanza di funtore? Proviamoci!
+But `g` has to be unary, it can only accept a single argument as input.
+Tuttavia `g` deve essere unaria, ovvero deve accettare un solo argomento in input. What happens if `g` accepts twp arguments? Can we still lift `g` using only the functor instance? Let's try
 
-## 10.1. Currying
+## Currying
 
-Prima di tutto dobbiamo modellare una funzione che accetta due argomenti, diciamo di tipo `B` e `C` (possiamo usare una tupla per questo) e restituisce un valore di tipo `D`:
+First of all we need to model a function that accepts two arguments of type `B` e `C` (we can use a tuple for this) and returns a value of type `D`: 
 
 ```ts
 g: (args: [B, C]) => D
 ```
 
-Possiamo riscrivere `g` usando una tecnica chiamata **currying**.
+We can rewrite `g` using a technique called **currying**.
 
 > Currying is the technique of translating the evaluation of a function that takes multiple arguments into evaluating a sequence of functions, **each with a single argument**. For example, a function that takes two arguments, one from `B` and one from `C`, and produces outputs in `D`, by currying is translated into a function that takes a single argument from `C` and produces as outputs functions from `B` to `C`.
 
 (source: [currying on wikipedia.org](https://en.wikipedia.org/wiki/Currying))
 
-Perciò, tramite currying, possiamo riscrivere `g` come:
+Thus, through currying, we can rewrite `g` as: 
 
 ```ts
 g: (b: B) => (c: C) => D
 ```
 
-Quello che vogliamo è una operazione di lifting, chiamiamola `liftA2` per distinguerla dalla nostra vecchia `lift` dei funtori, che resituisca una funzione con la seguente firma:
+What we're looking for is a lifting operation, let's call it `liftA2` to distinguish it from the other functor's `lift`, that returns a function with the following signature:
 
 ```ts
 liftA2(g): (fb: F<B>) => (fc: F<C>) => F<D>
 ```
 
-Come facciamo ad ottenerla? Siccome adesso `g` è unaria, possiamo usare l'istanza di funtore e la nostra vecchia `lift`:
+How can we obtain it? Since `g` is unary, we can use a functor instance and the old `lift`:
 
 ```ts
 lift(g): (fb: F<B>) => F<(c: C) => D>
 ```
 
-Ma ora siamo bloccati: non c'è alcuna operazione legale fornita dalla istanza di funtore che ci permette di **spacchettare** (`unpack`) il valore `F<(c: C) => D>` in una funzione `(fc: F<C>) => F<D>`.
+But now we're stuck: functor instances provide no legal operation that allows us to **unwrap** (`unpack`) the value `F<(c: C) => D>` in a function `(fc: F<C>) => F<D>`.
 
-## 10.2. Apply
+## Apply
 
-Introduciamo perciò una nuova astrazione `Apply` che possiede una tale operazione di spacchettamento (chiamata `ap`):
+Let's introduce a new abstraction called `Apply` that owns such an unwrapping operation (called `ap`):
 
 ```ts
 interface Apply<F> extends Functor<F> {
@@ -2306,20 +2307,20 @@ interface Apply<F> extends Functor<F> {
 }
 ```
 
-La funzione `ap` è fondamentalmente `unpack` con gli argomenti riarrangiati:
+The `ap` is basically `unpack` with rearranged arguments:
 
 ```ts
 unpack: <C, D>(fcd: HKT<F, (c: C) => D>) => ((fc: HKT<F, C>) => HKT<F, D>)
 ap:     <C, D>(fcd: HKT<F, (c: C) => D>, fc: HKT<F, C>) => HKT<F, D>
 ```
 
-perciò `ap` può essere derivata da `unpack` (e viceversa).
+thus `ap` can be derived from `unpack` (and viceversa).
 
-## 10.3. Applicative
+## Applicative
 
-In più sarebbe comodo se esistesse un'altra operazione che sia in grado di fare il **lifting di un valore** di tipo `A` in un valore di tipo `F<A>`. In questo modo potremo chiamare la funzione `liftA2(g)` sia fornendo valori di tipo `F<B>` e `F<C>`, sia tramite lifting di valori di tipo `B` e `C`.
+It would be handy if there was another operation able to **to life a value** of type `A` in a value of type `F<A>`.
 
-Introduciamo perciò l'astrazione `Applicative` che arricchisce `Apply` e che contiene una tale operazione (chiamata `of`):
+We introduce the `Applicative` abstraction that enriches `Apply` and contains such an operation (called `of`):
 
 ```ts
 interface Applicative<F> extends Apply<F> {
@@ -2327,7 +2328,7 @@ interface Applicative<F> extends Apply<F> {
 }
 ```
 
-Vediamo qualche istanza di `Applicative` per alcuni data type comuni:
+Let's see some `Applicative` instance for some common data types:
 
 **Example** (`F = Array`)
 
@@ -2380,9 +2381,9 @@ export const applicativeTask = {
 }
 ```
 
-## 10.4. Lifting
+## Lifting
 
-Data una istanza di `Apply` per `F` possiamo quindi definire `liftA2`?
+Given an `Apply` instance for `F` can we define `liftA2`?
 
 ```ts
 import { HKT } from 'fp-ts/lib/HKT'
@@ -2397,9 +2398,9 @@ function liftA2<F>(
 }
 ```
 
-Bene! Ma che succede con le funzioni che accettano **tre** argomenti? Abbiamo bisogno di *un'altra astrazione ancora*?
+Great! But what happens if the functions accept **three** arguments? Do we need, *yet another abstraction*?
 
-La buona notizia è che la risposta è no, `Apply` è sufficiente:
+Good news, we don't, `Apply` is enough:
 
 ```ts
 type Curried3<B, C, D, E> = (b: B) => (c: C) => (d: D) => E
@@ -2413,7 +2414,9 @@ function liftA3<F>(
 }
 ```
 
-In realtà data una istanza di `Apply` possiamo scrivere con lo stesso pattern una funzione `liftAn`, **qualsiasi** sia `n`!
+In reality 
+
+ealtà data una istanza di `Apply` possiamo scrivere con lo stesso pattern una funzione `liftAn`, **qualsiasi** sia `n`!
 
 **Nota**. `liftA1` non è altro che `lift`, l'operazione fondamentale di `Functor`.
 
