@@ -2,7 +2,7 @@
 
 This is a fork of [Giulio Canti](https://gcanti.github.io/about.html)'s ["Introduction to Functional Programming (Italian)"](https://github.com/gcanti/functional-programming). The author uses this repository as a reference for his lectures and workshops on functional programming.
 
-The spirit of this fork is to provide a reference and an introduction to functional programming targetting the modern web developer based on Giulio's work. Additions to the translation are listed in the final section. 
+This is an introduction to functional programming targetting the web developer using TypeScript and possibly libraries in the fp-ts ecosystem.
 
 Contributions are welcome, see the contribution file.
 
@@ -10,7 +10,6 @@ Contributions are welcome, see the contribution file.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 
 - [What is functional programming](#what-is-functional-programming)
 - [The two pillars of functional programming](#the-two-pillars-of-functional-programming)
@@ -176,13 +175,13 @@ const x = await question('What is your name?')
 const y = x
 ```
 
-<!-- 
+<!--
   TODO: Type systems honesty
  -->
 
 ## Composition
 
-Functional programming's fundamental pattern is  _composition_: we compose small units of code accomplishing very specific tasks into larger and complex units.
+Functional programming's fundamental pattern is _composition_: we compose small units of code accomplishing very specific tasks into larger and complex units.
 
 <!--
    TODO: Complex vs complicated
@@ -246,11 +245,11 @@ Let's see our first example of an algebra, a _magma_.
 **Definition**. Given `A` a non empty set and `*` a binary operation _closed on_ (or _internal to_) `A` such as `*: A × A ⟶ A`,
 then the pair `(A, *)` is called a _magma_.
 
-> Because the binary operation of a magma takes two values of a given type and returns a new value of the same type (*closure property*), this operation can be chained indefinitely.
+> Because the binary operation of a magma takes two values of a given type and returns a new value of the same type (_closure property_), this operation can be chained indefinitely.
 
 The fact that the operation has to be _closed_ is a fundamental property. Example given, in the set of the natural numbers, sum is a closed operation, substraction is not.
 
-<!-- 
+<!--
   TODO: L’operazione di sottrazione non è un’operazione interna all’insieme \mathbb{N} dei numeri naturali.
 -->
 
@@ -291,7 +290,7 @@ String concatenation benefits from associativity.
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
 ```
 
-<!-- 
+<!--
   TODO: This part on computations being able to be further split in two sub computations isn't clear. How do I further split "a" + "b" without the presence of a neutral element ""?
  -->
 
@@ -319,7 +318,7 @@ There are many examples of semigroups:
 
 As usual in `fp-ts` the algebra `Semigroup`, contained in the the `fp-ts/lib/Semigroup` module, is implemented through a TypeScript `interface`:
 
-<!-- 
+<!--
   TODO: implementation of a Magma?
 -->
 
@@ -357,8 +356,7 @@ const semigroupSum: Semigroup<number> = {
 }
 ```
 
-Please note that for the same type it is possible to define more **instances** of the **type class* `Semigroup`.
- 
+Please note that for the same type it is possible to define more **instances** of the \*_type class_ `Semigroup`.
 
 This is the implementation for the semigroup `(number, *)` where `*` is the usual number multiplication:
 
@@ -382,16 +380,21 @@ const semigroupString: Semigroup<string> = {
 By definition `concat` combines merely two elements of `A` every time, is it possible to combine any _n_ number of them?
 
 The `fold` function takes:
-  - an instance of a semigroup
-  - an initial value
-  - an array of elements
+
+- an instance of a semigroup
+- an initial value
+- an array of elements
 
 <!--
   TODO: Refactor with HM types.
 -->
 
 ```ts
-import { fold, semigroupSum, semigroupProduct } from 'fp-ts/lib/Semigroup'
+import {
+  fold,
+  semigroupSum,
+  semigroupProduct
+} from 'fp-ts/lib/Semigroup'
 
 const sum = fold(semigroupSum)
 
@@ -410,7 +413,12 @@ Lets provide some applications of `fold`, by reimplementing some popular functio
 
 ```ts
 import { Predicate } from 'fp-ts/lib/function'
-import { fold, Semigroup, semigroupAll, semigroupAny } from 'fp-ts/lib/Semigroup'
+import {
+  fold,
+  Semigroup,
+  semigroupAll,
+  semigroupAny
+} from 'fp-ts/lib/Semigroup'
 
 function every<A>(p: Predicate<A>, as: Array<A>): boolean {
   return fold(semigroupAll)(true, as.map(p))
@@ -435,7 +443,9 @@ Given a Semigroup instance, it is possible to obtain a new Semigroup instance si
 
 ```ts
 // this is a Semigroup combinator
-function getDualSemigroup<A>(S: Semigroup<A>): Semigroup<A> {
+function getDualSemigroup<A>(
+  S: Semigroup<A>
+): Semigroup<A> {
   return {
     concat: (x, y) => S.concat(y, x)
   }
@@ -470,7 +480,7 @@ function getLastSemigroup<A = never>(): Semigroup<A> {
 }
 ```
 
-**Quiz**: Can you explain the presence of the `= never` for the type parameter `A`? 
+**Quiz**: Can you explain the presence of the `= never` for the type parameter `A`?
 
 Another technique is to define a semigroup instance not for the `A` type but for `Array<A>` (to be precise, it is a semigroup instance not for `A` but for the non-empty arrays of `A`) called the **free semigroup** of `A`.
 
@@ -492,14 +502,13 @@ function of<A>(a: A): Array<A> {
 
 **Notes**. The `concat` in `getSemigroup` is the native array concat operation, this also explains why concat is the name of `*`, the binary associative operation of semigroups.
 
-
 The free semigroup of `A` thus is simply the semigroup whose elements are all the possible finite and non-empty combinations of `A` elements.
 
-<!-- 
+<!--
   TODO: Alphabet and words.
 -->
 
-The free semigroup of  `A` can be seen as a *lazy* way of concatenating elements of `A` while preserving the content of `A`.
+The free semigroup of `A` can be seen as a _lazy_ way of concatenating elements of `A` while preserving the content of `A`.
 
 Even tho I may have an instance of a semigroup for `A`, I could very well decide to use the free semigroup nonetheless becase:
 
@@ -512,7 +521,10 @@ Even tho I may have an instance of a semigroup for `A`, I could very well decide
 Let's try defining a semigroup instance for mor complex types:
 
 ```ts
-import { Semigroup, semigroupSum } from 'fp-ts/lib/Semigroup'
+import {
+  Semigroup,
+  semigroupSum
+} from 'fp-ts/lib/Semigroup'
 
 type Point = {
   x: number
@@ -532,17 +544,23 @@ Too much boilerplate? The good news is that we can construct a semigroup instanc
 Conveniently the `fp-ts/lib/Semigroup` module exports a `getStructSemigroup` instance:
 
 ```ts
-import { getStructSemigroup, Semigroup, semigroupSum } from 'fp-ts/lib/Semigroup'
+import {
+  getStructSemigroup,
+  Semigroup,
+  semigroupSum
+} from 'fp-ts/lib/Semigroup'
 
 type Point = {
   x: number
   y: number
 }
 
-const semigroupPoint: Semigroup<Point> = getStructSemigroup({
-  x: semigroupSum,
-  y: semigroupSum
-})
+const semigroupPoint: Semigroup<Point> = getStructSemigroup(
+  {
+    x: semigroupSum,
+    y: semigroupSum
+  }
+)
 ```
 
 We can keep passing to `getStructSemigroup` the freshly defined `semigroupPoint` instance.:
@@ -553,7 +571,9 @@ type Vector = {
   to: Point
 }
 
-const semigroupVector: Semigroup<Vector> = getStructSemigroup({
+const semigroupVector: Semigroup<
+  Vector
+> = getStructSemigroup({
   from: semigroupPoint,
   to: semigroupPoint
 })
@@ -567,12 +587,15 @@ There are other combinators exported from `fp-ts`, here we can see a combinator 
 
 ```ts
 import { Predicate } from 'fp-ts/lib/function'
-import { getFunctionSemigroup, semigroupAll } from 'fp-ts/lib/Semigroup'
+import {
+  getFunctionSemigroup,
+  semigroupAll
+} from 'fp-ts/lib/Semigroup'
 
 /** `semigroupAll` is the boolean semigroup under conjunction */
-const semigroupPredicate: Semigroup<Predicate<Point>> = getFunctionSemigroup(
-  semigroupAll
-)<Point>()
+const semigroupPredicate: Semigroup<
+  Predicate<Point>
+> = getFunctionSemigroup(semigroupAll)<Point>()
 ```
 
 Now we can "merge" two predicates defined over `Point`.
@@ -581,7 +604,10 @@ Now we can "merge" two predicates defined over `Point`.
 const isPositiveX = (p: Point): boolean => p.x >= 0
 const isPositiveY = (p: Point): boolean => p.y >= 0
 
-const isPositiveXY = semigroupPredicate.concat(isPositiveX, isPositiveY)
+const isPositiveXY = semigroupPredicate.concat(
+  isPositiveX,
+  isPositiveY
+)
 
 isPositiveXY({ x: 1, y: 1 }) // true
 isPositiveXY({ x: 1, y: -1 }) // false
@@ -603,13 +629,13 @@ const join: Semigroup<number> = {
 }
 ```
 
-**Quiz**. Why is it so important that `number` is a *total* order?
+**Quiz**. Why is it so important that `number` is a _total_ order?
 
-Is it possible to capture the notion of being _totally ordered_ for other types that are not `number`? To do so we first need to capture the notion of *equality*.
+Is it possible to capture the notion of being _totally ordered_ for other types that are not `number`? To do so we first need to capture the notion of _equality_.
 
 Eq
 
-*Equivalence relations* capture the concept of *equality* of elements of the same type. The concept of an *equivalence relation* can be implemented in TypeScript with the following type class:
+_Equivalence relations_ capture the concept of _equality_ of elements of the same type. The concept of an _equivalence relation_ can be implemented in TypeScript with the following type class:
 
 ```ts
 interface Eq<A> {
@@ -645,7 +671,9 @@ The following laws have to hold:
 A programmer can thus define a function `elem` (which indicates wheter a value appears in an array) in the following way:
 
 ```ts
-function elem<A>(E: Eq<A>): (a: A, as: Array<A>) => boolean {
+function elem<A>(
+  E: Eq<A>
+): (a: A, as: Array<A>) => boolean {
   return (a, as) => as.some(item => E.equals(item, a))
 }
 
@@ -666,11 +694,12 @@ const eqPoint: Eq<Point> = {
 }
 ```
 
-We can also try to optimize `equals` by first testing whether there is a *reference equality* (see `fromEquals` in `fp-ts`).
+We can also try to optimize `equals` by first testing whether there is a _reference equality_ (see `fromEquals` in `fp-ts`).
 
 ```ts
 const eqPoint: Eq<Point> = {
-  equals: (p1, p2) => p1 === p2 || (p1.x === p2.x && p1.y === p2.y)
+  equals: (p1, p2) =>
+    p1 === p2 || (p1.x === p2.x && p1.y === p2.y)
 }
 ```
 
@@ -728,20 +757,26 @@ const eqUser = pipe(
   contramap((user: User) => user.userId)
 )
 
-eqUser.equals({ userId: 1, name: 'Giulio' }, { userId: 1, name: 'Giulio Canti' }) // true
-eqUser.equals({ userId: 1, name: 'Giulio' }, { userId: 2, name: 'Giulio' }) // false
+eqUser.equals(
+  { userId: 1, name: 'Giulio' },
+  { userId: 1, name: 'Giulio Canti' }
+) // true
+eqUser.equals(
+  { userId: 1, name: 'Giulio' },
+  { userId: 2, name: 'Giulio' }
+) // false
 ```
 
 **Spoiler**. `contramap` is the fundamental function of [controvariant functors](#controvariant-functors).
 
 ## Equivalence relations as partitions
 
-Defining an `Eq<A>` instance is equivalent to defining a *partition* of `A` where two elements `x`, `y` of `A` are members of the same partition if and only if `equals(x, y) = true`. 
+Defining an `Eq<A>` instance is equivalent to defining a _partition_ of `A` where two elements `x`, `y` of `A` are members of the same partition if and only if `equals(x, y) = true`.
 
 **Note**. Every `f: A ⟶ B` function creates an `Eq<A>` instance defined by:
 
 ```ts
-equals(x, y) = (f(x) = f(y))
+equals(x, y) = f(x) = f(y)
 ```
 
 for every `x`, `y` of `A`.
@@ -789,7 +824,7 @@ The following laws have to hold true:
 2. **Antisymmetry**: if `compare(x, y) <= 0` and `compare(y, x) <= 0` then `x = y`, for every `x`, `y` in `A`
 3. **Transitivity**: if `compare(x, y) <= 0` and `compare(y, z) <= 0` then `compare(x, z) <= 0`, for every `x`, `y`, `z` in `A`
 
-`compare` has also to be compatible with the `equals` operation from `Eq`: 
+`compare` has also to be compatible with the `equals` operation from `Eq`:
 
 `compare(x, y) === 0` if and only if `equals(x, y) === true`, for every `x`, `y` in `A`
 
@@ -804,7 +839,9 @@ In fact the `fp-ts/lib/Ord` module exports a handy helper `fromCompare` which al
 ```ts
 import { fromCompare, Ord } from 'fp-ts/lib/Ord'
 
-const ordNumber: Ord<number> = fromCompare((x, y) => (x < y ? -1 : x > y ? 1 : 0))
+const ordNumber: Ord<number> = fromCompare((x, y) =>
+  x < y ? -1 : x > y ? 1 : 0
+)
 ```
 
 Thus a programmer can define a `min` function in the following way:
@@ -831,7 +868,9 @@ How can we define an `Ord<User>`?
 It always depends on the context, but it's always possible to order the users based on their age:
 
 ```ts
-const byAge: Ord<User> = fromCompare((x, y) => ordNumber.compare(x.age, y.age))
+const byAge: Ord<User> = fromCompare((x, y) =>
+  ordNumber.compare(x.age, y.age)
+)
 ```
 
 We can eliminate some boilerplate using the combinator `contramap`: given an `Ord` instance for `A` and a function from `B` to `A`, we can derive an instance of `Ord` for `B`
@@ -853,10 +892,13 @@ Now we can obtain the youngest of two users using `min`:
 ```ts
 const getYounger = min(byAge)
 
-getYounger({ name: 'Guido', age: 48 }, { name: 'Giulio', age: 45 }) // { name: 'Giulio', age: 45 }
+getYounger(
+  { name: 'Guido', age: 48 },
+  { name: 'Giulio', age: 45 }
+) // { name: 'Giulio', age: 45 }
 ```
 
-And what if we wanted to obtain the eldest one? We can invert the order, or better, obtain the *dual* order.
+And what if we wanted to obtain the eldest one? We can invert the order, or better, obtain the _dual_ order.
 
 Luckily there's an another combinator for this:
 
@@ -869,7 +911,10 @@ function max<A>(O: Ord<A>): (x: A, y: A) => A {
 
 const getOlder = max(byAge)
 
-getOlder({ name: 'Guido', age: 48 }, { name: 'Giulio', age: 45 }) // { name: 'Guido', age: 48 }
+getOlder(
+  { name: 'Guido', age: 48 },
+  { name: 'Giulio', age: 45 }
+) // { name: 'Guido', age: 48 }
 ```
 
 We've seen before that semigroups are helpful every time we want to "concat"enate or "merge" (choose the word that fits your intuition and use case better) different data in one.
@@ -880,13 +925,21 @@ Actually we can derive **two** of them:
 
 ```ts
 import { ordNumber } from 'fp-ts/lib/Ord'
-import { getJoinSemigroup, getMeetSemigroup, Semigroup } from 'fp-ts/lib/Semigroup'
+import {
+  getJoinSemigroup,
+  getMeetSemigroup,
+  Semigroup
+} from 'fp-ts/lib/Semigroup'
 
 /** Takes the minimum of two values */
-const semigroupMin: Semigroup<number> = getMeetSemigroup(ordNumber)
+const semigroupMin: Semigroup<number> = getMeetSemigroup(
+  ordNumber
+)
 
 /** Takes the maximum of two values  */
-const semigroupMax: Semigroup<number> = getJoinSemigroup(ordNumber)
+const semigroupMax: Semigroup<number> = getJoinSemigroup(
+  ordNumber
+)
 
 semigroupMin.concat(2, 1) // 1
 semigroupMax.concat(2, 1) // 2
@@ -924,7 +977,9 @@ import {
   semigroupAny
 } from 'fp-ts/lib/Semigroup'
 
-const semigroupCustomer: Semigroup<Customer> = getStructSemigroup({
+const semigroupCustomer: Semigroup<
+  Customer
+> = getStructSemigroup({
   // keep the longer name
   name: getJoinSemigroup(
     pipe(
@@ -973,14 +1028,14 @@ semigroupCustomer.concat(
 
 # Monoids
 
-If we add another condition to the definition of a semigroup `(A, *)`, such as exists an element `u` in `A` such as for every element `a` in `A` holds true the following condition: 
+If we add another condition to the definition of a semigroup `(A, *)`, such as exists an element `u` in `A` such as for every element `a` in `A` holds true the following condition:
 
 ```ts
 u * a = a * u = a
 ```
 
-then the triplet `(A, *, u)` is called a *monoid* and the element `u` is called *unity*.
-(sinonyms: *neutral element*, *identity element*).
+then the triplet `(A, *, u)` is called a _monoid_ and the element `u` is called _unity_.
+(sinonyms: _neutral element_, _identity element_).
 
 ## Implementation
 
@@ -1034,7 +1089,7 @@ const monoidAny: Monoid<boolean> = {
 
 Let's see some more complex example.
 
-Given a type `A`, the *endomorphisms* (an endomorphism is simply a function whose domain and codomain are the same) on `A` allow a monoid instance:
+Given a type `A`, the _endomorphisms_ (an endomorphism is simply a function whose domain and codomain are the same) on `A` allow a monoid instance:
 
 ```ts
 type Endomorphism<A> = (a: A) => A
@@ -1043,7 +1098,9 @@ function identity<A>(a: A): A {
   return a
 }
 
-function getEndomorphismMonoid<A = never>(): Monoid<Endomorphism<A>> {
+function getEndomorphismMonoid<A = never>(): Monoid<
+  Endomorphism<A>
+> {
   return {
     concat: (x, y) => a => x(y(a)),
     empty: identity
@@ -1054,7 +1111,9 @@ function getEndomorphismMonoid<A = never>(): Monoid<Endomorphism<A>> {
 If the type `M` allows a monoid instance then the type `(a: A) => M` allows a monoid instance for every type `A`:
 
 ```ts
-function getFunctionMonoid<M>(M: Monoid<M>): <A = never>() => Monoid<(a: A) => M> {
+function getFunctionMonoid<M>(
+  M: Monoid<M>
+): <A = never>() => Monoid<(a: A) => M> {
   return () => ({
     concat: (f, g) => a => M.concat(f(a), g(a)),
     empty: () => M.empty
@@ -1094,7 +1153,11 @@ type Point = {
 if we are able to feed the `getStructMonoid` a monoid instance for each of its fields:
 
 ```ts
-import { getStructMonoid, Monoid, monoidSum } from 'fp-ts/lib/Monoid'
+import {
+  getStructMonoid,
+  Monoid,
+  monoidSum
+} from 'fp-ts/lib/Monoid'
 
 const monoidPoint: Monoid<Point> = getStructMonoid({
   x: monoidSum,
@@ -1102,7 +1165,7 @@ const monoidPoint: Monoid<Point> = getStructMonoid({
 })
 ```
 
-We can move further through the freshly defined `getStructMonoid` instance:  
+We can move further through the freshly defined `getStructMonoid` instance:
 
 ```ts
 type Vector = {
@@ -1116,7 +1179,7 @@ const monoidVector: Monoid<Vector> = getStructMonoid({
 })
 ```
 
-**Note**. There is a combinator similar to `getStructMonoid` that works with tuples: `getTupleMonoid`.  
+**Note**. There is a combinator similar to `getStructMonoid` that works with tuples: `getTupleMonoid`.
 
 ## Folding
 
@@ -1155,15 +1218,15 @@ Such an informal stament could leave space for some doubts
 
 Let's see a formal definition of the concept of a function.
 
-**Note**. If `X` e `Y` are sets, then with `X × Y`  we indicate their _cartesian product_, meaning the set
+**Note**. If `X` e `Y` are sets, then with `X × Y` we indicate their _cartesian product_, meaning the set
 
 ```
 X × Y = { (x, y) | x ∈ X, y ∈ Y }
 ```
 
-The following [definition](https://en.wikipedia.org/wiki/History\_of\_the\_function\_concept) was given a century ago:
+The following [definition](https://en.wikipedia.org/wiki/History_of_the_function_concept) was given a century ago:
 
-**Definiton**. A _function:  `f: X ⟶ Y` is a subset of `X × Y` such as
+**Definiton**. A \_function: `f: X ⟶ Y` is a subset of `X × Y` such as
 for every `x ∈ X` there's exactly one `y ∈ Y` such that `(x, y) ∈ f`.
 
 The set `X` is called _domain_ of `f`, `Y` it's his _codomain_.
@@ -1184,7 +1247,7 @@ const f: { [key: number]: number } = {
 ```
 
 Please note that the set `f` has to be described _statically_ when defining the function (meaning that the elements of that set cannot change with time for no reason).
-In this way we can exclude any form of side effect and the return value is always the same. 
+In this way we can exclude any form of side effect and the return value is always the same.
 
 The one in the example is called an _extensional_ definition of a function, meaning we enumerate one by one each of the elements of its domain.
 Obviously, when such a set is infinite this proves to be problematic.
@@ -1208,7 +1271,7 @@ The fact that a function is pure does not imply automatically a ban on local mut
 
 The ultimate goal is to guarantee: **referential transparency**.
 
-> An expresion contains "sode effects" if it doesn't benefits from referential trnsparency 
+> An expresion contains "sode effects" if it doesn't benefits from referential trnsparency
 
 Functions compose:
 
@@ -1220,13 +1283,13 @@ h(x) = f(g(x))
 
 is called _composition_ of `f` and `g` and is written `h = f ∘ g`
 
-Please note that in order for `f` and `g` to combine, the domain of `f` has to be included in the codomain of `g`. 
+Please note that in order for `f` and `g` to combine, the domain of `f` has to be included in the codomain of `g`.
 
 ## Partial functions
 
 **Definition**. A function is said to be _partial_ if it is not defined for each value of its domain.
 
-Viceversa, a funcrtion defined for all values of its domain is said to be *total*
+Viceversa, a funcrtion defined for all values of its domain is said to be _total_
 
 **Example**
 
@@ -1258,7 +1321,7 @@ A good first step when writing an application or feature is to define it's domai
 
 <!--
   What are the other tools?
---> 
+-->
 
 ## What is an ADT?
 
@@ -1371,7 +1434,11 @@ const add = (text: string): Action => ({
   text
 })
 
-const update = (id: number, text: string, completed: boolean): Action => ({
+const update = (
+  id: number,
+  text: string,
+  completed: boolean
+): Action => ({
   type: 'UPDATE_TODO',
   id,
   text,
@@ -1390,7 +1457,9 @@ Sum types can be **polimorphic** and **recursive**.
 
 ```ts
 //        ↓ type parameter
-type List<A> = { type: 'Nil' } | { type: 'Cons'; head: A; tail: List<A> }
+type List<A> =
+  | { type: 'Nil' }
+  | { type: 'Cons'; head: A; tail: List<A> }
 //                                                              ↑ recursion
 ```
 
@@ -1399,9 +1468,11 @@ type List<A> = { type: 'Nil' } | { type: 'Cons'; head: A; tail: List<A> }
 JavaScript doesn't have [pattern matching](https://github.com/tc39/proposal-pattern-matching) (neither does TypeScript) but we can simulate it with a `fold` function:
 
 ```ts
-const fold = <A, R>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
-  fa: List<A>
-): R => (fa.type === 'Nil' ? onNil() : onCons(fa.head, fa.tail))
+const fold = <A, R>(
+  onNil: () => R,
+  onCons: (head: A, tail: List<A>) => R
+) => (fa: List<A>): R =>
+  fa.type === 'Nil' ? onNil() : onCons(fa.head, fa.tail)
 ```
 
 **Note**. TypeScript offers a great feature for sum types: **exhaustive check**. The type checker is able to infer if all the cases are covered.
@@ -1409,7 +1480,10 @@ const fold = <A, R>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
 **Example** (calculate the length of a `List` recursively)
 
 ```ts
-const length: <A>(fa: List<A>) => number = fold(() => 0, (_, tail) => 1 + length(tail))
+const length: <A>(fa: List<A>) => number = fold(
+  () => 0,
+  (_, tail) => 1 + length(tail)
+)
 ```
 
 ### Why "sum" types?
@@ -1432,6 +1506,7 @@ type Option<A> =
       value: A
     }
 ```
+
 From the general formula `C(Option<A>) = 1 + C(A)` we can derive the cardinality of th `Option<boolean>` type: `1 + 2 = 3` abitanti.
 
 ### When should I use a sum type?
@@ -1456,7 +1531,7 @@ class Textbox extends React.Component<Props> {
 }
 ```
 
-The problem here is that `Props` is modeled like a product but `onChange` **depends** on `editable`. 
+The problem here is that `Props` is modeled like a product but `onChange` **depends** on `editable`.
 
 A sum type is a better choice:
 
@@ -1497,7 +1572,7 @@ The result is modeled with a product type:
 type CallbackArgs = [Error | undefined, string | undefined]
 ```
 
-there's an issue tho: it's components are **dependent**: we either receive an error **or** a string, but not both: but the components are 
+there's an issue tho: it's components are **dependent**: we either receive an error **or** a string, but not both: but the components are
 
 | err         | data        | legal? |
 | ----------- | ----------- | ------ |
@@ -1528,9 +1603,15 @@ Constructors and pattern matching:
 // a nullary constructor can be implemented as a constant
 const none: Option<never> = { _tag: 'None' }
 
-const some = <A>(value: A): Option<A> => ({ _tag: 'Some', value })
+const some = <A>(value: A): Option<A> => ({
+  _tag: 'Some',
+  value
+})
 
-const fold = <A, R>(onNone: () => R, onSome: (a: A) => R) => (fa: Option<A>): R =>
+const fold = <A, R>(
+  onNone: () => R,
+  onSome: (a: A) => R
+) => (fa: Option<A>): R =>
   fa._tag === 'None' ? onNone() : onSome(fa.value)
 ```
 
@@ -1580,13 +1661,17 @@ Now, let's suppose we want to "merge" two different `Option<A>`s,: there are fou
 | none    | some(a) | none         |
 | some(a) | some(b) | ?            |
 
-There's an issue in the last case, we need to "merge" two different `A`s. 
+There's an issue in the last case, we need to "merge" two different `A`s.
 
-Isn't that the job our old good friends `Semigroup`s!? We can request an instance of a  `Semigroup<A>` and then derive an instance for the semigroup of `Option<A>`. That's exactly how the combinator `getApplySemigroup` from `fp-ts` works:
+Isn't that the job our old good friends `Semigroup`s!? We can request an instance of a `Semigroup<A>` and then derive an instance for the semigroup of `Option<A>`. That's exactly how the combinator `getApplySemigroup` from `fp-ts` works:
 
 ```ts
 import { semigroupSum } from 'fp-ts/lib/Semigroup'
-import { getApplySemigroup, some, none } from 'fp-ts/lib/Option'
+import {
+  getApplySemigroup,
+  some,
+  none
+} from 'fp-ts/lib/Option'
 
 const S = getApplySemigroup(semigroupSum)
 
@@ -1595,10 +1680,10 @@ S.concat(some(1), some(2)) // some(3)
 ```
 
 If we have a monoid instance for `A` then we can derive a monoid instance for `Option<A>` (via `getApplyMonoid`) that works this way (`some(empty)` will be the neutral (identity) element):
-<!-- 
+
+<!--
   TODO: FIX
 -->
-
 
 | x       | y       | concat(x, y)       |
 | ------- | ------- | ------------------ |
@@ -1608,7 +1693,11 @@ If we have a monoid instance for `A` then we can derive a monoid instance for `O
 | some(a) | some(b) | some(concat(a, b)) |
 
 ```ts
-import { getApplyMonoid, some, none } from 'fp-ts/lib/Option'
+import {
+  getApplyMonoid,
+  some,
+  none
+} from 'fp-ts/lib/Option'
 
 const M = getApplyMonoid(monoidSum)
 
@@ -1631,7 +1720,11 @@ Monoid returning the left-most non-`None` value:
 | some(a) | some(b) | some(a)      |
 
 ```ts
-import { getFirstMonoid, some, none } from 'fp-ts/lib/Option'
+import {
+  getFirstMonoid,
+  some,
+  none
+} from 'fp-ts/lib/Option'
 
 const M = getFirstMonoid<number>()
 
@@ -1663,7 +1756,12 @@ Example given, `getLastMonoid` can be used to handle optional values:
 
 ```ts
 import { Monoid, getStructMonoid } from 'fp-ts/lib/Monoid'
-import { Option, some, none, getLastMonoid } from 'fp-ts/lib/Option'
+import {
+  Option,
+  some,
+  none,
+  getLastMonoid
+} from 'fp-ts/lib/Option'
 
 /** VSCode settings */
 interface Settings {
@@ -1704,7 +1802,7 @@ monoidSettings.concat(workspaceSettings, userSettings)
 
 ### The `Either` type
 
-A common usafe of `Either` is as an alternative for `Option` for handling the possibility of missing values. 
+A common usafe of `Either` is as an alternative for `Option` for handling the possibility of missing values.
 In such use case, `None` is replaced by `Left` which holds the useful information. `Right` replaces `Some`. As a convention `Left` is usef for failure while `Right` is used for success.
 
 ```ts
@@ -1716,13 +1814,21 @@ type Either<E, A> =
 Constructors and pattern matching:
 
 ```ts
-const left = <E, A>(left: E): Either<E, A> => ({ _tag: 'Left', left })
+const left = <E, A>(left: E): Either<E, A> => ({
+  _tag: 'Left',
+  left
+})
 
-const right = <E, A>(right: A): Either<E, A> => ({ _tag: 'Right', right })
+const right = <E, A>(right: A): Either<E, A> => ({
+  _tag: 'Right',
+  right
+})
 
-const fold = <E, A, R>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
-  fa: Either<E, A>
-): R => (fa._tag === 'Left' ? onLeft(fa.left) : onRight(fa.right))
+const fold = <E, A, R>(
+  onLeft: (left: E) => R,
+  onRight: (right: A) => R
+) => (fa: Either<E, A>): R =>
+  fa._tag === 'Left' ? onLeft(fa.left) : onRight(fa.right)
 ```
 
 Let's get back to the callback example:
@@ -1761,8 +1867,13 @@ and consume the API in this new way:
 ```ts
 import { flow } from 'fp-ts/lib/function'
 
-readFile('./myfile', flow(
-    fold(err => `Error: ${err.message}`, data => `Data: ${data.trim()}`),
+readFile(
+  './myfile',
+  flow(
+    fold(
+      err => `Error: ${err.message}`,
+      data => `Data: ${data.trim()}`
+    ),
     console.log
   )
 )
@@ -1775,9 +1886,9 @@ Historically, the first advanced abstraction implemented in `fp-ts` has been `Fu
 One of functional's programming core characteristics is **composition**
 
 > And how do we solve problems? We decompose bigger problems into smaller problems. If the smaller problems are still too big,
-we decompose them further, and so on. Finally, we write code that solves all the small problems. And then comes the essence of programming: we compose those pieces of code to create solutions to larger problems. Decomposition wouldn't make sense if we weren't able to put the pieces back together. - Bartosz Milewski
+> we decompose them further, and so on. Finally, we write code that solves all the small problems. And then comes the essence of programming: we compose those pieces of code to create solutions to larger problems. Decomposition wouldn't make sense if we weren't able to put the pieces back together. - Bartosz Milewski
 
-But what does it means exactly? How can we say two things *compose*? And how can we say two things compose *well*?
+But what does it means exactly? How can we say two things _compose_? And how can we say two things compose _well_?
 
 > Entities are composable if we can easily and generally combine their behaviors in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for acheiving reuse, and for achieving a combinatorial expansion of what is succinctly expressible in a programming model. - Paul Chiusano
 
@@ -1821,11 +1932,11 @@ There is an operation, `∘`, called "composition", such as the following proper
 
 - (**composition of morphisms**) every time we have two morphisms `f: A ⟼ B` and `g: B ⟼ C` in `Morphisms` then there has to be a third `g ∘ f: A ⟼ C` in `Morphisms` which is the _composition_ of `f` and `g`
 - (**associativity**) if `f: A ⟼ B`, `g: B ⟼ C` and `h: C ⟼ D` then `h ∘ (g ∘ f) = (h ∘ g) ∘ f`
-- (**identity**) for every object `X`, there is a morphism `identity: X ⟼ X` called *identity morphism* of `X`, such as for every morphism `f: A ⟼ X` and `g: X ⟼ B`, the following equation holds true `identity ∘ f = f` and `g ∘ identity = g`.
+- (**identity**) for every object `X`, there is a morphism `identity: X ⟼ X` called _identity morphism_ of `X`, such as for every morphism `f: A ⟼ X` and `g: X ⟼ B`, the following equation holds true `identity ∘ f = f` and `g ∘ identity = g`.
 
 **Example**
 
-(source: [category on wikipedia.org](https://en.wikipedia.org/wiki/Category_(mathematics)))
+(source: [category on wikipedia.org](<https://en.wikipedia.org/wiki/Category_(mathematics)>))
 
 <img src="images/category.png" width="300" alt="a simple category" />
 
@@ -1873,21 +1984,24 @@ function h(s: string): boolean {
 
 ## A category for TypeScript
 
-We can define a category, let's call it *TS*, as a simplified model of the TypeScript language, where:
+We can define a category, let's call it _TS_, as a simplified model of the TypeScript language, where:
 
 - the **objects** are all the possible TypeScript types: `string`, `number`, `Array<string>`, ...
 - the **morphisms** are all TypeScript functions: `(a: A) => B`, `(b: B) => C`, ... where `A`, `B`, `C`, ... are TypeScript types
 - the **identity morphisms** are all encoded in a single polymorphic function `const identity = <A>(a: A): A => a`
 - **morphism's composition** is the usual function composition (which we know to be associative)
 
-As a model of TypeScript, the *TS* category may seem a bit limited: no loops, no `if`s, there's *almost*  nothing... that being said that simplyfied model is rich enough to help us reach our goal: to reason about a well-defined notion of composition.
+As a model of TypeScript, the _TS_ category may seem a bit limited: no loops, no `if`s, there's _almost_ nothing... that being said that simplyfied model is rich enough to help us reach our goal: to reason about a well-defined notion of composition.
 
 ## Composition's core problem
 
 In the _TS_ category we can compose two generic functions `f: (a: A) => B` and `g: (c: C) => D` as long as `C = B`
 
 ```ts
-function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
+function compose<A, B, C>(
+  g: (b: B) => C,
+  f: (a: A) => B
+): (a: A) => C {
   return a => g(f(a))
 }
 ```
@@ -1898,16 +2012,16 @@ In the next section we'll see under which conditions such a composition is possi
 
 # Functors
 
-In the last section we've spoken about the *TS* category (the TypeScript category) and composition's core problem with functions:
+In the last section we've spoken about the _TS_ category (the TypeScript category) and composition's core problem with functions:
 
-> How can we compose two generic functions  `f: (a: A) => B` e `g: (c: C) => D`?
+> How can we compose two generic functions `f: (a: A) => B` e `g: (c: C) => D`?
 
 Why is finding solutions to these problem so important?
 
-Because, if it is true that categories can be used to model programming languages, morphisms (functions in the *TS* category) can be used to model **programs**.
+Because, if it is true that categories can be used to model programming languages, morphisms (functions in the _TS_ category) can be used to model **programs**.
 
-Thus, solving this abstract problem means finding a concrete way of **composing programs in a generic way**. And *that* now is really interesting for us developers, isn't it?
-E *questo* sì che è molto interessante per uno sviluppatore, non è vero?
+Thus, solving this abstract problem means finding a concrete way of **composing programs in a generic way**. And _that_ now is really interesting for us developers, isn't it?
+E _questo_ sì che è molto interessante per uno sviluppatore, non è vero?
 
 ## Functions as programs
 
@@ -1917,8 +2031,8 @@ The answer is to model it's side effects through **effects**, meaning types that
 
 Let's see two possible techniques to do so in JavaScript:
 
-- define a DSL (domain specific language) for effects 
-- use a *thunk*
+- define a DSL (domain specific language) for effects
+- use a _thunk_
 
 The first technique, using a DSL, means modifying a program like:
 
@@ -1959,16 +2073,18 @@ function log(message: string): IO<void> {
 }
 ```
 
-The `log` program, once executed, it won't instantly cayse a side effect, but returns **a value representing the computation** (also known as *action*).
+The `log` program, once executed, it won't instantly cayse a side effect, but returns **a value representing the computation** (also known as _action_).
 
 Let's see another example using thunks, reading and writing on `localStorage`:
 
 ```ts
-const read = (name: string): IO<string | null> =>
-  () => localStorage.getItem(name)
+const read = (name: string): IO<string | null> => () =>
+  localStorage.getItem(name)
 
-const write = (name: string, value: string): IO<void> =>
-  () => localStorage.setItem(name, value)
+const write = (
+  name: string,
+  value: string
+): IO<void> => () => localStorage.setItem(name, value)
 ```
 
 In functional programming there's a tendency to shove side effects (under the form of effects) to the border of the system (the `main` function) where they are executed by an interpreter obtaining the following schema:
@@ -1976,14 +2092,14 @@ ove vengono eseguiti da un interprete ottenendo il seguente schema:
 
 > system = pure core + imperative shell
 
-In *purely functional* languages (like Haskell, PureScript or Elm) this division is strict and clear and imposed by the very languages.
+In _purely functional_ languages (like Haskell, PureScript or Elm) this division is strict and clear and imposed by the very languages.
 
 Even with this thunk technique (the same technique used in `fp-ts`) we need a way to combine effects, let's see how.
 
 We first need a bit of terminology: we'll call **pure program** a function with the following signature:
 
 ```ts
-(a: A) => B
+;(a: A) => B
 ```
 
 Such a signature models a program that takes an input of type `A` and returns a result of type `B` without any effect.
@@ -2035,13 +2151,16 @@ interface Task<A> extends IO<Promise<A>> {}
 Let's get back to our core problem:
 
 > How do we compose two generic functions `f: (a: A) => B` e `g: (c: C) => D`?
- 
-With our current set of rules this general problem is not solvable. We need to add some *boundaries* to `B` and `C`.
+
+With our current set of rules this general problem is not solvable. We need to add some _boundaries_ to `B` and `C`.
 
 We already know that if `B = C` then the solution is the usual function composition.
 
 ```ts
-function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
+function compose<A, B, C>(
+  g: (b: B) => C,
+  f: (a: A) => B
+): (a: A) => C {
   return a => g(f(a))
 }
 ```
@@ -2064,7 +2183,9 @@ Let's see some practical example:
 **Example** (`F = Array`)
 
 ```ts
-function lift<B, C>(g: (b: B) => C): (fb: Array<B>) => Array<C> {
+function lift<B, C>(
+  g: (b: B) => C
+): (fb: Array<B>) => Array<C> {
   return fb => fb.map(g)
 }
 ```
@@ -2072,9 +2193,16 @@ function lift<B, C>(g: (b: B) => C): (fb: Array<B>) => Array<C> {
 **Example** (`F = Option`)
 
 ```ts
-import { isNone, none, Option, some } from 'fp-ts/lib/Option'
+import {
+  isNone,
+  none,
+  Option,
+  some
+} from 'fp-ts/lib/Option'
 
-function lift<B, C>(g: (b: B) => C): (fb: Option<B>) => Option<C> {
+function lift<B, C>(
+  g: (b: B) => C
+): (fb: Option<B>) => Option<C> {
   return fb => (isNone(fb) ? none : some(g(fb.value)))
 }
 ```
@@ -2084,7 +2212,9 @@ function lift<B, C>(g: (b: B) => C): (fb: Option<B>) => Option<C> {
 ```ts
 import { Task } from 'fp-ts/lib/Task'
 
-function lift<B, C>(g: (b: B) => C): (fb: Task<B>) => Task<C> {
+function lift<B, C>(
+  g: (b: B) => C
+): (fb: Task<B>) => Task<C> {
   return fb => () => fb().then(g)
 }
 ```
@@ -2104,9 +2234,9 @@ where _C_ e _D_ are two categories (aka two programming languages).
 
 (source: [functor on ncatlab.org](https://ncatlab.org/nlab/show/functor))
 
-Even tho a map between two different programming languages is an interesting idea, we're more interestd in a map where _C_ and _D_ are the same (the *TS* category). In that case we're talking about **endofunctors** (from the greek "endo" meaning "inside"/"internal").
+Even tho a map between two different programming languages is an interesting idea, we're more interestd in a map where _C_ and _D_ are the same (the _TS_ category). In that case we're talking about **endofunctors** (from the greek "endo" meaning "inside"/"internal").
 
-From now on, unless specified differently, when I write "functor" I mean an endofunctor in the *TS* category.
+From now on, unless specified differently, when I write "functor" I mean an endofunctor in the _TS_ category.
 
 Now we know the practical side of functors, let's see the formal definition.
 
@@ -2152,7 +2282,7 @@ interface Response<A> {
 }
 ```
 
-Please note that since `body` is parametric, this makes `Response` a good candidate to find a functor instance since `Response` is a an `n`-ario type constructor with `n >= 1` (a necessary condition). 
+Please note that since `body` is parametric, this makes `Response` a good candidate to find a functor instance since `Response` is a an `n`-ario type constructor with `n >= 1` (a necessary condition).
 
 To define a functor instance for `Response` we need to define a `map` function along some [technical details](https://gcanti.github.io/fp-ts/recipes/HKT.html) required by `fp-ts`.
 
@@ -2178,7 +2308,10 @@ export interface Response<A> {
   body: A
 }
 
-function map<A, B>(fa: Response<A>, f: (a: A) => B): Response<B> {
+function map<A, B>(
+  fa: Response<A>,
+  f: (a: A) => B
+): Response<B> {
   return { ...fa, body: f(fa.body) }
 }
 
@@ -2200,7 +2333,10 @@ import { Option, option } from 'fp-ts/lib/Option'
 import { array } from 'fp-ts/lib/Array'
 
 export const functorArrayOption = {
-  map: <A, B>(fa: Array<Option<A>>, f: (a: A) => B): Array<Option<B>> =>
+  map: <A, B>(
+    fa: Array<Option<A>>,
+    f: (a: A) => B
+  ): Array<Option<B>> =>
     array.map(fa, oa => option.map(oa, f))
 }
 ```
@@ -2212,7 +2348,10 @@ import { array } from 'fp-ts/lib/Array'
 import { getFunctorComposition } from 'fp-ts/lib/Functor'
 import { option } from 'fp-ts/lib/Option'
 
-export const functorArrayOption = getFunctorComposition(array, option)
+export const functorArrayOption = getFunctorComposition(
+  array,
+  option
+)
 ```
 
 ## Did we solve the general problem?
@@ -2225,7 +2364,7 @@ Not yet. Functors allow us to compose an effectful program `f` with a pure progr
 | effectful | pure (unary)            | `lift(g) ∘ f` |
 | effectful | pure (`n`-ary, `n > 1`) | ?             |
 
-To manage this circumstance we need something *more*, in the next chapter we'll see another important abstraction in functional programming: **applicative functors**.
+To manage this circumstance we need something _more_, in the next chapter we'll see another important abstraction in functional programming: **applicative functors**.
 
 ## Contravariant functors
 
@@ -2238,12 +2377,18 @@ The definition of a contravariant functor is very close to the covariant functor
 ```ts
 // covariant functor
 export interface Functor<F> {
-  readonly map: <A, B>(fa: HKT<F, A>, f: (a: A) => B) => HKT<F, B>
+  readonly map: <A, B>(
+    fa: HKT<F, A>,
+    f: (a: A) => B
+  ) => HKT<F, B>
 }
 
 // controvariant functor
 export interface Contravariant<F> {
-  readonly contramap: <A, B>(fa: HKT<F, A>, f: (b: B) => A) => HKT<F, B>
+  readonly contramap: <A, B>(
+    fa: HKT<F, A>,
+    f: (b: B) => A
+  ) => HKT<F, B>
 }
 ```
 
@@ -2265,7 +2410,7 @@ Tuttavia `g` deve essere unaria, ovvero deve accettare un solo argomento in inpu
 
 ## Currying
 
-First of all we need to model a function that accepts two arguments of type `B` e `C` (we can use a tuple for this) and returns a value of type `D`: 
+First of all we need to model a function that accepts two arguments of type `B` e `C` (we can use a tuple for this) and returns a value of type `D`:
 
 ```ts
 g: (args: [B, C]) => D
@@ -2277,7 +2422,7 @@ We can rewrite `g` using a technique called **currying**.
 
 (source: [currying on wikipedia.org](https://en.wikipedia.org/wiki/Currying))
 
-Thus, through currying, we can rewrite `g` as: 
+Thus, through currying, we can rewrite `g` as:
 
 ```ts
 g: (b: B) => (c: C) => D
@@ -2303,7 +2448,10 @@ Let's introduce a new abstraction called `Apply` that owns such an unwrapping op
 
 ```ts
 interface Apply<F> extends Functor<F> {
-  readonly ap: <C, D>(fcd: HKT<F, (c: C) => D>, fc: HKT<F, C>) => HKT<F, D>
+  readonly ap: <C, D>(
+    fcd: HKT<F, (c: C) => D>,
+    fc: HKT<F, C>
+  ) => HKT<F, D>
 }
 ```
 
@@ -2336,24 +2484,37 @@ Let's see some `Applicative` instance for some common data types:
 import { flatten } from 'fp-ts/lib/Array'
 
 export const applicativeArray = {
-  map: <A, B>(fa: Array<A>, f: (a: A) => B): Array<B> => fa.map(f),
+  map: <A, B>(fa: Array<A>, f: (a: A) => B): Array<B> =>
+    fa.map(f),
   of: <A>(a: A): Array<A> => [a],
-  ap: <A, B>(fab: Array<(a: A) => B>, fa: Array<A>): Array<B> =>
-    flatten(fab.map(f => fa.map(f)))
+  ap: <A, B>(
+    fab: Array<(a: A) => B>,
+    fa: Array<A>
+  ): Array<B> => flatten(fab.map(f => fa.map(f)))
 }
 ```
 
 **Example** (`F = Option`)
 
 ```ts
-import { fold, isNone, map, none, Option, some } from 'fp-ts/lib/Option'
+import {
+  fold,
+  isNone,
+  map,
+  none,
+  Option,
+  some
+} from 'fp-ts/lib/Option'
 import { pipe } from 'fp-ts/lib/pipeable'
 
 export const applicativeOption = {
   map: <A, B>(fa: Option<A>, f: (a: A) => B): Option<B> =>
     isNone(fa) ? none : some(f(fa.value)),
   of: <A>(a: A): Option<A> => some(a),
-  ap: <A, B>(fab: Option<(a: A) => B>, fa: Option<A>): Option<B> =>
+  ap: <A, B>(
+    fab: Option<(a: A) => B>,
+    fa: Option<A>
+  ): Option<B> =>
     pipe(
       fab,
       fold(
@@ -2374,9 +2535,13 @@ export const applicativeOption = {
 import { Task } from 'fp-ts/lib/Task'
 
 export const applicativeTask = {
-  map: <A, B>(fa: Task<A>, f: (a: A) => B): Task<B> => () => fa().then(f),
+  map: <A, B>(fa: Task<A>, f: (a: A) => B): Task<B> => () =>
+    fa().then(f),
   of: <A>(a: A): Task<A> => () => Promise.resolve(a),
-  ap: <A, B>(fab: Task<(a: A) => B>, fa: Task<A>): Task<B> => () =>
+  ap: <A, B>(
+    fab: Task<(a: A) => B>,
+    fa: Task<A>
+  ): Task<B> => () =>
     Promise.all([fab(), fa()]).then(([f, a]) => f(a))
 }
 ```
@@ -2393,12 +2558,14 @@ type Curried2<B, C, D> = (b: B) => (c: C) => D
 
 function liftA2<F>(
   F: Apply<F>
-): <B, C, D>(g: Curried2<B, C, D>) => Curried2<HKT<F, B>, HKT<F, C>, HKT<F, D>> {
+): <B, C, D>(
+  g: Curried2<B, C, D>
+) => Curried2<HKT<F, B>, HKT<F, C>, HKT<F, D>> {
   return g => fb => fc => F.ap(F.map(fb, g), fc)
 }
 ```
 
-Great! But what happens if the functions accept **three** arguments? Do we need, *yet another abstraction*?
+Great! But what happens if the functions accept **three** arguments? Do we need, _yet another abstraction_?
 
 Good news, we don't, `Apply` is enough:
 
@@ -2410,66 +2577,78 @@ function liftA3<F>(
 ): <B, C, D, E>(
   g: Curried3<B, C, D, E>
 ) => Curried3<HKT<F, B>, HKT<F, C>, HKT<F, D>, HKT<F, E>> {
-  return g => fb => fc => fd => F.ap(F.ap(F.map(fb, g), fc), fd)
+  return g => fb => fc => fd =>
+    F.ap(F.ap(F.map(fb, g), fc), fd)
 }
 ```
 
-In reality 
+In reality, given an `Apply` instanc we can write with the same pattern a function `liftAn`, **no matter** what `n` is!
 
-ealtà data una istanza di `Apply` possiamo scrivere con lo stesso pattern una funzione `liftAn`, **qualsiasi** sia `n`!
+**Note**. `liftA1` is simply `lift`, `Functor`'s fundamental operation.
 
-**Nota**. `liftA1` non è altro che `lift`, l'operazione fondamentale di `Functor`.
-
-Ora possiamo aggiornare la nostra "tabella di composizione":
+We can now refresh our "composition table":
 
 | Program f | Program g     | Composition     |
 | --------- | ------------- | --------------- |
 | pure      | pure          | `g ∘ f`         |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 
-ove `liftA1 = lift`
+where `liftA1 = lift`
 
 **Demo**
 
 [`04_applicative.ts`](src/04_applicative.ts)
 
-## 10.5. Composizione di funtori applicativi
+## 10.5. Composition of applicative functors
 
-I funtori applicativi compongono, ovvero dati due funtori applicativi `F` e `G`,
-allora la loro composizione `F<G<A>>` è ancora un funtore applicativo.
+An interesting property of appliative functors is that they compose: for every two functors `F` and `G`, their composition `F<G<A>>` is still an applicative functor.
 
-**Esempio**
+**Example**
 
 ```ts
 import { array } from 'fp-ts/lib/Array'
 import { Option, option } from 'fp-ts/lib/Option'
 
 export const applicativeArrayOption = {
-  map: <A, B>(fa: Array<Option<A>>, f: (a: A) => B): Array<Option<B>> =>
+  map: <A, B>(
+    fa: Array<Option<A>>,
+    f: (a: A) => B
+  ): Array<Option<B>> =>
     array.map(fa, oa => option.map(oa, f)),
   of: <A>(a: A): Array<Option<A>> => array.of(option.of(a)),
-  ap: <A, B>(fab: Array<Option<(a: A) => B>>, fa: Array<Option<A>>): Array<Option<B>> =>
-    array.ap(array.map(fab, gab => (ga: Option<A>) => option.ap(gab, ga)), fa)
+  ap: <A, B>(
+    fab: Array<Option<(a: A) => B>>,
+    fa: Array<Option<A>>
+  ): Array<Option<B>> =>
+    array.ap(
+      array.map(fab, gab => (ga: Option<A>) =>
+        option.ap(gab, ga)
+      ),
+      fa
+    )
 }
 ```
 
-Per evitare il boilerplate `fp-ts` esporta un helper:
+To avoid all of this boilerplate `fp-ts` exports a useful helper:
 
 ```ts
 import { getApplicativeComposition } from 'fp-ts/lib/Applicative'
 import { array } from 'fp-ts/lib/Array'
 import { option } from 'fp-ts/lib/Option'
 
-export const applicativeArrayOption = getApplicativeComposition(array, option)
+export const applicativeArrayOption = getApplicativeComposition(
+  array,
+  option
+)
 ```
 
-## 10.6. Abbiamo risolto il problema generale?
+## 10.6. Did we solve the general problem?
 
-Non ancora. C'è ancora un ultimo importante caso da considerare: quando **entrambi** i programmi sono con effetti.
+Not yet. There is still one last important case we have to consider: when **both** the programs are effectful.
 
-Ancora una volta abbiamo bisogno di qualche cosa in più, nel capitoloseguente parleremo di una delle astrazioni più importanti in programmazione funzionale: le **monadi**.
+Yet again we need something more, in the following chapter we'll talk about one of the most important abstractions in functional programming: **monads**.
 
-# 11. Monadi
+# 11. Monads
 
 Eugenio Moggi is a professor of computer science at the University of Genoa, Italy. He first described the general use of monads to structure programs.
 
@@ -2479,7 +2658,7 @@ Philip Lee Wadler is an American computer scientist known for his contributions 
 
 <img src="images/wadler.jpg" width="300" alt="Heinrich Kleisli" />
 
-Nell'ultimo capitolo abbiamo visto che possiamo comporre un programma con effetti `f: (a: A) => M<B>` con un programma `n`-ario puro `g`, ammesso che `M` ammetta una istanza di funtore applicativo:
+In the previous chapter we've seen that we can compose an effectful program `f: (a: A) => M<B>` with a pure `n`-ary one `g`, if and only if `M` allows an instance of an applicative functor:
 
 | Program f | Program g     | Composition     |
 | --------- | ------------- | --------------- |
@@ -2488,188 +2667,212 @@ Nell'ultimo capitolo abbiamo visto che possiamo comporre un programma con effett
 
 ove `liftA1 = lift`
 
-Tuttavia dobbiamo risolvere un ultimo (e frequente) caso: quando **entrambi** i programmi sono con effetto.
+But we have yet to solve one last, and common, case: when **both** programs are effectful.
+
+Given these two effectful functions:
 
 ```ts
 f: (a: A) => M<B>
 g: (b: B) => M<C>
 ```
 
-Qual'è la composizione di `f` e `g`?
+what is their composition?
 
-Per poter gestire questo ultimo caso abbiamo bisogno di qualcosa di più potente di `Functor` dato che è piuttosto semplice ritrovarsi con contesti innestati.
+To handle this last case we need something more "powerful" than `Functor` given that it is quite common to find ourselves with multiple nested contexts.
 
-## 11.1. Il problema: nested contexts
+## 11.1. The issue: nested contexts
 
-Per mostrare meglio perchè abbiamo bisogno di qualcosa in più, vediamo qualche esempio pratico.
+To show why we need something more, let's see a practical example.
 
 **Example** (`M = Array`)
 
-Supponiamo di voler ricavare i follower dei follower di un utente Twitter:
+Suppose we need to find the followers of the followers of a Twitter user.
 
 ```ts
 interface User {
   followers: Array<User>
 }
 
-const getFollowers = (user: User): Array<User> => user.followers
+const getFollowers = (user: User): Array<User> =>
+  user.followers
 
 declare const user: User
 
-const followersOfFollowers: Array<Array<User>> = getFollowers(user).map(getFollowers)
+const followersOfFollowers: Array<
+  Array<User>
+> = getFollowers(user).map(getFollowers)
 ```
 
-C'è qualcosa di sbagliato, `followersOfFollowers` ha tipo `Array<Array<User>>` ma noi vorremmo `Array<User>`.
+Something's odd here: `followersOfFollowers` has typo `Array<Array<User>>` but we actually want `Array<User>`.
 
-Abbiamo bisogno di disinnestare (**flatten**) gli array innestati.
+We need to un-nest (**flatten**) the nexted arrays.
 
-La funzione `flatten: <A>(mma: Array<Array<A>>) => Array<A>` esportata da `fp-ts` fa al caso nostro:
+The `flatten: <A>(mma: Array<Array<A>>) => Array<A>` function exported from `fp-ts` can help us here:
 
 ```ts
 import { flatten } from 'fp-ts/lib/Array'
 
-const followersOfFollowers: Array<User> = flatten(getFollowers(user).map(getFollowers))
+const followersOfFollowers: Array<User> = flatten(
+  getFollowers(user).map(getFollowers)
+)
 ```
 
-Bene! Vediamo con un'altra struttura dati:
+Good! Let's see another type:
 
 **Example** (`M = Option`)
 
-Supponiamo di voler calcolare il reciproco del primo elemento di un array numerico:
+Suppose we want to calculate the multiplicative inverse (reciprocal) of the first element of an array of numbers:
 
 ```ts
 import { head } from 'fp-ts/lib/Array'
-import { none, Option, option, some } from 'fp-ts/lib/Option'
+import {
+  none,
+  Option,
+  option,
+  some
+} from 'fp-ts/lib/Option'
 
-const inverse = (n: number): Option<number> => (n === 0 ? none : some(1 / n))
+const inverse = (n: number): Option<number> =>
+  n === 0 ? none : some(1 / n)
 
-const inverseHead: Option<Option<number>> = option.map(head([1, 2, 3]), inverse)
+const inverseHead: Option<Option<number>> = option.map(
+  head([1, 2, 3]),
+  inverse
+)
 ```
 
-Opss, è successo di nuovo, `inverseHead` ha tipo `Option<Option<number>>` ma noi vogliamo `Option<number>`.
+Opss, we did it again, `inverseHead` has typo `Option<Option<number>>` but we need an `Option<number>`.
 
-Abbiamo bisogno di disinnestare le `Option` innestate.
+We need to un-nest again the nested `Option`s.
 
 ```ts
 import { head } from 'fp-ts/lib/Array'
-import { isNone, none, Option, option } from 'fp-ts/lib/Option'
+import {
+  isNone,
+  none,
+  Option,
+  option
+} from 'fp-ts/lib/Option'
 
-const flatten = <A>(mma: Option<Option<A>>): Option<A> => (isNone(mma) ? none : mma.value)
+const flatten = <A>(mma: Option<Option<A>>): Option<A> =>
+  isNone(mma) ? none : mma.value
 
-const inverseHead: Option<number> = flatten(option.map(head([1, 2, 3]), inverse))
+const inverseHead: Option<number> = flatten(
+  option.map(head([1, 2, 3]), inverse)
+)
 ```
 
-Tutte quelle funzioni `flatten`... Non sono una coincidenza, c'è un pattern funzionale dietro le quinte: tutti quei type constructor (e molti altri) ammettono una **istanza di monade** e
+All of these `flatten` functions...are not a concidence. There is a functional pattern behind the scenes: all of those type constructors (and many others) admitca **monad instance** and
 
 > `flatten` is the most peculiar operation of monads
 
-Dunque cos'è una monade?
+So, what is a monad?
 
-Ecco come spesso sono presentate le monadi...
+This is how monads are presented very often...
 
-## 11.2. Definizione
+## 11.2. Definition
 
-Una monade è definita da tre cose:
+A monad is defined by three laws:
 
-(1) un type constructor `M` che ammette una istanza di funtore
+(1) a type constructor `M` admitting a functor instance
 
-(2) una funzione `of` con la seguente firma:
+(2) a function `of` with the following signature:
 
 ```ts
 of: <A>(a: A) => HKT<M, A>
 ```
 
-(3) una funzione `flatMap` con la seguente firma:
+(3) a `flatMap` function with the following signature:
 
 ```ts
 flatMap: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
 ```
 
-**Nota**: ricordiamo che il tipo `HKT` è il modo in cui `fp-ts` rappresenta un generico type constructor, perciò quando vedete`HKT<M, X>` potete pensare al type constructor `M` applicato al tipo `X` (ovvero `M<X>`).
+**Note**: remember that the `HKT` type is how `fp-ts` represents a generic type constructor, thus when we see `HKT<M, X>` we can think about the type constructor `M` applied on the type `X` (ovvero `M<X>`).
 
-Le funzioni `of` e `flatMap` devono obbedire a tre leggi:
+The functions `of` and `flatMap` have to obey these three laws:
 
 - `flatMap(of) ∘ f = f` (**Left identity**)
 - `flatMap(f) ∘ of = f` (**Right identity**)
 - `flatMap(h) ∘ (flatMap(g) ∘ f) = flatMap((flatMap(h) ∘ g)) ∘ f` (**Associativity**)
 
-ove `f`, `g`, `h` sono tutte funzioni con effetto e `∘` è l'usuale composizione di funzioni.
+where `f`, `g`, `h` are all effectful functions and `∘` is the usual function composition.
 
-## 11.3. Ok ma... perchè?
+## 11.3. Ok but...why?
 
-Quando vidi per la prima volta questa definizione la mia prima reazione fu di sconcerto.
+When I (Giulio, ndr) saw this definition for the first time my first reaction was disconcert.
 
-Avevo in testa molte domande:
+I had many questions:
 
-- perchè proprio quelle due operazioni e perchè hanno quella firma?
-- come mai il nome "flatMap"?
-- perchè devono valere quelle leggi? Che cosa significano?
-- ma soprattutto, dov'è la mia `flatten`?
+- why these two operations and why do they have these signatures?
+- why does the "flatMap" name?
+- why do these laws have to hold? What do they mean?
+- but most importantly, where's my `flatten`?
 
-Questo capitolo cercherà di rispondere a tutte queste domande.
+This chapter will try to answer all of these questions.
 
-Torniamo al nostro problema: che cos'è la composizione di due funzioni con effetto (anche chiamate **Kleisli arrows**)?
+Let's get back to our problem: what is the composition of two effectful functions (also called **Kleisli arrows**)?
 
 <img src="images/kleisli_arrows.png" alt="two Kleisli arrows, what's their composition?" width="450px" />
 
-Per ora non so nemmeno che **tipo** abbia una tale composizione.
+For now, I don't even know the **type** of such a composition.
 
-Un momento... abbiamo già incontrato una astrazione che parla specificatamente di composizione. Vi ricordate cosa ho detto a proposito delle categorie?
+Wait a moment... we already met an abstraction that deals specifically with composition. Do you remember what did we say about categories?
 
 > Categories capture the essence of composition
 
-Possiamo trasformare il nostro problema in un problema categoriale: possiamo trovare una categoria che modella la composizione delle Kleisli arrows?
+We can thus turn our composition problem in a category problem: can we find a category that models the composition of Kleisli arrows?
 
-## 11.4. La categoria di Kleisli
+## 11.4. Kleisli's category
 
 Heinrich Kleisli (Swiss mathematician)
 
 <img src="images/kleisli.jpg" width="300" alt="Heinrich Kleisli" />
 
-Cerchiamo di costruire una categoria *K* (chiamata **categoria di Kleisli**) che contenga *solo* funzioni con effetti:
+Let's try building a category _K_ (called **Kleisli's category**) that contains _only_ effectful functions:
 
-- gli **oggetti** sono gli stessi oggetti della categoria *TS*, ovvero tutti i tipi di TypeScript.
-- i **morfismi** sono costruiti così: ogni volta che c'è una Kleisli arrow `f: A ⟼ M<B>` in _TS_ tracciamo una freccia `f': A ⟼ B` in _K_
+- **objects** which are the same of the _TS_ category, thus all the TypeScript's types.
+- **morphism** are constructed this way: every time there is a Kleisli arrow `f: A ⟼ M<B>` in _TS_ we draw an arrow `f': A ⟼ B` in _K_.
 
 <img src="images/kleisli_category.png" alt="above the TS category, below the K construction" width="450px" />
 
-(sopra la categoria _TS_, sotto la costruzione di _K_)
+(above the _TS_ category, underneath the construction of _K_)
 
-Dunque cosa sarebbe la composizione di `f` e `g` in *K*? E' la freccia tratteggiata chiamata `h'` nell'immagine qui sotto:
+Thus, what is the composition of `f` and `g` in _K_? It is the dotted arrow called `h'` in the following image:
 
 <img src="images/kleisli_composition.png" alt="above the composition in the TS category, below the composition in the K construction" width="450px" />
 
-(sopra la categoria _TS_, sotto la costruzione di _K_)
+(above the _TS_ category, underneath the construction of _K_)
 
-Dato che `h'` è una freccia che va da `A` a `C`, deve esserci una funzione corrispondente `h` che va da `A` a `M<C>` in `TS`.
+Since `h'` is an arrow that goes from a `A` to `C`, there has to be a corresponding function `h` that goes from `A` to `M<C>` in `TS`.
 
-Quindi un buon candidato per la composizione di `f` e `g` in *TS* è ancora una funzione con effetti con la seguente firma: `(a: A) => M<C>`.
+Thus a good composition for composing `f` and `g` in _TS_ is still an effectful function with the following signature: `(a: A) => M<C>`.
 
-Come facciamo a costruire una tale funzione? Beh, proviamoci!
+How can we construct such a function? Well, let's try!
 
-## 11.5. Costruzione della composizione passo dopo passo
+## 11.5. Step by step composition construction
 
-Il punto (1) della definizione di monade ci dice che `M` ammette una istanza di funtore, percò possiamo usare `lift` per trasformare la funzione `g: (b: B) => M<C>` in una funzione `lift(g): (mb: M<B>) => M<M<C>>` (qui sotto sto usando il nome `map` al posto di `lift`, ma sappiamo che sono equivalenti)
+The first (1) point of the monad definition tells us that `M` admits a functor instance, thus we can use `lift` to transform the function `g: (b: B) => M<C>` in a function `lift(g): (mb: M<B>) => M<M<C>>` (I'll use the name `map` instead of `lift`, but we know they are equivalent). <!-- TODO: WHY? -->
 
 <img src="images/flatMap.png" alt="where flatMap comes from" width="450px" />
 
-(da dove nasce `flatMap`)
+(where `flatMap` is born)
 
-Ma ora siamo bloccati: non c'è alcuna operazione legale della istanza di funtore che ci permette di disinnestare un valore di tipo `M<M<C>>` in un valore di tipo `M<C>`, abbiamo bisogno di una operazione addizionale `flatten`.
+But know we're stuck: we have no legal operation for the functor instance allowing us to de-nest a value of type `M<M<C>>` in a value of type `M<C>`, we need an additional operation called `flatten`.
 
-Se riusciamo a definire una tale operazione allora possiamo ottenere la composizione che stavamo cercando:
+If we can define such an operation then we can find the composition we are looking for:
 
 ```
 h = flatten ∘ map(g) ∘ f
 ```
 
-Ma aspettate... `flatten ∘ map(g)` è **flatMap**, ecco da dove viene il nome!
+But wait... `flatten ∘ map(g)` is **flatMap**, that's where the name comes from!
 
 ```
 h = flatMap(g) ∘ f
 ```
 
-Ora possiamo aggiornare la nostra "tabella di composizione"
+We can now update our "composition table"
 
 | Program f | Program g     | Composition      |
 | --------- | ------------- | ---------------- |
@@ -2677,17 +2880,17 @@ Ora possiamo aggiornare la nostra "tabella di composizione"
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f`  |
 | effectful | effectful     | `flatMap(g) ∘ f` |
 
-ove `liftA1 = lift`
+where `liftA1 = lift`
 
-E per quanto riguarda `of`? Ebbene, `of` proviene dai morfismi identità in *K*: per ogni morfismo identità 1<sub>A</sub> in _K_ deve esserci una corrispondente funzione da `A` a `M<A>` (ovvero `of: <A>(a: A) => M<A>`).
+And what about `of`? Well, `of` comes from the identity morphisms in _K_: for every identity morphism 1<sub>A</sub> in _K_ there has to be a corresponding function from `A` to `M<A>` (thus `of: <A>(a: A) => M<A>`).
 
 <img src="images/of.png" alt="where of comes from" width="300px" />
 
-(da dove nasce `of`)
+(where does `of` comes from)
 
 ## 11.6. Le leggi
 
-Ultima domanda: da dove nascono le leggi? Esse non sono altro che le leggi categoriali in *K* tradotte in *TS*:
+Last question: where those these laws come from? Those are nothing else but category laws in _K_ translated to _TS_;
 
 | Law            | _K_                               | _TS_                                                            |
 | -------------- | --------------------------------- | --------------------------------------------------------------- |
@@ -2695,33 +2898,39 @@ Ultima domanda: da dove nascono le leggi? Esse non sono altro che le leggi categ
 | Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `flatMap(f) ∘ of = f`                                           |
 | Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `flatMap(h) ∘ (flatMap(g) ∘ f) = flatMap((flatMap(h) ∘ g)) ∘ f` |
 
-## 11.7. Monadi in `fp-ts`
+## 11.7. Monads in `fp-ts`
 
-In `fp-ts` la funzione `flatMap` è modellata con una sua variante equivalente chiamata `chain`, che è fondamentalmente `flatMap` con gli argomenti riarrangiati:
+In `fp-ts` the `flatMap` function is modeled with one of its variants called `chain`, which is basically `flatMap` with the arguments rearranged:
 
 ```ts
 flatMap: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
 chain:   <A, B>(ma: HKT<M, A>, f: (a: A) => HKT<M, B>) => HKT<M, B>
 ```
 
-Notate che `chain` può essere derivata da `flatMap` (e viceversa).
+Note that `chain` can be derived from `flatMap` (and viceversa).
 
-Se adesso torniamo agli esempi che mostravano il problema con i contesti innestati possiamo risolverli usando `chain`:
+If we now go back to the previous examples that were showing the nested context we can solve them with `chain`:
 
 ```ts
 import { array, head } from 'fp-ts/lib/Array'
 import { Option, option } from 'fp-ts/lib/Option'
 
-const followersOfFollowers: Array<User> = array.chain(getFollowers(user), getFollowers)
+const followersOfFollowers: Array<User> = array.chain(
+  getFollowers(user),
+  getFollowers
+)
 
-const headInverse: Option<number> = option.chain(head([1, 2, 3]), inverse)
+const headInverse: Option<number> = option.chain(
+  head([1, 2, 3]),
+  inverse
+)
 ```
 
-## 11.8. Trasparenza referenziale
+## 11.8. Referential transparency
 
-Vediamo ora come, grazie alla trasparenza referenziale e al concetto di monade, possiamo manipolare i programmi programmaticamente.
+Let's see now, how can we leverage the monad and referential transparency concepts to manipulate programs programmatically.
 
-Ecco un piccolo programma che legge / scrive su un file
+Let's see a small program that reads / writes a file.
 
 ```ts
 import { log } from 'fp-ts/lib/Console'
@@ -2730,7 +2939,7 @@ import { pipe } from 'fp-ts/lib/pipeable'
 import * as fs from 'fs'
 
 //
-// funzioni di libreria
+// library functions
 //
 
 const readFile = (filename: string): IO<string> => () =>
@@ -2743,7 +2952,7 @@ const writeFile = (
   fs.writeFileSync(filename, data, { encoding: 'utf-8' })
 
 //
-// programma
+// program
 //
 
 const program1 = pipe(
@@ -2755,7 +2964,7 @@ const program1 = pipe(
 )
 ```
 
-L'azione:
+The action:
 
 ```ts
 pipe(
@@ -2764,7 +2973,7 @@ pipe(
 )
 ```
 
-è ripetuta due volte nel programma, ma dato che vale la trasparenza referenziale possiamo mettere a fattor comune l'azione assegnandone l'espressione ad una costante.
+is repeated twice during the program, but since referential transparency holds we can put to a common factor the action assigning the expression to a constant.
 
 ```ts
 const read = pipe(
@@ -2779,13 +2988,10 @@ const program2 = pipe(
 )
 ```
 
-Possiamo persino definire un combinatore e sfruttarlo per rendere più compatto il codice:
+We can even define a combinator and use it to make the code more compact:
 
 ```ts
-function interleave<A, B>(
-  a: IO<A>,
-  b: IO<B>
-): IO<A> {
+function interleave<A, B>(a: IO<A>, b: IO<B>): IO<A> {
   return pipe(
     a,
     chain(() => b),
@@ -2799,7 +3005,7 @@ const program3 = interleave(
 )
 ```
 
-Un altro esempio: implementare una funzione simile a `time` di Unix (la parte relativa al tempo di esecuzione reale) per `IO`.
+Another example: implement a function similar to Unix' `time` (the part relative to the time of real execution) for `IO`.
 
 ```ts
 import { IO, io } from 'fp-ts/lib/IO'
@@ -2817,7 +3023,7 @@ export function time<A>(ma: IO<A>): IO<A> {
 }
 ```
 
-Esempio di utilizzo
+Usage example:
 
 ```ts
 import { randomInt } from 'fp-ts/lib/Random'
@@ -2849,7 +3055,7 @@ Elapsed: 193
 */
 ```
 
-Stampando anche i parziali
+Printing also the partials:
 
 ```ts
 time(replicateIO(3, time(printFib)))()
