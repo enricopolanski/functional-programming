@@ -11,6 +11,7 @@ Contributions are welcome, see the contribution file.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [What is functional programming](#what-is-functional-programming)
 - [The two pillars of functional programming](#the-two-pillars-of-functional-programming)
   - [Referential transparency](#referential-transparency)
@@ -64,17 +65,17 @@ Contributions are welcome, see the contribution file.
   - [Apply](#apply)
   - [Applicative](#applicative)
   - [Lifting](#lifting)
-  - [10.5. Composition of applicative functors](#105-composition-of-applicative-functors)
-  - [10.6. Did we solve the general problem?](#106-did-we-solve-the-general-problem)
-- [11. Monads](#11-monads)
-  - [11.1. The issue: nested contexts](#111-the-issue-nested-contexts)
-  - [11.2. Definition](#112-definition)
-  - [11.3. Ok but...why?](#113-ok-butwhy)
-  - [11.4. Kleisli's category](#114-kleislis-category)
-  - [11.5. Step by step composition construction](#115-step-by-step-composition-construction)
-  - [11.6. Le leggi](#116-le-leggi)
-  - [11.7. Monads in `fp-ts`](#117-monads-in-fp-ts)
-  - [11.8. Referential transparency](#118-referential-transparency)
+  - [Composition of applicative functors](#composition-of-applicative-functors)
+  - [Did we solve the general problem?](#did-we-solve-the-general-problem-1)
+- [Monads](#monads)
+  - [The issue: nested contexts](#the-issue-nested-contexts)
+  - [Definition](#definition-2)
+  - [Ok but...why?](#ok-butwhy)
+  - [Kleisli's category](#kleislis-category)
+  - [Step by step composition construction](#step-by-step-composition-construction)
+  - [Laws](#laws)
+  - [Monads in `fp-ts`](#monads-in-fp-ts)
+  - [Referential transparency](#referential-transparency-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
