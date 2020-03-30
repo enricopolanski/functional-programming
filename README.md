@@ -32,7 +32,7 @@ Contributions are welcome, see the contribution file.
   - [Folding](#folding)
 - [Pure and partial functions](#pure-and-partial-functions)
   - [Partial functions](#partial-functions)
-- [ADT e error handling funzionale](#adt-e-error-handling-funzionale)
+- [ADTs and functional error-handling](#adts-and-functional-error-handling)
   - [What is an ADT?](#what-is-an-adt)
   - [Product types](#product-types)
     - [Why "product" types?](#why-product-types)
@@ -1316,7 +1316,7 @@ In functional programming the tendency is to define only pure and and total func
 
 Is it possible to define `Option` in TypeScript?
 
-# ADT e error handling funzionale
+# ADTs and functional error-handling
 
 A good first step when writing an application or feature is to define it's domain model. TypeScript offers many tools that help accomplishing this task. **Algebraic Data Types** (in short, ADTs) are one of these tools.
 
