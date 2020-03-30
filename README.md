@@ -11,7 +11,6 @@ Contributions are welcome, see the contribution file.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [What is functional programming](#what-is-functional-programming)
 - [The two pillars of functional programming](#the-two-pillars-of-functional-programming)
   - [Referential transparency](#referential-transparency)
@@ -1090,7 +1089,7 @@ const monoidAny: Monoid<boolean> = {
 
 Let's see some more complex example.
 
-Given a type `A`, the _endomorphisms_ (an endomorphism is simply a function whose domain and codomain are the same) on `A` allow a monoid instance:
+Given a type `A`, the _endomorphisms_ (an endomorphism is simply a function whose domain and codomain are the same) on `A` admit a monoid instance:
 
 ```ts
 type Endomorphism<A> = (a: A) => A
@@ -1109,7 +1108,7 @@ function getEndomorphismMonoid<A = never>(): Monoid<
 }
 ```
 
-If the type `M` allows a monoid instance then the type `(a: A) => M` allows a monoid instance for every type `A`:
+If the type `M` admits a monoid instance then the type (a: A) => M gives rise to a monoid instance for every type A:
 
 ```ts
 function getFunctionMonoid<M>(
@@ -1122,7 +1121,7 @@ function getFunctionMonoid<M>(
 }
 ```
 
-As a consequence we can see that reducers allow a monoid instance:
+As a consequence we can see that reducers admit a monoid instance:
 
 ```ts
 type Reducer<S, A> = (a: A) => (s: S) => S
@@ -2395,7 +2394,7 @@ export interface Contravariant<F> {
 
 **Note**: the `HKT` type is the way `fp-ts` uses to represent a generic type constructor (a technique proposed in the following paper [Lightweight higher-kinded polymorphism](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf)) so when you see `HKT<F, X>` you can simply read it as `F` applied on the `X` type (thus `F<X>`).
 
-As examples, we've already seen two relevant types that allow an instance of a contravariant functor: `Eq` and `Ord`.
+As examples, we've already seen two relevant types that admit an instance of a contravariant functor: `Eq` and `Ord`.
 
 # Applicative functors
 
@@ -2659,7 +2658,7 @@ Philip Lee Wadler is an American computer scientist known for his contributions 
 
 <img src="images/wadler.jpg" width="300" alt="Heinrich Kleisli" />
 
-In the previous chapter we've seen that we can compose an effectful program `f: (a: A) => M<B>` with a pure `n`-ary one `g`, if and only if `M` allows an instance of an applicative functor:
+In the previous chapter we've seen that we can compose an effectful program `f: (a: A) => M<B>` with a pure `n`-ary one `g`, if and only if `M` admits an instance of an applicative functor:
 
 | Program f | Program g     | Composition     |
 | --------- | ------------- | --------------- |
