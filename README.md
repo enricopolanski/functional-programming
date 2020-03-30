@@ -11,7 +11,6 @@ Contributions are welcome, see the contribution file.
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [What is functional programming](#what-is-functional-programming)
 - [The two pillars of functional programming](#the-two-pillars-of-functional-programming)
   - [Referential transparency](#referential-transparency)
@@ -2600,7 +2599,7 @@ where `liftA1 = lift`
 
 [`04_applicative.ts`](src/04_applicative.ts)
 
-## 10.5. Composition of applicative functors
+## Composition of applicative functors
 
 An interesting property of appliative functors is that they compose: for every two functors `F` and `G`, their composition `F<G<A>>` is still an applicative functor.
 
@@ -2643,13 +2642,13 @@ export const applicativeArrayOption = getApplicativeComposition(
 )
 ```
 
-## 10.6. Did we solve the general problem?
+## Did we solve the general problem?
 
 Not yet. There is still one last important case we have to consider: when **both** the programs are effectful.
 
 Yet again we need something more, in the following chapter we'll talk about one of the most important abstractions in functional programming: **monads**.
 
-# 11. Monads
+# Monads
 
 Eugenio Moggi is a professor of computer science at the University of Genoa, Italy. He first described the general use of monads to structure programs.
 
@@ -2681,7 +2680,7 @@ what is their composition?
 
 To handle this last case we need something more "powerful" than `Functor` given that it is quite common to find ourselves with multiple nested contexts.
 
-## 11.1. The issue: nested contexts
+## The issue: nested contexts
 
 To show why we need something more, let's see a practical example.
 
@@ -2771,7 +2770,7 @@ So, what is a monad?
 
 This is how monads are presented very often...
 
-## 11.2. Definition
+## Definition
 
 A monad is defined by three laws:
 
@@ -2799,7 +2798,7 @@ The functions `of` and `flatMap` have to obey these three laws:
 
 where `f`, `g`, `h` are all effectful functions and `∘` is the usual function composition.
 
-## 11.3. Ok but...why?
+## Ok but...why?
 
 When I (Giulio, ndr) saw this definition for the first time my first reaction was disconcert.
 
@@ -2824,7 +2823,7 @@ Wait a moment... we already met an abstraction that deals specifically with comp
 
 We can thus turn our composition problem in a category problem: can we find a category that models the composition of Kleisli arrows?
 
-## 11.4. Kleisli's category
+## Kleisli's category
 
 Heinrich Kleisli (Swiss mathematician)
 
@@ -2851,7 +2850,7 @@ Thus a good composition for composing `f` and `g` in _TS_ is still an effectful 
 
 How can we construct such a function? Well, let's try!
 
-## 11.5. Step by step composition construction
+## Step by step composition construction
 
 The first (1) point of the monad definition tells us that `M` admits a functor instance, thus we can use `lift` to transform the function `g: (b: B) => M<C>` in a function `lift(g): (mb: M<B>) => M<M<C>>` (I'll use the name `map` instead of `lift`, but we know they are equivalent). <!-- TODO: WHY? -->
 
@@ -2889,7 +2888,7 @@ And what about `of`? Well, `of` comes from the identity morphisms in _K_: for ev
 
 (where does `of` comes from)
 
-## 11.6. Le leggi
+## Laws
 
 Last question: where those these laws come from? Those are nothing else but category laws in _K_ translated to _TS_;
 
@@ -2899,7 +2898,7 @@ Last question: where those these laws come from? Those are nothing else but cate
 | Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `flatMap(f) ∘ of = f`                                           |
 | Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `flatMap(h) ∘ (flatMap(g) ∘ f) = flatMap((flatMap(h) ∘ g)) ∘ f` |
 
-## 11.7. Monads in `fp-ts`
+## Monads in `fp-ts`
 
 In `fp-ts` the `flatMap` function is modeled with one of its variants called `chain`, which is basically `flatMap` with the arguments rearranged:
 
@@ -2927,7 +2926,7 @@ const headInverse: Option<number> = option.chain(
 )
 ```
 
-## 11.8. Referential transparency
+## Referential transparency
 
 Let's see now, how can we leverage the monad and referential transparency concepts to manipulate programs programmatically.
 
