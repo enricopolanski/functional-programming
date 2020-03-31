@@ -257,7 +257,9 @@ On line 2 we have the pair `(integer, /)` where the binary operation is the usua
 
 Food for your thoughts: explain why the pair `(positive, -)`, where `positive` is the set of positive numbers, such as `(1, 2, 3, 4, 5, etc)`, does not form a magma under the binary operation `-`, the usual mathematical substraction.
 
-> Because the binary operation of a magma takes two values of a given type and returns a new value of the same type (_closure property_), this operation can be chained indefinitely.
+An interesting property of magmas:
+
+> Since the binary operation of a magma takes two values of a given type and returns a new value of the same type (_closure property_), this operation can be chained indefinitely.
 
 <!--
   TODO: L’operazione di sottrazione non è un’operazione interna all’insieme \mathbb{N} dei numeri naturali.
