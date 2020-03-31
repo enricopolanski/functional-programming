@@ -4,7 +4,7 @@ This repo introduces functional programming concepts using TypeScript and possib
 
 This fork is an edited translation of [Giulio Canti](https://gcanti.github.io/about.html)'s ["Introduction to Functional Programming (Italian)"](https://github.com/gcanti/functional-programming). The author uses the original as a reference and supporting material for his lectures and workshops on functional programming.
 
-The purpose of the edits is to expand on the material without changing the concepts nor structure.
+The purpose of the edits is to expand on the material without changing the concepts nor structure, for more information about the edit's goals see the [CONTRIBUTING](/CONTRIBUTING.md) file.
 
 # Table of Content:
 
