@@ -274,7 +274,7 @@ interface Magma<A> {
 }
 ```
 
-Magmas do not obey any law, ther'e only the closure requirement. Let's see an algebra that do requires another law: semigroups.
+Magmas do not obey any law, they only have the closure requirement. Let's see an algebra that do requires another law: semigroups.
 
 ## General Definition
 
