@@ -130,7 +130,7 @@ const x = double(2)
 const y = double(2)
 ```
 
-The expression `double(2)` benefits the referential transparency property because I can substitute it with its value.
+The expression `double(2)` benefits the referential transparency property because I can replace it with its value, the number 4.
 
 ```ts
 const x = 4
@@ -218,15 +218,15 @@ Thus the usual design you can find in a functional module is:
 
 [`01_retry.ts`](src/01_retry.ts)
 
-Of the two combiners in `01_retry.ts` a special mention goes to `concat` since it's possible to refert to with as another functional programming abstraction: semigroups.
+Of the two combiners in `01_retry.ts` a special mention goes to `concat` since it refers to a very powerful functional programming abstraction: semigroups.
 
 # Semigroups
 
-Another term we could associate to _functional_ programming might be _algebraic_ programming:
+A term we could associate to _functional_ programming might be _algebraic_ programming:
 
 > Algebras can be tought as the design patterns for functional programming
 
-An **algebra** is generally defined as whavever combination of:
+An **algebra** is generally defined as whatever combination of:
 
 - sets
 - operations
@@ -234,7 +234,7 @@ An **algebra** is generally defined as whavever combination of:
 
 Algebras are how mathematicians try to capture an idea in its purest form, eliminating everything that is superfluous.
 
-Algebras can be thought as an abstraction of interfaces: when an algebraic structure is modifyed only the operations defined by the algebra are allowed in compliance with its own laws.
+Algebras can be thought as an abstraction of interfaces: when an algebraic structure is modifyed we can only use the operations defined by the algebra, those allowed in compliance with its own laws.
 
 Mathematicians work with such interfaces from centuries, and it works.
 
