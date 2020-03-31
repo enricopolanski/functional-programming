@@ -261,10 +261,6 @@ An interesting property of magmas:
 
 > Since the binary operation of a magma takes two values of a given type and returns a new value of the same type (_closure property_), this operation can be chained indefinitely.
 
-<!--
-  TODO: L’operazione di sottrazione non è un’operazione interna all’insieme \mathbb{N} dei numeri naturali.
--->
-
 And this is the encoding of a magma in TypeScript:
 
 - the set is encoded in a type parameter
