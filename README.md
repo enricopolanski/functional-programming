@@ -4,8 +4,6 @@ This is a fork of [Giulio Canti](https://gcanti.github.io/about.html)'s ["Introd
 
 This is an introduction to functional programming targetting the web developer using TypeScript and possibly libraries in the fp-ts ecosystem.
 
-Contributions are welcome, see the contribution file.
-
 # Table of Content:
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
