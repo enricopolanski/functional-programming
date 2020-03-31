@@ -263,8 +263,8 @@ An interesting property of magmas:
 
 And this is the encoding of a magma in TypeScript:
 
-- the set is encoded in a type parameter
-- the `*` operation is here called `concat`
+- the set is encoded in a type parameter (the generic `A` in `Magma<A>`)
+- the `*` operation is here called `concat` (the `concat` method implemented in any instance of `Magma<A>`)
 
 ```ts
 // fp-ts/lib/Magma.ts
@@ -360,7 +360,9 @@ const semigroupSum: Semigroup<number> = {
 }
 ```
 
-Please note that for the same type it is possible to define more **instances** of the \*_type class_ `Semigroup`.
+Please note that for the same type (the underlying non-empty set, in the previous case `number`) it is possible to define more **instances** of the _type class_ `Semigroup`.
+
+It is a common mistake to think about the _semigroup of numbers_, but remember that a semigroup is a **pair** `(A,*)` of a non-empty set and an associative operation. So when specifying a semigroup we need both a non-empty set (or type, such as number, string, or more complex ones) **and** an operation.
 
 This is the implementation for the semigroup `(number, *)` where `*` is the usual number multiplication:
 
