@@ -278,7 +278,7 @@ Magmas do not obey any law, they only have the closure requirement. Let's see an
 
 ## General Definition
 
-Given `(A, *)` a magma, if `*` è **associative** then it's a _semigroup_.
+Given `(A, *)` a magma, if `*` is **associative** then it's a _semigroup_.
 
 The term "associative" means that the equation:
 
