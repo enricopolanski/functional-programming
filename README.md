@@ -240,12 +240,22 @@ Mathematicians work with such interfaces from centuries, and it works.
 
 Let's see our first example of an algebra, a _magma_.
 
-**Definition**. Given `A` a non empty set and `*` a binary operation _closed on_ (or _internal to_) `A` such as `*: A × A ⟶ A`,
-then the pair `(A, *)` is called a _magma_.
+**Definition**. Given `A` a non empty set and `*` a binary operation _closed on_ (or _internal to_) `A`, then the pair `(A, *)` is called a _magma_.
+
+**Note**: An operation `*` is closed on `A` if `*: A × A ⟶ A`. This means that whichever elements of the set `A` we apply the operation on the result will still be an element of `A`.
+
+```ts
+integer + integer = integer
+integer / integer = integer | float | NaN
+```
+
+On line 1 we have the magma `(integer, +)`. The non empty set is the set of integers (in most cases the terms _set_ and _type_ can be used interchangeably), while the binary operation is the usual mathematical addition. No matter which integers we operate on, the sum will always result with an integer.
+
+On line 2 we have the magma `(integer, /)` where the binary operation is the usual division between integers. While this operation results in an integer in some cases (e.g. 9 / 3 = 3), it does not for all the members of the integer set (e.g. 1 / 0 or 10 / 3). Thus, division, is not _closed on_ integer. Thus, the pair `(integer, /)` is **not** a magma.
+
+Food for your thoughts: explain why the pair `(positive, -)`, where `positive` is the set of positive numbers, such as `(1, 2, 3, 4, 5, etc)`, does not form a magma under the binary operation `-`, the usual mathematical substraction.
 
 > Because the binary operation of a magma takes two values of a given type and returns a new value of the same type (_closure property_), this operation can be chained indefinitely.
-
-The fact that the operation has to be _closed_ is a fundamental property. Example given, in the set of the natural numbers, sum is a closed operation, substraction is not.
 
 <!--
   TODO: L’operazione di sottrazione non è un’operazione interna all’insieme \mathbb{N} dei numeri naturali.
@@ -278,7 +288,7 @@ The term "associative" means that the equation:
 
 holds for any `x`, `y`, `z` in `A`.
 
-Associativity tells us that we do not have to need to worry about parentheses in expressions and that, we can simply write `x * y * z` (there's no ambiguity).
+In layman terms _associativity_ tells us that we do not have to need to worry about parentheses in expressions and that, we can simply write `x * y * z` (there's no ambiguity).
 
 **Example**
 
@@ -287,10 +297,6 @@ String concatenation benefits from associativity.
 ```ts
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
 ```
-
-<!--
-  TODO: This part on computations being able to be further split in two sub computations isn't clear. How do I further split "a" + "b" without the presence of a neutral element ""?
- -->
 
 A characteristic of associativity is that:
 
