@@ -458,7 +458,7 @@ function getDualSemigroup<A>(
 }
 ```
 
-**Quiz**. This combinator makes sense because generally speaking the `concat` operation is not **commutative**, can you find an example?
+**Quiz**. This combinator makes sense because generally speaking the `concat` operation is not [**commutative**](https://en.wikipedia.org/wiki/Commutative_property), can you find an example?
 
 <!--  -->
 
