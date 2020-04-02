@@ -322,10 +322,6 @@ There are many examples of semigroups:
 
 As usual in `fp-ts` the algebra `Semigroup`, contained in the the `fp-ts/lib/Semigroup` module, is implemented through a TypeScript `interface`:
 
-<!--
-  TODO: implementation of a Magma?
--->
-
 ```ts
 // fp-ts/lib/Semigroup.ts
 
