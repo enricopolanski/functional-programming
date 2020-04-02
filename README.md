@@ -411,7 +411,7 @@ product(1, [1, 2, 3, 4]) // 24
 
 **Example**
 
-Lets provide some applications of `fold`, by reimplementing some popular functions of the JavaScript standard library.
+Lets provide some applications of `fold`, by reimplementing some popular functions from the JavaScript standard library.
 
 ```ts
 import { Predicate } from 'fp-ts/lib/function'
@@ -454,7 +454,7 @@ function getDualSemigroup<A>(
 }
 ```
 
-**Quiz**. This combinator makes sense because generally speaking the `concat` operation is not [**commutative**](https://en.wikipedia.org/wiki/Commutative_property), can you find an example?
+**Quiz**. This combinator makes sense because, generally speaking, the `concat` operation is not [**commutative**](https://en.wikipedia.org/wiki/Commutative_property), can you find an example?
 
 <!--  -->
 
@@ -462,7 +462,7 @@ function getDualSemigroup<A>(
 
 What happens if, given a specific type `A` we can't find an associative binary operation on `A`?
 
-You can **always** define a semigroup instance for **any**instance for **any** given type using the following constructors:
+You can **always** define a semigroup instance for **any** instance for **any** given type using the following constructors:
 
 ```ts
 // fp-ts/lib/Semigroup.ts
@@ -517,6 +517,10 @@ Even tho I may have an instance of a semigroup for `A`, I could very well decide
 - it avoids executing potentially useless computations
 - it avoids passing around the semigroup instance
 - allows the consumer of my APIs to decide the merging strategy
+
+<!--
+  TODO: practical uses of a free semigroup?
+-->
 
 ## Semigroup product
 
