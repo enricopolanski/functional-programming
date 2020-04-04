@@ -1,8 +1,7 @@
 /*
 
-  Dato un tipo `A` è possibile definire una istanza di semigruppo
-  per `Ord<A>`. Cosa rappresenta?
-
+  Given a type `A` is it possible to define a semigroup instance
+  for `Ord<A>`. What does it represents?
 */
 
 import {
@@ -48,8 +47,8 @@ const users: Array<User> = [
   { id: 4, name: 'Giulio', age: 44, rememberMe: true }
 ]
 
-// un ordinamento classico:
-// prima per nome, poi per età, poi per `rememberMe`
+// a classic ordering:
+// first by name, then by age, then by `rememberMe`
 
 const O1 = fold(S)(byName, [byAge, byRememberMe])
 console.log(sort(O1)(users))
@@ -60,8 +59,8 @@ console.log(sort(O1)(users))
   { id: 1, name: 'Guido', age: 47, rememberMe: false } ]
 */
 
-// adesso invece voglio tutti gli utenti con
-// `rememberMe = true` per primi
+// now I want all the users with
+// `rememberMe = true` first
 
 const O2 = fold(S)(getDualOrd(byRememberMe), [
   byName,
