@@ -226,7 +226,7 @@ Of the two combiners in `01_retry.ts` a special mention goes to `concat` since i
 
 A term we could associate to _functional_ programming might be _algebraic_ programming:
 
-> Algebras can be taught as the design patterns for functional programming
+> Algebras can be thought as the design patterns for functional programming
 
 An **algebra** is generally defined as whatever combination of:
 
