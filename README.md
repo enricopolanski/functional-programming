@@ -226,7 +226,7 @@ Of the two combiners in `01_retry.ts` a special mention goes to `concat` since i
 
 A term we could associate to _functional_ programming might be _algebraic_ programming:
 
-> Algebras can be thought as the design patterns for functional programming
+> Algebras can be thought of as the design patterns for functional programming
 
 An **algebra** is generally defined as whatever combination of:
 
@@ -236,7 +236,7 @@ An **algebra** is generally defined as whatever combination of:
 
 Algebras are how mathematicians try to capture an idea in its purest form, eliminating everything that is superfluous.
 
-Algebras can be thought as an abstraction of interfaces: when an algebraic structure is modified we can only use the operations defined by the algebra, those allowed in compliance with its own laws.
+Algebras can be thought of as an abstraction of interfaces: when an algebraic structure is modified we can only use the operations defined by the algebra, those allowed in compliance with its own laws.
 
 Mathematicians work with such interfaces from centuries, and it works.
 
@@ -255,7 +255,8 @@ On line 1 we have the pair `(integer, +)`. The non empty set is the set of integ
 
 On line 2 we have the pair `(integer, /)` where the binary operation is the usual division between integers. While this operation results in an integer in some cases (e.g. 9 / 3 = 3), it does not for all the members of the integer set (e.g. 1 / 0 or 10 / 3). Thus, division, is not _closed on_ integer. Thus, the pair `(integer, /)` is **not** a magma.
 
-Food for your thoughts: explain why the pair `(positive, -)`, where `positive` is the set of positive numbers, such as `(1, 2, 3, 4, 5, etc)`, does not form a magma under the binary operation `-`, the usual mathematical subtraction.
+Food for your 
+s: explain why the pair `(positive, -)`, where `positive` is the set of positive numbers, such as `(1, 2, 3, 4, 5, etc)`, does not form a magma under the binary operation `-`, the usual mathematical subtraction.
 
 An interesting property of magmas:
 
