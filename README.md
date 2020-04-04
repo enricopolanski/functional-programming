@@ -84,7 +84,7 @@ The purpose of the edits is to expand on the material without changing the conce
 > The idea is that there's some higher level than the code in which you need to be able to think precisely,
 > and that mathematics actually allows you to think precisely about it - Leslie Lamport
 
-Functional programming's goal is to dominate a system's complexity through the use of formal _models_, careful attention is given to code's proprierties.
+Functional programming's goal is to dominate a system's complexity through the use of formal _models_, careful attention is given to code's properties.
 
 > Functional programming will help teach people the mathematics behind program construction: how to write composable code, how to reason about effects, how to write consistent, general, less ad-hoc APIs
 
@@ -119,7 +119,7 @@ A `map`ping function gives me several guarantees: all the input elements will be
 
 ## Referential transparency
 
-> An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
+> An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behaviour
 
 **Example**
 
@@ -157,7 +157,7 @@ I can't replace `inverse(0)` with its value, thus it doesn't benefits from refer
 Why is referential transparency so important? Because it allows us to:
 
 - reason better about our code
-- **refactor** without changing our system's behavior
+- **refactor** without changing our system's behaviour
 
 **Example**
 
@@ -212,7 +212,7 @@ If we mix several different combinators together we can obtain an even _bigger_ 
 Thus the usual design you can find in a functional module is:
 
 - a small set of "primitives"
-- a set of combinators to combine the primitives in largers structures
+- a set of combinators to combine the primitives in larger structures
 
 **Demo**
 
@@ -226,7 +226,7 @@ Of the two combiners in `01_retry.ts` a special mention goes to `concat` since i
 
 A term we could associate to _functional_ programming might be _algebraic_ programming:
 
-> Algebras can be tought as the design patterns for functional programming
+> Algebras can be thought as the design patterns for functional programming
 
 An **algebra** is generally defined as whatever combination of:
 
@@ -236,7 +236,7 @@ An **algebra** is generally defined as whatever combination of:
 
 Algebras are how mathematicians try to capture an idea in its purest form, eliminating everything that is superfluous.
 
-Algebras can be thought as an abstraction of interfaces: when an algebraic structure is modifyed we can only use the operations defined by the algebra, those allowed in compliance with its own laws.
+Algebras can be thought as an abstraction of interfaces: when an algebraic structure is modified we can only use the operations defined by the algebra, those allowed in compliance with its own laws.
 
 Mathematicians work with such interfaces from centuries, and it works.
 
@@ -255,7 +255,7 @@ On line 1 we have the pair `(integer, +)`. The non empty set is the set of integ
 
 On line 2 we have the pair `(integer, /)` where the binary operation is the usual division between integers. While this operation results in an integer in some cases (e.g. 9 / 3 = 3), it does not for all the members of the integer set (e.g. 1 / 0 or 10 / 3). Thus, division, is not _closed on_ integer. Thus, the pair `(integer, /)` is **not** a magma.
 
-Food for your thoughts: explain why the pair `(positive, -)`, where `positive` is the set of positive numbers, such as `(1, 2, 3, 4, 5, etc)`, does not form a magma under the binary operation `-`, the usual mathematical substraction.
+Food for your thoughts: explain why the pair `(positive, -)`, where `positive` is the set of positive numbers, such as `(1, 2, 3, 4, 5, etc)`, does not form a magma under the binary operation `-`, the usual mathematical subtraction.
 
 An interesting property of magmas:
 
@@ -313,9 +313,9 @@ Sub computations can be run in parallel mode.
 There are many examples of semigroups:
 
 - `(number, +)` where `+` is the usual addition of numbers
-- `(number, *)` where `*` is the usual number moltiplication
+- `(number, *)` where `*` is the usual number multiplication
 - `(string, +)` where `+` is the usual string concatenation
-- `(boolean, &&)` where `&&` is the [logical conjuction](https://en.wikipedia.org/wiki/Logical_conjunction)
+- `(boolean, &&)` where `&&` is the [logical conjunction](https://en.wikipedia.org/wiki/Logical_conjunction)
 - `(boolean, ||)` where `||` is the [logical disjunction](https://en.wikipedia.org/wiki/Logical_disjunction)
 
 ## Implementation
@@ -512,7 +512,7 @@ The free semigroup of `A` thus is simply the semigroup whose elements are all th
 
 The free semigroup of `A` can be seen as a _lazy_ way of concatenating elements of `A` while preserving the content of `A`.
 
-Even tho I may have an instance of a semigroup for `A`, I could very well decide to use the free semigroup nonetheless becase:
+Even though I may have an instance of a semigroup for `A`, I could very well decide to use the free semigroup nonetheless because:
 
 - it avoids executing potentially useless computations
 - it avoids passing around the semigroup instance
@@ -524,7 +524,7 @@ Even tho I may have an instance of a semigroup for `A`, I could very well decide
 
 ## Semigroup product
 
-Let's try defining a semigroup instance for mor complex types:
+Let's try defining a semigroup instance for more complex types:
 
 ```ts
 import {
@@ -674,7 +674,7 @@ The following laws have to hold:
 
 **Example**
 
-A programmer can thus define a function `elem` (which indicates wheter a value appears in an array) in the following way:
+A programmer can thus define a function `elem` (which indicates whether a value appears in an array) in the following way:
 
 ```ts
 function elem<A>(
@@ -791,9 +791,9 @@ for every `x`, `y` of `A`.
 
 # Ord
 
-In the previos chapter regarding `Eq` we were dealing with the concept of **equality**. In this one we'll deal with the concept of **ordering**.
+In the previous chapter regarding `Eq` we were dealing with the concept of **equality**. In this one we'll deal with the concept of **ordering**.
 
-The concept of a total order relation can be implemented in TypScript with the following type class:
+The concept of a total order relation can be implemented in TypeScript with the following type class:
 
 ```ts
 import { Eq } from 'fp-ts/lib/Eq'
@@ -1041,7 +1041,7 @@ u * a = a * u = a
 ```
 
 then the triplet `(A, *, u)` is called a _monoid_ and the element `u` is called _unity_.
-(sinonyms: _neutral element_, _identity element_).
+(synonyms: _neutral element_, _identity element_).
 
 ## Implementation
 
@@ -1216,7 +1216,7 @@ fold(monoidAny)([true, false, true]) // true
 
 > A pure function is a procedure that given the same input always gives the same output and does not have any observable side effect.
 
-Such an informal stament could leave space for some doubts
+Such an informal statement could leave space for some doubts
 
 - what is a "side effect"?
 - what does it means "observable"?
@@ -1232,7 +1232,7 @@ X × Y = { (x, y) | x ∈ X, y ∈ Y }
 
 The following [definition](https://en.wikipedia.org/wiki/History_of_the_function_concept) was given a century ago:
 
-**Definiton**. A \_function: `f: X ⟶ Y` is a subset of `X × Y` such as
+**Definition**. A \_function: `f: X ⟶ Y` is a subset of `X × Y` such as
 for every `x ∈ X` there's exactly one `y ∈ Y` such that `(x, y) ∈ f`.
 
 The set `X` is called _domain_ of `f`, `Y` it's his _codomain_.
@@ -1268,7 +1268,7 @@ function double(x: number): number {
 }
 ```
 
-The definition of a function as a subset of a cartesian product shows how in mathematics every function is pure: thereìs no action, no state mutation or elements being modified.
+The definition of a function as a subset of a cartesian product shows how in mathematics every function is pure: there is no action, no state mutation or elements being modified.
 In functional programming the implementation of functions has to follow as much as possible this ideal model.
 
 The fact that a function is pure does not imply automatically a ban on local mutability as long as it doesn't leaks out of its scope.
@@ -1277,7 +1277,7 @@ The fact that a function is pure does not imply automatically a ban on local mut
 
 The ultimate goal is to guarantee: **referential transparency**.
 
-> An expresion contains "sode effects" if it doesn't benefits from referential trnsparency
+> An expression contains "side effects" if it doesn't benefits from referential transparency
 
 Functions compose:
 
@@ -1295,7 +1295,7 @@ Please note that in order for `f` and `g` to combine, the domain of `f` has to b
 
 **Definition**. A function is said to be _partial_ if it is not defined for each value of its domain.
 
-Viceversa, a funcrtion defined for all values of its domain is said to be _total_
+Vice versa, a function defined for all values of its domain is said to be _total_
 
 **Example**
 
@@ -1432,7 +1432,7 @@ The `type` tag makes sure every member of the union is disjointed.
 
 ### Constructors
 
-A sum type with `n` elements needs at least `n` **costructors**, one for each member:
+A sum type with `n` elements needs at least `n` **constructors**, one for each member:
 
 ```ts
 const add = (text: string): Action => ({
@@ -1457,7 +1457,7 @@ const del = (id: number): Action => ({
 })
 ```
 
-Sum types can be **polimorphic** and **recursive**.
+Sum types can be **polymorphic** and **recursive**.
 
 **Example** (linked lists)
 
@@ -1513,7 +1513,7 @@ type Option<A> =
     }
 ```
 
-From the general formula `C(Option<A>) = 1 + C(A)` we can derive the cardinality of th `Option<boolean>` type: `1 + 2 = 3` abitanti.
+From the general formula `C(Option<A>) = 1 + C(A)` we can derive the cardinality of the `Option<boolean>` type: `1 + 2 = 3` abitanti.
 
 ### When should I use a sum type?
 
@@ -1537,7 +1537,7 @@ class Textbox extends React.Component<Props> {
 }
 ```
 
-The problem here is that `Props` is modeled like a product but `onChange` **depends** on `editable`.
+The problem here is that `Props` is modelled like a product but `onChange` **depends** on `editable`.
 
 A sum type is a better choice:
 
@@ -1572,13 +1572,13 @@ declare function readFile(
 ): void
 ```
 
-The result is modeled with a product type:
+The result is modelled with a product type:
 
 ```ts
 type CallbackArgs = [Error | undefined, string | undefined]
 ```
 
-there's an issue tho: it's components are **dependent**: we either receive an error **or** a string, but not both: but the components are
+there's an issue though: it's components are **dependent**: we either receive an error **or** a string, but not both: but the components are
 
 | err         | data        | legal? |
 | ----------- | ----------- | ------ |
@@ -1808,8 +1808,8 @@ monoidSettings.concat(workspaceSettings, userSettings)
 
 ### The `Either` type
 
-A common usafe of `Either` is as an alternative for `Option` for handling the possibility of missing values.
-In such use case, `None` is replaced by `Left` which holds the useful information. `Right` replaces `Some`. As a convention `Left` is usef for failure while `Right` is used for success.
+A common usage of `Either` is as an alternative for `Option` for handling the possibility of missing values.
+In such use case, `None` is replaced by `Left` which holds the useful information. `Right` replaces `Some`. As a convention `Left` is used for failure while `Right` is used for success.
 
 ```ts
 type Either<E, A> =
@@ -1896,7 +1896,7 @@ One of functional's programming core characteristics is **composition**
 
 But what does it means exactly? How can we say two things _compose_? And how can we say two things compose _well_?
 
-> Entities are composable if we can easily and generally combine their behaviors in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for acheiving reuse, and for achieving a combinatorial expansion of what is succinctly expressible in a programming model. - Paul Chiusano
+> Entities are composable if we can easily and generally combine their behaviours in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for achieving reuse, and for achieving a combinatorial expansion of what is succinctly expressible in a programming model. - Paul Chiusano
 
 We need to refer to a **strict theory** able to answer such fundamental questions. We need a formal definition of the concept of composability.
 
@@ -1914,7 +1914,7 @@ Samuel Eilenberg
 
 ## Definition
 
-The definition of a category, even tho isn't really complex, is a bit long, thus I'll split it in two parts:
+The definition of a category, even though isn't really complex, is a bit long, thus I'll split it in two parts:
 
 - the first is merely technical (we need to define its laws)
 - the second one will be more relevant to what we care for: a notion of composition
@@ -1997,7 +1997,7 @@ We can define a category, let's call it _TS_, as a simplified model of the TypeS
 - the **identity morphisms** are all encoded in a single polymorphic function `const identity = <A>(a: A): A => a`
 - **morphism's composition** is the usual function composition (which we know to be associative)
 
-As a model of TypeScript, the _TS_ category may seem a bit limited: no loops, no `if`s, there's _almost_ nothing... that being said that simplyfied model is rich enough to help us reach our goal: to reason about a well-defined notion of composition.
+As a model of TypeScript, the _TS_ category may seem a bit limited: no loops, no `if`s, there's _almost_ nothing... that being said that simplified model is rich enough to help us reach our goal: to reason about a well-defined notion of composition.
 
 ## Composition's core problem
 
@@ -2079,7 +2079,7 @@ function log(message: string): IO<void> {
 }
 ```
 
-The `log` program, once executed, it won't instantly cayse a side effect, but returns **a value representing the computation** (also known as _action_).
+The `log` program, once executed, it won't instantly cause a side effect, but returns **a value representing the computation** (also known as _action_).
 
 Let's see another example using thunks, reading and writing on `localStorage`:
 
@@ -2182,7 +2182,7 @@ Let's consider the following boundary: `B = F<C>` for some type constructor `F`,
 
 In order to compose `f` with `g` we need to find a procedure (called `lift`ing) that allows us to derive a function `g` from a function `(b: B) => C` to a function `(fb: F<B>) => F<C>` in order to use the usual function composition (in fact, in this way the codomain of `f` would be the same of the new function's domain).
 
-That is, we have modyfied the original problem in a different and new one: can we find a `lift` function that operates this way?
+That is, we have modified the original problem in a different and new one: can we find a `lift` function that operates this way?
 
 Let's see some practical example:
 
@@ -2225,7 +2225,7 @@ function lift<B, C>(
 }
 ```
 
-All of these `lift` functions look pretty much similar. That's no coincidence, there's a very important pattrn behind the scenes: every of these type constructors (and many others) admit an **functor instance**.
+All of these `lift` functions look pretty much similar. That's no coincidence, there's a very important pattern behind the scenes: every of these type constructors (and many others) admit an **functor instance**.
 
 Functors are **maps between categories** that preserve the structure of the category, meaning they preserve the identity morphisms and the composition operation.
 
@@ -2240,7 +2240,7 @@ where _C_ e _D_ are two categories (aka two programming languages).
 
 (source: [functor on ncatlab.org](https://ncatlab.org/nlab/show/functor))
 
-Even tho a map between two different programming languages is an interesting idea, we're more interestd in a map where _C_ and _D_ are the same (the _TS_ category). In that case we're talking about **endofunctors** (from the greek "endo" meaning "inside"/"internal").
+Even though a map between two different programming languages is an interesting idea, we're more interested in a map where _C_ and _D_ are the same (the _TS_ category). In that case we're talking about **endofunctors** (from the greek "endo" meaning "inside"/"internal").
 
 From now on, unless specified differently, when I write "functor" I mean an endofunctor in the _TS_ category.
 
@@ -2259,7 +2259,7 @@ lift: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
 
 that maps every function `f: (a: A) => B` in a function `lift(f): (fa: F<A>) => F<B>` (**map between morphism**)
 
-The following proprerties have to hold:
+The following properties have to hold:
 
 - `lift(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**identities go to identities**)
 - `lift(g ∘ f) = lift(g) ∘ lift(f)` (**the image of a composition is the composition of its images**)
@@ -2271,7 +2271,7 @@ lift: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
 map:  <A, B>(fa: F<A>, f: (a: A) => B) => F<B>
 ```
 
-Please note that `map` can be derived from `lift` (and viceversa).
+Please note that `map` can be derived from `lift` (and vice versa).
 
 ## Functors in `fp-ts`
 
@@ -2288,7 +2288,7 @@ interface Response<A> {
 }
 ```
 
-Please note that since `body` is parametric, this makes `Response` a good candidate to find a functor instance since `Response` is a an `n`-ario type constructor with `n >= 1` (a necessary condition).
+Please note that since `body` is parametric, this makes `Response` a good candidate to find a functor instance since `Response` is a an `n`-ary type constructor with `n >= 1` (a necessary condition).
 
 To define a functor instance for `Response` we need to define a `map` function along some [technical details](https://gcanti.github.io/fp-ts/recipes/HKT.html) required by `fp-ts`.
 
@@ -2412,7 +2412,7 @@ In the section regarding functors we've seen that we can compose an effectful pr
 | effectful | pure (unary) | `lift(g) ∘ f` |
 
 But `g` has to be unary, it can only accept a single argument as input.
-Tuttavia `g` deve essere unaria, ovvero deve accettare un solo argomento in input. What happens if `g` accepts twp arguments? Can we still lift `g` using only the functor instance? Let's try
+Tuttavia `g` deve essere unaria, ovvero deve accettare un solo argomento in input. What happens if `g` accepts two arguments? Can we still lift `g` using only the functor instance? Let's try
 
 ## Currying
 
@@ -2468,7 +2468,7 @@ unpack: <C, D>(fcd: HKT<F, (c: C) => D>) => ((fc: HKT<F, C>) => HKT<F, D>)
 ap:     <C, D>(fcd: HKT<F, (c: C) => D>, fc: HKT<F, C>) => HKT<F, D>
 ```
 
-thus `ap` can be derived from `unpack` (and viceversa).
+thus `ap` can be derived from `unpack` (and vice versa).
 
 ## Applicative
 
@@ -2588,7 +2588,7 @@ function liftA3<F>(
 }
 ```
 
-In reality, given an `Apply` instanc we can write with the same pattern a function `liftAn`, **no matter** what `n` is!
+In reality, given an `Apply` instance we can write with the same pattern a function `liftAn`, **no matter** what `n` is!
 
 **Note**. `liftA1` is simply `lift`, `Functor`'s fundamental operation.
 
@@ -2607,7 +2607,7 @@ where `liftA1 = lift`
 
 ## Composition of applicative functors
 
-An interesting property of appliative functors is that they compose: for every two functors `F` and `G`, their composition `F<G<A>>` is still an applicative functor.
+An interesting property of applicative functors is that they compose: for every two functors `F` and `G`, their composition `F<G<A>>` is still an applicative functor.
 
 **Example**
 
@@ -2711,7 +2711,7 @@ const followersOfFollowers: Array<
 
 Something's odd here: `followersOfFollowers` has typo `Array<Array<User>>` but we actually want `Array<User>`.
 
-We need to un-nest (**flatten**) the nexted arrays.
+We need to un-nest (**flatten**) the nested arrays.
 
 The `flatten: <A>(mma: Array<Array<A>>) => Array<A>` function exported from `fp-ts` can help us here:
 
@@ -2747,7 +2747,7 @@ const inverseHead: Option<Option<number>> = option.map(
 )
 ```
 
-Opss, we did it again, `inverseHead` has typo `Option<Option<number>>` but we need an `Option<number>`.
+Oops, we did it again, `inverseHead` has typo `Option<Option<number>>` but we need an `Option<number>`.
 
 We need to un-nest again the nested `Option`s.
 
@@ -2768,7 +2768,7 @@ const inverseHead: Option<number> = flatten(
 )
 ```
 
-All of these `flatten` functions...are not a concidence. There is a functional pattern behind the scenes: all of those type constructors (and many others) admitca **monad instance** and
+All of these `flatten` functions...are not a coincidence. There is a functional pattern behind the scenes: all of those type constructors (and many others) admitca **monad instance** and
 
 > `flatten` is the most peculiar operation of monads
 
@@ -2906,14 +2906,14 @@ Last question: where those these laws come from? Those are nothing else but cate
 
 ## Monads in `fp-ts`
 
-In `fp-ts` the `flatMap` function is modeled with one of its variants called `chain`, which is basically `flatMap` with the arguments rearranged:
+In `fp-ts` the `flatMap` function is modelled with one of its variants called `chain`, which is basically `flatMap` with the arguments rearranged:
 
 ```ts
 flatMap: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
 chain:   <A, B>(ma: HKT<M, A>, f: (a: A) => HKT<M, B>) => HKT<M, B>
 ```
 
-Note that `chain` can be derived from `flatMap` (and viceversa).
+Note that `chain` can be derived from `flatMap` (and vice versa).
 
 If we now go back to the previous examples that were showing the nested context we can solve them with `chain`:
 
