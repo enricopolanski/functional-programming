@@ -1259,9 +1259,9 @@ In this way we can exclude any form of side effect and the return value is alway
 The one in the example is called an _extensional_ definition of a function, meaning we enumerate one by one each of the elements of its domain.
 Obviously, when such a set is infinite this proves to be problematic.
 
-We can get around this issue by introducing the one that is called _intentional_ definition, meaning that we express a condition that has to hold for every couple
-Si può ovviare a questo problema introducendo quella che viene detta definizione _intensionale_, `(x, y) ∈ f` meaning `y = x * 2`.
-That's the familiar form in which we write the `double` function and its definition in TypeScript:
+We can get around this issue by introducing the one that is called _intentional_ definition, meaning that we express a condition that has to hold for every couple `(x, y) ∈ f` meaning `y = x * 2`.
+
+This the familiar form in which we write the `double` function and its definition in TypeScript:
 
 ```ts
 function double(x: number): number {
@@ -2028,7 +2028,6 @@ Why is finding solutions to these problem so important?
 Because, if it is true that categories can be used to model programming languages, morphisms (functions in the _TS_ category) can be used to model **programs**.
 
 Thus, solving this abstract problem means finding a concrete way of **composing programs in a generic way**. And _that_ now is really interesting for us developers, isn't it?
-E _questo_ sì che è molto interessante per uno sviluppatore, non è vero?
 
 ## Functions as programs
 
