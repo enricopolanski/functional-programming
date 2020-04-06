@@ -11,6 +11,7 @@ The purpose of the edits is to expand on the material without changing the conce
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+
 - [What is functional programming](#what-is-functional-programming)
 - [The two pillars of functional programming](#the-two-pillars-of-functional-programming)
   - [Referential transparency](#referential-transparency)
@@ -24,6 +25,7 @@ The purpose of the edits is to expand on the material without changing the conce
   - [Finding a Semigroup instance for any type](#finding-a-semigroup-instance-for-any-type)
   - [Semigroup product](#semigroup-product)
   - [Equality and ordering](#equality-and-ordering)
+- [Eq](#eq)
   - [Equivalence relations as partitions](#equivalence-relations-as-partitions)
 - [Ord](#ord)
 - [Monoids](#monoids)
@@ -639,7 +641,7 @@ const join: Semigroup<number> = {
 
 Is it possible to capture the notion of being _totally ordered_ for other types that are not `number`? To do so we first need to capture the notion of _equality_.
 
-Eq
+# Eq
 
 _Equivalence relations_ capture the concept of _equality_ of elements of the same type. The concept of an _equivalence relation_ can be implemented in TypeScript with the following type class:
 
