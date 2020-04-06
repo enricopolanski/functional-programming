@@ -11,7 +11,6 @@ The purpose of the edits is to expand on the material without changing the conce
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-
 - [What is functional programming](#what-is-functional-programming)
 - [The two pillars of functional programming](#the-two-pillars-of-functional-programming)
   - [Referential transparency](#referential-transparency)
@@ -668,7 +667,7 @@ const eqNumber: Eq<number> = {
 }
 ```
 
-The following laws have to hold:
+The following laws have to hold true:
 
 1. **Reflexivity**: `equals(x, x) === true`, for every `x` in `A`
 2. **Symmetry**: `equals(x, y) === equals(y, x)`, for every `x`, `y` in `A`
@@ -2260,7 +2259,7 @@ lift: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
 
 that maps every function `f: (a: A) => B` in a function `lift(f): (fa: F<A>) => F<B>` (**map between morphism**)
 
-The following properties have to hold:
+The following properties have to hold true:
 
 - `lift(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**identities go to identities**)
 - `lift(g ∘ f) = lift(g) ∘ lift(f)` (**the image of a composition is the composition of its images**)
@@ -2813,7 +2812,7 @@ I had many questions:
 
 - why these two operations and why do they have these signatures?
 - why does the "flatMap" name?
-- why do these laws have to hold? What do they mean?
+- why do these laws have to hold true? What do they mean?
 - but most importantly, where's my `flatten`?
 
 This chapter will try to answer all of these questions.
