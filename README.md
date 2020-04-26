@@ -82,7 +82,7 @@ The purpose of the edits is to expand on the material without changing the conce
 # What is functional programming
 
 > Though programming was born in mathematics, it has since largely been divorced from it.
-> The idea is that there's some higher level than the code in which you need to be able to think precisely,
+> The idea is that there's some higher level than the code in which you need to be able to precisely,
 > and that mathematics actually allows you to think precisely about it - Leslie Lamport
 
 Functional programming's goal is to dominate a system's complexity through the use of formal _models_, careful attention is given to code's properties.
@@ -2065,7 +2065,7 @@ function log(message: string): DSL {
 
 This technique requires a way to combine effects and the definition of an interpreter able to execute the side effects.
 
-The second technique is to enclose the computation in a think:
+The second technique is to enclose the computation in a thunk:
 
 ```ts
 interface IO<A> {
@@ -2094,7 +2094,6 @@ const write = (
 ```
 
 In functional programming there's a tendency to shove side effects (under the form of effects) to the border of the system (the `main` function) where they are executed by an interpreter obtaining the following schema:
-ove vengono eseguiti da un interprete ottenendo il seguente schema:
 
 > system = pure core + imperative shell
 
