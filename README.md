@@ -133,7 +133,7 @@ const x = double(2)
 const y = double(2)
 ```
 
-The expression `double(2)` benefits the referential transparency property because I can replace it with its value, the number 4.
+The expression `double(2)` benefits from referential transparency because it is replaceable with its value, the number 4.
 
 ```ts
 const x = 4
