@@ -1,11 +1,11 @@
 /*
 
-  PROBLEM: devise a system to draw shapes in the console.
+  PROBLEM: devise a system to draw shapes in developer's console.
 
   First of all the model:
 
-  a shape in the space S is a function that give a point of S
-  returns `true` if the point belongs to the shape and `false` otherwise
+  a shape in the space S is a function that given a point S
+  returns `true` if the point belongs to the shape, `false` otherwise.
 
 */
 export type Shape<S> = (point: S) => boolean
@@ -46,8 +46,7 @@ export function outside<S>(s: Shape<S>): Shape<S> {
 
 /*
 
-  To test outside we define the shape disk and a way
-  to visualise a shape in the console
+  To test `outside` we define the `disk` shape and a way to visualise a shape in the console
 
 */
 
