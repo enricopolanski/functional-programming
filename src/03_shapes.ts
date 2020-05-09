@@ -1,18 +1,18 @@
 /*
 
-  PROBLEMA: implementare un sistema per disegnare forme sulla console.
+  PROBLEM: devise a system to draw shapes in the console.
 
-  Prima di tutto il modello:
+  First of all the model:
 
-  una forma nello spazio S è una funzione che dato un punto di S
-  restituisce `true` se il punto appartiene alla forma e `false` altrimenti
+  a shape in the space S is a function that give a point of S
+  returns `true` if the point belongs to the shape and `false` otherwise
 
 */
 export type Shape<S> = (point: S) => boolean
 
 /*
 
-  Definiamo una forma in uno spazio bidimensionale
+  Defining a shape in the two dimensional space
 
 */
 export interface Point2D {
@@ -24,8 +24,8 @@ export type Shape2D = Shape<Point2D>
 
 /*
 
-  Possiamo definire un primo combinatore che data una forma
-  restituisce la sua forma complementare (il negativo)
+  We can define a first combinator that given a shape
+  returns the inverse of the shape (the negative)
 
 */
 
@@ -35,8 +35,8 @@ export function outside2D(s: Shape2D): Shape2D {
 
 /*
 
-  Notate che non stiamo usando in nessun modo il fatto
-  che stiamo lavorando in due dimensioni. Generalizziamo!
+  Note that we are not using in any way the fact
+  that we are working in two dimensions. Generalization!
 
 */
 
@@ -46,8 +46,8 @@ export function outside<S>(s: Shape<S>): Shape<S> {
 
 /*
 
-  Per testare outside definiamo la forma disco e un modo
-  per visualizzare una forma nella console
+  To test outside we define the shape disk and a way
+  to visualise a shape in the console
 
 */
 
@@ -58,7 +58,7 @@ export function disk(
   return point => distance(point, center) <= radius
 }
 
-// distanza euclidea
+// euclidean distance
 function distance(p1: Point2D, p2: Point2D) {
   return Math.sqrt(
     Math.pow(Math.abs(p1.x - p2.x), 2) +
@@ -88,10 +88,10 @@ export const showShape2D: Show<Shape2D> = {
 
 /*
 
-  Definiamo ora l'intersezione e l'unione di due forme.
-  Per farlo possiamo sfruttare il risultato che il tipo
-  di una funzione ammette una istanza di monoide se il tipo
-  del codominio ammette una istanza di monoide
+  We now define the intersection and union of two shapes.
+  We can exploit the fact that the type
+  of a function admits an instance of monoid if the type
+  of the codomain admits an instance of monoid
 
 */
 
