@@ -2410,8 +2410,7 @@ In the section regarding functors we've seen that we can compose an effectful pr
 | pure      | pure         | `g ∘ f`       |
 | effectful | pure (unary) | `lift(g) ∘ f` |
 
-But `g` has to be unary, it can only accept a single argument as input.
-Tuttavia `g` deve essere unaria, ovvero deve accettare un solo argomento in input. What happens if `g` accepts two arguments? Can we still lift `g` using only the functor instance? Let's try
+But `g` has to be unary, it can only accept a single argument as input. What happens if `g` accepts two arguments? Can we still lift `g` using only the functor instance? Let's try
 
 ## Currying
 
