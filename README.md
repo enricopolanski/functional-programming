@@ -2375,9 +2375,9 @@ To manage this circumstance we need something _more_, in the next chapter we'll 
 
 Before we get into applicative functors I'd like to show you a variant of the functor concept we've seen in the last section: **contravariant functors**.
 
-If we want to be meticulous, those that we called "functors" should be more properly called **contravariant functors**.
+If we want to be meticulous, those that we called "functors" should be more properly called **convariant functors**.
 
-The definition of a contravariant functor is very close to the covariant functor, the only difference is the signature of its fundamental operation (called `contramap` invece di `map`).
+The definition of a contravariant functor is very close to the covariant functor, the only difference is the signature of its fundamental operation (called `contramap` insteaf of `map`).
 
 ```ts
 // covariant functor
@@ -2388,7 +2388,7 @@ export interface Functor<F> {
   ) => HKT<F, B>
 }
 
-// controvariant functor
+// contravariant functor
 export interface Contravariant<F> {
   readonly contramap: <A, B>(
     fa: HKT<F, A>,
