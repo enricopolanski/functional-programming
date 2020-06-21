@@ -774,7 +774,7 @@ eqUser.equals(
 ) // false
 ```
 
-**Spoiler**. `contramap` is the fundamental function of [controvariant functors](#controvariant-functors).
+**Spoiler**. `contramap` is the fundamental function of [contravariant functors](#contravariant-functors).
 
 ## Equivalence relations as partitions
 
@@ -892,7 +892,7 @@ const byAge: Ord<User> = pipe(
 )
 ```
 
-**Spoiler**. `contramap` is the fundamental function of [controvariant functors](#controvariant-functors).
+**Spoiler**. `contramap` is the fundamental function of [contravariant functors](#contravariant-functors).
 
 Now we can obtain the youngest of two users using `min`:
 
