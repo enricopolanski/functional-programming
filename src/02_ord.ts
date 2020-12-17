@@ -5,23 +5,16 @@
 
 */
 
-import {
-  getSemigroup,
-  contramap,
-  ordString,
-  ordNumber,
-  ordBoolean,
-  getDualOrd
-} from 'fp-ts/lib/Ord'
-import { fold } from 'fp-ts/lib/Semigroup'
-import { sort } from 'fp-ts/lib/Array'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { getMonoid, contramap, ordString, ordNumber, ordBoolean, getDualOrd } from 'fp-ts/Ord'
+import { fold } from 'fp-ts/Semigroup'
+import { sort } from 'fp-ts/ReadonlyArray'
+import { pipe } from 'fp-ts/function'
 
 interface User {
-  id: number
-  name: string
-  age: number
-  rememberMe: boolean
+  readonly id: number
+  readonly name: string
+  readonly age: number
+  readonly rememberMe: boolean
 }
 
 const byName = pipe(
@@ -39,9 +32,9 @@ const byRememberMe = pipe(
   contramap((p: User) => p.rememberMe)
 )
 
-const S = getSemigroup<User>()
+const S = getMonoid<User>()
 
-const users: Array<User> = [
+const users: ReadonlyArray<User> = [
   { id: 1, name: 'Guido', age: 47, rememberMe: false },
   { id: 2, name: 'Guido', age: 46, rememberMe: true },
   { id: 3, name: 'Giulio', age: 44, rememberMe: false },
@@ -63,10 +56,7 @@ console.log(sort(O1)(users))
 // adesso invece voglio tutti gli utenti con
 // `rememberMe = true` per primi
 
-const O2 = fold(S)(getDualOrd(byRememberMe), [
-  byName,
-  byAge
-])
+const O2 = fold(S)(getDualOrd(byRememberMe), [byName, byAge])
 console.log(sort(O2)(users))
 /*
 [ { id: 4, name: 'Giulio', age: 44, rememberMe: true },

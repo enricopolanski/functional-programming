@@ -16,8 +16,8 @@ export type Shape<S> = (point: S) => boolean
 
 */
 export interface Point2D {
-  x: number
-  y: number
+  readonly x: number
+  readonly y: number
 }
 
 export type Shape2D = Shape<Point2D>
@@ -30,7 +30,7 @@ export type Shape2D = Shape<Point2D>
 */
 
 export function outside2D(s: Shape2D): Shape2D {
-  return point => !s(point)
+  return (point) => !s(point)
 }
 
 /*
@@ -41,7 +41,7 @@ export function outside2D(s: Shape2D): Shape2D {
 */
 
 export function outside<S>(s: Shape<S>): Shape<S> {
-  return point => !s(point)
+  return (point) => !s(point)
 }
 
 /*
@@ -51,25 +51,19 @@ export function outside<S>(s: Shape<S>): Shape<S> {
 
 */
 
-export function disk(
-  center: Point2D,
-  radius: number
-): Shape2D {
-  return point => distance(point, center) <= radius
+export function disk(center: Point2D, radius: number): Shape2D {
+  return (point) => distance(point, center) <= radius
 }
 
 // distanza euclidea
 function distance(p1: Point2D, p2: Point2D) {
-  return Math.sqrt(
-    Math.pow(Math.abs(p1.x - p2.x), 2) +
-      Math.pow(Math.abs(p1.y - p2.y), 2)
-  )
+  return Math.sqrt(Math.pow(Math.abs(p1.x - p2.x), 2) + Math.pow(Math.abs(p1.y - p2.y), 2))
 }
 
 import { Show } from 'fp-ts/lib/Show'
 
 export const showShape2D: Show<Shape2D> = {
-  show: s => {
+  show: (s) => {
     let r = '───────────────────────\n'
     for (let j = 10; j >= -10; j--) {
       r += '│'
@@ -95,43 +89,26 @@ export const showShape2D: Show<Shape2D> = {
 
 */
 
-import {
-  Monoid,
-  getFunctionMonoid,
-  monoidAll,
-  monoidAny,
-  fold
-} from 'fp-ts/lib/Monoid'
+import { Monoid, getFunctionMonoid, monoidAll, monoidAny } from 'fp-ts/lib/Monoid'
 
-const intersect: Monoid<Shape2D> = getFunctionMonoid(
-  monoidAll
-)()
+const intersect: Monoid<Shape2D> = getFunctionMonoid(monoidAll)()
 
 // console.log(
 //   showShape2D.show(intersect.concat(disk({ x: -3, y: 0 }, 5), disk({ x: 3, y: 0 }, 5)))
 // )
 
-export const union: Monoid<Shape2D> = getFunctionMonoid(
-  monoidAny
-)()
+export const union: Monoid<Shape2D> = getFunctionMonoid(monoidAny)()
 
 // console.log(
 //   showShape2D.show(union.concat(disk({ x: -3, y: 0 }, 5), disk({ x: 3, y: 0 }, 5)))
 // )
 
-export const ring = (
-  point: Point2D,
-  bigRadius: number,
-  smallRadius: number
-): Shape2D =>
-  intersect.concat(
-    disk(point, bigRadius),
-    outside(disk(point, smallRadius))
-  )
+export const ring = (point: Point2D, bigRadius: number, smallRadius: number): Shape2D =>
+  intersect.concat(disk(point, bigRadius), outside(disk(point, smallRadius)))
 
 // console.log(showShape2D.show(ring({ x: 0, y: 0 }, 5, 3)))
 
-export const shapes: Array<Shape2D> = [
+export const shapes: ReadonlyArray<Shape2D> = [
   disk({ x: 0, y: 0 }, 5),
   disk({ x: -5, y: 5 }, 3),
   disk({ x: 5, y: 5 }, 3)

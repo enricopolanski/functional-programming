@@ -20,18 +20,18 @@
 */
 
 interface User {
-  id: string
-  name: string
-  amount: number // EUR
+  readonly id: string
+  readonly name: string
+  readonly amount: number // EUR
 }
 
 type Currency = 'USD' | 'CHF'
 
-import * as T from 'fp-ts/lib/Task'
+import * as T from 'fp-ts/Task'
 
 interface API {
-  fetchUser: (id: string) => T.Task<User>
-  fetchRate: (currency: Currency) => T.Task<number>
+  readonly fetchUser: (id: string) => T.Task<User>
+  readonly fetchRate: (currency: Currency) => T.Task<number>
 }
 
 /*
@@ -41,9 +41,7 @@ interface API {
 
 */
 
-const getAmountSync = (amount: number) => (
-  rate: number
-): number => amount * rate
+const getAmountSync = (amount: number) => (rate: number): number => amount * rate
 
 /*
 
@@ -60,10 +58,8 @@ const getAmountSync = (amount: number) => (
 
 */
 
-export function liftA2<A, B, C>(
-  f: (a: A) => (b: B) => C
-): (fa: T.Task<A>) => (fb: T.Task<B>) => T.Task<C> {
-  return fa => fb => T.task.ap(T.task.map(fa, f), fb)
+export function liftA2<A, B, C>(f: (a: A) => (b: B) => C): (fa: T.Task<A>) => (fb: T.Task<B>) => T.Task<C> {
+  return (fa) => (fb) => T.task.ap(T.task.map(fa, f), fb)
 }
 
 /*
@@ -72,15 +68,12 @@ export function liftA2<A, B, C>(
 
 */
 
-import { pipe } from 'fp-ts/lib/pipeable'
+import { pipe } from 'fp-ts/function'
 
-const getResult = (api: API) => (
-  userId: string,
-  currency: Currency
-): T.Task<number> => {
+const getResult = (api: API) => (userId: string, currency: Currency): T.Task<number> => {
   const amount = pipe(
     api.fetchUser(userId),
-    T.map(user => user.amount)
+    T.map((user) => user.amount)
   )
   const rate = api.fetchRate(currency)
   const getAmountAsync = liftA2(getAmountSync)
@@ -101,8 +94,7 @@ const API: API = {
       name: 'Foo',
       amount: 100
     }),
-  fetchRate: (_: Currency): T.Task<number> => () =>
-    Promise.resolve(0.12)
+  fetchRate: (_: Currency): T.Task<number> => () => Promise.resolve(0.12)
 }
 
 // program: (userId: string, currency: Currency) => T.Task<number>
@@ -111,7 +103,8 @@ const program = getResult(API)
 const result: T.Task<number> = program('42', 'USD')
 
 // run del programma
+// tslint:disable-next-line: no-floating-promises
 result().then(console.log)
 // 12
 
-// See also: `sequenceT`, `sequenceS` in `fp-ts/lib/Apply`
+// See also: `sequenceT`, `sequenceS` in `fp-ts/Apply`

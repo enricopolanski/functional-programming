@@ -76,7 +76,7 @@
 > The idea is that there's some higher level than the code in which you need to be able to think precisely,
 > and that mathematics actually allows you to think precisely about it - Leslie Lamport
 
-L'obbiettivo della programmazione funzionale è dominare la complessità di un sistema tramite _modelli_ formali, si pone perciò particolare attenzione alle proprietà del codice.
+L'obbiettivo della programmazione funzionale è dominare la complessità di un sistema usando _modelli_ formali e si pone particolare attenzione alle proprietà del codice.
 
 > Functional programming will help teach people the mathematics behind program construction: how to write composable code, how to reason about effects, how to write consistent, general, less ad-hoc APIs
 
@@ -95,16 +95,25 @@ const ys: Array<number> = []
 for (let i = 0; i < xs.length; i++) {
   ys.push(double(xs[i]))
 }
-
-const zs = xs.map(double)
 ```
 
-Un ciclo `for` è più flessibile: posso modificare l'indice di partenza, la condizione di fine e il passo.
-Ma questo vuol dire anche che ci sono più possibilità di introdurre errori e non ho alcuna garanzia sul risultato.
+Un ciclo `for` è molto flessibile, posso modificare
 
-Una `map` invece mi dà delle garanzie: gli elementi dell'input verrano processati tutti dal primo all'ultimo e
+- l'indice di partenza
+- la condizione di fine
+- il passo
+
+Ma ciò vuol dire anche che ci sono più possibilità di introdurre errori e non ho alcuna garanzia sul risultato.
+
+```ts
+const ys = xs.map(double)
+```
+
+Una `map` invece è meno flessibile ma mi dà delle garanzie: gli elementi dell'input verrano processati tutti dal primo all'ultimo e
 qualunque sia l'operazione che viene fatta nella callback, il risultato sarà sempre un array con lo stesso numero di elementi
 dell'array di input.
+
+Dal punto di vista funzionale, ove sono importanti prima le proprietà del codice piuttosto che i dettagli implementativi, l'operazione `map` è interessante **proprio in quanto limitata**.
 
 # I due pilastri della programmazione funzionale
 
@@ -207,15 +216,17 @@ Perciò il design generale che potete spesso trovare in un modulo funzionale è 
 
 [`01_retry.ts`](src/01_retry.ts)
 
-Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat` dato che è possibile riferirlo ad una astrazione molto importante in programmazione funzionale: i semigruppi.
+Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat` dato che è possibile collegarlo ad una importante astrazione della programmazione funzionale: i semigruppi.
 
 # Semigruppi
 
-Potremmo accostare al termine "programmazione funzionale" quello di "programmazione algebrica", infatti:
+Potremmo accostare al termine "programmazione funzionale" quello di "programmazione algebrica"
 
-> Le algebre possono essere considerate i design pattern della programmazione funzionale
+> Le algebre possono essere considerate dei design pattern della programmazione funzionale
 
-Per **algebra** si intende generalmente una qualunque combinazione di:
+Ma cosa si intende con il termine **algebra**?
+
+In generale si intende una qualunque combinazione di:
 
 - insiemi
 - operazioni
@@ -238,18 +249,29 @@ allora la coppia `(A, *)` si chiama _magma_.
 
 Il fatto che l'operazione sia chiusa è una proprietà non banale, per esempio sui numeri naturali (ovvero i numeri interi positivi) la somma è una operazione chiusa mentre la sottrazione non lo è.
 
-Ecco l'encoding di un magma in TypeScript:
+Ecco l'encoding di un magma in TypeScript (tramite una interfaccia):
 
-- l'insieme è codificato con un type parameter
+- l'insieme è codificato con un type parameter (`A`)
 - l'operazione `*` è qui chiamata `concat`
 
 ```ts
-// fp-ts/lib/Magma.ts
+// fp-ts/Magma.ts
 
+// a volte mi sentirete chiamare questa definizione una "type class" invece che "interfaccia"
 interface Magma<A> {
   readonly concat: (x: A, y: A) => A
 }
 ```
+
+**Esempio**
+
+```ts
+// a volte mi sentirete chiamare questa definizione una "istanza" (della type class Magma)
+const mymagma: Magma<number> = {
+  concat: (x, y) => x + y
+}
+```
+
 
 Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo un'algebra che ne definisce una: i semigruppi.
 
@@ -297,10 +319,10 @@ Ci sono molti esempi familiari di semigruppi:
 
 ## Implementazione
 
-Come accade spesso in `fp-ts` l'algebra `Semigroup`, contenuta nel modulo `fp-ts/lib/Semigroup`, è implementata con una `interface` di TypeScript:
+Come accade spesso in `fp-ts` l'algebra `Semigroup`, contenuta nel modulo `fp-ts/Semigroup`, è implementata con una `interface` di TypeScript:
 
 ```ts
-// fp-ts/lib/Semigroup.ts
+// fp-ts/Semigroup.ts
 
 interface Semigroup<A> extends Magma<A> {}
 ```
@@ -359,7 +381,7 @@ Per definizione `concat` combina solo due elementi di `A` alla volta, è possibi
 La funzione `fold` prende in input una istanza di semigruppo, un valore iniziale e un array di elementi:
 
 ```ts
-import { fold, semigroupSum, semigroupProduct } from 'fp-ts/lib/Semigroup'
+import { fold, semigroupSum, semigroupProduct } from 'fp-ts/Semigroup'
 
 const sum = fold(semigroupSum)
 
@@ -377,8 +399,8 @@ product(1, [1, 2, 3, 4]) // 24
 Ora, come esempi di applicazione di `fold`, possiamo reimplementare alcune popolari funzioni della standard library di JavaScript:
 
 ```ts
-import { Predicate } from 'fp-ts/lib/function'
-import { fold, Semigroup, semigroupAll, semigroupAny } from 'fp-ts/lib/Semigroup'
+import { Predicate } from 'fp-ts/function'
+import { fold, Semigroup, semigroupAll, semigroupAny } from 'fp-ts/Semigroup'
 
 function every<A>(p: Predicate<A>, as: Array<A>): boolean {
   return fold(semigroupAll)(true, as.map(p))
@@ -419,7 +441,7 @@ Cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operaz
 Potete **sempre** definire una istanza di semigruppo per un **qualsiasi** tipo usando le seguenti costruzioni:
 
 ```ts
-// fp-ts/lib/Semigroup.ts
+// fp-ts/Semigroup.ts
 
 /** Always return the first argument */
 function getFirstSemigroup<A = never>(): Semigroup<A> {
@@ -473,7 +495,7 @@ Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di
 Proviamo a definire delle istanze di semigruppo per tipi più complessi:
 
 ```ts
-import { Semigroup, semigroupSum } from 'fp-ts/lib/Semigroup'
+import { Semigroup, semigroupSum } from 'fp-ts/Semigroup'
 
 type Point = {
   x: number
@@ -490,10 +512,10 @@ const semigroupPoint: Semigroup<Point> = {
 
 Troppo boilerplate? La buona notizia è che possiamo costruire una istanza di semigruppo per una struct come `Point` se siamo in grado di fornire una istanza di semigruppo per ogni suo campo.
 
-Convenientemente il modulo `fp-ts/lib/Semigroup` esporta una combinatore `getStructSemigroup`:
+Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `getStructSemigroup`:
 
 ```ts
-import { getStructSemigroup, Semigroup, semigroupSum } from 'fp-ts/lib/Semigroup'
+import { getStructSemigroup, Semigroup, semigroupSum } from 'fp-ts/Semigroup'
 
 type Point = {
   x: number
@@ -527,8 +549,8 @@ Ci sono altri combinatori messi a disposizione da `fp-ts`, ecco un combinatore c
 **Esempio**
 
 ```ts
-import { Predicate } from 'fp-ts/lib/function'
-import { getFunctionSemigroup, semigroupAll } from 'fp-ts/lib/Semigroup'
+import { Predicate } from 'fp-ts/function'
+import { getFunctionSemigroup, semigroupAll } from 'fp-ts/Semigroup'
 
 /** `semigroupAll` is the boolean semigroup under conjunction */
 const semigroupPredicate: Semigroup<Predicate<Point>> = getFunctionSemigroup(
@@ -588,7 +610,7 @@ Intuitivamente:
 Ecco un esempio di istanza di `Eq` per il tipo `number`:
 
 ```ts
-import { Eq } from 'fp-ts/lib/Eq'
+import { Eq } from 'fp-ts/Eq'
 
 const eqNumber: Eq<number> = {
   equals: (x, y) => x === y
@@ -637,10 +659,10 @@ const eqPoint: Eq<Point> = {
 
 Troppo boilerplate? La buona notizia è che possiamo costruire una istanza di `Eq` per una struct come `Point` se siamo in grado di fornire una istanza di `Eq` per ogni suo campo.
 
-Convenientemente il modulo `fp-ts/lib/Eq` esporta un combinatore `getStructEq`:
+Convenientemente il modulo `fp-ts/Eq` esporta un combinatore `getStructEq`:
 
 ```ts
-import { getStructEq } from 'fp-ts/lib/Eq'
+import { getStructEq } from 'fp-ts/Eq'
 
 const eqPoint: Eq<Point> = getStructEq({
   x: eqNumber,
@@ -667,7 +689,7 @@ const eqVector: Eq<Vector> = getStructEq({
 Ci sono altri combinatori messi a disposizione da `fp-ts`, ecco un combinatore che permette di derivare una istanza di `Eq` per gli array:
 
 ```ts
-import { getEq } from 'fp-ts/lib/Array'
+import { getEq } from 'fp-ts/Array'
 
 const eqArrayOfPoints: Eq<Array<Point>> = getEq(eqPoint)
 ```
@@ -675,8 +697,8 @@ const eqArrayOfPoints: Eq<Array<Point>> = getEq(eqPoint)
 Infine un altro utile combinatore per costruire nuove istanze di `Eq` è il combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
 
 ```ts
-import { contramap, eqNumber } from 'fp-ts/lib/Eq'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { contramap, eqNumber } from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/pipeable'
 
 type User = {
   userId: number
@@ -718,7 +740,7 @@ Nel capitolo precedente riguardante `Eq` avevamo a che fare con il concetto di *
 Il concetto di relazione d'ordine totale può essere implementato in TypeScript con la seguente type class:
 
 ```ts
-import { Eq } from 'fp-ts/lib/Eq'
+import { Eq } from 'fp-ts/Eq'
 
 type Ordering = -1 | 0 | 1
 
@@ -762,10 +784,10 @@ In più `compare` deve essere compatibile con l'operazione `equals` di `Eq`:
 equals: (x, y) => compare(x, y) === 0
 ```
 
-Infatti il modulo `fp-ts/lib/Ord` esporta un comodo helper `fromCompare` che permette di definire una istanza di `Ord` semplicemente specificando la funzione `compare`:
+Infatti il modulo `fp-ts/Ord` esporta un comodo helper `fromCompare` che permette di definire una istanza di `Ord` semplicemente specificando la funzione `compare`:
 
 ```ts
-import { fromCompare, Ord } from 'fp-ts/lib/Ord'
+import { fromCompare, Ord } from 'fp-ts/Ord'
 
 const ordNumber: Ord<number> = fromCompare((x, y) => (x < y ? -1 : x > y ? 1 : 0))
 ```
@@ -800,8 +822,8 @@ const byAge: Ord<User> = fromCompare((x, y) => ordNumber.compare(x.age, y.age))
 Possiamo eliminare un po' di boilerplate usando il combinatore `contramap`: data una istanza di `Ord` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Ord` per `B`:
 
 ```ts
-import { contramap } from 'fp-ts/lib/Ord'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { contramap } from 'fp-ts/Ord'
+import { pipe } from 'fp-ts/pipeable'
 
 const byAge: Ord<User> = pipe(
   ordNumber,
@@ -824,7 +846,7 @@ E se invece volessimo ottenere il più vecchio? Dobbiamo invertire l'ordine, o p
 Fortunatamente c'è un altro combinatore per questo:
 
 ```ts
-import { getDualOrd } from 'fp-ts/lib/Ord'
+import { getDualOrd } from 'fp-ts/Ord'
 
 function max<A>(O: Ord<A>): (x: A, y: A) => A {
   return min(getDualOrd(O))
@@ -842,8 +864,8 @@ C'è una altro modo di costruire una istanza di semigruppo per un tipo `A`: se a
 In realtà possiamo derivarne **due**:
 
 ```ts
-import { ordNumber } from 'fp-ts/lib/Ord'
-import { getJoinSemigroup, getMeetSemigroup, Semigroup } from 'fp-ts/lib/Semigroup'
+import { ordNumber } from 'fp-ts/Ord'
+import { getJoinSemigroup, getMeetSemigroup, Semigroup } from 'fp-ts/Semigroup'
 
 /** Takes the minimum of two values */
 const semigroupMin: Semigroup<number> = getMeetSemigroup(ordNumber)
@@ -876,16 +898,16 @@ Per qualche ragione potreste finire per avere dei record duplicati per la stessa
 Abbiamo bisogno di una strategia di merging. Ma questo è proprio quello di cui si occupano i semigruppi!
 
 ```ts
-import { getMonoid } from 'fp-ts/lib/Array'
-import { contramap, ordNumber } from 'fp-ts/lib/Ord'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { getMonoid } from 'fp-ts/Array'
+import { contramap, ordNumber } from 'fp-ts/Ord'
+import { pipe } from 'fp-ts/pipeable'
 import {
   getJoinSemigroup,
   getMeetSemigroup,
   getStructSemigroup,
   Semigroup,
   semigroupAny
-} from 'fp-ts/lib/Semigroup'
+} from 'fp-ts/Semigroup'
 
 const semigroupCustomer: Semigroup<Customer> = getStructSemigroup({
   // keep the longer name
@@ -949,7 +971,7 @@ allora la terna `(A, *, u)` viene detta *monoide* e l'elemento `u` viene detto *
 ## Implementazione
 
 ```ts
-import { Semigroup } from 'fp-ts/lib/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
 interface Monoid<A> extends Semigroup<A> {
   readonly empty: A
@@ -1059,7 +1081,7 @@ type Point = {
 se siamo in grado di fornire al combinatore `getStructMonoid` una istanza di monoide per ogni suo campo:
 
 ```ts
-import { getStructMonoid, Monoid, monoidSum } from 'fp-ts/lib/Monoid'
+import { getStructMonoid, Monoid, monoidSum } from 'fp-ts/Monoid'
 
 const monoidPoint: Monoid<Point> = getStructMonoid({
   x: monoidSum,
@@ -1095,7 +1117,7 @@ import {
   monoidProduct,
   monoidString,
   monoidSum
-} from 'fp-ts/lib/Monoid'
+} from 'fp-ts/Monoid'
 
 fold(monoidSum)([1, 2, 3, 4]) // 10
 fold(monoidProduct)([1, 2, 3, 4]) // 24
@@ -1526,7 +1548,7 @@ function head<A>(as: Array<A>): Option<A> {
   return as.length === 0 ? none : some(as[0])
 }
 
-import { pipe } from 'fp-ts/lib/pipeable'
+import { pipe } from 'fp-ts/pipeable'
 
 const s = pipe(
   head([]),
@@ -1550,8 +1572,8 @@ C'è un problema nell'ultimo caso, ci occorre un modo per fare un "merge" di due
 Ma questo è proprio il lavoro di `Semigroup`! Possiamo richiedere una istanza di semigruppo per `A` e quindi derivare una istanza di semigruppo per `Option<A>`. Questo è come lavora il combinatore `getApplySemigroup` di `fp-ts`:
 
 ```ts
-import { semigroupSum } from 'fp-ts/lib/Semigroup'
-import { getApplySemigroup, some, none } from 'fp-ts/lib/Option'
+import { semigroupSum } from 'fp-ts/Semigroup'
+import { getApplySemigroup, some, none } from 'fp-ts/Option'
 
 const S = getApplySemigroup(semigroupSum)
 
@@ -1569,7 +1591,7 @@ Se abbiamo a disposizione una istanza di monoide per `A` allora possiamo derivar
 | some(a) | some(b) | some(concat(a, b)) |
 
 ```ts
-import { getApplyMonoid, some, none } from 'fp-ts/lib/Option'
+import { getApplyMonoid, some, none } from 'fp-ts/Option'
 
 const M = getApplyMonoid(monoidSum)
 
@@ -1592,7 +1614,7 @@ Monoid returning the left-most non-`None` value:
 | some(a) | some(b) | some(a)      |
 
 ```ts
-import { getFirstMonoid, some, none } from 'fp-ts/lib/Option'
+import { getFirstMonoid, some, none } from 'fp-ts/Option'
 
 const M = getFirstMonoid<number>()
 
@@ -1612,7 +1634,7 @@ Monoid returning the right-most non-`None` value:
 | some(a) | some(b) | some(b)      |
 
 ```ts
-import { getLastMonoid, some, none } from 'fp-ts/lib/Option'
+import { getLastMonoid, some, none } from 'fp-ts/Option'
 
 const M = getLastMonoid<number>()
 
@@ -1623,8 +1645,8 @@ M.concat(some(1), some(2)) // some(2)
 Come esempio, `getLastMonoid` può essere utile per gestire valori opzionali:
 
 ```ts
-import { Monoid, getStructMonoid } from 'fp-ts/lib/Monoid'
-import { Option, some, none, getLastMonoid } from 'fp-ts/lib/Option'
+import { Monoid, getStructMonoid } from 'fp-ts/Monoid'
+import { Option, some, none, getLastMonoid } from 'fp-ts/Option'
 
 /** VSCode settings */
 interface Settings {
@@ -1719,7 +1741,7 @@ declare function readFile(
 e consumare l'API in questo modo:
 
 ```ts
-import { flow } from 'fp-ts/lib/function'
+import { flow } from 'fp-ts/function'
 
 readFile('./myfile', flow(
     fold(err => `Error: ${err.message}`, data => `Data: ${data.trim()}`),
@@ -2032,7 +2054,7 @@ function lift<B, C>(g: (b: B) => C): (fb: Array<B>) => Array<C> {
 **Example** (`F = Option`)
 
 ```ts
-import { isNone, none, Option, some } from 'fp-ts/lib/Option'
+import { isNone, none, Option, some } from 'fp-ts/Option'
 
 function lift<B, C>(g: (b: B) => C): (fb: Option<B>) => Option<C> {
   return fb => (isNone(fb) ? none : some(g(fb.value)))
@@ -2042,7 +2064,7 @@ function lift<B, C>(g: (b: B) => C): (fb: Option<B>) => Option<C> {
 **Example** (`F = Task`)
 
 ```ts
-import { Task } from 'fp-ts/lib/Task'
+import { Task } from 'fp-ts/Task'
 
 function lift<B, C>(g: (b: B) => C): (fb: Task<B>) => Task<C> {
   return fb => () => fb().then(g)
@@ -2119,13 +2141,13 @@ Per poter definire una istanza di funtore per `Response` dobbiamo definire una f
 ```ts
 // `Response.ts` module
 
-import { Functor1 } from 'fp-ts/lib/Functor'
+import { Functor1 } from 'fp-ts/Functor'
 
 export const URI = 'Response'
 
 export type URI = typeof URI
 
-declare module 'fp-ts/lib/HKT' {
+declare module 'fp-ts/HKT' {
   interface URItoKind<A> {
     Response: Response<A>
   }
@@ -2156,8 +2178,8 @@ I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione 
 **Esempio**
 
 ```ts
-import { Option, option } from 'fp-ts/lib/Option'
-import { array } from 'fp-ts/lib/Array'
+import { Option, option } from 'fp-ts/Option'
+import { array } from 'fp-ts/Array'
 
 export const functorArrayOption = {
   map: <A, B>(fa: Array<Option<A>>, f: (a: A) => B): Array<Option<B>> =>
@@ -2168,9 +2190,9 @@ export const functorArrayOption = {
 Per evitare boilerplate `fp-ts` esporta un helper:
 
 ```ts
-import { array } from 'fp-ts/lib/Array'
-import { getFunctorComposition } from 'fp-ts/lib/Functor'
-import { option } from 'fp-ts/lib/Option'
+import { array } from 'fp-ts/Array'
+import { getFunctorComposition } from 'fp-ts/Functor'
+import { option } from 'fp-ts/Option'
 
 export const functorArrayOption = getFunctorComposition(array, option)
 ```
@@ -2292,7 +2314,7 @@ Vediamo qualche istanza di `Applicative` per alcuni data type comuni:
 **Example** (`F = Array`)
 
 ```ts
-import { flatten } from 'fp-ts/lib/Array'
+import { flatten } from 'fp-ts/Array'
 
 export const applicativeArray = {
   map: <A, B>(fa: Array<A>, f: (a: A) => B): Array<B> => fa.map(f),
@@ -2305,8 +2327,8 @@ export const applicativeArray = {
 **Example** (`F = Option`)
 
 ```ts
-import { fold, isNone, map, none, Option, some } from 'fp-ts/lib/Option'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { fold, isNone, map, none, Option, some } from 'fp-ts/Option'
+import { pipe } from 'fp-ts/pipeable'
 
 export const applicativeOption = {
   map: <A, B>(fa: Option<A>, f: (a: A) => B): Option<B> =>
@@ -2330,7 +2352,7 @@ export const applicativeOption = {
 **Example** (`F = Task`)
 
 ```ts
-import { Task } from 'fp-ts/lib/Task'
+import { Task } from 'fp-ts/Task'
 
 export const applicativeTask = {
   map: <A, B>(fa: Task<A>, f: (a: A) => B): Task<B> => () => fa().then(f),
@@ -2345,8 +2367,8 @@ export const applicativeTask = {
 Data una istanza di `Apply` per `F` possiamo quindi definire `liftA2`?
 
 ```ts
-import { HKT } from 'fp-ts/lib/HKT'
-import { Apply } from 'fp-ts/lib/Apply'
+import { HKT } from 'fp-ts/HKT'
+import { Apply } from 'fp-ts/Apply'
 
 type Curried2<B, C, D> = (b: B) => (c: C) => D
 
@@ -2398,8 +2420,8 @@ allora la loro composizione `F<G<A>>` è ancora un funtore applicativo.
 **Esempio**
 
 ```ts
-import { array } from 'fp-ts/lib/Array'
-import { Option, option } from 'fp-ts/lib/Option'
+import { array } from 'fp-ts/Array'
+import { Option, option } from 'fp-ts/Option'
 
 export const applicativeArrayOption = {
   map: <A, B>(fa: Array<Option<A>>, f: (a: A) => B): Array<Option<B>> =>
@@ -2413,9 +2435,9 @@ export const applicativeArrayOption = {
 Per evitare il boilerplate `fp-ts` esporta un helper:
 
 ```ts
-import { getApplicativeComposition } from 'fp-ts/lib/Applicative'
-import { array } from 'fp-ts/lib/Array'
-import { option } from 'fp-ts/lib/Option'
+import { getApplicativeComposition } from 'fp-ts/Applicative'
+import { array } from 'fp-ts/Array'
+import { option } from 'fp-ts/Option'
 
 export const applicativeArrayOption = getApplicativeComposition(array, option)
 ```
@@ -2483,7 +2505,7 @@ Abbiamo bisogno di disinnestare (**flatten**) gli array innestati.
 La funzione `flatten: <A>(mma: Array<Array<A>>) => Array<A>` esportata da `fp-ts` fa al caso nostro:
 
 ```ts
-import { flatten } from 'fp-ts/lib/Array'
+import { flatten } from 'fp-ts/Array'
 
 const followersOfFollowers: Array<User> = flatten(getFollowers(user).map(getFollowers))
 ```
@@ -2495,8 +2517,8 @@ Bene! Vediamo con un'altra struttura dati:
 Supponiamo di voler calcolare il reciproco del primo elemento di un array numerico:
 
 ```ts
-import { head } from 'fp-ts/lib/Array'
-import { none, Option, option, some } from 'fp-ts/lib/Option'
+import { head } from 'fp-ts/Array'
+import { none, Option, option, some } from 'fp-ts/Option'
 
 const inverse = (n: number): Option<number> => (n === 0 ? none : some(1 / n))
 
@@ -2508,8 +2530,8 @@ Opss, è successo di nuovo, `inverseHead` ha tipo `Option<Option<number>>` ma no
 Abbiamo bisogno di disinnestare le `Option` innestate.
 
 ```ts
-import { head } from 'fp-ts/lib/Array'
-import { isNone, none, Option, option } from 'fp-ts/lib/Option'
+import { head } from 'fp-ts/Array'
+import { isNone, none, Option, option } from 'fp-ts/Option'
 
 const flatten = <A>(mma: Option<Option<A>>): Option<A> => (isNone(mma) ? none : mma.value)
 
@@ -2666,8 +2688,8 @@ Notate che `chain` può essere derivata da `flatMap` (e viceversa).
 Se adesso torniamo agli esempi che mostravano il problema con i contesti innestati possiamo risolverli usando `chain`:
 
 ```ts
-import { array, head } from 'fp-ts/lib/Array'
-import { Option, option } from 'fp-ts/lib/Option'
+import { array, head } from 'fp-ts/Array'
+import { Option, option } from 'fp-ts/Option'
 
 const followersOfFollowers: Array<User> = array.chain(getFollowers(user), getFollowers)
 
@@ -2681,9 +2703,9 @@ Vediamo ora come, grazie alla trasparenza referenziale e al concetto di monade, 
 Ecco un piccolo programma che legge / scrive su un file
 
 ```ts
-import { log } from 'fp-ts/lib/Console'
-import { IO, chain } from 'fp-ts/lib/IO'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { log } from 'fp-ts/Console'
+import { IO, chain } from 'fp-ts/IO'
+import { pipe } from 'fp-ts/pipeable'
 import * as fs from 'fs'
 
 //
@@ -2759,9 +2781,9 @@ const program3 = interleave(
 Un altro esempio: implementare una funzione simile a `time` di Unix (la parte relativa al tempo di esecuzione reale) per `IO`.
 
 ```ts
-import { IO, io } from 'fp-ts/lib/IO'
-import { now } from 'fp-ts/lib/Date'
-import { log } from 'fp-ts/lib/Console'
+import { IO, io } from 'fp-ts/IO'
+import { now } from 'fp-ts/Date'
+import { log } from 'fp-ts/Console'
 
 export function time<A>(ma: IO<A>): IO<A> {
   return io.chain(now, start =>
@@ -2777,12 +2799,12 @@ export function time<A>(ma: IO<A>): IO<A> {
 Esempio di utilizzo
 
 ```ts
-import { randomInt } from 'fp-ts/lib/Random'
-import { fold, monoidVoid } from 'fp-ts/lib/Monoid'
-import { getMonoid } from 'fp-ts/lib/IO'
-import { replicate } from 'fp-ts/lib/Array'
-import { pipe } from 'fp-ts/lib/pipeable'
-import { chain } from 'fp-ts/lib/IO'
+import { randomInt } from 'fp-ts/Random'
+import { fold, monoidVoid } from 'fp-ts/Monoid'
+import { getMonoid } from 'fp-ts/IO'
+import { replicate } from 'fp-ts/Array'
+import { pipe } from 'fp-ts/pipeable'
+import { chain } from 'fp-ts/IO'
 
 function fib(n: number): number {
   return n <= 1 ? 1 : fib(n - 1) + fib(n - 2)

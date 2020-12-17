@@ -14,20 +14,12 @@ class Employee {
     readonly email: string
   ) {}
   isBirthday(today: Date): boolean {
-    return (
-      this.dateOfBirth.getMonth() === today.getMonth() &&
-      this.dateOfBirth.getDate() === today.getDate()
-    )
+    return this.dateOfBirth.getMonth() === today.getMonth() && this.dateOfBirth.getDate() === today.getDate()
   }
 }
 
 class Email {
-  constructor(
-    readonly from: string,
-    readonly subject: string,
-    readonly body: string,
-    readonly recipient: string
-  ) {}
+  constructor(readonly from: string, readonly subject: string, readonly body: string, readonly recipient: string) {}
 }
 
 // pure
@@ -35,44 +27,25 @@ const toEmail = (employee: Employee): Email => {
   const recipient = employee.email
   const body = `Happy Birthday, dear ${employee.firstName}!`
   const subject = 'Happy Birthday!'
-  return new Email(
-    'sender@here.com',
-    subject,
-    body,
-    recipient
-  )
+  return new Email('sender@here.com', subject, body, recipient)
 }
 
 // pure
-const getGreetings = (
-  today: Date,
-  employees: Array<Employee>
-): Array<Email> => {
-  return employees
-    .filter(e => e.isBirthday(today))
-    .map(toEmail)
+const getGreetings = (today: Date, employees: ReadonlyArray<Employee>): ReadonlyArray<Email> => {
+  return employees.filter((e) => e.isBirthday(today)).map(toEmail)
 }
 
 // pure
-const parse = (input: string): Array<Employee> => {
+const parse = (input: string): ReadonlyArray<Employee> => {
   const lines = input.split('\n').slice(1) // skip header
-  return lines.map(line => {
+  return lines.map((line) => {
     const employeeData = line.split(', ')
-    return new Employee(
-      employeeData[0],
-      employeeData[1],
-      new Date(employeeData[2]),
-      employeeData[3]
-    )
+    return new Employee(employeeData[0], employeeData[1], new Date(employeeData[2]), employeeData[3])
   })
 }
 
 // impure
-const sendMessage = (
-  smtpHost: string,
-  smtpPort: number,
-  email: Email
-): void => {
+const sendMessage = (smtpHost: string, smtpPort: number, email: Email): void => {
   console.log(smtpHost, smtpPort, email)
 }
 
@@ -82,23 +55,11 @@ const read = (fileName: string): string => {
 }
 
 // impure
-const sendGreetings = (
-  fileName: string,
-  today: Date,
-  smtpHost: string,
-  smtpPort: number
-): void => {
+const sendGreetings = (fileName: string, today: Date, smtpHost: string, smtpPort: number): void => {
   const input = read(fileName)
   const employees = parse(input)
   const emails = getGreetings(today, employees)
-  emails.forEach(email =>
-    sendMessage(smtpHost, smtpPort, email)
-  )
+  emails.forEach((email) => sendMessage(smtpHost, smtpPort, email))
 }
 
-sendGreetings(
-  'src/onion-architecture/employee_data.txt',
-  new Date(2008, 9, 8),
-  'localhost',
-  80
-)
+sendGreetings('src/onion-architecture/employee_data.txt', new Date(2008, 9, 8), 'localhost', 80)
