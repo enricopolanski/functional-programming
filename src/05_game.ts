@@ -42,7 +42,12 @@ const answer: T.Task<number> = pipe(
   )
 )
 
-function check<A>(secret: number, guess: number, ok: T.Task<A>, ko: T.Task<A>): T.Task<A> {
+function check<A>(
+  secret: number,
+  guess: number,
+  ok: T.Task<A>,
+  ko: T.Task<A>
+): T.Task<A> {
   if (guess > secret) {
     return withMessage('Troppo alto', ko)
   } else if (guess < secret) {

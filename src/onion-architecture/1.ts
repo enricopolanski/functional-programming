@@ -16,7 +16,10 @@ class Employee {
     readonly email: string
   ) {}
   isBirthday(today: Date): boolean {
-    return this.dateOfBirth.getMonth() === today.getMonth() && this.dateOfBirth.getDate() === today.getDate()
+    return (
+      this.dateOfBirth.getMonth() === today.getMonth() &&
+      this.dateOfBirth.getDate() === today.getDate()
+    )
   }
 }
 
@@ -31,21 +34,43 @@ const sendMessage = (
   console.log(smtpHost, smtpPort, from, subject, body, recipient)
 }
 
-const sendGreetings = (fileName: string, today: Date, smtpHost: string, smtpPort: number): void => {
+const sendGreetings = (
+  fileName: string,
+  today: Date,
+  smtpHost: string,
+  smtpPort: number
+): void => {
   const input = fs.readFileSync(fileName, {
     encoding: 'utf8'
   })
   const lines = input.split('\n').slice(1) // skip header
   for (let i = 0; i < lines.length; i++) {
     const employeeData = lines[i].split(', ')
-    const employee = new Employee(employeeData[0], employeeData[1], new Date(employeeData[2]), employeeData[3])
+    const employee = new Employee(
+      employeeData[0],
+      employeeData[1],
+      new Date(employeeData[2]),
+      employeeData[3]
+    )
     if (employee.isBirthday(today)) {
       const recipient = employee.email
       const body = `Happy Birthday, dear ${employee.firstName}!`
       const subject = 'Happy Birthday!'
-      sendMessage(smtpHost, smtpPort, 'sender@here.com', subject, body, recipient)
+      sendMessage(
+        smtpHost,
+        smtpPort,
+        'sender@here.com',
+        subject,
+        body,
+        recipient
+      )
     }
   }
 }
 
-sendGreetings('src/onion-architecture/employee_data.txt', new Date(2008, 9, 8), 'localhost', 80)
+sendGreetings(
+  'src/onion-architecture/employee_data.txt',
+  new Date(2008, 9, 8),
+  'localhost',
+  80
+)

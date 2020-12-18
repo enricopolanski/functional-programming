@@ -74,7 +74,10 @@ export function capDelay(maxDelay: number, policy: RetryPolicy): RetryPolicy {
 /**
  * Merges two policies.
  */
-export function concat(policy1: RetryPolicy, policy2: RetryPolicy): RetryPolicy {
+export function concat(
+  policy1: RetryPolicy,
+  policy2: RetryPolicy
+): RetryPolicy {
   return (status) => {
     const delay1 = policy1(status)
     const delay2 = policy2(status)
@@ -89,12 +92,18 @@ export function concat(policy1: RetryPolicy, policy2: RetryPolicy): RetryPolicy 
 // test
 //
 
-export const myPolicy = capDelay(2000, concat(exponentialBackoff(200), limitRetries(5)))
+export const myPolicy = capDelay(
+  2000,
+  concat(exponentialBackoff(200), limitRetries(5))
+)
 
 /**
  * Apply policy on status to see what the decision would be.
  */
-export function applyPolicy(policy: RetryPolicy, status: RetryStatus): RetryStatus {
+export function applyPolicy(
+  policy: RetryPolicy,
+  status: RetryStatus
+): RetryStatus {
   const previousDelay = policy(status)
   return {
     iterNumber: status.iterNumber + 1,

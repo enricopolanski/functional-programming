@@ -22,11 +22,18 @@ import * as T from 'fp-ts/Task'
 
 export interface MonadDB {
   readonly getEmail: (userId: number) => T.Task<string>
-  readonly updateProfile: (userId: number, name: string, email: string) => T.Task<void>
+  readonly updateProfile: (
+    userId: number,
+    name: string,
+    email: string
+  ) => T.Task<void>
 }
 
 export interface MonadEmail {
-  readonly sendEmailChangedNotification: (newEmail: string, oldEmail: string) => T.Task<void>
+  readonly sendEmailChangedNotification: (
+    newEmail: string,
+    oldEmail: string
+  ) => T.Task<void>
 }
 
 /*
@@ -65,7 +72,9 @@ import { pipe } from 'fp-ts/function'
  *
  * In questa versione le dipendenze sono cablate nel codice
  */
-export const updateCustomerProfile1 = (request: UpdateProfileRequest): T.Task<boolean> =>
+export const updateCustomerProfile1 = (
+  request: UpdateProfileRequest
+): T.Task<boolean> =>
   pipe(
     monadDB.getEmail(request.userId),
     T.chain((oldEmail) =>
@@ -121,7 +130,9 @@ export interface Deps {
   readonly email: MonadEmail
 }
 
-export declare const updateCustomerProfile3: (request: UpdateProfileRequest) => (dependencies: Deps) => T.Task<boolean>
+export declare const updateCustomerProfile3: (
+  request: UpdateProfileRequest
+) => (dependencies: Deps) => T.Task<boolean>
 
 /*
 
@@ -138,7 +149,9 @@ export declare const updateCustomerProfile3: (request: UpdateProfileRequest) => 
 
 import { Reader } from 'fp-ts/Reader'
 
-export declare const updateCustomerProfile4: (request: UpdateProfileRequest) => Reader<Deps, T.Task<boolean>>
+export declare const updateCustomerProfile4: (
+  request: UpdateProfileRequest
+) => Reader<Deps, T.Task<boolean>>
 
 /*
 
@@ -177,12 +190,18 @@ const RT = pipeable(monadReaderTask)
 
 */
 
-const getEmail = (userId: number): ReaderTask<Deps, string> => (e) => e.db.getEmail(userId)
+const getEmail = (userId: number): ReaderTask<Deps, string> => (e) =>
+  e.db.getEmail(userId)
 
-const updateProfile = (request: UpdateProfileRequest): ReaderTask<Deps, void> => (e) =>
+const updateProfile = (
+  request: UpdateProfileRequest
+): ReaderTask<Deps, void> => (e) =>
   e.db.updateProfile(request.userId, request.name, request.email)
 
-const sendEmailChangedNotification = (newEmail: string, oldEmail: string): ReaderTask<Deps, void> => {
+const sendEmailChangedNotification = (
+  newEmail: string,
+  oldEmail: string
+): ReaderTask<Deps, void> => {
   return (e) => e.email.sendEmailChangedNotification(newEmail, oldEmail)
 }
 
@@ -192,7 +211,9 @@ const sendEmailChangedNotification = (newEmail: string, oldEmail: string): Reade
 
 */
 
-const updateCustomerProfile5 = (request: UpdateProfileRequest): ReaderTask<Deps, boolean> =>
+const updateCustomerProfile5 = (
+  request: UpdateProfileRequest
+): ReaderTask<Deps, boolean> =>
   pipe(
     getEmail(request.userId),
     RT.chain((oldEmail) =>
@@ -242,10 +263,14 @@ const setEmail = (email: string): T.Task<void> => () => {
 }
 
 const db: MonadDB = {
-  getEmail: (userId: number) => withMessage(`getting email for ${userId}: ${_email}`, T.of(_email)),
+  getEmail: (userId: number) =>
+    withMessage(`getting email for ${userId}: ${_email}`, T.of(_email)),
   updateProfile: (_userId: number, _name: string, email: string) =>
     withMessage(
-      `updating profile` + (_email !== email ? ` and changing email from ${_email} to ${email}` : ''),
+      `updating profile` +
+        (_email !== email
+          ? ` and changing email from ${_email} to ${email}`
+          : ''),
       setEmail(email)
     )
 }

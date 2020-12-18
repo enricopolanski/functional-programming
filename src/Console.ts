@@ -16,4 +16,5 @@ export const getLine: Task<string> = () =>
   })
 
 /** scrive dallo standard output */
-export const putStrLn = (message: string): Task<void> => task.fromIO(log(message))
+export const putStrLn = (message: string): Task<void> =>
+  task.fromIO(log(message))

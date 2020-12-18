@@ -41,7 +41,8 @@ interface API {
 
 */
 
-const getAmountSync = (amount: number) => (rate: number): number => amount * rate
+const getAmountSync = (amount: number) => (rate: number): number =>
+  amount * rate
 
 /*
 
@@ -58,7 +59,9 @@ const getAmountSync = (amount: number) => (rate: number): number => amount * rat
 
 */
 
-export function liftA2<A, B, C>(f: (a: A) => (b: B) => C): (fa: T.Task<A>) => (fb: T.Task<B>) => T.Task<C> {
+export function liftA2<A, B, C>(
+  f: (a: A) => (b: B) => C
+): (fa: T.Task<A>) => (fb: T.Task<B>) => T.Task<C> {
   return (fa) => (fb) => T.task.ap(T.task.map(fa, f), fb)
 }
 
@@ -70,7 +73,10 @@ export function liftA2<A, B, C>(f: (a: A) => (b: B) => C): (fa: T.Task<A>) => (f
 
 import { pipe } from 'fp-ts/function'
 
-const getResult = (api: API) => (userId: string, currency: Currency): T.Task<number> => {
+const getResult = (api: API) => (
+  userId: string,
+  currency: Currency
+): T.Task<number> => {
   const amount = pipe(
     api.fetchUser(userId),
     T.map((user) => user.amount)

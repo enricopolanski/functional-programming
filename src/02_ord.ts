@@ -5,7 +5,14 @@
 
 */
 
-import { getMonoid, contramap, ordString, ordNumber, ordBoolean, getDualOrd } from 'fp-ts/Ord'
+import {
+  getMonoid,
+  contramap,
+  ordString,
+  ordNumber,
+  ordBoolean,
+  getDualOrd
+} from 'fp-ts/Ord'
 import { fold } from 'fp-ts/Semigroup'
 import { sort } from 'fp-ts/ReadonlyArray'
 import { pipe } from 'fp-ts/function'

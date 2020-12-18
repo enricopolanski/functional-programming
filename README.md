@@ -87,9 +87,7 @@ Perché `map` è "più funzionale" di un ciclo `for`?
 ```ts
 const xs = [1, 2, 3]
 
-function double(n: number): number {
-  return n * 2
-}
+const double = (n: number): number => n * 2
 
 const ys: Array<number> = []
 for (let i = 0; i < xs.length; i++) {
@@ -127,9 +125,7 @@ Dal punto di vista funzionale, ove sono importanti prima le proprietà del codic
 **Esempio**
 
 ```ts
-function double(n: number): number {
-  return n * 2
-}
+const double = (n: number): number => n * 2
 
 const x = double(2)
 const y = double(2)
@@ -147,7 +143,7 @@ Non tutte le espressioni godono della proprietà di trasparenza referenziale, ve
 **Esempio**
 
 ```ts
-function inverse(n: number): number {
+const inverse = (n: number): number => {
   if (n === 0) throw new Error('cannot divide by zero')
   return 1 / n
 }
@@ -165,6 +161,7 @@ Perchè è così importante la trasparenza referenziale? Perchè permette di:
 **Esempio**
 
 ```ts
+// `declare` permette di introdurre una definizione senza specificarne l'implementazione
 declare function question(message: string): Promise<string>
 
 const x = await question('What is your name?')
@@ -267,9 +264,11 @@ interface Magma<A> {
 
 ```ts
 // a volte mi sentirete chiamare questa definizione una "istanza" (della type class Magma)
-const mymagma: Magma<number> = {
+const magmaSum: Magma<number> = {
   concat: (x, y) => x + y
 }
+
+magmaSum.concat(1, 3) // => 3
 ```
 
 
@@ -349,6 +348,8 @@ e altri ancora.
 Ecco come implementare il semigruppo `(number, +)` dove `+` è l'usuale addizione di numeri:
 
 ```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
 /** number `Semigroup` under addition */
 const semigroupSum: Semigroup<number> = {
   concat: (x, y) => x + y
@@ -360,6 +361,8 @@ Si noti che per lo stesso tipo si possono definire più **istanze** della **type
 Ecco l'implementazione del semigruppo `(number, *)` dove `*` è l'usuale moltiplicazione di numeri:
 
 ```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
 /** number `Semigroup` under multiplication */
 const semigroupProduct: Semigroup<number> = {
   concat: (x, y) => x * y
@@ -369,6 +372,8 @@ const semigroupProduct: Semigroup<number> = {
 Un'altro esempio, con le stringhe questa volta:
 
 ```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
 const semigroupString: Semigroup<string> = {
   concat: (x, y) => x + y
 }
@@ -383,13 +388,13 @@ La funzione `fold` prende in input una istanza di semigruppo, un valore iniziale
 ```ts
 import { fold, semigroupSum, semigroupProduct } from 'fp-ts/Semigroup'
 
-const sum = fold(semigroupSum)
+const sum = fold(semigroupSum)(0)
 
-sum(0, [1, 2, 3, 4]) // 10
+sum([1, 2, 3, 4]) // 10
 
-const product = fold(semigroupProduct)
+const product = fold(semigroupProduct)(1)
 
-product(1, [1, 2, 3, 4]) // 24
+product([1, 2, 3, 4]) // 24
 ```
 
 **Quiz**. Perchè ho bisogno di un valore iniziale?
@@ -402,21 +407,17 @@ Ora, come esempi di applicazione di `fold`, possiamo reimplementare alcune popol
 import { Predicate } from 'fp-ts/function'
 import { fold, Semigroup, semigroupAll, semigroupAny } from 'fp-ts/Semigroup'
 
-function every<A>(p: Predicate<A>, as: Array<A>): boolean {
-  return fold(semigroupAll)(true, as.map(p))
-}
+const every = <A>(p: Predicate<A>) => (as: ReadonlyArray<A>): boolean =>
+  fold(semigroupAll)(true, as.map(p))
 
-function some<A>(p: Predicate<A>, as: Array<A>): boolean {
-  return fold(semigroupAny)(false, as.map(p))
-}
+const some = <A>(p: Predicate<A>) => (as: ReadonlyArray<A>): boolean =>
+  fold(semigroupAny)(false, as.map(p))
 
 const semigroupObject: Semigroup<object> = {
   concat: (x, y) => ({ ...x, ...y })
 }
 
-function assign(as: Array<object>): object {
-  return fold(semigroupObject)({}, as)
-}
+const assign: (as: ReadonlyArray<object>) => object = fold(semigroupObject)({})
 ```
 
 ## Il semigruppo duale
@@ -424,15 +425,15 @@ function assign(as: Array<object>): object {
 Data una istanza di semigruppo, è possibile ricavarne un'altra semplicemente scambiando l'ordine in cui sono combinati gli elementi:
 
 ```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
 // questo è un combinatore di semigruppi...
-function getDualSemigroup<A>(S: Semigroup<A>): Semigroup<A> {
-  return {
-    concat: (x, y) => S.concat(y, x)
-  }
-}
+const getDualSemigroup = <A>(S: Semigroup<A>): Semigroup<A> => ({
+  concat: (x, y) => S.concat(y, x)
+})
 ```
 
-**Quiz**. Questo combinatore ha senso perchè in generale l'operazione `concat` non è **commutativa**, potete trovare un esempio?
+**Quiz**. Questo combinatore ha senso perchè in generale l'operazione `concat` non è **commutativa**, potete portare un esempio in cui `concat` è commutativa?
 
 ## Non riesco a trovare una istanza!
 
@@ -441,48 +442,57 @@ Cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operaz
 Potete **sempre** definire una istanza di semigruppo per un **qualsiasi** tipo usando le seguenti costruzioni:
 
 ```ts
-// fp-ts/Semigroup.ts
+import { Semigroup } from 'fp-ts/Semigroup'
 
 /** Always return the first argument */
-function getFirstSemigroup<A = never>(): Semigroup<A> {
-  return {
-    concat: (x, y) => x
-  }
-}
+const getFirstSemigroup = <A = never>(): Semigroup<A> => ({
+  concat: (x, _) => x
+})
 
 /** Always return the second argument */
-function getLastSemigroup<A = never>(): Semigroup<A> {
-  return {
-    concat: (x, y) => y
-  }
-}
+const getLastSemigroup = <A = never>(): Semigroup<A> => ({
+  concat: (_, y) => y
+})
 ```
 
-**Quiz**: Potete spiegare la presenza del default `= never` per il type parameter `A`?
+**Quiz** (solo per gli interessati a TypeScript): Potete spiegare la presenza del default `= never` per il type parameter `A`?
 
-Un'altra tecnica è quella di definire una istanza di semigruppo non per `A` ma per `Array<A>` (ad essere pignoli è una istanza di semigruppo per gli array non vuoti di `A`), chiamata il **semigruppo libero** di `A`
+Un'altra tecnica è quella di definire una istanza di semigruppo non per `A` ma per `ReadonlyNonEmptyArray<A>` chiamata il **semigruppo libero** di `A`
 
 ```ts
-function getSemigroup<A = never>(): Semigroup<Array<A>> {
-  return {
-    concat: (x, y) => x.concat(y)
-  }
+import { Semigroup } from 'fp-ts/Semigroup'
+
+type ReadonlyNonEmptyArray<A> = ReadonlyArray<A> & {
+  readonly 0: A
 }
+
+const getSemigroup = <A = never>(): Semigroup<ReadonlyNonEmptyArray<A>> => ({
+  concat: (x, y) => [x[0], ...x.slice(1), ...y]
+})
 ```
 
-e poi mappare gli elementi di `A` ai "singoletti" di `Array<A>`, ovvero array con un solo elemento:
+e poi mappare gli elementi di `A` ai "singoletti" di `ReadonlyNonEmptyArray<A>`, ovvero array con un solo elemento:
 
 ```ts
-function of<A>(a: A): Array<A> {
-  return [a]
-}
+const of = <A>(a: A): ReadonlyNonEmptyArray<A> => [a]
 ```
-
-**Note**. Qui `concat` è il metodo nativo degli array, il che spiega la scelta iniziale del nome dell'operazione fondamentale dei semigruppi.
 
 Il semigruppo libero di `A` quindi non è altro che il semigruppo in cui gli elementi sono tutte le possibili sequenze finite e non vuote di elementi di `A`.
 
 Il semigruppo libero di `A` può essere visto come un modo *lazy* di concatenare elementi di `A`, mantenendo in tal modo tutto il contenuto informativo.
+
+**Esempio**
+
+```ts
+import { ReadonlyNonEmptyArray } from 'fp-ts/ReadonlyNonEmptyArray'
+import { fold, semigroupSum } from 'fp-ts/Semigroup'
+
+semigroupSum.concat(semigroupSum.concat(1, 2), 3) // => 6
+
+const ops: ReadonlyNonEmptyArray<number> = [1, 2, 3]
+
+fold(semigroupSum)(0)(ops) // => 6
+```
 
 Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di usare ugualmente il semigruppo libero perché:
 
@@ -498,8 +508,8 @@ Proviamo a definire delle istanze di semigruppo per tipi più complessi:
 import { Semigroup, semigroupSum } from 'fp-ts/Semigroup'
 
 type Point = {
-  x: number
-  y: number
+  readonly x: number
+  readonly y: number
 }
 
 const semigroupPoint: Semigroup<Point> = {
@@ -518,8 +528,8 @@ Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `getStructS
 import { getStructSemigroup, Semigroup, semigroupSum } from 'fp-ts/Semigroup'
 
 type Point = {
-  x: number
-  y: number
+  readonly x: number
+  readonly y: number
 }
 
 const semigroupPoint: Semigroup<Point> = getStructSemigroup({
@@ -532,8 +542,8 @@ Possiamo continuare e passare a `getStructSemigroup` l'istanza appena definita:
 
 ```ts
 type Vector = {
-  from: Point
-  to: Point
+  readonly from: Point
+  readonly to: Point
 }
 
 const semigroupVector: Semigroup<Vector> = getStructSemigroup({
@@ -550,7 +560,12 @@ Ci sono altri combinatori messi a disposizione da `fp-ts`, ecco un combinatore c
 
 ```ts
 import { Predicate } from 'fp-ts/function'
-import { getFunctionSemigroup, semigroupAll } from 'fp-ts/Semigroup'
+import { getFunctionSemigroup, Semigroup, semigroupAll } from 'fp-ts/Semigroup'
+
+type Point = {
+  readonly x: number
+  readonly y: number
+}
 
 /** `semigroupAll` is the boolean semigroup under conjunction */
 const semigroupPredicate: Semigroup<Predicate<Point>> = getFunctionSemigroup(

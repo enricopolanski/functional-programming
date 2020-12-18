@@ -57,7 +57,9 @@ export function disk(center: Point2D, radius: number): Shape2D {
 
 // distanza euclidea
 function distance(p1: Point2D, p2: Point2D) {
-  return Math.sqrt(Math.pow(Math.abs(p1.x - p2.x), 2) + Math.pow(Math.abs(p1.y - p2.y), 2))
+  return Math.sqrt(
+    Math.pow(Math.abs(p1.x - p2.x), 2) + Math.pow(Math.abs(p1.y - p2.y), 2)
+  )
 }
 
 import { Show } from 'fp-ts/lib/Show'
@@ -89,7 +91,12 @@ export const showShape2D: Show<Shape2D> = {
 
 */
 
-import { Monoid, getFunctionMonoid, monoidAll, monoidAny } from 'fp-ts/lib/Monoid'
+import {
+  Monoid,
+  getFunctionMonoid,
+  monoidAll,
+  monoidAny
+} from 'fp-ts/lib/Monoid'
 
 const intersect: Monoid<Shape2D> = getFunctionMonoid(monoidAll)()
 
@@ -103,7 +110,11 @@ export const union: Monoid<Shape2D> = getFunctionMonoid(monoidAny)()
 //   showShape2D.show(union.concat(disk({ x: -3, y: 0 }, 5), disk({ x: 3, y: 0 }, 5)))
 // )
 
-export const ring = (point: Point2D, bigRadius: number, smallRadius: number): Shape2D =>
+export const ring = (
+  point: Point2D,
+  bigRadius: number,
+  smallRadius: number
+): Shape2D =>
   intersect.concat(disk(point, bigRadius), outside(disk(point, smallRadius)))
 
 // console.log(showShape2D.show(ring({ x: 0, y: 0 }, 5, 3)))
