@@ -76,13 +76,13 @@
 > The idea is that there's some higher level than the code in which you need to be able to think precisely,
 > and that mathematics actually allows you to think precisely about it - Leslie Lamport
 
-L'obbiettivo della programmazione funzionale è dominare la complessità di un sistema usando _modelli_ formali e si pone particolare attenzione alle proprietà del codice.
+L'obbiettivo della programmazione funzionale è dominare la complessità di un sistema usando _modelli_ formali e si pone particolare attenzione alle **proprietà del codice**.
 
 > Functional programming will help teach people the mathematics behind program construction: how to write composable code, how to reason about effects, how to write consistent, general, less ad-hoc APIs
 
 **Esempio**
 
-Perché `map` è "più funzionale" di un ciclo `for`?
+Perché la funzione `map` di `Array` è "più funzionale" di un ciclo `for`?
 
 ```ts
 const xs = [1, 2, 3]
@@ -103,15 +103,19 @@ Un ciclo `for` è molto flessibile, posso modificare
 
 Ma ciò vuol dire anche che ci sono più possibilità di introdurre errori e non ho alcuna garanzia sul risultato.
 
+Vediamo ora come si utilizza `map`
+
 ```ts
 const ys = xs.map(double)
 ```
 
-Una `map` invece è meno flessibile ma mi dà delle garanzie: gli elementi dell'input verrano processati tutti dal primo all'ultimo e
-qualunque sia l'operazione che viene fatta nella callback, il risultato sarà sempre un array con lo stesso numero di elementi
-dell'array di input.
+Come potete notare `map` è meno flessibile tuttavia dà più delle garanzie:
 
-Dal punto di vista funzionale, ove sono importanti prima le proprietà del codice piuttosto che i dettagli implementativi, l'operazione `map` è interessante **proprio in quanto limitata**.
+- gli elementi dell'input verrano processati tutti dal primo all'ultimo
+- qualunque sia l'operazione che viene fatta nella callback, il risultato sarà sempre un array con lo stesso numero di elementi
+dell'array in input
+
+Dal punto di vista funzionale, ambito in cui sono importanti prima di tutto le proprietà del codice piuttosto che i dettagli implementativi, l'operazione `map` è interessante **proprio in quanto limitata**.
 
 # I due pilastri della programmazione funzionale
 
@@ -252,27 +256,42 @@ Ecco l'encoding di un magma in TypeScript (tramite una interfaccia):
 - l'operazione `*` è qui chiamata `concat`
 
 ```ts
-// fp-ts/Magma.ts
-
-// a volte mi sentirete chiamare questa definizione una "type class" invece che "interfaccia"
+// a volte potreste sentirmi chiamare questa definizione una "type class" invece che "interfaccia"
 interface Magma<A> {
-  readonly concat: (x: A, y: A) => A
+  readonly concat: (second: A) => (first: A) => A
 }
 ```
 
 **Esempio**
 
 ```ts
-// a volte mi sentirete chiamare questa definizione una "istanza" (della type class Magma)
+// a volte potreste sentirmi chiamare questa definizione una "istanza" (della type class Magma)
 const magmaSum: Magma<number> = {
-  concat: (x, y) => x + y
+  concat: (second) => (first) => first + second
 }
 
-magmaSum.concat(1, 3) // => 3
+import { pipe } from 'fp-ts/function'
+
+pipe(1, magmaSum.concat(2)) // => 3
+
+/*
+Per i linguaggi che supportano l'operatore `|>` ("pipe")
+la scrittura sopra è equivalente a:
+
+1 |> magmaSum.concat(2) // => 3
 ```
 
+**Quiz**. Consideriamo la seguente funzione:
 
-Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo un'algebra che ne definisce una: i semigruppi.
+```ts
+declare const fromArray: <A>(
+  M: Magma<A>
+) => (as: ReadonlyArray<readonly [string, A]>) => Record<string, A>
+```
+
+perchè c'è bisogno di una istanza di `Magma`?
+
+Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo ora un'algebra che ne definisce una: i semigruppi.
 
 ## Definizione generale
 
@@ -454,6 +473,8 @@ const getLastSemigroup = <A = never>(): Semigroup<A> => ({
   concat: (_, y) => y
 })
 ```
+
+L'utilità di questi due semigruppi è mostrata dall'esercizio `1.1`.
 
 **Quiz** (solo per gli interessati a TypeScript): Potete spiegare la presenza del default `= never` per il type parameter `A`?
 
@@ -872,6 +893,8 @@ const getOlder = max(byAge)
 getOlder({ name: 'Guido', age: 48 }, { name: 'Giulio', age: 45 }) // { name: 'Guido', age: 48 }
 ```
 
+**Quiz** TODO (fare un quiz sulla firma di una API di ReadonlyMap che ha bisogno di un Ord per funzionare e chiedere perchè?)
+
 Abbiamo visto in precedenza che i semigruppi sono di aiuto ogni volta che vogliamo "concatenare", fare merge o "combinare" (scegliete la parola che più si addice alla vostra intuizione a al caso d'uso) diversi dati in uno solo.
 
 C'è una altro modo di costruire una istanza di semigruppo per un tipo `A`: se abbiamo già una istanza di `Ord` per `A`, allora possiamo derivarne una di semigruppo.
@@ -1087,7 +1110,7 @@ Infatti non è possibile trovare un valore `empty` tale che `concat(x, empty) = 
 Infine possiamo costruire una istanza di monoide per struct come `Point`:
 
 ```ts
-type Point = {
+interface Point {
   x: number
   y: number
 }
@@ -1107,7 +1130,7 @@ const monoidPoint: Monoid<Point> = getStructMonoid({
 Possiamo andare oltre e passare a `getStructMonoid` l'istanza appena definita:
 
 ```ts
-type Vector = {
+interface Vector {
   from: Point
   to: Point
 }
