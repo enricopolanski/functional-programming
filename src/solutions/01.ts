@@ -1,8 +1,11 @@
-import { Magma } from './Magma'
+/**
+ * @category Magma
+ */
+import { Magma } from 'fp-ts/Magma'
 
 const fromArray = <A>(M: Magma<A>) => (
   as: ReadonlyArray<readonly [string, A]>
-): Record<string, A> => {
+): Readonly<Record<string, A>> => {
   const out: Record<string, A> = {}
   for (const [k, a] of as) {
     if (out.hasOwnProperty(k)) {

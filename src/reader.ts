@@ -64,7 +64,6 @@ declare const monadEmail: MonadEmail
 
 */
 
-import { pipeable } from 'fp-ts/pipeable'
 import { pipe } from 'fp-ts/function'
 
 /**
@@ -87,7 +86,7 @@ export const updateCustomerProfile1 = (
               T.map(() => true)
             )
           } else {
-            return T.task.of(false)
+            return T.of(false)
           }
         })
       )
@@ -155,33 +154,12 @@ export declare const updateCustomerProfile4: (
 
 /*
 
-  Avendo due monadi innestate (Reader e Task) conviene definire una terza
+  Avendo due monadi innestate (Reader e Task) conviene importare una terza
   monade che le comprende.
 
 */
 
-import { Monad2 } from 'fp-ts/Monad'
-import { getReaderM } from 'fp-ts/ReaderT'
-
-declare module 'fp-ts/HKT' {
-  interface URItoKind2<E, A> {
-    readonly ReaderTask: ReaderTask<E, A>
-  }
-}
-
-interface ReaderTask<E, A> extends Reader<E, T.Task<A>> {}
-
-const { map, ap, of, chain } = getReaderM(T.task)
-
-const monadReaderTask: Monad2<'ReaderTask'> = {
-  URI: 'ReaderTask',
-  map,
-  ap,
-  of,
-  chain
-}
-
-const RT = pipeable(monadReaderTask)
+import * as RT from 'fp-ts/ReaderTask'
 
 /*
 
@@ -190,18 +168,18 @@ const RT = pipeable(monadReaderTask)
 
 */
 
-const getEmail = (userId: number): ReaderTask<Deps, string> => (e) =>
+const getEmail = (userId: number): RT.ReaderTask<Deps, string> => (e) =>
   e.db.getEmail(userId)
 
 const updateProfile = (
   request: UpdateProfileRequest
-): ReaderTask<Deps, void> => (e) =>
+): RT.ReaderTask<Deps, void> => (e) =>
   e.db.updateProfile(request.userId, request.name, request.email)
 
 const sendEmailChangedNotification = (
   newEmail: string,
   oldEmail: string
-): ReaderTask<Deps, void> => {
+): RT.ReaderTask<Deps, void> => {
   return (e) => e.email.sendEmailChangedNotification(newEmail, oldEmail)
 }
 
@@ -213,7 +191,7 @@ const sendEmailChangedNotification = (
 
 const updateCustomerProfile5 = (
   request: UpdateProfileRequest
-): ReaderTask<Deps, boolean> =>
+): RT.ReaderTask<Deps, boolean> =>
   pipe(
     getEmail(request.userId),
     RT.chain((oldEmail) =>
@@ -226,7 +204,7 @@ const updateCustomerProfile5 = (
               RT.map(() => true)
             )
           } else {
-            return of(false)
+            return RT.of(false)
           }
         })
       )

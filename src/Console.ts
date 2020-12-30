@@ -1,5 +1,5 @@
 import { log } from 'fp-ts/Console'
-import { Task, task } from 'fp-ts/Task'
+import { fromIO, Task } from 'fp-ts/Task'
 import { createInterface } from 'readline'
 
 /** legge dallo standard input */
@@ -16,5 +16,4 @@ export const getLine: Task<string> = () =>
   })
 
 /** scrive dallo standard output */
-export const putStrLn = (message: string): Task<void> =>
-  task.fromIO(log(message))
+export const putStrLn = (message: string): Task<void> => fromIO(log(message))

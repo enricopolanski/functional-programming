@@ -289,7 +289,7 @@ declare const fromArray: <A>(
 ) => (as: ReadonlyArray<readonly [string, A]>) => Record<string, A>
 ```
 
-perchè c'è bisogno di una istanza di `Magma`?
+perchè c'è bisogno di una istanza di `Magma` come parametro?
 
 Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo ora un'algebra che ne definisce una: i semigruppi.
 

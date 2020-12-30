@@ -28,6 +28,7 @@ interface User {
 type Currency = 'USD' | 'CHF'
 
 import * as T from 'fp-ts/Task'
+import { pipe } from 'fp-ts/function'
 
 interface API {
   readonly fetchUser: (id: string) => T.Task<User>
@@ -59,19 +60,15 @@ const getAmountSync = (amount: number) => (rate: number): number =>
 
 */
 
-export function liftA2<A, B, C>(
-  f: (a: A) => (b: B) => C
-): (fa: T.Task<A>) => (fb: T.Task<B>) => T.Task<C> {
-  return (fa) => (fb) => T.task.ap(T.task.map(fa, f), fb)
-}
+export const liftA2 = <A, B, C>(f: (a: A) => (b: B) => C) => (
+  fa: T.Task<A>
+) => (fb: T.Task<B>): T.Task<C> => pipe(T.of(f), T.ap(fa), T.ap(fb))
 
 /*
 
   L'API finale
 
 */
-
-import { pipe } from 'fp-ts/function'
 
 const getResult = (api: API) => (
   userId: string,
@@ -112,5 +109,3 @@ const result: T.Task<number> = program('42', 'USD')
 // tslint:disable-next-line: no-floating-promises
 result().then(console.log)
 // 12
-
-// See also: `sequenceT`, `sequenceS` in `fp-ts/Apply`

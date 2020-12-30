@@ -51,7 +51,7 @@ const users: ReadonlyArray<User> = [
 // un ordinamento classico:
 // prima per nome, poi per età, poi per `rememberMe`
 
-const O1 = fold(S)(byName, [byAge, byRememberMe])
+const O1 = fold(S)(byName)([byAge, byRememberMe])
 console.log(sort(O1)(users))
 /*
 [ { id: 3, name: 'Giulio', age: 44, rememberMe: false },
@@ -63,7 +63,7 @@ console.log(sort(O1)(users))
 // adesso invece voglio tutti gli utenti con
 // `rememberMe = true` per primi
 
-const O2 = fold(S)(getDualOrd(byRememberMe), [byName, byAge])
+const O2 = fold(S)(getDualOrd(byRememberMe))([byName, byAge])
 console.log(sort(O2)(users))
 /*
 [ { id: 4, name: 'Giulio', age: 44, rememberMe: true },

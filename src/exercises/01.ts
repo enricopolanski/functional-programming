@@ -1,8 +1,11 @@
-import { Magma } from './Magma'
+/**
+ * @category Magma
+ */
+import { Magma } from 'fp-ts/Magma'
 
 declare const fromArray: <A>(
   M: Magma<A>
-) => (as: ReadonlyArray<readonly [string, A]>) => Record<string, A>
+) => (as: ReadonlyArray<readonly [string, A]>) => Readonly<Record<string, A>>
 
 // ------------------------------------
 // tests

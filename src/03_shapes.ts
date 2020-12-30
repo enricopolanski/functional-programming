@@ -29,9 +29,7 @@ export type Shape2D = Shape<Point2D>
 
 */
 
-export function outside2D(s: Shape2D): Shape2D {
-  return (point) => !s(point)
-}
+export const outside2D = (s: Shape2D): Shape2D => (point) => !s(point)
 
 /*
 
@@ -40,9 +38,7 @@ export function outside2D(s: Shape2D): Shape2D {
 
 */
 
-export function outside<S>(s: Shape<S>): Shape<S> {
-  return (point) => !s(point)
-}
+export const outside = <S>(s: Shape<S>): Shape<S> => (point) => !s(point)
 
 /*
 
@@ -51,18 +47,16 @@ export function outside<S>(s: Shape<S>): Shape<S> {
 
 */
 
-export function disk(center: Point2D, radius: number): Shape2D {
-  return (point) => distance(point, center) <= radius
-}
+export const disk = (center: Point2D, radius: number): Shape2D => (point) =>
+  distance(point, center) <= radius
 
 // distanza euclidea
-function distance(p1: Point2D, p2: Point2D) {
-  return Math.sqrt(
+const distance = (p1: Point2D, p2: Point2D) =>
+  Math.sqrt(
     Math.pow(Math.abs(p1.x - p2.x), 2) + Math.pow(Math.abs(p1.y - p2.y), 2)
   )
-}
 
-import { Show } from 'fp-ts/lib/Show'
+import { Show } from 'fp-ts/Show'
 
 export const showShape2D: Show<Shape2D> = {
   show: (s) => {
@@ -91,12 +85,8 @@ export const showShape2D: Show<Shape2D> = {
 
 */
 
-import {
-  Monoid,
-  getFunctionMonoid,
-  monoidAll,
-  monoidAny
-} from 'fp-ts/lib/Monoid'
+import { Monoid, getFunctionMonoid, monoidAll, monoidAny } from 'fp-ts/Monoid'
+import { pipe } from 'fp-ts/function'
 
 const intersect: Monoid<Shape2D> = getFunctionMonoid(monoidAll)()
 
@@ -115,7 +105,10 @@ export const ring = (
   bigRadius: number,
   smallRadius: number
 ): Shape2D =>
-  intersect.concat(disk(point, bigRadius), outside(disk(point, smallRadius)))
+  pipe(
+    disk(point, bigRadius),
+    intersect.concat(outside(disk(point, smallRadius)))
+  )
 
 // console.log(showShape2D.show(ring({ x: 0, y: 0 }, 5, 3)))
 

@@ -5,11 +5,11 @@
 */
 
 // import * as fs from 'fs'
-// import { URI, Task, task } from './node_modules/fp-ts/lib/Task'
-// import { array } from './node_modules/fp-ts/lib/Array'
-// import { sequence_ } from './node_modules/fp-ts/lib/Foldable'
-// import { URIS, Type } from 'fp-ts/lib/HKT'
-// import { Monad1 } from './node_modules/fp-ts/lib/Monad'
+// import { URI, Task, task } from './node_modules/fp-ts/Task'
+// import { array } from './node_modules/fp-ts/Array'
+// import { sequence_ } from './node_modules/fp-ts/Foldable'
+// import { URIS, Type } from 'fp-ts/HKT'
+// import { Monad1 } from './node_modules/fp-ts/Monad'
 
 // class Employee {
 //   constructor(

@@ -37,24 +37,20 @@ export interface RetryPolicy {
 /**
  * Constant delay with unlimited retries
  */
-export function constantDelay(delay: number): RetryPolicy {
-  return () => delay
-}
+export const constantDelay = (delay: number): RetryPolicy => () => delay
 
 /**
  * Retry immediately, but only up to `i` times.
  */
-export function limitRetries(i: number): RetryPolicy {
-  return (status) => (status.iterNumber >= i ? undefined : 0)
-}
+export const limitRetries = (i: number): RetryPolicy => (status) =>
+  status.iterNumber >= i ? undefined : 0
 
 /**
  * Grow delay exponentially each iteration.
  * Each delay will increase by a factor of two.
  */
-export function exponentialBackoff(delay: number): RetryPolicy {
-  return (status) => delay * Math.pow(2, status.iterNumber)
-}
+export const exponentialBackoff = (delay: number): RetryPolicy => (status) =>
+  delay * Math.pow(2, status.iterNumber)
 
 //
 // combinatori
@@ -64,28 +60,27 @@ export function exponentialBackoff(delay: number): RetryPolicy {
  * Set a time-upperbound for any delays that may be directed by the
  * given policy.
  */
-export function capDelay(maxDelay: number, policy: RetryPolicy): RetryPolicy {
-  return (status) => {
-    const delay = policy(status)
-    return delay === undefined ? undefined : Math.min(maxDelay, delay)
-  }
+export const capDelay = (
+  maxDelay: number,
+  policy: RetryPolicy
+): RetryPolicy => (status) => {
+  const delay = policy(status)
+  return delay === undefined ? undefined : Math.min(maxDelay, delay)
 }
 
 /**
  * Merges two policies.
  */
-export function concat(
+export const concat = (
   policy1: RetryPolicy,
   policy2: RetryPolicy
-): RetryPolicy {
-  return (status) => {
-    const delay1 = policy1(status)
-    const delay2 = policy2(status)
-    if (delay1 !== undefined && delay2 !== undefined) {
-      return Math.max(delay1, delay2)
-    }
-    return undefined
+): RetryPolicy => (status) => {
+  const delay1 = policy1(status)
+  const delay2 = policy2(status)
+  if (delay1 !== undefined && delay2 !== undefined) {
+    return Math.max(delay1, delay2)
   }
+  return undefined
 }
 
 //
@@ -100,16 +95,13 @@ export const myPolicy = capDelay(
 /**
  * Apply policy on status to see what the decision would be.
  */
-export function applyPolicy(
+export const applyPolicy = (
   policy: RetryPolicy,
   status: RetryStatus
-): RetryStatus {
-  const previousDelay = policy(status)
-  return {
-    iterNumber: status.iterNumber + 1,
-    previousDelay
-  }
-}
+): RetryStatus => ({
+  iterNumber: status.iterNumber + 1,
+  previousDelay: policy(status)
+})
 
 /**
  * Initial, default retry status. Exported mostly to allow user code
@@ -120,7 +112,7 @@ export const defaultRetryStatus: RetryStatus = {
   previousDelay: 0
 }
 
-export function run(policy: RetryPolicy): RetryStatus {
+export const run = (policy: RetryPolicy): RetryStatus => {
   let status = defaultRetryStatus
   while (status.previousDelay !== undefined) {
     status = applyPolicy(policy, status)
@@ -130,21 +122,19 @@ export function run(policy: RetryPolicy): RetryStatus {
 
 // console.log(run(myPolicy))
 
-export function withLogging(policy: RetryPolicy): RetryPolicy {
-  return (status) => {
-    const delay = policy(status)
-    console.log(
-      delay === undefined
-        ? 'Done.'
-        : status.iterNumber === 0
-        ? 'first attempt...'
-        : `retrying in ${delay} milliseconds...`
-    )
-    return delay
-  }
+export const withLogging = (policy: RetryPolicy): RetryPolicy => (status) => {
+  const delay = policy(status)
+  console.log(
+    delay === undefined
+      ? 'Done.'
+      : status.iterNumber === 0
+      ? 'first attempt...'
+      : `retrying in ${delay} milliseconds...`
+  )
+  return delay
 }
 
-// console.log(run(withLogging(myPolicy)))
+console.log(run(withLogging(myPolicy)))
 /*
 first attempt...                 <= exponentialBackoff
 retrying in 400 milliseconds...  <= exponentialBackoff
