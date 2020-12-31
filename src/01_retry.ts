@@ -8,9 +8,9 @@
 
 */
 
-//
-// modello
-//
+// -------------------------------------------------------------------------------------
+// model
+// -------------------------------------------------------------------------------------
 
 export interface RetryStatus {
   /** Iteration number, where `0` is the first try */
@@ -30,9 +30,9 @@ export interface RetryPolicy {
   (status: RetryStatus): number | undefined
 }
 
-//
-// primitive
-//
+// -------------------------------------------------------------------------------------
+// primitives
+// -------------------------------------------------------------------------------------
 
 /**
  * Constant delay with unlimited retries
@@ -52,9 +52,9 @@ export const limitRetries = (i: number): RetryPolicy => (status) =>
 export const exponentialBackoff = (delay: number): RetryPolicy => (status) =>
   delay * Math.pow(2, status.iterNumber)
 
-//
-// combinatori
-//
+// -------------------------------------------------------------------------------------
+// combinators
+// -------------------------------------------------------------------------------------
 
 /**
  * Set a time-upperbound for any delays that may be directed by the
@@ -83,9 +83,9 @@ export const concat = (
   return undefined
 }
 
-//
-// test
-//
+// -------------------------------------------------------------------------------------
+// tests
+// -------------------------------------------------------------------------------------
 
 export const myPolicy = capDelay(
   2000,

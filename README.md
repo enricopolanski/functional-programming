@@ -76,19 +76,25 @@
 > The idea is that there's some higher level than the code in which you need to be able to think precisely,
 > and that mathematics actually allows you to think precisely about it - Leslie Lamport
 
-L'obbiettivo della programmazione funzionale è dominare la complessità di un sistema usando _modelli_ formali e si pone particolare attenzione alle **proprietà del codice**.
+L'obbiettivo della programmazione funzionale è dominare la complessità di un sistema usando _modelli_ formali, ponendo particolare attenzione alle **proprietà del codice** e alla facilità di **refactoring**.
 
-> Functional programming will help teach people the mathematics behind program construction: how to write composable code, how to reason about effects, how to write consistent, general, less ad-hoc APIs
+> Functional programming will help teach people the mathematics behind program construction:
+> - how to write composable code
+> - how to reason about effects
+> - how to write consistent, general, less ad-hoc APIs
 
 **Esempio**
 
-Perché la funzione `map` di `Array` è "più funzionale" di un ciclo `for`?
+Perché possiamo dire che la funzione `map` di `Array` è "più funzionale" di un ciclo `for`?
 
 ```ts
-const xs = [1, 2, 3]
+// input
+const xs: Array<number> = [1, 2, 3]
 
+// trasformazione
 const double = (n: number): number => n * 2
 
+// risultato
 const ys: Array<number> = []
 for (let i = 0; i < xs.length; i++) {
   ys.push(double(xs[i]))
@@ -101,26 +107,31 @@ Un ciclo `for` è molto flessibile, posso modificare
 - la condizione di fine
 - il passo
 
-Ma ciò vuol dire anche che ci sono più possibilità di introdurre errori e non ho alcuna garanzia sul risultato.
+Ma ciò vuol dire anche che ci sono più possibilità di introdurre **errori** e non ho alcuna **garanzia sul risultato**.
 
 Vediamo ora come si utilizza `map`
 
 ```ts
+// risultato
 const ys = xs.map(double)
 ```
 
-Come potete notare `map` è meno flessibile tuttavia dà più delle garanzie:
+Notate come `map` sia meno flessibile, tuttavia dà più garanzie:
 
 - gli elementi dell'input verrano processati tutti dal primo all'ultimo
 - qualunque sia l'operazione che viene fatta nella callback, il risultato sarà sempre un array con lo stesso numero di elementi
 dell'array in input
 
-Dal punto di vista funzionale, ambito in cui sono importanti prima di tutto le proprietà del codice piuttosto che i dettagli implementativi, l'operazione `map` è interessante **proprio in quanto limitata**.
+Dal punto di vista funzionale, ambito in cui sono importanti le proprietà del codice piuttosto che i dettagli implementativi, l'operazione `map` è interessante **proprio in quanto limitata**.
+
+Pensate per esempio a quanto sia più facile la review di una PR che coinvolga una `map` rispetto ad un ciclo `for`.
 
 # I due pilastri della programmazione funzionale
 
 - trasparenza referenziale
-- composizione (come design pattern universale)
+- composizione come design pattern universale
+
+Tutto ciò che vedremo in seguito deriva direttamente o indirettamente da questi due pilastri.
 
 ## Trasparenza referenziale
 
@@ -135,14 +146,16 @@ const x = double(2)
 const y = double(2)
 ```
 
-L'espressione `double(2)` gode della proprietà di trasparenza referenziale perchè posso sostituirla con il suo valore
+L'espressione `double(2)` gode della proprietà di trasparenza referenziale perchè posso sostituirla con il suo valore `4`.
+
+Posso perciò tranquillamente procedere con il seguente refactoring
 
 ```ts
 const x = 4
 const y = x
 ```
 
-Non tutte le espressioni godono della proprietà di trasparenza referenziale, vediamo un esempio.
+Non tutte le espressioni godono della proprietà di trasparenza referenziale, vediamo un esempio
 
 **Esempio**
 
@@ -155,7 +168,7 @@ const inverse = (n: number): number => {
 const x = inverse(0) + 1
 ```
 
-Non posso sostituire l'espressione `inverse(0)` con il suo valore, perciò non gode della proprietà di trasparenza referenziale.
+Non posso sostituire l'espressione `inverse(0)` con il suo valore, perciò l'espressione non gode della proprietà di trasparenza referenziale.
 
 Perchè è così importante la trasparenza referenziale? Perchè permette di:
 
@@ -184,9 +197,11 @@ const y = x
 Il pattern fondamentale della programmazione funzionale è la _componibilità_, ovvero la costruzione di piccole unità
 che fanno qualcosa di specifico in grado di essere combinate al fine di ottenere entità più grandi e complesse.
 
-Ad un livello più alto si spinge verso la _programmazione modulare_
+Possiamo parlare di _programmazione modulare_
 
 > By modular programming I mean the process of building large programs by gluing together smaller programs - Simon Peyton Jones
+
+Vediamo nella pratica come è possibile tendere verso questo stile di programmazione attraverso quelli che vengono chiamati *combinatori*.
 
 ### Combinatori
 
@@ -194,7 +209,7 @@ Il termine **combinatore** si riferisce al [combinator pattern](https://wiki.has
 
 > A style of organizing libraries centered around the idea of combining things. Usually there is some type `T`, some "primitive" values of type `T`, and some "combinators" which can combine values of type `T` in various ways to build up more complex values of type `T`
 
-La forma generale di un combinatore è:
+La forma più semplice di un combinatore è questa:
 
 ```ts
 combinator: Thing -> Thing
@@ -203,8 +218,6 @@ combinator: Thing -> Thing
 Lo scopo di un combinatore è quello di creare nuove "cose" da "cose" definite precedentemente.
 
 Dato che il risultato può essere nuovamente passato come input, si ottiene una esplosione combinatoria di possibilità, il che rende questo pattern molto potente.
-
-Se si mischiano diversi combinatori insieme, si ottiene una esplosione combinatoria ancora più grande.
 
 Perciò il design generale che potete spesso trovare in un modulo funzionale è questo:
 
@@ -221,9 +234,7 @@ Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat
 
 # Semigruppi
 
-Potremmo accostare al termine "programmazione funzionale" quello di "programmazione algebrica"
-
-> Le algebre possono essere considerate dei design pattern della programmazione funzionale
+Un semigruppo è un'algebra e le algebre possono essere considerate tra i migliori design pattern che offre la programmazione funzionale.
 
 Ma cosa si intende con il termine **algebra**?
 
