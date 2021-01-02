@@ -1,5 +1,6 @@
 Lo scopo di questo corso é:
 
-- mostrare le principali astrazioni su cui si fonda la programmazione funzionale
-- fornirvi il minimo contesto teorico di cui avete bisogno per poter ustilizzare una libreria funzionale
-- rendervi il più possibile indipendenti nelle vostre ricerche di ulteriori risorse funzionali online
+- spiegare i principi su cui si fonda la programmazione funzionale
+- fornirvi il contesto teorico di cui avete bisogno per poter utilizzare e scrivere codice in stile funzionale
+- mostrare le principali astrazioni utilizzate in programmazione funzionale
+- rendervi indipendenti nelle vostre ricerche di ulteriori risorse funzionali online
