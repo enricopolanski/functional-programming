@@ -252,6 +252,8 @@ sono permesse solo le operazioni definite dall'algebra in oggetto e **in conform
 
 Vediamo un primo semplice esempio di algebra (senza leggi), il magma.
 
+## Definizione matematica di magma e sua implementazione in TypeScript
+
 **Definizione**. Sia `A` un insieme non vuoto e `*` un'operazione binaria `*: A × A ⟶ A`,
 allora la coppia `(A, *)` si chiama _magma_.
 
@@ -305,9 +307,9 @@ perchè c'è bisogno di una istanza di `Magma` come parametro?
 
 Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo ora un'algebra che definisce una legge: i semigruppi.
 
-## Definizione generale
+## Definizione matematica di semigruppo e sua implementazione in TypeScript
 
-Sia `(A, *)` un magma, se `*` è **associativa** allora è un _semigruppo_.
+**Definizione**. Sia `(A, *)` un magma, se `*` è **associativa** allora è un _semigruppo_.
 
 Il termine "associativa" vuol dire che l'equazione:
 
@@ -346,8 +348,6 @@ Ci sono molti esempi familiari di semigruppi:
 - `(string, +)` dove `+` è l'usuale concatenazione di stringhe
 - `(boolean, &&)` dove `&&` è l'usuale congiunzione
 - `(boolean, ||)` dove `||` è l'usuale disgiunzione
-
-## Implementazione
 
 Come già successo per `Magma`, l'algebra semigruppo può essere implementata con una `interface` di TypeScript:
 
@@ -616,96 +616,115 @@ const v2: Vector = [1, 2]
 console.log(pipe(v1, semigroupVector.concat(v2))) // => [2, 3]
 ```
 
-TODO: preparare una demo sui semigruppi
+**Quiz**. E' vero che dato un semigruppo per `A` e scelto un qualsiasi elemento di `A`, se lo infilo tra i due parametri di `concat`, ottengo ancora un semigruppo?
 
--- FINE --
+```ts
+import { pipe } from 'fp-ts/function'
+import { Semigroup, semigroupString } from 'fp-ts/Semigroup'
+
+export const getIntercalateSemigroup = <A>(a: A) => (
+  S: Semigroup<A>
+): Semigroup<A> => ({
+  concat: (second) => (first) => pipe(first, S.concat(a), S.concat(second))
+})
+
+const S = getIntercalateSemigroup(' + ')(semigroupString)
+
+console.log(pipe('a', S.concat('b'), S.concat('c'))) // => 'a + b + c'
+```
 
 ## Uguaglianza e ordinamento
 
-Dato che `number` è **totalmente ordinabile** (ovvero dati due qualsiasi numeri `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) possiamo definire due ulteriori istanze di semigruppo usando `min` (o `max`) come operazioni:
+Dato che `number` è **totalmente ordinabile** (ovvero dati due qualsiasi numeri `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) possiamo definire due sue ulteriori istanze di semigruppo usando `min` (o `max`) come operazioni:
 
 ```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
 const meet: Semigroup<number> = {
-  concat: (x, y) => Math.min(x, y)
+  concat: (second) => (first) => Math.min(first, second)
 }
 
 const join: Semigroup<number> = {
-  concat: (x, y) => Math.max(x, y)
+  concat: (second) => (first) => Math.max(first, second)
 }
 ```
 
-**Quiz**. Perché è così importante che `number` sia *totalmente* ordinabile?
+**Quiz**. Perché è importante che `number` sia *totalmente* ordinabile?
 
-È possibile catturare la nozione di totalmente ordinabile per altri tipi oltre a `number`? Per farlo prima dobbiamo catturare la nozione di *uguaglianza*.
+Sarebbe utile poter definire questi due semigruppi (`meet` e `join`) anche per altri tipi oltre a `number`.
+
+È possibile catturare la nozione di totalmente ordinabile per altri tipi? Per farlo dobbiamo prima di tutto catturare la nozione di *uguaglianza*.
 
 # Eq
 
-Le *relazioni di equivalenza* catturano il concetto di **uguaglianza** di elementi appartenenti ad uno stesso insieme. Il concetto di relazione di equivalenza può essere implementato in TypeScript con la seguente type class:
+Ancora una volta possiamo catturare la nozione di uguaglianza utilizzando una `interface`
 
 ```ts
 interface Eq<A> {
-  readonly equals: (x: A, y: A) => boolean
+  readonly equals: (second: A) => (first: A) => boolean
 }
 ```
 
 Intuitivamente:
 
-- se `equals(x, y) = true` allora `x = y`
-- se `equals(x, y) = false` allora `x ≠ y`
+- se `x |> equals(y)` è uguale a `true` allora diciamo che `x` e `y` sono uguali
+- se `x |> equals(y)` è uguale a `false` allora diciamo che `x` e `y` sono diversi
 
 **Esempio**
 
-Ecco un esempio di istanza di `Eq` per il tipo `number`:
+Proviamo a definire una istanza di `Eq` per il tipo `number`:
 
 ```ts
 import { Eq } from 'fp-ts/Eq'
 
 const eqNumber: Eq<number> = {
-  equals: (x, y) => x === y
+  equals: (second) => (first) => first === second
 }
+
+console.log(pipe(1, eqNumber.equals(1))) // => true
+console.log(pipe(1, eqNumber.equals(2))) // => false
 ```
 
 Devono valere le seguenti leggi:
 
-1. **Reflexivity**: `equals(x, x) === true`, per ogni `x` in `A`
-2. **Symmetry**: `equals(x, y) === equals(y, x)`, per ogni `x`, `y` in `A`
-3. **Transitivity**: se `equals(x, y) === true` e `equals(y, z) === true`, allora `equals(x, z) === true`, per ogni `x`, `y`, `z` in `A`
+1. **Reflexivity**: `a |> equals(a) === true`, per ogni `a` in `A`
+2. **Symmetry**: `a |> equals(b) === b |> equals(a)`, per ogni `a`, `b` in `A`
+3. **Transitivity**: se `a |> equals(b) === true` e `b |> equals(c) === true`, allora `a |> equals(c) === true`, per ogni `a`, `b`, `c` in `A`
 
 **Esempio**
 
-Un programmatore può quindi definire una funzione `elem` (che indica se un valore compare in un array) nel modo seguente:
+Come primo esempio di utilizzo definiamo una funzione `elem` che indica se un dato valore è un elemento di in un `ReadonlyArray`:
 
 ```ts
-function elem<A>(E: Eq<A>): (a: A, as: Array<A>) => boolean {
-  return (a, as) => as.some(item => E.equals(item, a))
-}
+import { Eq, eqNumber } from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
 
-elem(eqNumber)(1, [1, 2, 3]) // true
-elem(eqNumber)(4, [1, 2, 3]) // false
+const elem = <A>(E: Eq<A>) => (a: A) => (as: ReadonlyArray<A>): boolean =>
+  as.some((item) => E.equals(a)(item))
+
+console.log(pipe([1, 2, 3], elem(eqNumber)(2))) // => true
+console.log(pipe([1, 2, 3], elem(eqNumber)(4))) // => false
 ```
 
-Proviamo a definire delle istanze per tipi più complessi
+Proviamo a definire una istanza per un tipo più complesso
 
 ```ts
+import { Eq } from 'fp-ts/Eq'
+
 type Point = {
-  x: number
-  y: number
+  readonly x: number
+  readonly y: number
 }
 
 const eqPoint: Eq<Point> = {
-  equals: (p1, p2) => p1.x === p2.x && p1.y === p2.y
+  equals: (second) => (first) => first.x === second.x && first.y === second.y
 }
+
+console.log(pipe({ x: 1, y: 2 }, eqPoint.equals({ x: 1, y: 2 }))) // => true
+console.log(pipe({ x: 1, y: 2 }, eqPoint.equals({ x: 1, y: -2 }))) // => false
 ```
 
-Possiamo anche tentare di ottimizzare `equals` testando prima se sussiste una *reference equality* (vedi `fromEquals` di `fp-ts`):
-
-```ts
-const eqPoint: Eq<Point> = {
-  equals: (p1, p2) => p1 === p2 || (p1.x === p2.x && p1.y === p2.y)
-}
-```
-
-Troppo boilerplate? La buona notizia è che possiamo costruire una istanza di `Eq` per una struct come `Point` se siamo in grado di fornire una istanza di `Eq` per ogni suo campo.
+Troppo boilerplate? La buona notizia è che la teoria ci dice che possiamo costruire una istanza di `Eq` per una struct come `Point` se siamo in grado di fornire una istanza di `Eq` per ogni suo campo.
 
 Convenientemente il modulo `fp-ts/Eq` esporta un combinatore `getStructEq`:
 
@@ -718,74 +737,82 @@ const eqPoint: Eq<Point> = getStructEq({
 })
 ```
 
-Possiamo continuare e passare a `getStructEq` l'istanza appena definita:
+**Nota**. Esiste un combinatore simile a `getStructEq` ma che lavora con le tuple: `getTupleEq`
 
 ```ts
-type Vector = {
-  from: Point
-  to: Point
-}
+import { Eq, eqNumber, getTupleEq } from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
 
-const eqVector: Eq<Vector> = getStructEq({
-  from: eqPoint,
-  to: eqPoint
-})
+type Point = readonly [number, number]
+
+const eqPoint: Eq<Point> = getTupleEq<Point>(eqNumber, eqNumber)
+
+console.log(pipe([1, 2], eqPoint.equals([1, 2]))) // => true
+console.log(pipe([1, 2], eqPoint.equals([1, -2]))) // => false
 ```
 
-**Nota**. Esiste un combinatore simile a `getStructEq` ma che lavora con le tuple: `getTupleEq`.
-
-Ci sono altri combinatori messi a disposizione da `fp-ts`, ecco un combinatore che permette di derivare una istanza di `Eq` per gli array:
+Ci sono altri combinatori messi a disposizione da `fp-ts`, ecco un combinatore che permette di derivare una istanza di `Eq` per i `ReadonlyArray`:
 
 ```ts
-import { getEq } from 'fp-ts/Array'
-
-const eqArrayOfPoints: Eq<Array<Point>> = getEq(eqPoint)
+const eqArrayOfPoints: Eq<ReadonlyArray<Point>> = getEq(eqPoint)
 ```
 
-Infine un altro utile combinatore per costruire nuove istanze di `Eq` è il combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
+Un altro utile combinatore per costruire nuove istanze di `Eq` è il combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
 
 ```ts
 import { contramap, eqNumber } from 'fp-ts/Eq'
-import { pipe } from 'fp-ts/pipeable'
+import { pipe } from 'fp-ts/function'
 
 type User = {
-  userId: number
-  name: string
+  readonly id: number
+  readonly name: string
 }
 
-/** two users are equal if their `userId` field is equal */
+/** due utenti sono uguali se sono uguali il loro campi `id` */
 const eqUser = pipe(
   eqNumber,
-  contramap((user: User) => user.userId)
+  contramap((user: User) => user.id)
 )
 
-eqUser.equals({ userId: 1, name: 'Giulio' }, { userId: 1, name: 'Giulio Canti' }) // true
-eqUser.equals({ userId: 1, name: 'Giulio' }, { userId: 2, name: 'Giulio' }) // false
+console.log(
+  pipe(
+    { id: 1, name: 'Giulio' },
+    eqUser.equals({ id: 1, name: 'Giulio Canti' })
+  )
+) // => true (nonostante le proprietà `name` siano diverse)
+
+console.log(
+  pipe({ id: 1, name: 'Giulio' }, eqUser.equals({ id: 2, name: 'Giulio' }))
+) // => false (nonostante le proprietà `name` siano uguali)
 ```
 
-**Spoiler**. `contramap` è l'operazione fondamentale dei [funtori controvarianti](#funtori-controvarianti).
-
-## Relazioni di equivalenza come partizioni
-
-Definire una istanza di `Eq` per `A` equivale a definire una *partizione* di `A` in cui due
-elementi `x`, `y` in `A` appartengono alla stessa partizione se e solo se `equals(x, y) = true`.
-
-**Osservazione**. Ogni funzione `f: A ⟶ B` induce una istanza di `Eq` su `A` definita da
+Aver catturato il concetto di uguaglianza è fondamentale, sopratutto in un linguaggio come JavaScript in cui alcune strutture dati possiedono delle API poco usabili rispetto ad un concetto di uguaglianza custom. E' il caso di `Set` per esempio:
 
 ```ts
-equals(x, y) = (f(x) = f(y))
+type User = {
+  readonly id: number
+  readonly name: string
+}
+
+const user: User = { id: 1, name: 'Giulio' }
+
+const users: Set<User> = new Set([user])
+
+users.add(user)
+
+console.log(users)
+// => Set { { id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio' } }
 ```
 
-per ogni `x`, `y` in `A`.
+Dato che JavaScript utilizza `===` come concetto di uguaglianza `users` ora contiene **due copie identiche** di `user`, un risultato certo non voluto. Conviene perciò definire una nuova API che sfrutti l'astrazione `Eq`.
 
-**Spoiler**. Vedremo come questa nozione ci sarà utile nella demo: `03_shapes.ts`
+**Quiz**. Che firma potrebbe avere questa nuova API?
 
 # Ord
 
 Nel capitolo precedente riguardante `Eq` avevamo a che fare con il concetto di **uguaglianza**. In questo capitolo avremo a che fare con il concetto di **ordinamento**.
 
-
-Il concetto di relazione d'ordine totale può essere implementato in TypeScript con la seguente type class:
+Il concetto di **relazione d'ordine totale** può essere implementato in TypeScript con la seguente `interface`:
 
 ```ts
 import { Eq } from 'fp-ts/Eq'
@@ -793,64 +820,68 @@ import { Eq } from 'fp-ts/Eq'
 type Ordering = -1 | 0 | 1
 
 interface Ord<A> extends Eq<A> {
-  readonly compare: (x: A, y: A) => Ordering
+  readonly compare: (second: A) => (first: A) => Ordering
 }
 ```
 
 Intuitivamente:
 
-- `x < y` se e solo se `compare(x, y) = -1`
-- `x = y` se e solo se `compare(x, y) = 0`
-- `x > y` se e solo se `compare(x, y) = 1`
+- `x < y` se e solo se `x |> compare(y) = -1`
+- `x = y` se e solo se `x |> compare(y) = 0`
+- `x > y` se e solo se `x |> compare(y) = 1`
 
-Di conseguenza possiamo dire che `x <= y` se e solo se `compare(x, y) <= 0`
+Di conseguenza possiamo dire che `x <= y` se e solo se `x |> compare(y) <= 0`
 
 **Esempio**
 
-Ecco un esempio di istanza di `Ord` per il tipo `number`:
+Proviamo a definire una istanza di `Ord` per il tipo `number`:
 
 ```ts
 const ordNumber: Ord<number> = {
-  equals: (x, y) => x === y,
-  compare: (x, y) => (x < y ? -1 : x > y ? 1 : 0)
+  equals: (second) => (first) => first === second,
+  compare: (second) => (first) => (first < second ? -1 : first > second ? 1 : 0)
 }
 ```
 
 Devono valere le seguenti leggi:
 
-1. **Reflexivity**: `compare(x, x) <= 0`, per ogni `x` in `A`
-2. **Antisymmetry**: se `compare(x, y) <= 0` e `compare(y, x) <= 0` allora `x = y`, per ogni `x`, `y` in `A`
-3. **Transitivity**: se `compare(x, y) <= 0` e `compare(y, z) <= 0` allora `compare(x, z) <= 0`, per ogni `x`, `y`, `z` in `A`
+1. **Reflexivity**: `x |> compare(x) <= 0`, per ogni `x` in `A`
+2. **Antisymmetry**: se `x |> compare(y) <= 0` e `compare(y, x) <= 0` allora `x = y`, per ogni `x`, `y` in `A`
+3. **Transitivity**: se `x |> compare(y) <= 0` e `compare(y, z) <= 0` allora `compare(x, z) <= 0`, per ogni `x`, `y`, `z` in `A`
 
 In più `compare` deve essere compatibile con l'operazione `equals` di `Eq`:
 
-`compare(x, y) === 0` se e solo se `equals(x, y) === true`, per ogni `x`, `y` in `A`
+`x |> compare(y) === 0` se e solo se `x |> equals(y) === true`, per ogni `x`, `y` in `A`
 
-**Nota**. `equals` può essere derivato legalmente da `compare` nel modo seguente:
+**Nota**. `equals` può essere derivato da `compare` nel modo seguente
 
 ```ts
-equals: (x, y) => compare(x, y) === 0
+equals: (second) => (first) => pipe(first, compare(second)) === 0
 ```
 
-Infatti il modulo `fp-ts/Ord` esporta un comodo helper `fromCompare` che permette di definire una istanza di `Ord` semplicemente specificando la funzione `compare`:
+Perciò il modulo `fp-ts/Ord` esporta un comodo helper `fromCompare` che permette di definire una istanza di `Ord` semplicemente specificando la funzione `compare`
 
 ```ts
 import { fromCompare, Ord } from 'fp-ts/Ord'
 
-const ordNumber: Ord<number> = fromCompare((x, y) => (x < y ? -1 : x > y ? 1 : 0))
+const ordNumber: Ord<number> = fromCompare((second) => (first) =>
+  first < second ? -1 : first > second ? 1 : 0
+)
 ```
 
-Un programmatore può quindi definire una funzione `min` (che restituisce il minimo fra due valori) nel modo seguente:
+Come primo esempio di utilizzo definiamo una funzione `min` che restituisce il minimo fra due valori
 
 ```ts
-function min<A>(O: Ord<A>): (x: A, y: A) => A {
-  return (x, y) => (O.compare(x, y) === 1 ? y : x)
-}
+import { pipe } from 'fp-ts/function'
+import { Ord, ordNumber } from 'fp-ts/Ord'
 
-min(ordNumber)(2, 1) // 1
+const min = <A>(O: Ord<A>) => (second: A) => (first: A): A =>
+  O.compare(second)(first) === 1 ? second : first
+
+console.log(pipe(2, min(ordNumber)(1))) // => 1
 ```
 
-La **totalità** (ovvero dati due qualsiasi `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) può sembrare ovvia quando parliamo di numeri, ma non è sempre così. Consideriamo un caso più complesso:
+La **totalità** dell'ordinamento (ovvero dati due qualsiasi `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) può sembrare ovvia quando parliamo di numeri, ma non è sempre così. Consideriamo un caso più complesso
 
 ```ts
 type User = {
@@ -878,8 +909,6 @@ const byAge: Ord<User> = pipe(
   contramap((user: User) => user.age)
 )
 ```
-
-**Spoiler**. `contramap` è l'operazione fondamentale dei [funtori controvarianti](#funtori-controvarianti).
 
 Ora possiamo ottenere il più giovane di due utenti usando `min`:
 
