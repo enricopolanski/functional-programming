@@ -370,12 +370,12 @@ Implementiamo un semigruppo per gli `Array<string>`
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-const semigroupArray: Semigroup<Array<string>> = {
+const semigroupReadonlyArray: Semigroup<ReadonlyArray<string>> = {
   concat: (second) => (first) => first.concat(second)
 }
 ```
 
-Come potete vedere il nome `concat` ha particolarmente senso per gli array ma, in base al contesto e al tipo `A` per il quale stiamo implementando una istanza, l'operazione di semigruppo `concat` può essere interpretata con diversi significati:
+Come potete vedere il nome `concat` ha particolarmente senso per i `ReadonlyArray` ma, in base al contesto e al tipo `A` per il quale stiamo implementando una istanza, l'operazione di semigruppo `concat` può essere interpretata con diversi significati:
 
 - "concatenare"
 - "combinare"
@@ -885,24 +885,39 @@ La **totalità** dell'ordinamento (ovvero dati due qualsiasi `x` e `y`, una tra 
 
 ```ts
 type User = {
-  name: string
-  age: number
+  readonly name: string
+  readonly age: number
 }
 ```
 
 Come possiamo definire un `Ord<User>`?
 
-Dipende davvero dal contesto, ma una possibile scelta è quella per esempio di ordinare gli utenti a seconda della loro età:
+Dipende davvero dal contesto, ma una possibile scelta potrebbe essere quella per esempio di ordinare gli utenti a seconda della loro età:
 
 ```ts
-const byAge: Ord<User> = fromCompare((x, y) => ordNumber.compare(x.age, y.age))
+import { pipe } from 'fp-ts/function'
+import { fromCompare, Ord, ordNumber } from 'fp-ts/Ord'
+
+type User = {
+  readonly name: string
+  readonly age: number
+}
+
+const byAge: Ord<User> = fromCompare((second) => (first) =>
+  pipe(first.age, ordNumber.compare(second.age))
+)
 ```
 
 Possiamo eliminare un po' di boilerplate usando il combinatore `contramap`: data una istanza di `Ord` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Ord` per `B`:
 
 ```ts
-import { contramap } from 'fp-ts/Ord'
-import { pipe } from 'fp-ts/pipeable'
+import { pipe } from 'fp-ts/function'
+import { contramap, Ord, ordNumber } from 'fp-ts/Ord'
+
+type User = {
+  readonly name: string
+  readonly age: number
+}
 
 const byAge: Ord<User> = pipe(
   ordNumber,
@@ -910,65 +925,82 @@ const byAge: Ord<User> = pipe(
 )
 ```
 
-Ora possiamo ottenere il più giovane di due utenti usando `min`:
+Ora possiamo ottenere il più giovane di due utenti usando la funzione `min` che abbiamo precedentemente definito
 
 ```ts
+// const getYounger: (second: User) => (first: User) => User
 const getYounger = min(byAge)
 
-getYounger({ name: 'Guido', age: 48 }, { name: 'Giulio', age: 45 }) // { name: 'Giulio', age: 45 }
+console.log(
+  pipe({ name: 'Guido', age: 50 }, getYounger({ name: 'Giulio', age: 47 }))
+) // { name: 'Giulio', age: 47 }
 ```
 
-E se invece volessimo ottenere il più vecchio? Dobbiamo invertire l'ordine, o più tecnicamente, ottenere l'ordine **duale**.
-
-Fortunatamente c'è un altro combinatore per questo:
+**Quiz**. Nel modulo `fp-ts/ReadonlyMap` è contenuta la seguente API
 
 ```ts
-import { getDualOrd } from 'fp-ts/Ord'
+/**
+ * Get a sorted `ReadonlyArray` of the keys contained in a `ReadonlyMap`.
+ */
+declare const keys: <K>(O: Ord<K>) => <A>(m: ReadonlyMap<K, A>) => ReadonlyArray<K>
+```
 
-function max<A>(O: Ord<A>): (x: A, y: A) => A {
-  return min(getDualOrd(O))
+per quale motivo questa API richiede un `Ord<K>`?
+
+Torniamo finalmente al quesito iniziale: definire i due semigruppi `meet` e `join` anche per altri tipi oltre a `number`.
+
+Ora che abbiamo a disposizione l'astrazione `Ord` possiamo farlo
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { contramap, max, min, Ord, ordNumber } from 'fp-ts/Ord'
+import { Semigroup } from 'fp-ts/Semigroup'
+
+export const getMeetSemigroup = <A>(O: Ord<A>): Semigroup<A> => ({
+  concat: min(O)
+})
+
+export const getJoinSemigroup = <A>(O: Ord<A>): Semigroup<A> => ({
+  concat: max(O)
+})
+
+type User = {
+  readonly name: string
+  readonly age: number
 }
 
-const getOlder = max(byAge)
+const byAge: Ord<User> = pipe(
+  ordNumber,
+  contramap((user: User) => user.age)
+)
 
-getOlder({ name: 'Guido', age: 48 }, { name: 'Giulio', age: 45 }) // { name: 'Guido', age: 48 }
-```
-
-**Quiz** TODO (fare un quiz sulla firma di una API di ReadonlyMap che ha bisogno di un Ord per funzionare e chiedere perchè?)
-
-Abbiamo visto in precedenza che i semigruppi sono di aiuto ogni volta che vogliamo "concatenare", fare merge o "combinare" (scegliete la parola che più si addice alla vostra intuizione a al caso d'uso) diversi dati in uno solo.
-
-C'è una altro modo di costruire una istanza di semigruppo per un tipo `A`: se abbiamo già una istanza di `Ord` per `A`, allora possiamo derivarne una di semigruppo.
-
-In realtà possiamo derivarne **due**:
-
-```ts
-import { ordNumber } from 'fp-ts/Ord'
-import { getJoinSemigroup, getMeetSemigroup, Semigroup } from 'fp-ts/Semigroup'
-
-/** Takes the minimum of two values */
-const semigroupMin: Semigroup<number> = getMeetSemigroup(ordNumber)
-
-/** Takes the maximum of two values  */
-const semigroupMax: Semigroup<number> = getJoinSemigroup(ordNumber)
-
-semigroupMin.concat(2, 1) // 1
-semigroupMax.concat(2, 1) // 2
+console.log(
+  pipe(
+    { name: 'Guido', age: 50 },
+    getMeetSemigroup(byAge).concat({ name: 'Giulio', age: 47 })
+  )
+) // => { name: 'Giulio', age: 47 }
+console.log(
+  pipe(
+    { name: 'Guido', age: 50 },
+    getJoinSemigroup(byAge).concat({ name: 'Giulio', age: 47 })
+  )
+) // => { name: 'Guido', age: 50 }
 ```
 
 **Esempio**
 
 Ricapitoliamo tutto con un esempio finale (adattato da [Fantas, Eel, and Specification 4: Semigroup](http://www.tomharding.me/2017/03/13/fantas-eel-and-specification-4/))
 
-Supponiamo di dover costruire un sistema in cui sono salvati dei record di un cliente modellati nel seguente modo:
+Supponiamo di dover costruire un sistema in cui, in un database, sono salvati dei record di un cliente, modellati nel seguente modo
 
 ```ts
 interface Customer {
-  name: string
-  favouriteThings: Array<string>
-  registeredAt: number // since epoch
-  lastUpdatedAt: number // since epoch
-  hasMadePurchase: boolean
+  readonly name: string
+  readonly favouriteThings: ReadonlyArray<string>
+  readonly registeredAt: number // since epoch
+  readonly lastUpdatedAt: number // since epoch
+  readonly hasMadePurchase: boolean
 }
 ```
 
@@ -977,9 +1009,8 @@ Per qualche ragione potreste finire per avere dei record duplicati per la stessa
 Abbiamo bisogno di una strategia di merging. Ma questo è proprio quello di cui si occupano i semigruppi!
 
 ```ts
-import { getMonoid } from 'fp-ts/Array'
+import { pipe } from 'fp-ts/function'
 import { contramap, ordNumber } from 'fp-ts/Ord'
-import { pipe } from 'fp-ts/pipeable'
 import {
   getJoinSemigroup,
   getMeetSemigroup,
@@ -987,6 +1018,20 @@ import {
   Semigroup,
   semigroupAny
 } from 'fp-ts/Semigroup'
+
+interface Customer {
+  readonly name: string
+  readonly favouriteThings: ReadonlyArray<string>
+  readonly registeredAt: number // since epoch
+  readonly lastUpdatedAt: number // since epoch
+  readonly hasMadePurchase: boolean
+}
+
+const getReadonlyArraySemigroup = <A = never>(): Semigroup<
+  ReadonlyArray<A>
+> => ({
+  concat: (second) => (first) => first.concat(second)
+})
 
 const semigroupCustomer: Semigroup<Customer> = getStructSemigroup({
   // keep the longer name
@@ -997,7 +1042,7 @@ const semigroupCustomer: Semigroup<Customer> = getStructSemigroup({
     )
   ),
   // accumulate things
-  favouriteThings: getMonoid<string>(),
+  favouriteThings: getReadonlyArraySemigroup<string>(),
   // keep the least recent date
   registeredAt: getMeetSemigroup(ordNumber),
   // keep the most recent date
@@ -1006,32 +1051,35 @@ const semigroupCustomer: Semigroup<Customer> = getStructSemigroup({
   hasMadePurchase: semigroupAny
 })
 
-semigroupCustomer.concat(
-  {
-    name: 'Giulio',
-    favouriteThings: ['math', 'climbing'],
-    registeredAt: new Date(2018, 1, 20).getTime(),
-    lastUpdatedAt: new Date(2018, 2, 18).getTime(),
-    hasMadePurchase: false
-  },
-  {
-    name: 'Giulio Canti',
-    favouriteThings: ['functional programming'],
-    registeredAt: new Date(2018, 1, 22).getTime(),
-    lastUpdatedAt: new Date(2018, 2, 9).getTime(),
-    hasMadePurchase: true
-  }
+console.log(
+  pipe(
+    {
+      name: 'Giulio',
+      favouriteThings: ['math', 'climbing'],
+      registeredAt: new Date(2018, 1, 20).getTime(),
+      lastUpdatedAt: new Date(2018, 2, 18).getTime(),
+      hasMadePurchase: false
+    },
+    semigroupCustomer.concat({
+      name: 'Giulio Canti',
+      favouriteThings: ['functional programming'],
+      registeredAt: new Date(2018, 1, 22).getTime(),
+      lastUpdatedAt: new Date(2018, 2, 9).getTime(),
+      hasMadePurchase: true
+    })
+  )
 )
 /*
 { name: 'Giulio Canti',
   favouriteThings: [ 'math', 'climbing', 'functional programming' ],
   registeredAt: 1519081200000, // new Date(2018, 1, 20).getTime()
   lastUpdatedAt: 1521327600000, // new Date(2018, 2, 18).getTime()
-  hasMadePurchase: true }
+  hasMadePurchase: true
+}
 */
 ```
 
-**Demo**
+**Quiz**. Dato un tipo `A` è possibile definire una istanza di semigruppo per `Ord<A>`. Cosa potrebbe rappresentare?
 
 [`02_ord.ts`](src/02_ord.ts)
 

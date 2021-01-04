@@ -1,21 +1,42 @@
 /*
 
-  Dato un tipo `A` è possibile definire una istanza di semigruppo
-  per `Ord<A>`. Cosa rappresenta?
+  **Quiz**. Dato un tipo `A` è possibile definire una istanza di semigruppo
+  per `Ord<A>`. Cosa potrebbe rappresentare?
 
 */
 
-import {
-  getMonoid,
-  contramap,
-  ordString,
-  ordNumber,
-  ordBoolean,
-  getDualOrd
-} from 'fp-ts/Ord'
-import { fold } from 'fp-ts/Semigroup'
-import { sort } from 'fp-ts/ReadonlyArray'
 import { pipe } from 'fp-ts/function'
+import {
+  contramap,
+  fromCompare,
+  getDualOrd,
+  Ord,
+  ordBoolean,
+  ordNumber,
+  ordString
+} from 'fp-ts/Ord'
+import { sort } from 'fp-ts/ReadonlyArray'
+import { fold, Semigroup } from 'fp-ts/Semigroup'
+
+/*
+
+  prima di tutto definiamo una istanza di semigrouppo per `Ord<A>`
+
+*/
+
+const getSemigroup = <A = never>(): Semigroup<Ord<A>> => ({
+  concat: (second) => (first) =>
+    fromCompare((a2) => (a1) => {
+      const ordering = first.compare(a2)(a1)
+      return ordering !== 0 ? ordering : second.compare(a2)(a1)
+    })
+})
+
+/*
+
+  adesso vediamola applicata ad un esempio pratico
+
+*/
 
 interface User {
   readonly id: number
@@ -39,7 +60,7 @@ const byRememberMe = pipe(
   contramap((p: User) => p.rememberMe)
 )
 
-const S = getMonoid<User>()
+const S = getSemigroup<User>()
 
 const users: ReadonlyArray<User> = [
   { id: 1, name: 'Guido', age: 47, rememberMe: false },
@@ -51,8 +72,8 @@ const users: ReadonlyArray<User> = [
 // un ordinamento classico:
 // prima per nome, poi per età, poi per `rememberMe`
 
-const O1 = fold(S)(byName)([byAge, byRememberMe])
-console.log(sort(O1)(users))
+const byNameAgeRememberMe = fold(S)(byName)([byAge, byRememberMe])
+console.log(sort(byNameAgeRememberMe)(users))
 /*
 [ { id: 3, name: 'Giulio', age: 44, rememberMe: false },
   { id: 4, name: 'Giulio', age: 44, rememberMe: true },
@@ -63,8 +84,8 @@ console.log(sort(O1)(users))
 // adesso invece voglio tutti gli utenti con
 // `rememberMe = true` per primi
 
-const O2 = fold(S)(getDualOrd(byRememberMe))([byName, byAge])
-console.log(sort(O2)(users))
+const byRememberMeNameAge = fold(S)(getDualOrd(byRememberMe))([byName, byAge])
+console.log(sort(byRememberMeNameAge)(users))
 /*
 [ { id: 4, name: 'Giulio', age: 44, rememberMe: true },
   { id: 2, name: 'Guido', age: 46, rememberMe: true },
