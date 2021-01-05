@@ -1,19 +1,15 @@
 /*
+  PROBLEMA: implementare un sistema per disegnare forme geometriche sulla console.
+*/
 
-  PROBLEMA: implementare un sistema per disegnare forme sulla console.
-
-  Prima di tutto il modello:
-
-  una forma nello spazio S è una funzione che dato un punto di S
+/*
+  Una forma nello spazio `S` è una funzione che dato un punto di `S`
   restituisce `true` se il punto appartiene alla forma e `false` altrimenti
-
 */
 export type Shape<S> = (point: S) => boolean
 
 /*
-
-  Definiamo una forma in uno spazio bidimensionale
-
+  Definiamo uno spazio bidimensionale
 */
 export interface Point2D {
   readonly x: number
@@ -23,30 +19,20 @@ export interface Point2D {
 export type Shape2D = Shape<Point2D>
 
 /*
-
   Possiamo definire un primo combinatore che data una forma
   restituisce la sua forma complementare (il negativo)
-
 */
-
 export const outside2D = (s: Shape2D): Shape2D => (point) => !s(point)
 
 /*
-
   Notate che non stiamo usando in nessun modo il fatto
   che stiamo lavorando in due dimensioni. Generalizziamo!
-
 */
-
 export const outside = <S>(s: Shape<S>): Shape<S> => (point) => !s(point)
 
 /*
-
-  Per testare outside definiamo la forma disco e un modo
-  per visualizzare una forma nella console
-
+  Per testare outside definiamo un costruttore per la forma disco...
 */
-
 export const disk = (center: Point2D, radius: number): Shape2D => (point) =>
   distance(point, center) <= radius
 
@@ -56,50 +42,52 @@ const distance = (p1: Point2D, p2: Point2D) =>
     Math.pow(Math.abs(p1.x - p2.x), 2) + Math.pow(Math.abs(p1.y - p2.y), 2)
   )
 
+/*
+  ...e un modo per visualizzare una forma nella console
+*/
 import { Show } from 'fp-ts/Show'
 
 export const showShape2D: Show<Shape2D> = {
   show: (s) => {
-    let r = '───────────────────────\n'
-    for (let j = 10; j >= -10; j--) {
-      r += '│'
-      for (let i = -10; i <= 10; i++) {
+    let r = ''
+    for (let j = 20; j >= -20; j--) {
+      for (let i = -20; i <= 20; i++) {
         r += s({ x: i, y: j }) ? '▧' : ' '
       }
-      r += '│\n'
+      r += '\n'
     }
-    r += '───────────────────────'
     return r
   }
 }
 
-// console.log(showShape2D.show(disk({ x: 0, y: 0 }, 5)))
-// console.log(showShape2D.show(outside(disk({ x: 0, y: 0 }, 5))))
+import { pipe } from 'fp-ts/function'
+
+const origin: Point2D = { x: 0, y: 0 }
+
+// console.log(pipe(disk(origin, 10), showShape2D.show))
+// console.log(pipe(disk(origin, 10), outside, showShape2D.show))
 
 /*
-
-  Definiamo ora l'intersezione e l'unione di due forme.
+  Definiamo ora l'union e l'intersezione di due forme.
   Per farlo possiamo sfruttare il risultato che il tipo
   di una funzione ammette una istanza di monoide se il tipo
   del codominio ammette una istanza di monoide
-
 */
+import * as M from 'fp-ts/Monoid'
 
-import { Monoid, getFunctionMonoid, monoidAll, monoidAny } from 'fp-ts/Monoid'
-import { pipe } from 'fp-ts/function'
+export const union: M.Monoid<Shape2D> = M.getFunctionMonoid(M.monoidAny)()
 
-const intersect: Monoid<Shape2D> = getFunctionMonoid(monoidAll)()
+// export const disk1 = disk({ x: -8, y: 0 }, 10)
+// export const disk2 = disk({ x: 8, y: 0 }, 10)
+// console.log(pipe(disk1, union.concat(disk2), showShape2D.show))
 
-// console.log(
-//   showShape2D.show(intersect.concat(disk({ x: -3, y: 0 }, 5), disk({ x: 3, y: 0 }, 5)))
-// )
+const intersection: M.Monoid<Shape2D> = M.getFunctionMonoid(M.monoidAll)()
 
-export const union: Monoid<Shape2D> = getFunctionMonoid(monoidAny)()
+// console.log(pipe(disk1, intersection.concat(disk2), showShape2D.show))
 
-// console.log(
-//   showShape2D.show(union.concat(disk({ x: -3, y: 0 }, 5), disk({ x: 3, y: 0 }, 5)))
-// )
-
+/*
+  Un costruttore per la forma anello
+*/
 export const ring = (
   point: Point2D,
   bigRadius: number,
@@ -107,16 +95,16 @@ export const ring = (
 ): Shape2D =>
   pipe(
     disk(point, bigRadius),
-    intersect.concat(outside(disk(point, smallRadius)))
+    intersection.concat(outside(disk(point, smallRadius)))
   )
 
-// console.log(showShape2D.show(ring({ x: 0, y: 0 }, 5, 3)))
+// console.log(pipe(ring(origin, 10, 6), showShape2D.show))
 
 export const shapes: ReadonlyArray<Shape2D> = [
-  disk({ x: 0, y: 0 }, 5),
-  disk({ x: -5, y: 5 }, 3),
-  disk({ x: 5, y: 5 }, 3)
+  disk(origin, 10),
+  disk({ x: -10, y: 7 }, 6),
+  disk({ x: 10, y: 7 }, 6)
 ]
 
 // mickey mouse
-// console.log(showShape2D.show(fold(union)(shapes)))
+// console.log(pipe(M.fold(union)(shapes), showShape2D.show))

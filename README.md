@@ -1079,14 +1079,14 @@ console.log(
 */
 ```
 
-**Quiz**. Dato un tipo `A` è possibile definire una istanza di semigruppo per `Ord<A>`. Cosa potrebbe rappresentare?
+**Quiz**. Dato un tipo `A` è possibile definire una istanza di semigruppo per `Ord<A>`? Cosa potrebbe rappresentare?
 
 [`02_ord.ts`](src/02_ord.ts)
 
 # Monoidi
 
 Se aggiungiamo una condizione in più alla definizione di un semigruppo `(A, *)`, ovvero che esista un elemento `u` in `A`
-tale che per ogni elemento `a` in `A` vale:
+tale che per ogni elemento `a` in `A` vale
 
 ```ts
 u * a = a * u = a
@@ -1094,8 +1094,6 @@ u * a = a * u = a
 
 allora la terna `(A, *, u)` viene detta *monoide* e l'elemento `u` viene detto *unità*
 (sinonimi: *elemento neutro*, *elemento identità*).
-
-## Implementazione
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
@@ -1107,134 +1105,141 @@ interface Monoid<A> extends Semigroup<A> {
 
 Devono valere le seguenti leggi:
 
-- **Right identity**: `concat(a, empty) = a`, per ogni `a` in `A`
-- **Left identity**: `concat(empty, a) = a`, per ogni `a` in `A`
+- **Right identity**: `a |> concat(empty) = a`, per ogni `a` in `A`
+- **Left identity**: `empty |> concat(a) = a`, per ogni `a` in `A`
 
-**Osservazione**. L'unità di un monoide è unica.
+**Quiz**. Dato un monoide, è possibile che esista più di un elemento neutro?
 
-Molti dei semigruppi che abbiamo visto nelle sezioni precedenti sono in realtà dei monoidi:
+Molti dei semigruppi che abbiamo visto nelle sezioni precedenti sono in realtà dei monoidi
 
 ```ts
+import { Monoid } from 'fp-ts/Monoid'
+
 /** number `Monoid` under addition */
 const monoidSum: Monoid<number> = {
-  concat: (x, y) => x + y,
+  concat: (second) => (first) => first + second,
   empty: 0
 }
 
 /** number `Monoid` under multiplication */
 const monoidProduct: Monoid<number> = {
-  concat: (x, y) => x * y,
+  concat: (second) => (first) => first * second,
   empty: 1
 }
 
 const monoidString: Monoid<string> = {
-  concat: (x, y) => x + y,
+  concat: (second) => (first) => first + second,
   empty: ''
 }
 
 /** boolean monoid under conjunction */
 const monoidAll: Monoid<boolean> = {
-  concat: (x, y) => x && y,
+  concat: (second) => (first) => first && second,
   empty: true
 }
 
 /** boolean monoid under disjunction */
 const monoidAny: Monoid<boolean> = {
-  concat: (x, y) => x || y,
+  concat: (second) => (first) => first || second,
   empty: false
 }
 ```
 
-Vediamo qualche esempio un poco più complesso.
+Vediamo ora qualche esempio più affascinante.
+
+**Esempio**
 
 Dato un tipo `A`, gli *endomorfismi* (un endomorfismo non è altro che una funzione il cui dominio e codominio coincidono)
 su `A` ammettono una istanza di monoide:
 
 ```ts
+import { flow } from 'fp-ts/function'
+import { Monoid } from 'fp-ts/Monoid'
+
 type Endomorphism<A> = (a: A) => A
 
-function identity<A>(a: A): A {
-  return a
-}
+const identity = <A>(a: A): A => a
 
-function getEndomorphismMonoid<A = never>(): Monoid<Endomorphism<A>> {
-  return {
-    concat: (x, y) => a => x(y(a)),
-    empty: identity
-  }
-}
+export const getEndomorphismMonoid = <A = never>(): Monoid<
+  Endomorphism<A>
+> => ({
+  concat: (second) => (first) => flow(first, second),
+  empty: identity
+})
 ```
 
-Se il tipo `M` ammette una istanza di monoide allora il tipo `(a: A) => M` ammette una istanza di monoide per ogni tipo `A`:
+**Esempio**
+
+Se il tipo `M` ammette una istanza di monoide allora per ogni tipo `A` il tipo `(a: A) => M` ammette una istanza di monoide
 
 ```ts
-function getFunctionMonoid<M>(M: Monoid<M>): <A = never>() => Monoid<(a: A) => M> {
+import { Monoid } from 'fp-ts/Monoid'
+
+export const getFunctionMonoid = <M>(
+  M: Monoid<M>
+): (<A = never>() => Monoid<(a: A) => M>) => {
+  const empty = () => M.empty
   return () => ({
-    concat: (f, g) => a => M.concat(f(a), g(a)),
-    empty: () => M.empty
+    concat: (second) => (first) => (a) => M.concat(second(a))(first(a)),
+    empty
   })
 }
 ```
 
-Come conseguenza otteniamo che i reducer ammettono una istanza di monoide:
+Come corollario otteniamo che i reducer ammettono una istanza di monoide:
 
 ```ts
 type Reducer<S, A> = (a: A) => (s: S) => S
 
-function getReducerMonoid<S, A>(): Monoid<Reducer<S, A>> {
-  return getFunctionMonoid(getEndomorphismMonoid<S>())<A>()
-}
+const getReducerMonoid = <S, A>(): Monoid<Reducer<S, A>> =>
+  getFunctionMonoid(getEndomorphismMonoid<S>())<A>()
 ```
 
 Potrebbe venire il dubbio che tutti i semigruppi siano anche dei monoidi. Non è così, come controesempio si consideri il seguente semigruppo:
 
 ```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
 const semigroupSpace: Semigroup<string> = {
-  concat: (x, y) => x + ' ' + y
+  concat: (second) => (first) => first + ' ' + second
 }
 ```
 
-Infatti non è possibile trovare un valore `empty` tale che `concat(x, empty) = x`.
+Infatti non è possibile trovare un valore `empty` tale che `a |> concat(empty) = a`.
 
-Infine possiamo costruire una istanza di monoide per struct come `Point`:
+Come abbiamo già visto per i semigruppi, è possibile costruire una istanza di monoide per una struct se siamo in grado di fornire una istanza di monoide per ogni suo campo.
 
-```ts
-interface Point {
-  x: number
-  y: number
-}
-```
-
-se siamo in grado di fornire al combinatore `getStructMonoid` una istanza di monoide per ogni suo campo:
+**Esempio**
 
 ```ts
 import { getStructMonoid, Monoid, monoidSum } from 'fp-ts/Monoid'
 
-const monoidPoint: Monoid<Point> = getStructMonoid({
+type Vector = {
+  readonly x: number
+  readonly y: number
+}
+
+const monoidPoint: Monoid<Vector> = getStructMonoid({
   x: monoidSum,
   y: monoidSum
 })
 ```
 
-Possiamo andare oltre e passare a `getStructMonoid` l'istanza appena definita:
-
-```ts
-interface Vector {
-  from: Point
-  to: Point
-}
-
-const monoidVector: Monoid<Vector> = getStructMonoid({
-  from: monoidPoint,
-  to: monoidPoint
-})
-```
-
 **Nota**. Esiste un combinatore simile a `getStructMonoid` ma che lavora con le tuple: `getTupleMonoid`.
 
-## Folding
+```ts
+import { getTupleMonoid, Monoid, monoidSum } from 'fp-ts/Monoid'
 
-Quando usiamo un monoide invece di un semigruppo, il folding è ancora più semplice: non è necessario fornire esplicitamente un valore iniziale (l'implementazione può usare l'elemento neutro per quello):
+type Vector = readonly [number, number]
+
+const monoidPoint: Monoid<Vector> = getTupleMonoid<Vector>(monoidSum, monoidSum)
+```
+
+## La funzione `fold`
+
+Quando usiamo un monoide invece di un semigruppo, il folding è ancora più semplice: non è necessario fornire esplicitamente un valore iniziale.
+
+**Quiz**. Perché non è necessario fornire un valore iniziale?
 
 ```ts
 import {
@@ -1246,11 +1251,11 @@ import {
   monoidSum
 } from 'fp-ts/Monoid'
 
-fold(monoidSum)([1, 2, 3, 4]) // 10
-fold(monoidProduct)([1, 2, 3, 4]) // 24
-fold(monoidString)(['a', 'b', 'c']) // 'abc'
-fold(monoidAll)([true, false, true]) // false
-fold(monoidAny)([true, false, true]) // true
+console.log(fold(monoidSum)([1, 2, 3, 4])) // => 10
+console.log(fold(monoidProduct)([1, 2, 3, 4])) // => 24
+console.log(fold(monoidString)(['a', 'b', 'c'])) // => 'abc'
+console.log(fold(monoidAll)([true, false, true])) // => false
+console.log(fold(monoidAny)([true, false, true])) // => true
 ```
 
 **Demo**
