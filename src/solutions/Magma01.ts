@@ -1,7 +1,5 @@
 /**
  * Implementare la funzione `fromArray`
- *
- * @category Magma
  */
 import { Magma } from 'fp-ts/Magma'
 

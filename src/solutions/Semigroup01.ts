@@ -1,7 +1,5 @@
 /**
  * Implementare la funzione `fold`
- *
- * @category Semigroup
  */
 import { pipe } from 'fp-ts/lib/function'
 import { Semigroup, semigroupProduct, semigroupSum } from 'fp-ts/Semigroup'
