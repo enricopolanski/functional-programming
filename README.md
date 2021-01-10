@@ -1278,8 +1278,6 @@ Vediamo una definizione formale del concetto di funzione.
 X × Y = { (x, y) | x ∈ X, y ∈ Y }
 ```
 
-La [seguente definizione](https://en.wikipedia.org/wiki/History\_of\_the\_function\_concept) risale ad un secolo fa:
-
 **Definizione**. Una _funzione_ `f: X ⟶ Y` è un sottoinsieme `f` di `X × Y` tale che
 per ogni `x ∈ X` esiste esattamente un `y ∈ Y` tale che la coppia `(x, y) ∈ f`.
 
@@ -1302,7 +1300,6 @@ const f: { [key: number]: number } = {
 
 Si noti che l'insieme `f` deve essere descritto _staticamente_ in fase di definizione della funzione
 (ovvero gli elementi di quell'insieme non possono variare nel tempo e per nessuna condizione interna o esterna).
-Ecco allora che viene esclusa ogni forma di side effect e il risultato è sempre quello atteso.
 
 Quella dell'esempio viene detta definizione _estensionale_ di una funzione, ovvero si enumerano uno per uno gli elementi del dominio.
 Naturalmente quando l'insieme è infinito come in questo caso, la definizione può risultare un po' scomoda.
@@ -1311,25 +1308,28 @@ Si può ovviare a questo problema introducendo quella che viene detta definizion
 ovvero si esprime una condizione che deve valere per tutte le coppie `(x, y) ∈ f` ovvero `y = x * 2`. Questa è la familiare forma con cui scriviamo la funzione `double` e come la definiamo in TypeScript:
 
 ```ts
-function double(x: number): number {
-  return x * 2
-}
+const double = (x: number): number => x * 2
 ```
 
 La definizione di funzione come sottoinsieme di un prodotto cartesiano mostra come in matematica tutte le funzioni siano pure:
 non c'è azione, modifica di stato o modifica degli elementi (che sono considerati immutabili) degli insiemi coinvolti.
-Nella programmazione funzionale l'implementazione delle funzioni deve avvicinarsi il più possibile a questo modello ideale.
+Nella programmazione funzionale l'implementazione delle funzioni deve tendere a questo modello ideale.
 
 Che una funzione sia pura non implica necessariamente che sia bandita la mutabilità, localmente è ammissibile
 se non esce dai confini della implementazione.
 
 ![mutable / immutable](images/mutable-immutable.jpg)
 
-Lo scopo ultimo è garantire la proprietà fondamentale: **la trasparenza referenziale**.
+L'obbiettivo è garantire la proprietà fondamentale di **trasparenza referenziale**.
+
+Dunque come si definisce un "side effect"?
 
 > Una espressione contiene un "side effect" se non gode della trasparenza referenziale.
 
-Le funzioni compongono:
+Non solo le funzioni appoggiano sul primo dei due pilastri della programmazione funzionale, ma sono un esempio
+anche del secondo pilastro: la **composizione**.
+
+Infatti le funzioni compongono:
 
 **Definizione**. Siano `f: Y ⟶ Z` e `g: X ⟶ Y` due funzioni, allora la funzione `h: X ⟶ Z` definita da
 
