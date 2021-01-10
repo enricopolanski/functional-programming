@@ -24,12 +24,12 @@
 - [ADT e error handling funzionale](#adt-e-error-handling-funzionale)
   - [Che cos'è un ADT?](#che-cos%C3%A8-un-adt)
   - [Product types](#product-types)
-    - [Perchè "product" types?](#perch%C3%A8-product-types)
+    - [Perché "product" types?](#perch%C3%A8-product-types)
     - [Quando posso usare un product type?](#quando-posso-usare-un-product-type)
   - [Sum types](#sum-types)
     - [Costruttori](#costruttori)
     - [Pattern matching](#pattern-matching)
-    - [Perchè "sum" types?](#perch%C3%A8-sum-types)
+    - [Perché "sum" types?](#perch%C3%A8-sum-types)
     - [Quando dovrei usare un sum type?](#quando-dovrei-usare-un-sum-type)
   - [Functional error handling](#functional-error-handling)
     - [Il tipo `Option`](#il-tipo-option)
@@ -59,7 +59,7 @@
 - [Monadi](#monadi)
   - [Il problema: nested contexts](#il-problema-nested-contexts)
   - [Definizione](#definizione-2)
-  - [Ok ma... perchè?](#ok-ma-perch%C3%A8)
+  - [Ok ma... perché?](#ok-ma-perch%C3%A8)
   - [La categoria di Kleisli](#la-categoria-di-kleisli)
   - [Costruzione della composizione passo dopo passo](#costruzione-della-composizione-passo-dopo-passo)
   - [Le leggi](#le-leggi)
@@ -144,7 +144,7 @@ const x = double(2)
 const y = double(2)
 ```
 
-L'espressione `double(2)` gode della proprietà di trasparenza referenziale perchè posso sostituirla con il suo valore `4`.
+L'espressione `double(2)` gode della proprietà di trasparenza referenziale perché posso sostituirla con il suo valore `4`.
 
 Posso perciò tranquillamente procedere con il seguente refactoring
 
@@ -168,7 +168,7 @@ const x = inverse(0) + 1
 
 Non posso sostituire l'espressione `inverse(0)` con il suo valore, perciò l'espressione non gode della proprietà di trasparenza referenziale.
 
-Perchè è così importante la trasparenza referenziale? Perchè permette di:
+Perché è così importante la trasparenza referenziale? Perché permette di:
 
 - ragionare meglio sul codice
 - **rifattorizzare** senza cambiare il comportamento del programma
@@ -301,7 +301,7 @@ declare const fromArray: <A>(
 ) => (as: ReadonlyArray<readonly [string, A]>) => Record<string, A>
 ```
 
-perchè c'è bisogno di una istanza di `Magma` come parametro?
+perché c'è bisogno di una istanza di `Magma` come parametro?
 
 Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo ora un'algebra che definisce una legge: i semigruppi.
 
@@ -441,7 +441,7 @@ const product = fold(semigroupProduct)(1)
 product([1, 2, 3, 4]) // 24
 ```
 
-**Quiz**. Perchè ho bisogno di un valore iniziale?
+**Quiz**. Perché ho bisogno di un valore iniziale?
 
 **Esempio**
 
@@ -500,7 +500,7 @@ const getDualSemigroup = <A>(S: Semigroup<A>): Semigroup<A> => ({
 })
 ```
 
-**Quiz**. Questo combinatore ha senso perchè in generale l'operazione `concat` non è **commutativa**, ovvero `x |> concat(y) !== y |> concat(x)`, potete portare un esempio in cui `concat` è commutativa?
+**Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero `x |> concat(y) !== y |> concat(x)`, potete portare un esempio in cui `concat` è commutativa?
 
 ## Non riesco a trovare una istanza!
 
@@ -1349,13 +1349,14 @@ Viceversa una funzione definita per tutti i valori del dominio è detta _totale_
 
 **Esempio**
 
-```
-f(x) = 1 / x
+```ts
+// Get the first element of a `ReadonlyArray`
+declare const head: <A>(as: ReadonlyArray<A>) => A
 ```
 
-La funzione `f: number ⟶ number` non è definita per `x = 0`.
+**Quiz**. Perché la funzione `head` è parziale?
 
-Una funzione parziale `f: X ⟶ Y` può essere sempre ricondotta ad una funzione totale aggiungendo un valore speciale,
+Fortunatamente una funzione parziale `f: X ⟶ Y` può essere sempre ricondotta ad una funzione totale aggiungendo un valore speciale,
 chiamiamolo `None`, al codominio e associandolo ad ogni valore di `X` per cui `f` non è definita
 
 ```
@@ -1370,7 +1371,7 @@ f': X ⟶ Option(Y)
 
 In ambito funzionale si tende a definire solo funzioni pure e totali.
 
-E' possibile definire `Option` in TypeScript?
+E' possibile definire `Option(Y)` in TypeScript?
 
 # ADT e error handling funzionale
 
@@ -1417,7 +1418,7 @@ type Name = Person['name'] // string
 type Age = Person['age'] // number
 ```
 
-### Perchè "product" types?
+### Perché "product" types?
 
 Se indichiamo con `C(A)` il numero di abitanti del tipo `A` (ovvero la sua **cardinalità**) allora vale la seguente uguaglianza:
 
@@ -1427,7 +1428,7 @@ C([A, B]) = C(A) * C(B)
 
 > la cardinalità del prodotto è il prodotto delle cardinalità
 
-**Example**
+**Esempio**
 
 ```ts
 type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
@@ -1453,7 +1454,7 @@ Un sum type è una struttura dati che contiene un valore che può assumere diver
 
 Nella documentazione ufficiale di TypeScript sono denominati _tagged union types_.
 
-**Example** (redux actions)
+**Esempio** (redux actions)
 
 ```ts
 type Action =
@@ -1502,11 +1503,13 @@ const del = (id: number): Action => ({
 
 I sum type possono essere **polimorfici** e **ricorsivi**.
 
-**Example** (linked lists)
+**Esempio** (linked lists)
 
 ```ts
 //        ↓ type parameter
-type List<A> = { type: 'Nil' } | { type: 'Cons'; head: A; tail: List<A> }
+type List<A> =
+  | { readonly _tag: 'Nil' }
+  | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
 //                                                              ↑ recursion
 ```
 
@@ -1515,20 +1518,30 @@ type List<A> = { type: 'Nil' } | { type: 'Cons'; head: A; tail: List<A> }
 JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo in modo grezzo tramite una funzione `fold`:
 
 ```ts
-const fold = <A, R>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
+const fold = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
   fa: List<A>
-): R => (fa.type === 'Nil' ? onNil() : onCons(fa.head, fa.tail))
+): R => {
+  switch (fa._tag) {
+    case 'Nil':
+      return onNil()
+    case 'Cons':
+      return onCons(fa.head, fa.tail)
+  }
+}
 ```
 
-**Nota**. TypeScript offre una straordinaria feature legata ai sum type: **exhaustive check**. Ovvero il type checker è in grado di determinare se tutti i casi sono stati gestiti.
+**Nota**. TypeScript offre una straordinaria feature legata ai sum type: **exhaustive check**. Ovvero il type checker è in grado di determinare se tutti i casi sono stati gestiti nello `switch`.
 
-**Example** (calculate the length of a `List` recursively)
+**Esempio** (calculate the length of a `List` recursively)
 
 ```ts
-const length: <A>(fa: List<A>) => number = fold(() => 0, (_, tail) => 1 + length(tail))
+const length: <A>(fa: List<A>) => number = fold(
+  () => 0,
+  (_, tail) => 1 + length(tail)
+)
 ```
 
-### Perchè "sum" types?
+### Perché "sum" types?
 
 Vale la seguente uguaglianza:
 
@@ -1538,14 +1551,14 @@ C(A | B) = C(A) + C(B)
 
 > la cardinalità della somma è la somma delle cardinalità
 
-**Example** (the `Option` type)
+**Esempio** (the `Option` type)
 
 ```ts
 type Option<A> =
-  | { _tag: 'None' }
+  | { readonly _tag: 'None' }
   | {
-      _tag: 'Some'
-      value: A
+      readonly _tag: 'Some'
+      readonly value: A
     }
 ```
 
@@ -1555,12 +1568,12 @@ Dalla formula generale `C(Option<A>) = 1 + C(A)` possiamo derivare per esempio l
 
 Quando le sue componenti sarebbero **dipendenti** se implementate con un product type.
 
-**Example** (component props)
+**Esempio** (component props)
 
 ```ts
 interface Props {
-  editable: boolean
-  onChange?: (text: string) => void
+  readonly editable: boolean
+  readonly onChange?: (text: string) => void
 }
 
 class Textbox extends React.Component<Props> {
@@ -1580,11 +1593,11 @@ Un sum type è una scelta migliore:
 ```ts
 type Props =
   | {
-      type: 'READONLY'
+      readonly type: 'READONLY'
     }
   | {
-      type: 'EDITABLE'
-      onChange: (text: string) => void
+      readonly type: 'EDITABLE'
+      readonly onChange: (text: string) => void
     }
 
 class Textbox extends React.Component<Props> {
@@ -1598,20 +1611,20 @@ class Textbox extends React.Component<Props> {
 }
 ```
 
-**Example** (node callbacks)
+**Esempio** (node callbacks)
 
 ```ts
 declare function readFile(
   path: string,
-  //         ↓ ---------- ↓ CallbackArgs
-  callback: (err?: Error, data?: string) => void
+  //         ↓ -------------------------- ↓ CallbackArgs
+  callback: (err?: NodeJS.ErrnoException, data?: string) => void
 ): void
 ```
 
 Il risultato è modellato con un prodotto:
 
 ```ts
-type CallbackArgs = [Error | undefined, string | undefined]
+type CallbackArgs = [NodeJS.ErrnoException | undefined, string | undefined]
 ```
 
 tuttavia le sue componenti sono **dipendenti**: si riceve un errore **oppure** una stringa:
@@ -1623,7 +1636,15 @@ tuttavia le sue componenti sono **dipendenti**: si riceve un errore **oppure** u
 | `Error`     | `string`    | ✘      |
 | `undefined` | `undefined` | ✘      |
 
-Un sum type sarebbe una scelta migliore, ma quale?
+Un sum type sarebbe una scelta migliore, ma quale? Vediamo come si gestiscono gli errori in modo funzionale.
+
+**Quiz**. Recentemente alle API a callback si preferiscono le API che restituiscono una `Promise`
+
+```ts
+declare function readFile(path: string): Promise<string>
+```
+
+potete indicare un contro di questa seconda soluzione quando si utilizza un linguaggio a tipi statici come TypeScript?
 
 ## Functional error handling
 
@@ -1635,8 +1656,8 @@ Il tipo `Option` rappresenta l'effetto di una computazione che può fallire oppu
 
 ```ts
 type Option<A> =
-  | { _tag: 'None' } // represents a failure
-  | { _tag: 'Some'; value: A } // represents a success
+  | { readonly _tag: 'None' } // represents a failure
+  | { readonly _tag: 'Some'; readonly value: A } // represents a success
 ```
 
 Costruttori e pattern matching:
@@ -1647,15 +1668,15 @@ const none: Option<never> = { _tag: 'None' }
 
 const some = <A>(value: A): Option<A> => ({ _tag: 'Some', value })
 
-const fold = <A, R>(onNone: () => R, onSome: (a: A) => R) => (fa: Option<A>): R =>
+const fold = <R, A>(onNone: () => R, onSome: (a: A) => R) => (fa: Option<A>): R =>
   fa._tag === 'None' ? onNone() : onSome(fa.value)
 ```
 
 Il tipo `Option` può essere usato per evitare di lanciare eccezioni e/o rappresentare i valori opzionali, così possiamo passare da...
 
 ```ts
-//                this is a lie ↓
-function head<A>(as: Array<A>): A {
+//                        this is a lie ↓
+const head = <A>(as: ReadonlyArray<A>): A => {
   if (as.length === 0) {
     throw new Error('Empty array')
   }
@@ -1674,11 +1695,10 @@ try {
 
 ```ts
 //                              ↓ the type system "knows" that this computation may fail
-function head<A>(as: Array<A>): Option<A> {
-  return as.length === 0 ? none : some(as[0])
-}
+const head = <A>(as: Array<A>): Option<A> =>
+  as.length === 0 ? none : some(as[0])
 
-import { pipe } from 'fp-ts/pipeable'
+import { pipe } from 'fp-ts/function'
 
 const s = pipe(
   head([]),
@@ -1690,102 +1710,91 @@ const s = pipe(
 
 Ora supponiamo di voler fare un "merge" di due `Option<A>`, ci sono quattro casi:
 
-| x       | y       | concat(x, y) |
-| ------- | ------- | ------------ |
-| none    | none    | none         |
-| some(a) | none    | none         |
-| none    | some(a) | none         |
-| some(a) | some(b) | ?            |
+| x        | y        | x \|> concat(y) |
+| -------- | -------- | --------------- |
+| none     | none     | none            |
+| some(a1) | none     | none            |
+| none     | some(a2) | none            |
+| some(a1) | some(a2) | ?               |
 
 C'è un problema nell'ultimo caso, ci occorre un modo per fare un "merge" di due `A`.
 
-Ma questo è proprio il lavoro di `Semigroup`! Possiamo richiedere una istanza di semigruppo per `A` e quindi derivare una istanza di semigruppo per `Option<A>`. Questo è come lavora il combinatore `getApplySemigroup` di `fp-ts`:
+Ma questo è proprio il lavoro di `Semigroup`!
+
+| x        | y        | x \|> concat(y)                          |
+| -------- | -------- | ---------------------------------------- |
+| some(a1) | some(a2) | some(pipe(a1.value, S.concat(a2.value))) |
+
+Possiamo richiedere una istanza di semigruppo per `A` e quindi derivare una istanza di semigruppo per `Option<A>`
 
 ```ts
-import { semigroupSum } from 'fp-ts/Semigroup'
-import { getApplySemigroup, some, none } from 'fp-ts/Option'
-
-const S = getApplySemigroup(semigroupSum)
-
-S.concat(some(1), none) // none
-S.concat(some(1), some(2)) // some(3)
+// l'implementazione è lasciata come esercizio
+declare const getSemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>
 ```
 
-Se abbiamo a disposizione una istanza di monoide per `A` allora possiamo derivare una istanza di monoide per `Option<A>` (via `getApplyMonoid`) e che lavora in questo modo (`some(empty)` fa da elemento neutro):
+**Quiz**. E' possibile definire una istanza di monoide per `Option<A>` che si comporta come il semigruppo precedente?
 
-| x       | y       | concat(x, y)       |
-| ------- | ------- | ------------------ |
-| none    | none    | none               |
-| some(a) | none    | none               |
-| none    | some(a) | none               |
-| some(a) | some(b) | some(concat(a, b)) |
-
-```ts
-import { getApplyMonoid, some, none } from 'fp-ts/Option'
-
-const M = getApplyMonoid(monoidSum)
-
-M.concat(some(1), none) // none
-M.concat(some(1), some(2)) // some(3)
-M.concat(some(1), M.empty) // some(1)
-```
-
-Possiamo derivare altri due monoidi per `Option<A>` (per ogni `A`):
+Possiamo derivare altri due monoidi per `Option<A>` (per ogni `A`)
 
 1. `getFirstMonoid`...
 
 Monoid returning the left-most non-`None` value:
 
-| x       | y       | concat(x, y) |
-| ------- | ------- | ------------ |
-| none    | none    | none         |
-| some(a) | none    | some(a)      |
-| none    | some(a) | some(a)      |
-| some(a) | some(b) | some(a)      |
+| x        | y        | x \|> concat(y) |
+| -------- | -------- | --------------- |
+| none     | none     | none            |
+| some(a1) | none     | some(a1)        |
+| none     | some(a2) | some(a2)        |
+| some(a1) | some(a2) | some(a1)        |
 
 ```ts
 import { getFirstMonoid, some, none } from 'fp-ts/Option'
+import { pipe } from 'fp-ts/function'
 
 const M = getFirstMonoid<number>()
 
-M.concat(some(1), none) // some(1)
-M.concat(some(1), some(2)) // some(1)
+console.log(pipe(some(1), M.concat(none))) // => some(1)
+console.log(pipe(some(1), M.concat(some(2)))) // => some(1)
 ```
 
 2. ...e il suo **duale**: `getLastMonoid`
 
 Monoid returning the right-most non-`None` value:
 
-| x       | y       | concat(x, y) |
-| ------- | ------- | ------------ |
-| none    | none    | none         |
-| some(a) | none    | some(a)      |
-| none    | some(a) | some(a)      |
-| some(a) | some(b) | some(b)      |
+| x        | y        | x \|> concat(y) |
+| -------- | -------- | --------------- |
+| none     | none     | none            |
+| some(a1) | none     | some(a1)        |
+| none     | some(a2) | some(a2)        |
+| some(a1) | some(a2) | some(a2)        |
 
 ```ts
 import { getLastMonoid, some, none } from 'fp-ts/Option'
+import { pipe } from 'fp-ts/function'
 
 const M = getLastMonoid<number>()
 
-M.concat(some(1), none) // some(1)
-M.concat(some(1), some(2)) // some(2)
+console.log(pipe(some(1), M.concat(none))) // => some(1)
+console.log(pipe(some(1), M.concat(some(2)))) // => some(2)
 ```
 
-Come esempio, `getLastMonoid` può essere utile per gestire valori opzionali:
+**Esempio**
+
+`getLastMonoid` può essere utile per gestire valori opzionali:
 
 ```ts
 import { Monoid, getStructMonoid } from 'fp-ts/Monoid'
 import { Option, some, none, getLastMonoid } from 'fp-ts/Option'
+import { pipe } from 'fp-ts/function'
 
 /** VSCode settings */
 interface Settings {
   /** Controls the font family */
-  fontFamily: Option<string>
+  readonly fontFamily: Option<string>
   /** Controls the font size in pixels */
-  fontSize: Option<number>
+  readonly fontSize: Option<number>
   /** Limit the width of the minimap to render at most a certain number of columns. */
-  maxColumn: Option<number>
+  readonly maxColumn: Option<number>
 }
 
 const monoidSettings: Monoid<Settings> = getStructMonoid({
@@ -1807,7 +1816,7 @@ const userSettings: Settings = {
 }
 
 /** userSettings overrides workspaceSettings */
-monoidSettings.concat(workspaceSettings, userSettings)
+console.log(pipe(workspaceSettings, monoidSettings.concat(userSettings)))
 /*
 { fontFamily: some("Fira Code"),
   fontSize: some(12),
@@ -1935,7 +1944,7 @@ Esiste una operazione `∘`, chiamata "composizione", tale che valgono le seguen
 - (**associativity**) se `f: A ⟼ B`, `g: B ⟼ C` e `h: C ⟼ D` allora `h ∘ (g ∘ f) = (h ∘ g) ∘ f`
 - (**identity**) per ogni oggetto `X`, esiste un morfismo `identity: X ⟼ X` chiamato *il morfismo identità* di `X`, tale che per ogni morfismo `f: A ⟼ X` e ogni morfismo `g: X ⟼ B`, vale `identity ∘ f = f` e `g ∘ identity` = g.
 
-**Example**
+**Esempio**
 
 (source: [category on wikipedia.org](https://en.wikipedia.org/wiki/Category_(mathematics)))
 
@@ -2014,9 +2023,9 @@ Nell'ultima sezione riguardante le categorie ho presentato la categoria *TS* (la
 
 > Come possiamo comporre due funzioni generiche `f: (a: A) => B` e `g: (c: C) => D`?
 
-Ma perchè trovare soluzioni a questo problema è così importante?
+Ma perché trovare soluzioni a questo problema è così importante?
 
-Perchè, se è vero che le categorie possono essere usate per modellare i linguaggi di programmazione, i morfismi (ovvero le funzioni in *TS*) possono essere usate per modellare i **programmi**.
+Perché, se è vero che le categorie possono essere usate per modellare i linguaggi di programmazione, i morfismi (ovvero le funzioni in *TS*) possono essere usate per modellare i **programmi**.
 
 Perciò risolvere quel problema astratto significa anche trovare una via concreta di **comporre i programmi in modo generico**.
 E *questo* sì che è molto interessante per uno sviluppatore, non è vero?
@@ -2173,7 +2182,7 @@ Perciò abbiamo modificato il problema originale in uno nuovo e diverso: possiam
 
 Vediamo qualche esempio pratico:
 
-**Example** (`F = Array`)
+**Esempio** (`F = Array`)
 
 ```ts
 function lift<B, C>(g: (b: B) => C): (fb: Array<B>) => Array<C> {
@@ -2181,7 +2190,7 @@ function lift<B, C>(g: (b: B) => C): (fb: Array<B>) => Array<C> {
 }
 ```
 
-**Example** (`F = Option`)
+**Esempio** (`F = Option`)
 
 ```ts
 import { isNone, none, Option, some } from 'fp-ts/Option'
@@ -2191,7 +2200,7 @@ function lift<B, C>(g: (b: B) => C): (fb: Option<B>) => Option<C> {
 }
 ```
 
-**Example** (`F = Task`)
+**Esempio** (`F = Task`)
 
 ```ts
 import { Task } from 'fp-ts/Task'
@@ -2441,7 +2450,7 @@ interface Applicative<F> extends Apply<F> {
 
 Vediamo qualche istanza di `Applicative` per alcuni data type comuni:
 
-**Example** (`F = Array`)
+**Esempio** (`F = Array`)
 
 ```ts
 import { flatten } from 'fp-ts/Array'
@@ -2454,11 +2463,11 @@ export const applicativeArray = {
 }
 ```
 
-**Example** (`F = Option`)
+**Esempio** (`F = Option`)
 
 ```ts
 import { fold, isNone, map, none, Option, some } from 'fp-ts/Option'
-import { pipe } from 'fp-ts/pipeable'
+import { pipe } from 'fp-ts/function'
 
 export const applicativeOption = {
   map: <A, B>(fa: Option<A>, f: (a: A) => B): Option<B> =>
@@ -2479,7 +2488,7 @@ export const applicativeOption = {
 }
 ```
 
-**Example** (`F = Task`)
+**Esempio** (`F = Task`)
 
 ```ts
 import { Task } from 'fp-ts/Task'
@@ -2610,9 +2619,9 @@ Per poter gestire questo ultimo caso abbiamo bisogno di qualcosa di più potente
 
 ## Il problema: nested contexts
 
-Per mostrare meglio perchè abbiamo bisogno di qualcosa in più, vediamo qualche esempio pratico.
+Per mostrare meglio perché abbiamo bisogno di qualcosa in più, vediamo qualche esempio pratico.
 
-**Example** (`M = Array`)
+**Esempio** (`M = Array`)
 
 Supponiamo di voler ricavare i follower dei follower di un utente Twitter:
 
@@ -2642,7 +2651,7 @@ const followersOfFollowers: Array<User> = flatten(getFollowers(user).map(getFoll
 
 Bene! Vediamo con un'altra struttura dati:
 
-**Example** (`M = Option`)
+**Esempio** (`M = Option`)
 
 Supponiamo di voler calcolare il reciproco del primo elemento di un array numerico:
 
@@ -2704,15 +2713,15 @@ Le funzioni `of` e `flatMap` devono obbedire a tre leggi:
 
 ove `f`, `g`, `h` sono tutte funzioni con effetto e `∘` è l'usuale composizione di funzioni.
 
-## Ok ma... perchè?
+## Ok ma... perché?
 
 Quando vidi per la prima volta questa definizione la mia prima reazione fu di sconcerto.
 
 Avevo in testa molte domande:
 
-- perchè proprio quelle due operazioni e perchè hanno quella firma?
+- perché proprio quelle due operazioni e perché hanno quella firma?
 - come mai il nome "flatMap"?
-- perchè devono valere quelle leggi? Che cosa significano?
+- perché devono valere quelle leggi? Che cosa significano?
 - ma soprattutto, dov'è la mia `flatten`?
 
 Questo capitolo cercherà di rispondere a tutte queste domande.
@@ -2835,7 +2844,7 @@ Ecco un piccolo programma che legge / scrive su un file
 ```ts
 import { log } from 'fp-ts/Console'
 import { IO, chain } from 'fp-ts/IO'
-import { pipe } from 'fp-ts/pipeable'
+import { pipe } from 'fp-ts/function'
 import * as fs from 'fs'
 
 //
@@ -2933,7 +2942,7 @@ import { randomInt } from 'fp-ts/Random'
 import { fold, monoidVoid } from 'fp-ts/Monoid'
 import { getMonoid } from 'fp-ts/IO'
 import { replicate } from 'fp-ts/Array'
-import { pipe } from 'fp-ts/pipeable'
+import { pipe } from 'fp-ts/function'
 import { chain } from 'fp-ts/IO'
 
 function fib(n: number): number {
