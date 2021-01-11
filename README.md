@@ -1356,6 +1356,8 @@ declare const head: <A>(as: ReadonlyArray<A>) => A
 
 **Quiz**. Perché la funzione `head` è parziale?
 
+**Quiz**. La funzione `JSON.parse` è totale?
+
 Fortunatamente una funzione parziale `f: X ⟶ Y` può essere sempre ricondotta ad una funzione totale aggiungendo un valore speciale,
 chiamiamolo `None`, al codominio e associandolo ad ogni valore di `X` per cui `f` non è definita
 
@@ -1826,12 +1828,14 @@ console.log(pipe(workspaceSettings, monoidSettings.concat(userSettings)))
 
 ### Il tipo `Either`
 
-Un uso comune di `Either` è come alternativa ad `Option` per gestire la possibilità di un valore mancante. In questo uso, `None` è sostituito da `Left` che contiene informazione utile. `Right` invece sostituisce `Some`. Per convenzione `Left` è usato per il fallimento mentre `Right` per il successo.
+Un uso comune di `Either` è come alternativa ad `Option` per gestire l'effetto di una computazione che può fallire, potendo però specificare il motivo del fallimento.
+
+In questo uso, `None` è sostituito da `Left` che contiene informazione utile relativa all'errore. `Right` invece sostituisce `Some`.
 
 ```ts
 type Either<E, A> =
-  | { _tag: 'Left'; left: E } // represents a failure
-  | { _tag: 'Right'; right: A } // represents a success
+  | { readonly _tag: 'Left'; readonly left: E } // represents a failure
+  | { readonly _tag: 'Right'; readonly right: A } // represents a success
 ```
 
 Costruttori e pattern matching:
@@ -1839,9 +1843,9 @@ Costruttori e pattern matching:
 ```ts
 const left = <E, A>(left: E): Either<E, A> => ({ _tag: 'Left', left })
 
-const right = <E, A>(right: A): Either<E, A> => ({ _tag: 'Right', right })
+const right = <A, E>(right: A): Either<E, A> => ({ _tag: 'Right', right })
 
-const fold = <E, A, R>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
+const fold = <E, R, A>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
   fa: Either<E, A>
 ): R => (fa._tag === 'Left' ? onLeft(fa.left) : onRight(fa.right))
 ```
