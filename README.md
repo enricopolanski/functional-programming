@@ -867,6 +867,33 @@ const ordNumber: Ord<number> = fromCompare((second) => (first) =>
 )
 ```
 
+**Quiz**. E' possibile definire un ordinamento per il gioco Sasso-Carta-Forbice compatibile con le mosse vincenti (ovvero `move1 <= move2` se `move2` batte `move1`)?
+
+```ts
+import { Eq, eqString, getTupleEq } from 'fp-ts/Eq'
+import { Ord } from 'fp-ts/Ord'
+import { elem } from 'fp-ts/ReadonlyArray'
+
+export type Move = 'Rock' | 'Paper' | 'Scissor'
+
+export const eqMove: Eq<Move> = eqString
+
+export const ordMove: Ord<Move> = {
+  ...eqMove,
+  compare: (move2) => (move1) =>
+    move1 === move2
+      ? 0
+      : elem(getTupleEq(eqMove, eqMove))([move1, move2])([
+          ['Rock', 'Paper'],
+          ['Paper', 'Scissor'],
+          ['Scissor', 'Rock']
+        ])
+      ? -1
+      : 1
+}
+```
+
+
 Come primo esempio di utilizzo definiamo una funzione `min` che restituisce il minimo fra due valori
 
 ```ts
@@ -1909,8 +1936,8 @@ Ma cosa significa esattamente? Quando possiamo dire che due cose *compongono*? E
 Occorre poter fare riferimento ad una **teoria rigorosa** che possa fornire risposte a domande così fondamentali.
 Ci occorre una **definizione formale** del concetto di composizione.
 
-Fortunatamente da più di 60 anni un vasto gruppo di studiosi appartenenti al più longevo e mastodontico progetto open source nella storia
-dell'umanità (la matematica) si occupa di sviluppare una teoria specificatamente dedicata a questo argomento: la **teoria delle categorie**.
+Fortunatamente da più di 70 anni un vasto gruppo di studiosi appartenenti al più longevo e mastodontico progetto open source nella storia
+dell'umanità (la matematica) si occupa di sviluppare una teoria specificatamente dedicata a questo argomento: la **teoria delle categorie**, fondata da Saunders Mac Lane, insieme a Samuel Eilenberg (1945).
 
 > Categories capture the essence of composition.
 
@@ -1936,25 +1963,39 @@ Una categoria è una coppia `(Objects, Morphisms)` ove:
 - `Objects` è una collezione di **oggetti**
 - `Morphisms` è una collezione di **morfismi** (dette anche "frecce") tra oggetti
 
+<img src="images/objects-morphisms.png" width="300" alt="Objects and Morphisms" />
+
 **Nota**. Il termine "oggetto" non ha niente a che fare con la OOP, pensate agli oggetti come a scatole nere che non potete ispezionare, oppure come a dei semplici placeholder utili a definire i morfismi.
 
 Ogni morfismo `f` possiede un oggetto sorgente `A` e un oggetto target `B`, dove sia `A` che `B` sono contenuti in `Objects`. Scriviamo `f: A ⟼ B` e diciamo che "f è un morfismo da A a B"
+
+<img src="images/morphism.png" width="300" alt="A morphism" />
+
+**Nota**. Per semplicità d'ora in poi nei grafici userò solo le etichette per gli oggetti, omettendo il cerchietto.
 
 ### Parte II (Composizione)
 
 Esiste una operazione `∘`, chiamata "composizione", tale che valgono le seguenti proprietà:
 
-- (**composition of morphisms**) ogni volta che `f: A ⟼ B` and `g: B ⟼ C` sono due morfismi in `Morphisms` allora deve esistere un terzo morfismo `g ∘ f: A ⟼ C` in `Morphisms` che è detto la _composizione_ di `f` e `g`
-- (**associativity**) se `f: A ⟼ B`, `g: B ⟼ C` e `h: C ⟼ D` allora `h ∘ (g ∘ f) = (h ∘ g) ∘ f`
-- (**identity**) per ogni oggetto `X`, esiste un morfismo `identity: X ⟼ X` chiamato *il morfismo identità* di `X`, tale che per ogni morfismo `f: A ⟼ X` e ogni morfismo `g: X ⟼ B`, vale `identity ∘ f = f` e `g ∘ identity` = g.
+(**composition of morphisms**) ogni volta che `f: A ⟼ B` and `g: B ⟼ C` sono due morfismi in `Morphisms` allora deve esistere un terzo morfismo `g ∘ f: A ⟼ C` in `Morphisms` che è detto la _composizione_ di `f` e `g`
+
+<img src="images/composition.png" width="300" alt="composition" />
+
+(**associativity**) se `f: A ⟼ B`, `g: B ⟼ C` e `h: C ⟼ D` allora `h ∘ (g ∘ f) = (h ∘ g) ∘ f`
+
+<img src="images/associativity.png" width="500" alt="associativity" />
+
+(**identity**) per ogni oggetto `X`, esiste un morfismo `idX: X ⟼ X` chiamato *il morfismo identità* di `X`, tale che per ogni morfismo `f: A ⟼ X` e ogni morfismo `g: X ⟼ B`, vale `idX ∘ f = f` e `g ∘ idX = g`.
+
+<img src="images/identity.png" width="300" alt="identity" />
+
+Vediamo un piccolo esempio
 
 **Esempio**
 
-(source: [category on wikipedia.org](https://en.wikipedia.org/wiki/Category_(mathematics)))
-
 <img src="images/category.png" width="300" alt="a simple category" />
 
-Questa categoria è molto semplice, ci sono solo tre oggetti e sei morfismi (1<sub>A</sub>, 1<sub>B</sub>, 1<sub>C</sub> sono i morfismi identità di `A`, `B`, `C`).
+Questa categoria è molto semplice, ci sono solo tre oggetti e sei morfismi (idA, idB, idC sono i morfismi identità di `A`, `B`, `C`).
 
 ## Categorie come linguaggi di programmazione
 
@@ -1968,7 +2009,7 @@ Il diagramma:
 
 <img src="images/category.png" width="300" alt="a simple programming language" />
 
-può perciò essere interpretato come un immaginario (e molto semplice) linguaggio di programmazione con solo tre tipi e una manciata di funzioni.
+può perciò essere interpretato come un immaginario (e molto semplice) linguaggio di programmazione con solo tre tipi e sei funzioni.
 
 Per esempio potremmo pensare a:
 
@@ -1982,38 +2023,40 @@ Per esempio potremmo pensare a:
 L'implementazione potrebbe essere qualcosa come:
 
 ```ts
-function f(s: string): number {
-  return s.length
-}
+const idA = (s: string): string => s
 
-function g(n: number): boolean {
-  return n > 2
-}
+const idB = (n: number): string => n
 
-// h = g ∘ f
-function h(s: string): boolean {
-  return g(f(s))
-}
+const idC = (b: boolean): boolean => B
+
+const f = (s: string): number => s.length
+
+const g = (n: number): boolean => n > 2
+
+// gf = g ∘ f
+const gf = (s: string): boolean => g(f(s))
 ```
 
 ## Una categoria per TypeScript
 
 Possiamo definire una categoria, chiamiamola *TS*, come modello semplificato del linguaggio TypeScript, ove:
 
-- gli **oggetti** sono tutti i tipi di TypeScript: `string`, `number`, `Array<string>`, ...
-- i **morfismi** sono tutte le funzioni di TypeScript: `(a: A) => B`, `(b: B) => C`, ... ove `A`, `B`, `C`, ... sono tipi di TypeScript
+- gli **oggetti** sono tutti i tipi di TypeScript: `string`, `number`, `Array<string>`, ecc...
+- i **morfismi** sono tutte le funzioni di TypeScript: `(a: A) => B`, `(b: B) => C`, ecc... ove `A`, `B`, `C`, ... sono tipi di TypeScript
 - i **morfismi identità** sono tutti codificati da una singola funzione polimorfica `const identity = <A>(a: A): A => a`
 - la **composizione di morfismi** è l'usuale composizione di funzione (che è associativa)
 
 Come modello di TypeScript, la categoria *TS* a prima vista può sembrare troppo limitata: non ci sono cicli, niente `if`, non c'è *quasi* nulla... e tuttavia questo modello semplificato è abbastanza ricco per soddisfare il nostro obbiettivo principale: ragionare su una nozione ben definita di composizione.
+
+Ora che abbiamo un semplice modello per il nostro linguaggio di programmazione, affrontiamo il problema centrale della composizione.
 
 ## Il problema centrale della composizione
 
 In _TS_ possiamo comporre due funzioni generiche `f: (a: A) => B` and `g: (c: C) => D` fintanto che `C = B`
 
 ```ts
-function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
-  return a => g(f(a))
+function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
+  return (a) => g(f(a))
 }
 ```
 
@@ -2031,14 +2074,16 @@ Ma perché trovare soluzioni a questo problema è così importante?
 
 Perché, se è vero che le categorie possono essere usate per modellare i linguaggi di programmazione, i morfismi (ovvero le funzioni in *TS*) possono essere usate per modellare i **programmi**.
 
-Perciò risolvere quel problema astratto significa anche trovare una via concreta di **comporre i programmi in modo generico**.
+Perciò risolvere quel problema astratto significa anche trovare un modo di **comporre i programmi in modo generico**.
 E *questo* sì che è molto interessante per uno sviluppatore, non è vero?
 
 ## Funzioni come programmi
 
+Se vogliamo usare le funzioni per modellare i programmi dobbiamo affrontare subito un problema:
+
 > Come è possibile modellare un programma che produce side effect con una funzione pura?
 
-La risposta è modellare i side effect tramite **effetti**, ovvero tipi che **rappresentano** i side effect.
+La risposta è modellare i side effect tramite quelli che vengono chiamati **effetti**, ovvero tipi che **rappresentano** i side effect.
 
 Vediamo due tecniche possibili per farlo in JavaScript:
 
@@ -2048,8 +2093,8 @@ Vediamo due tecniche possibili per farlo in JavaScript:
 La prima tecnica, usare cioè un DSL, significa modificare un programma come:
 
 ```ts
-function log(message: string): void {
-  console.log(a, b) // side effect
+const log = (message: string): void => {
+  console.log(message) // side effect
 }
 ```
 
@@ -2058,52 +2103,47 @@ cambiando il suo codominio e facendo in modo che sia una funzione che restituisc
 ```ts
 type DSL = ... // sum type di tutti i possibili effetti gestiti dal sistema
 
-function log(message: string): DSL {
-  return {
-    type: "log",
-    message
-  }
+const log = (message: string): DSL => {
+  return { _tag: 'log', message } // un effetto che descrive l'atto di scrivere sulla console
 }
 ```
 
 **Quiz**. La funzione `log` appena definita è davvero pura? Eppure `log('foo') !== log('foo')`!
 
-Questa tecnica presuppone un modo per combinare gli effetti e la definizione di un interprete in grado di eseguire concretamente gli effetti.
+Questa prima tecnica presuppone un modo per combinare gli effetti e la definizione di un interprete in grado di eseguire concretamente gli effetti quando si vuole eseguire il codice risultante.
 
-Una seconda tecnica è racchiudere la computazione in un thunk:
+Una seconda tecnica, più semplice, è racchiudere la computazione in un thunk:
 
 ```ts
 interface IO<A> {
   (): A
 }
 
-function log(message: string): IO<void> {
-  return () => {
-    console.log(message)
-  }
+const log = (message: string): IO<void> => {
+  return () => console.log(message) // restituisce un thunk
 }
 ```
 
-Il programma `log`, quando viene eseguito, non provoca immediatamente il side effect ma restituisce **un valore che rappresenta la computazione** (detta anche *azione*).
+Il programma `log`, quando viene eseguito, non provoca immediatamente il side effect ma restituisce **un valore che rappresenta la computazione**.
 
 Vediamo un altro esempio che usa i thunk, leggere e scrivere sul `localStorage`:
 
 ```ts
-const read = (name: string): IO<string | null> =>
-  () => localStorage.getItem(name)
+const read = (name: string): IO<string | null> => () =>
+  localStorage.getItem(name)
 
-const write = (name: string, value: string): IO<void> =>
-  () => localStorage.setItem(name, value)
+const write = (name: string, value: string): IO<void> => () =>
+  localStorage.setItem(name, value)
 ```
 
 Nella programmazione funzionale si tende a spingere i side effect (sottoforma di effetti) ai confini del sistema (ovvero la funzione `main`)
-ove vengono eseguiti da un interprete ottenendo il seguente schema:
+ove vengono eseguiti, si ottiene perciò il seguente pattern:
 
 > system = pure core + imperative shell
 
 Nei linguaggi *puramente funzionali* (come Haskell, PureScript o Elm) questa divisione è netta ed è imposta dal linguaggio stesso.
 
-Anche con questa seconda tecnica (quella usata da `fp-ts`) occorre un modo per combinare gli effetti, vediamo come fare.
+Anche con questa seconda tecnica (quella usata da `fp-ts`) occorre un modo per combinare gli effetti, il che ci riporta alla nostra volontà di comporre i programmi in modo generico, vediamo come fare.
 
 Innanzi tutto un po' di terminologia: chiamiamo **programma puro** una funzione con la seguente firma:
 
@@ -2127,16 +2167,20 @@ Chiamiamo **programma con effetti** una funzione con la seguente firma:
 (a: A) => F<B>
 ```
 
-Una tale firma modella un programma che accetta un input di tipo `A` e restituisce un risultato di tipo `B` insieme ad un **effetto** `F`, ove `F` è un qualche type constructor.
+per un qualche type constructor `F`.
 
-Ricordiamo che un [type constructor](https://en.wikipedia.org/wiki/Type_constructor) è un operatore a livello di tipi `n`-ario che prende come argomento zero o più tipi e che restituisce un tipo.
+Una tale firma modella un programma che accetta un input di tipo `A` e restituisce un risultato di tipo `B` insieme ad un **effetto** `F`.
+
+Ricordiamo che un [type constructor](https://en.wikipedia.org/wiki/Type_constructor) è un operatore a livello di tipi `n`-ario che prende come argomento zero o più tipi e che restituisce un tipo (esempi: `Option`, `ReadonlyArray`).
 
 **Esempio**
 
-Il programma `head`:
+Il programma `head`
 
 ```ts
-const head = (as: Array<string>): Option<string> =>
+import { Option, some, none } from 'fp-ts/Option'
+
+const head = (as: ReadonlyArray<string>): Option<string> =>
   as.length === 0 ? none : some(as[0])
 ```
 
@@ -2144,12 +2188,12 @@ const head = (as: Array<string>): Option<string> =>
 
 Quando parliamo di effetti siamo interessati a type constructor `n`-ari con `n >= 1`, per esempio:
 
-| Type constructor | Effect (interpretation)                     |
-| ---------------- | ------------------------------------------- |
-| `Array<A>`       | a non deterministic computation             |
-| `Option<A>`      | a computation that may fail                 |
-| `IO<A>`          | a synchronous computation with side effects |
-| `Task<A>`        | an asynchronous computation                 |
+| Type constructor   | Effect (interpretation)                     |
+| ------------------ | ------------------------------------------- |
+| `ReadonlyArray<A>` | a non deterministic computation             |
+| `Option<A>`        | a computation that may fail                 |
+| `IO<A>`            | a synchronous computation with side effects |
+| `Task<A>`          | an asynchronous computation                 |
 
 ove
 
@@ -2166,70 +2210,90 @@ Dato che il problema generale non è trattabile, dobbiamo aggiungere qualche *vi
 Sappiamo già che se `B = C` allora la soluzione è l'usuale composizione di funzioni
 
 ```ts
-function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
-  return a => g(f(a))
+function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
+  return (a) => g(f(a))
 }
 ```
 
-Ma cosa dire degli altri casi?
+Ma cosa fare negli altri casi?
 
 ## Come il vincolo `B = F<C>` conduce ai funtori...
 
-Consideriamo il seguente vincolo: `B = F<C>` per un qualche type constructor `F`, o in altre parole (e dopo un po' di renaming):
+Consideriamo il seguente vincolo: `B = F<C>` per un qualche type constructor `F`, abbiamo perciò la seguente situazione:
 
 - `f: (a: A) => F<B>` è un programma con effetti
 - `g: (b: B) => C` è un programma puro
 
-Per poter comporre `f` con `g` dobbiamo trovare un procedimento (detto `lift`ing) che permetta di tramutare `g` da una funzione `(b: B) => C` ad una funzione `(fb: F<B>) => F<C>` in modo tale che possiamo usare la normale composizione di funzioni (infatti in questo modo il codominio di `f` sarebbe lo stesso insieme che fa da dominio della nuova funzione).
+Per poter comporre `f` con `g` dobbiamo trovare un procedimento che permetta di tramutare `g` da una funzione `(b: B) => C` ad una funzione `(fb: F<B>) => F<C>` in modo tale che possiamo usare la normale composizione di funzioni (infatti in questo modo il codominio di `f` sarebbe lo stesso insieme che fa da dominio della nuova funzione).
 
-Perciò abbiamo modificato il problema originale in uno nuovo e diverso: possiamo trovare una funzione `lift` che agisce in questo modo?
+<img src="images/map.png" width="500" alt="map" />
+
+Abbiamo perciò tramutato il problema originale in uno nuovo e diverso: possiamo trovare una funzione, chiamiamola `map`, che agisce in questo modo?
 
 Vediamo qualche esempio pratico:
 
-**Esempio** (`F = Array`)
+**Esempio** (`F = ReadonlyArray`)
 
 ```ts
-function lift<B, C>(g: (b: B) => C): (fb: Array<B>) => Array<C> {
-  return fb => fb.map(g)
-}
+import { flow } from 'fp-ts/function'
+
+const map = <B, C>(
+  g: (b: B) => C
+): ((fb: ReadonlyArray<B>) => ReadonlyArray<C>) => (fb) => fb.map(g)
+
+declare const f: (a: string) => ReadonlyArray<number>
+declare const g: (b: number) => boolean
+
+// h: string => ReadonlyArray<string>
+const h = flow(f, map(g))
 ```
 
 **Esempio** (`F = Option`)
 
 ```ts
+import { flow } from 'fp-ts/function'
 import { isNone, none, Option, some } from 'fp-ts/Option'
 
-function lift<B, C>(g: (b: B) => C): (fb: Option<B>) => Option<C> {
-  return fb => (isNone(fb) ? none : some(g(fb.value)))
-}
+const map = <B, C>(g: (b: B) => C): ((fb: Option<B>) => Option<C>) => (fb) =>
+  isNone(fb) ? none : some(g(fb.value))
+
+declare const f: (a: string) => Option<number>
+declare const g: (b: number) => boolean
+
+// h: string => Option<string>
+const h = flow(f, map(g))
 ```
 
 **Esempio** (`F = Task`)
 
 ```ts
+import { flow } from 'fp-ts/function'
 import { Task } from 'fp-ts/Task'
 
-function lift<B, C>(g: (b: B) => C): (fb: Task<B>) => Task<C> {
-  return fb => () => fb().then(g)
-}
+const map = <B, C>(g: (b: B) => C): ((fb: Task<B>) => Task<C>) => (fb) => () =>
+  fb().then(g)
+
+declare const f: (a: string) => Task<number>
+declare const g: (b: number) => boolean
+
+// h: string => Task<string>
+const h = flow(f, map(g))
 ```
 
-Tutte queste funzioni `lift` si assomigliano molto. Non è una coincidenza, c'è un pattern molto importante dietro le quinte: tutti questi type constructor (e molti altri) ammettono una **istanza di funtore**.
+Più in generale, quando un certo type constructor `F` ammette una `map` che agisce in questo modo, diciamo che ammette una **istanza di funtore**.
 
-I funtori sono delle **mappe tra categorie** che preservano la struttura categoriale, ovvero che preservano i morfismi identità e l'operazione di composizione.
+Dal punto di vista matematico, i funtori sono delle **mappe tra categorie** che preservano la struttura categoriale, ovvero che preservano i morfismi identità e l'operazione di composizione.
 
 Dato che le categorie sono costituite da due cose (gli oggetti e i morfismi) anche un funtore è costituito da due cose:
 
-- una **mappa tra oggetti** che associa ad ogni oggetto in `X` in _C_ un oggetto in _D_
-- una **mappa tra morfismi** che associa ad ogni morfismo in _C_ un morfismo in _D_
+- una **mappa tra oggetti** che associa ad ogni oggetto in `X` in _C_ un oggetto `F<X>` in _D_
+- una **mappa tra morfismi** che associa ad ogni morfismo `f` in _C_ un morfismo `map(f)` in _D_
 
 ove _C_ e _D_ sono due categorie (aka due linguaggi di programmazione).
 
-<img src="images/functor.jpg" width="300" alt="functor" />
+<img src="images/functor.png" width="500" alt="functor" />
 
-(source: [functor on ncatlab.org](https://ncatlab.org/nlab/show/functor))
-
-Anche se una mappa tra due linguaggi di programmazione è un'idea intrigante, siamo più interessati ad una mappa in cui _C_ and _D_ coincidono (con *TS*). In questo caso parliamo di **endofuntori** ("endo" significa "dentro", "interno").
+Anche se una mappa tra due linguaggi di programmazione è un'idea intrigante, siamo più interessati ad una mappa in cui _C_ and _D_ coincidono (con la categoria *TS*). In questo caso parliamo di **endofuntori** ("endo" significa "dentro", "interno").
 
 D'ora in poi, se non diversamente specificato, quando scrivo "funtore" intendo un endofuntore in *TS*.
 
@@ -2237,30 +2301,21 @@ Ora che sappiamo qual'è l'aspetto pratico che ci interessa dei funtori, vediamo
 
 ### Definizione
 
-Un funtore è una coppia `(F, lift)` ove:
+Un funtore è una coppia `(F, map)` ove:
 
 - `F` è un type constructor `n`-ario (`n >= 1`) che mappa ogni tipo `X` in un tipo `F<X>` (**mappa tra oggetti**)
-- `lift` è una funzione con la seguente firma:
+- `map` è una funzione con la seguente firma:
 
 ```ts
-lift: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
+map: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
 ```
 
-che mappa ciascuna funzione `f: (a: A) => B` in una funzione `lift(f): (fa: F<A>) => F<B>` (**mappa tra morfismi**)
+che mappa ciascuna funzione `f: (a: A) => B` in una funzione `map(f): (fa: F<A>) => F<B>` (**mappa tra morfismi**)
 
 Devono valere le seguenti proprietà:
 
-- `lift(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**le identità vanno in identità**)
-- `lift(g ∘ f) = lift(g) ∘ lift(f)` (**l'immagine di una composizione è la composizione delle immagini**)
-
-La funzione `lift` è anche conosciuta sottoforma di una sua variante chiamata `map`, che è essenzialmente `lift` ma con gli argomenti riarrangiati:
-
-```ts
-lift: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
-map:  <A, B>(fa: F<A>, f: (a: A) => B) => F<B>
-```
-
-Notate che `map` può essere derivata da `lift` (e viceversa).
+- `map(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**le identità vanno in identità**)
+- `map(g ∘ f) = map(g) ∘ map(f)` (**l'immagine di una composizione è la composizione delle immagini**)
 
 ## Funtori in `fp-ts`
 
@@ -2270,10 +2325,10 @@ La seguente dichiarazione definisce il modello di una risposta di una chiamata a
 
 ```ts
 interface Response<A> {
-  url: string
-  status: number
-  headers: Record<string, string>
-  body: A
+  readonly url: string
+  readonly status: number
+  readonly headers: Record<string, string>
+  readonly body: A
 }
 ```
 
@@ -2292,23 +2347,24 @@ export type URI = typeof URI
 
 declare module 'fp-ts/HKT' {
   interface URItoKind<A> {
-    Response: Response<A>
+    readonly [URI]: Response<A>
   }
 }
 
 export interface Response<A> {
-  url: string
-  status: number
-  headers: Record<string, string>
-  body: A
+  readonly url: string
+  readonly status: number
+  readonly headers: Record<string, string>
+  readonly body: A
 }
 
-function map<A, B>(fa: Response<A>, f: (a: A) => B): Response<B> {
-  return { ...fa, body: f(fa.body) }
-}
+export const map = <A, B>(f: (a: A) => B) => (fa: Response<A>): Response<B> => ({
+  ...fa,
+  body: f(fa.body)
+})
 
-// functor instance for `Response`
-export const functorResponse: Functor1<URI> = {
+// functor instance for `Response<A>`
+export const Functor: Functor1<URI> = {
   URI,
   map
 }
@@ -2321,23 +2377,29 @@ I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione 
 **Esempio**
 
 ```ts
-import { Option, option } from 'fp-ts/Option'
-import { array } from 'fp-ts/Array'
+import { Functor1 } from 'fp-ts/Functor'
+import * as O from 'fp-ts/Option'
+import * as A from 'fp-ts/ReadonlyArray'
 
-export const functorArrayOption = {
-  map: <A, B>(fa: Array<Option<A>>, f: (a: A) => B): Array<Option<B>> =>
-    array.map(fa, oa => option.map(oa, f))
+export interface ReadonlyArrayOption<A> extends ReadonlyArray<O.Option<A>> {}
+
+export const URI = 'ReadonlyArrayOption'
+
+export type URI = typeof URI
+
+declare module 'fp-ts/HKT' {
+  interface URItoKind<A> {
+    readonly [URI]: ReadonlyArrayOption<A>
+  }
 }
-```
 
-Per evitare boilerplate `fp-ts` esporta un helper:
-
-```ts
-import { array } from 'fp-ts/Array'
-import { getFunctorComposition } from 'fp-ts/Functor'
-import { option } from 'fp-ts/Option'
-
-export const functorArrayOption = getFunctorComposition(array, option)
+// functor instance for `ReadonlyArrayOption<A>`
+export const Functor: Functor1<URI> = {
+  URI,
+  map: <A, B>(
+    f: (a: A) => B
+  ): ((fa: ReadonlyArrayOption<A>) => ReadonlyArrayOption<B>) => A.map(O.map(f))
+}
 ```
 
 ## Abbiamo risolto il problema generale?
@@ -2347,7 +2409,7 @@ Non ancora. I funtori ci permettono di comporre un programma con effetti `f` con
 | Program f | Program g               | Composition   |
 | --------- | ----------------------- | ------------- |
 | pure      | pure                    | `g ∘ f`       |
-| effectful | pure (unary)            | `lift(g) ∘ f` |
+| effectful | pure (unary)            | `map(g) ∘ f` |
 | effectful | pure (`n`-ary, `n > 1`) | ?             |
 
 Per poter gestire questa circostanza abbiamo bisogno di qualcosa in più, nel prossimo capitolo vedremo un'altra importante astrazione della programmazione funzionale: i **funtori applicativi**.
@@ -2361,20 +2423,22 @@ Ad essere pignoli infatti quelli che abbiamo chiamato semplicemente "funtori" do
 La definizione di funtore controvariante è del tutto analoga a quella di funtore covariante, eccetto per la firma della sua operazione fondamentale (che viene chiamata `contramap` invece di `map`)
 
 ```ts
+import { HKT } from 'fp-ts/HKT'
+
 // funtore covariante
 export interface Functor<F> {
-  readonly map: <A, B>(fa: HKT<F, A>, f: (a: A) => B) => HKT<F, B>
+  readonly map: <A, B>(f: (a: A) => B) => (fa: HKT<F, A>) => HKT<F, B>
 }
 
 // funtore controvariante
 export interface Contravariant<F> {
-  readonly contramap: <A, B>(fa: HKT<F, A>, f: (b: B) => A) => HKT<F, B>
+  readonly contramap: <B, A>(f: (b: B) => A) => (fa: HKT<F, A>) => HKT<F, B>
 }
 ```
 
 **Nota**: il tipo `HKT` è il modo in cui `fp-ts` rappresenta un generico type constructor (una tecnica proposta nel paper [Lightweight higher-kinded polymorphism](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf)) perciò quando vedete `HKT<F, X>` potete pensarlo come al type constructor `F` applicato al tipo `X` (ovvero `F<X>`).
 
-Come esempi, abbiamo già visto due tipi notevoli che ammettono una istanza di funtore controvariante: `Eq` e `Ord`.
+Abbiamo già visto due tipi notevoli che ammettono una istanza di funtore controvariante: `Eq` e `Ord`.
 
 # Funtori applicativi
 
