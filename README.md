@@ -2317,6 +2317,24 @@ Devono valere le seguenti proprietà:
 - `map(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**le identità vanno in identità**)
 - `map(g ∘ f) = map(g) ∘ map(f)` (**l'immagine di una composizione è la composizione delle immagini**)
 
+## Composizione di funtori
+
+I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione `F<G<A>>` è ancora un funtore e la `map` della composizione è la composizione delle `map`
+
+**Esempio**
+
+```ts
+import { flow } from 'fp-ts/function'
+import * as O from 'fp-ts/Option'
+import * as A from 'fp-ts/ReadonlyArray'
+
+export interface ReadonlyArrayOption<A> extends ReadonlyArray<O.Option<A>> {}
+
+export const map: <A, B>(
+  f: (a: A) => B
+) => (fa: ReadonlyArrayOption<A>) => ReadonlyArrayOption<B> = flow(O.map, A.map)
+```
+
 ## Funtori in `fp-ts`
 
 Come facciamo a definire una istanza di funtore in `fp-ts`? Vediamo qualche esempio pratico.
@@ -2370,38 +2388,6 @@ export const Functor: Functor1<URI> = {
 }
 ```
 
-## Composizione di funtori
-
-I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione `F<G<A>>` è ancora un funtore e la `map` della composizione è la composizione delle `map`
-
-**Esempio**
-
-```ts
-import { Functor1 } from 'fp-ts/Functor'
-import * as O from 'fp-ts/Option'
-import * as A from 'fp-ts/ReadonlyArray'
-
-export interface ReadonlyArrayOption<A> extends ReadonlyArray<O.Option<A>> {}
-
-export const URI = 'ReadonlyArrayOption'
-
-export type URI = typeof URI
-
-declare module 'fp-ts/HKT' {
-  interface URItoKind<A> {
-    readonly [URI]: ReadonlyArrayOption<A>
-  }
-}
-
-// functor instance for `ReadonlyArrayOption<A>`
-export const Functor: Functor1<URI> = {
-  URI,
-  map: <A, B>(
-    f: (a: A) => B
-  ): ((fa: ReadonlyArrayOption<A>) => ReadonlyArrayOption<B>) => A.map(O.map(f))
-}
-```
-
 ## Abbiamo risolto il problema generale?
 
 Non ancora. I funtori ci permettono di comporre un programma con effetti `f` con un programma puro `g`, ma `g` deve essere una funzione **unaria**, ovvero una funzione che accetta un solo argomento. Cosa succede se `g` accetta due o più argomenti?
@@ -2438,30 +2424,30 @@ export interface Contravariant<F> {
 
 **Nota**: il tipo `HKT` è il modo in cui `fp-ts` rappresenta un generico type constructor (una tecnica proposta nel paper [Lightweight higher-kinded polymorphism](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf)) perciò quando vedete `HKT<F, X>` potete pensarlo come al type constructor `F` applicato al tipo `X` (ovvero `F<X>`).
 
-Abbiamo già visto due tipi notevoli che ammettono una istanza di funtore controvariante: `Eq` e `Ord`.
+Vi ricordo che abbiamo già visto due tipi notevoli che ammettono una istanza di funtore controvariante: `Eq` e `Ord`.
 
 # Funtori applicativi
 
-Nella sezione riguardante i funtori abbiamo visto che possiamo comporre un programma con effetti `f: (a: A) => F<B>` con un programma puro `g: (b: B) => C` tramite lifting di `g` ad una funzione `lift(g): (fb: F<B>) => F<C>`, ammesso che `F` ammetta una istanza di funtore.
+Nella sezione riguardante i funtori abbiamo visto che possiamo comporre un programma con effetti `f: (a: A) => F<B>` con un programma puro `g: (b: B) => C` tramite una trasformazione di `g` in una funzione `map(g): (fb: F<B>) => F<C>`, ammesso che `F` ammetta una istanza di funtore.
 
 | Program f | Program g    | Composition   |
 | --------- | ------------ | ------------- |
 | pure      | pure         | `g ∘ f`       |
-| effectful | pure (unary) | `lift(g) ∘ f` |
+| effectful | pure (unary) | `map(g) ∘ f` |
 
-Tuttavia `g` deve essere unaria, ovvero deve accettare un solo argomento in input. Che succede se `g` accetta due argomenti? Possiamo ancora fare un lifting di `g` usando solo l'istanza di funtore? Proviamoci!
+Tuttavia `g` deve essere unaria, ovvero deve accettare un solo parametro in input. Che succede se `g` accetta due parametri? Possiamo ancora trasformare `g` usando solo l'istanza di funtore? Proviamoci!
 
 ## Currying
 
-Prima di tutto dobbiamo modellare una funzione che accetta due argomenti, diciamo di tipo `B` e `C` (possiamo usare una tupla per questo) e restituisce un valore di tipo `D`:
+Prima di tutto dobbiamo modellare una funzione che accetta due parametri, diciamo di tipo `B` e `C` (possiamo usare una tupla per questo) e restituisce un valore di tipo `D`:
 
 ```ts
-g: (args: [B, C]) => D
+g: (bc: [B, C]) => D
 ```
 
 Possiamo riscrivere `g` usando una tecnica chiamata **currying**.
 
-> Currying is the technique of translating the evaluation of a function that takes multiple arguments into evaluating a sequence of functions, **each with a single argument**. For example, a function that takes two arguments, one from `B` and one from `C`, and produces outputs in `D`, by currying is translated into a function that takes a single argument from `C` and produces as outputs functions from `B` to `C`.
+> Currying is the technique of translating the evaluation of a function that takes multiple parameters into evaluating a sequence of functions, **each with a single parameter**. For example, a function that takes two parameters, one from `B` and one from `C`, and produces outputs in `D`, by currying is translated into a function that takes a single parameter from `C` and produces as outputs functions from `B` to `C`.
 
 (source: [currying on wikipedia.org](https://en.wikipedia.org/wiki/Currying))
 
@@ -2471,42 +2457,182 @@ Perciò, tramite currying, possiamo riscrivere `g` come:
 g: (b: B) => (c: C) => D
 ```
 
-Quello che vogliamo è una operazione di lifting, chiamiamola `liftA2` per distinguerla dalla nostra vecchia `lift` dei funtori, che resituisca una funzione con la seguente firma:
+Quello che vogliamo è una trasformazione, chiamiamola `liftA2` per distinguerla dalla nostra vecchia `map` dei funtori, che restituisca una funzione con la seguente firma
 
 ```ts
 liftA2(g): (fb: F<B>) => (fc: F<C>) => F<D>
 ```
 
-Come facciamo ad ottenerla? Siccome adesso `g` è unaria, possiamo usare l'istanza di funtore e la nostra vecchia `lift`:
+<img src="images/liftA2.png" width="500" alt="liftA2" />
+
+Come facciamo ad ottenerla? Siccome `g` è unaria, possiamo usare l'istanza di funtore e la nostra vecchia `map`:
 
 ```ts
-lift(g): (fb: F<B>) => F<(c: C) => D>
+map(g): (fb: F<B>) => F<(c: C) => D>
 ```
 
-Ma ora siamo bloccati: non c'è alcuna operazione legale fornita dalla istanza di funtore che ci permette di **spacchettare** (`unpack`) il valore `F<(c: C) => D>` in una funzione `(fc: F<C>) => F<D>`.
+<img src="images/liftA2-first-step.png" width="500" alt="liftA2 (first step)" />
+
+Ma ora siamo bloccati: non c'è alcuna operazione legale fornita dall'istanza di funtore che ci permette di "spacchettare" il tipo `F<(c: C) => D>` nel tipo `(fc: F<C>) => F<D>`.
 
 ## Apply
 
 Introduciamo perciò una nuova astrazione `Apply` che possiede una tale operazione di spacchettamento (chiamata `ap`):
 
 ```ts
-interface Apply<F> extends Functor<F> {
-  readonly ap: <C, D>(fcd: HKT<F, (c: C) => D>, fc: HKT<F, C>) => HKT<F, D>
+export interface Apply<F> extends Functor<F> {
+  readonly ap: <C>(fa: HKT<F, C>) => <D>(fab: HKT<F, (c: C) => D>) => HKT<F, D>
 }
 ```
 
-La funzione `ap` è fondamentalmente `unpack` con gli argomenti riarrangiati:
+Ora, data una istanza di `Apply` per un certo type constructor `F`, possiamo definire `liftA2`?
 
 ```ts
-unpack: <C, D>(fcd: HKT<F, (c: C) => D>) => ((fc: HKT<F, C>) => HKT<F, D>)
-ap:     <C, D>(fcd: HKT<F, (c: C) => D>, fc: HKT<F, C>) => HKT<F, D>
+import { HKT } from 'fp-ts/HKT'
+import { Apply } from 'fp-ts/Apply'
+import { pipe } from 'fp-ts/lib/function'
+
+type Curried2<B, C, D> = (b: B) => (c: C) => D
+
+const liftA2 = <F>(F: Apply<F>) => <B, C, D>(
+  g: Curried2<B, C, D>
+): Curried2<HKT<F, B>, HKT<F, C>, HKT<F, D>> => (fb) => (fc) =>
+  pipe(fb, F.map(g), F.ap(fc))
 ```
 
-perciò `ap` può essere derivata da `unpack` (e viceversa).
+Vediamo qualche esempio pratico:
+
+**Esempio** (`F = ReadonlyArray`)
+
+```ts
+import { flow, pipe } from 'fp-ts/function'
+import { Apply1 } from 'fp-ts/lib/Apply'
+import * as A from 'fp-ts/ReadonlyArray'
+
+export const Apply: Apply1<A.URI> = {
+  ...A.Functor,
+  ap: <A>(fa: ReadonlyArray<A>) => <B>(fab: ReadonlyArray<(a: A) => B>) => {
+    const out: Array<B> = []
+    for (const f of fab) {
+      for (const a of fa) {
+        out.push(f(a))
+      }
+    }
+    return out
+  }
+}
+
+type Curried2<B, C, D> = (b: B) => (c: C) => D
+
+const liftA2 = <B, C, D>(
+  g: Curried2<B, C, D>
+): Curried2<ReadonlyArray<B>, ReadonlyArray<C>, ReadonlyArray<D>> => (fb) => (
+  fc
+) => pipe(fb, Apply.map(g), Apply.ap(fc))
+
+declare const f: (a: string) => ReadonlyArray<number>
+declare const g: (b: number) => (c: boolean) => Date
+
+// const h: (a: string) => (c: ReadonlyArray<boolean>) => ReadonlyArray<Date>
+const h = flow(f, liftA2(g))
+```
+
+**Esempio** (`F = Option`)
+
+```ts
+import { flow, pipe } from 'fp-ts/function'
+import { Apply1 } from 'fp-ts/lib/Apply'
+import * as O from 'fp-ts/Option'
+
+export const Apply: Apply1<O.URI> = {
+  ...O.Functor,
+  ap: (fa) => (fab) =>
+    O.isSome(fab) && O.isSome(fa) ? O.some(fab.value(fa.value)) : O.none
+}
+
+type Curried2<B, C, D> = (b: B) => (c: C) => D
+
+const liftA2 = <B, C, D>(
+  f: Curried2<B, C, D>
+): Curried2<O.Option<B>, O.Option<C>, O.Option<D>> => (fb) => (fc) =>
+  pipe(fb, Apply.map(f), Apply.ap(fc))
+
+declare const f: (a: string) => O.Option<number>
+declare const g: (b: number) => (c: boolean) => Date
+
+// const h: (a: string) => (c: O.Option<boolean>) => O.Option<Date>
+const h = flow(f, liftA2(g))
+```
+
+**Esempio** (`F = Task`)
+
+```ts
+import { flow, pipe } from 'fp-ts/function'
+import { Apply1 } from 'fp-ts/lib/Apply'
+import * as T from 'fp-ts/Task'
+
+export const Apply: Apply1<T.URI> = {
+  ...T.Functor,
+  ap: (fa) => (fab) => () => Promise.all([fab(), fa()]).then(([f, a]) => f(a))
+}
+
+type Curried2<B, C, D> = (b: B) => (c: C) => D
+
+const liftA2 = <B, C, D>(
+  f: Curried2<B, C, D>
+): Curried2<T.Task<B>, T.Task<C>, T.Task<D>> => (fb) => (fc) =>
+  pipe(fb, Apply.map(f), Apply.ap(fc))
+
+declare const f: (a: string) => T.Task<number>
+declare const g: (b: number) => (c: boolean) => Date
+
+// const h: (a: string) => (c: T.Task<boolean>) => T.Task<Date>
+const h = flow(f, liftA2(g))
+```
+
+Abbiamo visto che con una istanza di `Apply` possiamo gestire funzioni con due parametri, ma che succede con le funzioni che accettano **tre** parametri? Abbiamo bisogno di *un'altra astrazione ancora*?
+
+La buona notizia è che la risposta è no, `Apply` è sufficiente:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { HKT } from 'fp-ts/HKT'
+import { Apply } from 'fp-ts/lib/Apply'
+
+type Curried3<B, C, D, E> = (b: B) => (c: C) => (d: D) => E
+
+const liftA3 = <F>(F: Apply<F>) => <B, C, D, E>(
+  g: Curried3<B, C, D, E>
+): Curried3<HKT<F, B>, HKT<F, C>, HKT<F, D>, HKT<F, E>> => {
+  return (fb) => (fc) => (fd) => pipe(fb, F.map(g), F.ap(fc), F.ap(fd))
+}
+```
+
+In realtà data una istanza di `Apply` possiamo scrivere con lo stesso pattern una funzione `liftAn`, per **qualsiasi** `n >= 1`!
+
+**Nota**. `liftA1` non è altro che `map`, l'operazione fondamentale di `Functor`.
+
+```ts
+import { HKT } from 'fp-ts/HKT'
+import { Apply } from 'fp-ts/Apply'
+
+const liftA1 = <F>(
+  F: Apply<F>
+): (<B, C>(g: (b: B) => C) => (fb: HKT<F, B>) => HKT<F, C>) => F.map
+```
+
+Ora possiamo aggiornare la nostra "tabella di composizione":
+
+| Program f | Program g     | Composition     |
+| --------- | ------------- | --------------- |
+| pure      | pure          | `g ∘ f`         |
+| effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
+
+ove `liftA1 = map`
 
 ## Applicative
 
-In più sarebbe comodo se esistesse un'altra operazione che sia in grado di fare il **lifting di un valore** di tipo `A` in un valore di tipo `F<A>`. In questo modo potremo chiamare la funzione `liftA2(g)` sia fornendo valori di tipo `F<B>` e `F<C>`, sia tramite lifting di valori di tipo `B` e `C`.
+Sarebbe comodo se esistesse un'altra operazione che sia in grado di trasformare un valore di tipo `A` in un valore di tipo `F<A>`. In questo modo potremo chiamare la funzione `liftA2(g)` sia fornendo valori di tipo `F<B>` e `F<C>`, sia tramite trasformazione di valori di tipo `B` o `C`.
 
 Introduciamo perciò l'astrazione `Applicative` che arricchisce `Apply` e che contiene una tale operazione (chiamata `of`):
 
@@ -2516,108 +2642,43 @@ interface Applicative<F> extends Apply<F> {
 }
 ```
 
-Vediamo qualche istanza di `Applicative` per alcuni data type comuni:
+Vediamo qualche esempio pratico:
 
-**Esempio** (`F = Array`)
+**Esempio** (`F = ReadonlyArray`)
 
 ```ts
-import { flatten } from 'fp-ts/Array'
+import { Applicative1 } from 'fp-ts/lib/Applicative'
+import * as A from 'fp-ts/ReadonlyArray'
 
-export const applicativeArray = {
-  map: <A, B>(fa: Array<A>, f: (a: A) => B): Array<B> => fa.map(f),
-  of: <A>(a: A): Array<A> => [a],
-  ap: <A, B>(fab: Array<(a: A) => B>, fa: Array<A>): Array<B> =>
-    flatten(fab.map(f => fa.map(f)))
+export const Applicative: Applicative1<A.URI> = {
+  ...A.Apply,
+  of: (a) => [a]
 }
 ```
 
 **Esempio** (`F = Option`)
 
 ```ts
-import { fold, isNone, map, none, Option, some } from 'fp-ts/Option'
-import { pipe } from 'fp-ts/function'
+import { Applicative1 } from 'fp-ts/lib/Applicative'
+import * as O from 'fp-ts/Option'
 
-export const applicativeOption = {
-  map: <A, B>(fa: Option<A>, f: (a: A) => B): Option<B> =>
-    isNone(fa) ? none : some(f(fa.value)),
-  of: <A>(a: A): Option<A> => some(a),
-  ap: <A, B>(fab: Option<(a: A) => B>, fa: Option<A>): Option<B> =>
-    pipe(
-      fab,
-      fold(
-        () => none,
-        f =>
-          pipe(
-            fa,
-            map(f)
-          )
-      )
-    )
+export const Applicative: Applicative1<O.URI> = {
+  ...O.Apply,
+  of: O.some
 }
 ```
 
 **Esempio** (`F = Task`)
 
 ```ts
-import { Task } from 'fp-ts/Task'
+import { Applicative1 } from 'fp-ts/lib/Applicative'
+import * as T from 'fp-ts/Task'
 
-export const applicativeTask = {
-  map: <A, B>(fa: Task<A>, f: (a: A) => B): Task<B> => () => fa().then(f),
-  of: <A>(a: A): Task<A> => () => Promise.resolve(a),
-  ap: <A, B>(fab: Task<(a: A) => B>, fa: Task<A>): Task<B> => () =>
-    Promise.all([fab(), fa()]).then(([f, a]) => f(a))
+export const Applicative: Applicative1<T.URI> = {
+  ...T.ApplyPar,
+  of: (a) => () => Promise.resolve(a)
 }
 ```
-
-## Lifting
-
-Data una istanza di `Apply` per `F` possiamo quindi definire `liftA2`?
-
-```ts
-import { HKT } from 'fp-ts/HKT'
-import { Apply } from 'fp-ts/Apply'
-
-type Curried2<B, C, D> = (b: B) => (c: C) => D
-
-function liftA2<F>(
-  F: Apply<F>
-): <B, C, D>(g: Curried2<B, C, D>) => Curried2<HKT<F, B>, HKT<F, C>, HKT<F, D>> {
-  return g => fb => fc => F.ap(F.map(fb, g), fc)
-}
-```
-
-Bene! Ma che succede con le funzioni che accettano **tre** argomenti? Abbiamo bisogno di *un'altra astrazione ancora*?
-
-La buona notizia è che la risposta è no, `Apply` è sufficiente:
-
-```ts
-type Curried3<B, C, D, E> = (b: B) => (c: C) => (d: D) => E
-
-function liftA3<F>(
-  F: Apply<F>
-): <B, C, D, E>(
-  g: Curried3<B, C, D, E>
-) => Curried3<HKT<F, B>, HKT<F, C>, HKT<F, D>, HKT<F, E>> {
-  return g => fb => fc => fd => F.ap(F.ap(F.map(fb, g), fc), fd)
-}
-```
-
-In realtà data una istanza di `Apply` possiamo scrivere con lo stesso pattern una funzione `liftAn`, **qualsiasi** sia `n`!
-
-**Nota**. `liftA1` non è altro che `lift`, l'operazione fondamentale di `Functor`.
-
-Ora possiamo aggiornare la nostra "tabella di composizione":
-
-| Program f | Program g     | Composition     |
-| --------- | ------------- | --------------- |
-| pure      | pure          | `g ∘ f`         |
-| effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
-
-ove `liftA1 = lift`
-
-**Demo**
-
-[`04_applicative.ts`](src/04_applicative.ts)
 
 ## Composizione di funtori applicativi
 
@@ -2627,33 +2688,34 @@ allora la loro composizione `F<G<A>>` è ancora un funtore applicativo.
 **Esempio**
 
 ```ts
-import { array } from 'fp-ts/Array'
-import { Option, option } from 'fp-ts/Option'
+import * as A from 'fp-ts/ReadonlyArray'
+import * as O from 'fp-ts/Option'
+import { flow } from 'fp-ts/function'
 
-export const applicativeArrayOption = {
-  map: <A, B>(fa: Array<Option<A>>, f: (a: A) => B): Array<Option<B>> =>
-    array.map(fa, oa => option.map(oa, f)),
-  of: <A>(a: A): Array<Option<A>> => array.of(option.of(a)),
-  ap: <A, B>(fab: Array<Option<(a: A) => B>>, fa: Array<Option<A>>): Array<Option<B>> =>
-    array.ap(array.map(fab, gab => (ga: Option<A>) => option.ap(gab, ga)), fa)
+export interface ReadonlyArrayOption<A> extends ReadonlyArray<O.Option<A>> {}
+
+export const Applicative = {
+  map: flow(O.map, A.map),
+  of: flow(O.of, A.of),
+  ap: <A>(
+    fa: ReadonlyArrayOption<A>
+  ): (<B>(fab: ReadonlyArrayOption<(a: A) => B>) => ReadonlyArrayOption<B>) =>
+    flow(
+      A.map((gab) => (ga: O.Option<A>) => O.ap(ga)(gab)),
+      A.ap(fa)
+    )
 }
 ```
 
-Per evitare il boilerplate `fp-ts` esporta un helper:
+**Demo**
 
-```ts
-import { getApplicativeComposition } from 'fp-ts/Applicative'
-import { array } from 'fp-ts/Array'
-import { option } from 'fp-ts/Option'
-
-export const applicativeArrayOption = getApplicativeComposition(array, option)
-```
+[`04_applicative.ts`](src/04_applicative.ts)
 
 ## Abbiamo risolto il problema generale?
 
 Non ancora. C'è ancora un ultimo importante caso da considerare: quando **entrambi** i programmi sono con effetti.
 
-Ancora una volta abbiamo bisogno di qualche cosa in più, nel capitoloseguente parleremo di una delle astrazioni più importanti in programmazione funzionale: le **monadi**.
+Ancora una volta abbiamo bisogno di qualche cosa in più, nel capitolo seguente parleremo di una delle astrazioni più importanti in programmazione funzionale: le **monadi**.
 
 # Monadi
 
