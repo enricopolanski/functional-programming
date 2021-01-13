@@ -19,7 +19,6 @@
 - [Modellare la composizione con i monoidi](#modellare-la-composizione-con-i-monoidi)
   - [La funzione `fold`](#la-funzione-fold-1)
 - [Funzioni pure e funzioni parziali](#funzioni-pure-e-funzioni-parziali)
-  - [Funzioni parziali](#funzioni-parziali)
 - [Algebraic Data Types](#algebraic-data-types)
   - [Che cos'è un algebraic Data Types?](#che-cos%C3%A8-un-algebraic-data-types)
   - [Product types](#product-types)
@@ -1334,8 +1333,6 @@ h(x) = f(g(x))
 si dice _composizione_ di `f` e `g` e si scrive `h = f ∘ g`
 
 Si noti che affinché due funzioni `f` e `g` possano comporre, il dominio di `f` deve essere contenuto nel codominio di `g`.
-
-## Funzioni parziali
 
 **Definizione**. Una funzione _parziale_ è una funzione che non è definita per tutti i valori del dominio.
 
