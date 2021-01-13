@@ -56,7 +56,6 @@
   - [Definizione di monade](#definizione-di-monade)
   - [La categoria di Kleisli](#la-categoria-di-kleisli)
   - [Definizione di `chain` passo dopo passo](#definizione-di-chain-passo-dopo-passo)
-  - [Monadi in `fp-ts`](#monadi-in-fp-ts)
   - [Manipolazione di programmi](#manipolazione-di-programmi)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -1907,17 +1906,19 @@ Ci occorre una **definizione formale** del concetto di composizione.
 Fortunatamente da più di 70 anni un vasto gruppo di studiosi appartenenti al più longevo e mastodontico progetto open source nella storia
 dell'umanità (la matematica) si occupa di sviluppare una teoria specificatamente dedicata a questo argomento: la **teoria delle categorie**, fondata da Saunders Mac Lane, insieme a Samuel Eilenberg (1945).
 
-> Categories capture the essence of composition.
-
-Saunders Mac Lane
-
+<center>
 <img src="images/maclane.jpg" width="300" alt="Saunders Mac Lane" />
 
-Samuel Eilenberg
+(Saunders Mac Lane)
 
 <img src="images/eilenberg.jpg" width="300" alt="Samuel Eilenberg" />
 
+(Samuel Eilenberg)
+</center>
+
 ## Definizione
+
+> Categories capture the essence of composition.
 
 La definizione di categoria, anche se non particolarmente complicata, è un po' lunga perciò la dividerò in due parti:
 
@@ -2687,13 +2688,15 @@ Ancora una volta abbiamo bisogno di qualche cosa in più, nel capitolo seguente 
 
 # Monadi
 
-Eugenio Moggi is a professor of computer science at the University of Genoa, Italy. He first described the general use of monads to structure programs.
-
+<center>
 <img src="images/moggi.jpg" width="300" alt="Heinrich Kleisli" />
 
-Philip Lee Wadler is an American computer scientist known for his contributions to programming language design and type theory.
+(Eugenio Moggi is a professor of computer science at the University of Genoa, Italy. He first described the general use of monads to structure programs)
 
 <img src="images/wadler.jpg" width="300" alt="Heinrich Kleisli" />
+
+(Philip Lee Wadler is an American computer scientist known for his contributions to programming language design and type theory)
+</center>
 
 Nell'ultimo capitolo abbiamo visto che possiamo comporre un programma con effetti `f: (a: A) => M<B>` con un programma `n`-ario puro `g`, ammesso che `M` ammetta una istanza di funtore applicativo:
 
@@ -2724,27 +2727,37 @@ Per mostrare meglio perché abbiamo bisogno di qualcosa in più, vediamo qualche
 Supponiamo di voler ricavare i follower dei follower di un utente Twitter:
 
 ```ts
+import { pipe } from 'fp-ts/function'
+import * as A from 'fp-ts/ReadonlyArray'
+
 interface User {
-  followers: Array<User>
+  readonly followers: ReadonlyArray<User>
 }
 
-const getFollowers = (user: User): Array<User> => user.followers
+const getFollowers = (user: User): ReadonlyArray<User> => user.followers
 
 declare const user: User
 
-const followersOfFollowers: Array<Array<User>> = getFollowers(user).map(getFollowers)
+const followersOfFollowers: ReadonlyArray<ReadonlyArray<User>> = pipe(
+  user,
+  getFollowers,
+  A.map(getFollowers)
+)
 ```
 
-C'è qualcosa di sbagliato, `followersOfFollowers` ha tipo `Array<Array<User>>` ma noi vorremmo `Array<User>`.
+C'è qualcosa che non va, `followersOfFollowers` ha tipo `ReadonlyArray<ReadonlyArray<User>>` ma noi vorremmo `ReadonlyArray<User>`.
 
-Abbiamo bisogno di disinnestare (**flatten**) gli array innestati.
+Abbiamo bisogno di appiattire (**flatten**) gli array innestati.
 
-La funzione `flatten: <A>(mma: Array<Array<A>>) => Array<A>` esportata da `fp-ts` fa al caso nostro:
+La funzione `flatten: <A>(mma: ReadonlyArray<ReadonlyArray<A>>) => ReadonlyArray<A>` esportata da `fp-ts` fa al caso nostro:
 
 ```ts
-import { flatten } from 'fp-ts/Array'
-
-const followersOfFollowers: Array<User> = flatten(getFollowers(user).map(getFollowers))
+const followersOfFollowers: ReadonlyArray<User> = pipe(
+  user,
+  getFollowers,
+  A.map(getFollowers),
+  A.flatten
+)
 ```
 
 Bene! Vediamo con un'altra struttura dati:
@@ -2754,34 +2767,42 @@ Bene! Vediamo con un'altra struttura dati:
 Supponiamo di voler calcolare il reciproco del primo elemento di un array numerico:
 
 ```ts
-import { head } from 'fp-ts/Array'
-import { none, Option, option, some } from 'fp-ts/Option'
+import { pipe } from 'fp-ts/function'
+import * as O from 'fp-ts/Option'
+import * as A from 'fp-ts/ReadonlyArray'
 
-const inverse = (n: number): Option<number> => (n === 0 ? none : some(1 / n))
+const inverse = (n: number): O.Option<number> =>
+  n === 0 ? O.none : O.some(1 / n)
 
-const inverseHead: Option<Option<number>> = option.map(head([1, 2, 3]), inverse)
+const inverseHead: O.Option<O.Option<number>> = pipe(
+  [1, 2, 3],
+  A.head,
+  O.map(inverse)
+)
 ```
 
 Opss, è successo di nuovo, `inverseHead` ha tipo `Option<Option<number>>` ma noi vogliamo `Option<number>`.
 
-Abbiamo bisogno di disinnestare le `Option` innestate.
+Abbiamo bisogno di appiattire le `Option` innestate.
+
+La funzione `flatten: <A>(mma: Option<Option<A>>) => Option<A>` esportata da `fp-ts` fa al caso nostro:
 
 ```ts
-import { head } from 'fp-ts/Array'
-import { isNone, none, Option, option } from 'fp-ts/Option'
-
-const flatten = <A>(mma: Option<Option<A>>): Option<A> => (isNone(mma) ? none : mma.value)
-
-const inverseHead: Option<number> = flatten(option.map(head([1, 2, 3]), inverse))
+const inverseHead: O.Option<number> = pipe(
+  [1, 2, 3],
+  A.head,
+  O.map(inverse),
+  O.flatten
+)
 ```
 
-Tutte quelle funzioni `flatten`... Non sono una coincidenza, c'è un pattern funzionale dietro le quinte: tutti quei type constructor (e molti altri) ammettono una **istanza di monade** e
+Tutte quelle funzioni `flatten`... Non sono una coincidenza, c'è un pattern funzionale dietro le quinte: ambedue i type constructor `ReadonlyArray` e `Option` (e molti altri) ammettono una **istanza di monade** e
 
 > `flatten` is the most peculiar operation of monads
 
 Dunque cos'è una monade?
 
-Ecco come spesso sono presentate le monadi...
+Ecco come spesso sono presentate...
 
 ## Definizione di monade
 
@@ -2795,19 +2816,19 @@ Ecco come spesso sono presentate le monadi...
 of: <A>(a: A) => HKT<M, A>
 ```
 
-(3) una funzione `flatMap` con la seguente firma:
+(3) una funzione `chain` (possibile sinonimo **flatMap**) con la seguente firma:
 
 ```ts
-flatMap: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
+chain: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
 ```
 
 **Nota**: ricordiamo che il tipo `HKT` è il modo in cui `fp-ts` rappresenta un generico type constructor, perciò quando vedete`HKT<M, X>` potete pensare al type constructor `M` applicato al tipo `X` (ovvero `M<X>`).
 
-Le funzioni `of` e `flatMap` devono obbedire a tre leggi:
+Le funzioni `of` e `chain` devono obbedire a tre leggi:
 
-- `flatMap(of) ∘ f = f` (**Left identity**)
-- `flatMap(f) ∘ of = f` (**Right identity**)
-- `flatMap(h) ∘ (flatMap(g) ∘ f) = flatMap((flatMap(h) ∘ g)) ∘ f` (**Associativity**)
+- `chain(of) ∘ f = f` (**Left identity**)
+- `chain(f) ∘ of = f` (**Right identity**)
+- `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` (**Associativity**)
 
 ove `f`, `g`, `h` sono tutte funzioni con effetto e `∘` è l'usuale composizione di funzioni.
 
@@ -2822,9 +2843,13 @@ Avevo in testa molte domande:
 
 Questo capitolo cercherà di rispondere a tutte queste domande.
 
-Torniamo al nostro problema: che cos'è la composizione di due funzioni con effetto (anche chiamate **Kleisli arrows**)?
+Ora torniamo al nostro problema centrale: che cos'è la composizione di due funzioni `f` e `g` con effetto?
 
 <img src="images/kleisli_arrows.png" alt="two Kleisli arrows, what's their composition?" width="450px" />
+
+<center>(due Kleisli arrow)</center>
+
+**Nota**. Una funzione con effetto è anche chiamata **Kleisli arrow**.
 
 Per ora non so nemmeno che **tipo** abbia una tale composizione.
 
@@ -2832,44 +2857,52 @@ Un momento... abbiamo già incontrato una astrazione che parla specificatamente 
 
 > Categories capture the essence of composition
 
-Possiamo trasformare il nostro problema in un problema categoriale: possiamo trovare una categoria che modella la composizione delle Kleisli arrows?
+Possiamo trasformare il nostro problema in un problema categoriale, ovvero: possiamo trovare una categoria che modella la composizione delle Kleisli arrows?
 
 ## La categoria di Kleisli
 
-Heinrich Kleisli (Swiss mathematician)
-
+<center>
 <img src="images/kleisli.jpg" width="300" alt="Heinrich Kleisli" />
 
-Cerchiamo di costruire una categoria *K* (chiamata **categoria di Kleisli**) che contenga *solo* funzioni con effetti:
+(Heinrich Kleisli, Swiss mathematician)
+</center>
+
+Cerchiamo di costruire una categoria *K* (chiamata **categoria di Kleisli**) che contenga *solo* Kleisli arrow:
 
 - gli **oggetti** sono gli stessi oggetti della categoria *TS*, ovvero tutti i tipi di TypeScript.
 - i **morfismi** sono costruiti così: ogni volta che c'è una Kleisli arrow `f: A ⟼ M<B>` in _TS_ tracciamo una freccia `f': A ⟼ B` in _K_
 
-<img src="images/kleisli_category.png" alt="above the TS category, below the K construction" width="450px" />
+<center>
+<img src="images/kleisli_category.png" alt="above the TS category, below the K construction" width="400px" />
 
 (sopra la categoria _TS_, sotto la costruzione di _K_)
+</center>
 
-Dunque cosa sarebbe la composizione di `f` e `g` in *K*? E' la freccia tratteggiata chiamata `h'` nell'immagine qui sotto:
+Dunque cosa sarebbe la composizione di `f` e `g` in *K*? E' la freccia rossa chiamata `h'` nell'immagine qui sotto:
 
-<img src="images/kleisli_composition.png" alt="above the composition in the TS category, below the composition in the K construction" width="450px" />
+<center>
+<img src="images/kleisli_composition.png" alt="above the composition in the TS category, below the composition in the K construction" width="400px" />
 
 (sopra la categoria _TS_, sotto la costruzione di _K_)
+</center>
 
-Dato che `h'` è una freccia che va da `A` a `C`, deve esserci una funzione corrispondente `h` che va da `A` a `M<C>` in `TS`.
+Dato che `h'` è una freccia che va da `A` a `C` in `K`, possiamo far corrispondere una funzione `h` che va da `A` a `M<C>` in `TS`.
 
-Quindi un buon candidato per la composizione di `f` e `g` in *TS* è ancora una funzione con effetti con la seguente firma: `(a: A) => M<C>`.
+Quindi un buon candidato per la composizione di `f` e `g` in *TS* è ancora una Kleisli arrow con la seguente firma: `(a: A) => M<C>`.
 
-Come facciamo a costruire una tale funzione? Beh, proviamoci!
+Come facciamo a costruire concretamente una tale funzione? Beh, proviamoci!
 
 ## Definizione di `chain` passo dopo passo
 
-Il punto (1) della definizione di monade ci dice che `M` ammette una istanza di funtore, percò possiamo usare `lift` per trasformare la funzione `g: (b: B) => M<C>` in una funzione `lift(g): (mb: M<B>) => M<M<C>>` (qui sotto sto usando il nome `map` al posto di `lift`, ma sappiamo che sono equivalenti)
+Il punto (1) della definizione di monade ci dice che `M` ammette una istanza di funtore, percò possiamo usare `map` per trasformare la funzione `g: (b: B) => M<C>` in una funzione `map(g): (mb: M<B>) => M<M<C>>`
 
-<img src="images/flatMap.png" alt="where flatMap comes from" width="450px" />
+<center>
+<img src="images/flatMap.png" alt="where chain comes from" width="450px" />
 
-(da dove nasce `flatMap`)
+(come ottenere la funzione `h`)
+</center>
 
-Ma ora siamo bloccati: non c'è alcuna operazione legale della istanza di funtore che ci permette di disinnestare un valore di tipo `M<M<C>>` in un valore di tipo `M<C>`, abbiamo bisogno di una operazione addizionale `flatten`.
+Ma ora siamo bloccati: non c'è alcuna operazione legale della istanza di funtore che ci permette di appiattire un valore di tipo `M<M<C>>` in un valore di tipo `M<C>`, abbiamo bisogno di una operazione addizionale, chiamiamola `flatten`.
 
 Se riusciamo a definire una tale operazione allora possiamo ottenere la composizione che stavamo cercando:
 
@@ -2877,11 +2910,19 @@ Se riusciamo a definire una tale operazione allora possiamo ottenere la composiz
 h = flatten ∘ map(g) ∘ f
 ```
 
-Ma aspettate... `flatten ∘ map(g)` è **flatMap**, ecco da dove viene il nome!
+Ma aspettate... contraendo `flatten ∘ map(g)` otteniamo "flatMap", ecco da dove viene il nome!
+
+Dunque possiamo ottenere `chain` in questo modo
 
 ```
-h = flatMap(g) ∘ f
+chain = flatten ∘ map(g)
 ```
+
+<center>
+<img src="images/chain.png" alt="come agisce `chain` sulla funzione `g`" width="400px" />
+
+(come agisce `chain` sulla funzione `g`)
+</center>
 
 Ora possiamo aggiornare la nostra "tabella di composizione"
 
@@ -2889,44 +2930,51 @@ Ora possiamo aggiornare la nostra "tabella di composizione"
 | --------- | ------------- | ---------------- |
 | pure      | pure          | `g ∘ f`          |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f`  |
-| effectful | effectful     | `flatMap(g) ∘ f` |
+| effectful | effectful     | `chain(g) ∘ f` |
 
-ove `liftA1 = lift`
+ove `liftA1 = map`
 
-E per quanto riguarda `of`? Ebbene, `of` proviene dai morfismi identità in *K*: per ogni morfismo identità 1<sub>A</sub> in _K_ deve esserci una corrispondente funzione da `A` a `M<A>` (ovvero `of: <A>(a: A) => M<A>`).
+E per quanto riguarda l'operazione `of`? Ebbene, `of` proviene dai morfismi identità in *K*: per ogni morfismo identità 1<sub>A</sub> in _K_ deve esserci una corrispondente funzione da `A` a `M<A>` (ovvero `of: <A>(a: A) => M<A>`).
 
+<center>
 <img src="images/of.png" alt="where of comes from" width="300px" />
 
-(da dove nasce `of`)
+(come ottenere `of`)
+</center>
 
 Ultima domanda: da dove nascono le leggi? Esse non sono altro che le leggi categoriali in *K* tradotte in *TS*:
 
-| Law            | _K_                               | _TS_                                                            |
-| -------------- | --------------------------------- | --------------------------------------------------------------- |
-| Left identity  | 1<sub>B</sub> ∘ `f'` = `f'`       | `flatMap(of) ∘ f = f`                                           |
-| Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `flatMap(f) ∘ of = f`                                           |
-| Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `flatMap(h) ∘ (flatMap(g) ∘ f) = flatMap((flatMap(h) ∘ g)) ∘ f` |
-
-## Monadi in `fp-ts`
-
-In `fp-ts` la funzione `flatMap` è modellata con una sua variante equivalente chiamata `chain`, che è fondamentalmente `flatMap` con gli argomenti riarrangiati:
-
-```ts
-flatMap: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
-chain:   <A, B>(ma: HKT<M, A>, f: (a: A) => HKT<M, B>) => HKT<M, B>
-```
-
-Notate che `chain` può essere derivata da `flatMap` (e viceversa).
+| Law            | _K_                               | _TS_                                                    |
+| -------------- | --------------------------------- | ------------------------------------------------------- |
+| Left identity  | 1<sub>B</sub> ∘ `f'` = `f'`       | `chain(of) ∘ f = f`                                     |
+| Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `chain(f) ∘ of = f`                                     |
+| Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` |
 
 Se adesso torniamo agli esempi che mostravano il problema con i contesti innestati possiamo risolverli usando `chain`:
 
 ```ts
-import { array, head } from 'fp-ts/Array'
-import { Option, option } from 'fp-ts/Option'
+import { pipe } from 'fp-ts/function'
+import * as O from 'fp-ts/Option'
+import * as A from 'fp-ts/ReadonlyArray'
 
-const followersOfFollowers: Array<User> = array.chain(getFollowers(user), getFollowers)
+interface User {
+  readonly followers: ReadonlyArray<User>
+}
 
-const headInverse: Option<number> = option.chain(head([1, 2, 3]), inverse)
+const getFollowers = (user: User): ReadonlyArray<User> => user.followers
+
+declare const user: User
+
+const followersOfFollowers: ReadonlyArray<User> = pipe(
+  user,
+  getFollowers,
+  A.chain(getFollowers)
+)
+
+const inverse = (n: number): O.Option<number> =>
+  n === 0 ? O.none : O.some(1 / n)
+
+const inverseHead: O.Option<number> = pipe([1, 2, 3], A.head, O.chain(inverse))
 ```
 
 ## Manipolazione di programmi
@@ -2948,10 +2996,7 @@ import * as fs from 'fs'
 const readFile = (filename: string): IO<string> => () =>
   fs.readFileSync(filename, 'utf-8')
 
-const writeFile = (
-  filename: string,
-  data: string
-): IO<void> => () =>
+const writeFile = (filename: string, data: string): IO<void> => () =>
   fs.writeFileSync(filename, data, { encoding: 'utf-8' })
 
 //
@@ -2979,10 +3024,7 @@ pipe(
 è ripetuta due volte nel programma, ma dato che vale la trasparenza referenziale possiamo mettere a fattor comune l'azione assegnandone l'espressione ad una costante.
 
 ```ts
-const read = pipe(
-  readFile('file.txt'),
-  chain(log)
-)
+const read = pipe(readFile('file.txt'), chain(log))
 
 const program2 = pipe(
   read,
@@ -2994,70 +3036,77 @@ const program2 = pipe(
 Possiamo persino definire un combinatore e sfruttarlo per rendere più compatto il codice:
 
 ```ts
-function interleave<A, B>(
-  a: IO<A>,
-  b: IO<B>
-): IO<A> {
-  return pipe(
+const interleave = <A, B>(a: IO<A>, b: IO<B>): IO<A> =>
+  pipe(
     a,
     chain(() => b),
     chain(() => a)
   )
-}
 
-const program3 = interleave(
-  read,
-  writeFile('file.txt', 'foo')
-)
+const program3 = interleave(read, writeFile('file.txt', 'foo'))
 ```
 
 Un altro esempio: implementare una funzione simile a `time` di Unix (la parte relativa al tempo di esecuzione reale) per `IO`.
 
 ```ts
-import { IO, io } from 'fp-ts/IO'
+import * as IO from 'fp-ts/IO'
 import { now } from 'fp-ts/Date'
 import { log } from 'fp-ts/Console'
+import { pipe } from 'fp-ts/function'
 
-export function time<A>(ma: IO<A>): IO<A> {
-  return io.chain(now, start =>
-    io.chain(ma, a =>
-      io.chain(now, end =>
-        io.map(log(`Elapsed: ${end - start}`), () => a)
+export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
+  pipe(
+    now,
+    IO.chain((start) =>
+      pipe(
+        ma,
+        IO.chain((a) =>
+          pipe(
+            now,
+            IO.chain((end) =>
+              pipe(
+                log(`Elapsed: ${end - start}`),
+                IO.map(() => a)
+              )
+            )
+          )
+        )
       )
     )
   )
-}
 ```
 
 Esempio di utilizzo
 
 ```ts
 import { randomInt } from 'fp-ts/Random'
-import { fold, monoidVoid } from 'fp-ts/Monoid'
-import { getMonoid } from 'fp-ts/IO'
-import { replicate } from 'fp-ts/Array'
-import { pipe } from 'fp-ts/function'
-import { chain } from 'fp-ts/IO'
+import { Monoid, fold } from 'fp-ts/Monoid'
+import { replicate } from 'fp-ts/ReadonlyArray'
 
-function fib(n: number): number {
-  return n <= 1 ? 1 : fib(n - 1) + fib(n - 2)
-}
+const fib = (n: number): number => (n <= 1 ? 1 : fib(n - 1) + fib(n - 2))
 
-const printFib: IO<void> = pipe(
+const printFib: IO.IO<void> = pipe(
   randomInt(30, 35),
-  chain(n => log(fib(n)))
+  IO.chain((n) => log([n, fib(n)]))
 )
 
-function replicateIO(n: number, mv: IO<void>): IO<void> {
-  return fold(getMonoid(monoidVoid))(replicate(n, mv))
+const monoidIO: Monoid<IO.IO<void>> = {
+  concat: (second) => (first) => () => {
+    first()
+    second()
+  },
+  empty: IO.of(undefined)
 }
+
+const replicateIO = (n: number, mv: IO.IO<void>): IO.IO<void> =>
+  fold(monoidIO)(replicate(n, mv))
 
 time(replicateIO(3, printFib))()
 /*
-5702887
-1346269
-14930352
-Elapsed: 193
+[ 31, 2178309 ]
+[ 33, 5702887 ]
+[ 30, 1346269 ]
+Elapsed: 89
 */
 ```
 
@@ -3066,13 +3115,13 @@ Stampando anche i parziali
 ```ts
 time(replicateIO(3, time(printFib)))()
 /*
-3524578
-Elapsed: 32
-14930352
-Elapsed: 125
-3524578
-Elapsed: 32
-Elapsed: 189
+[ 33, 5702887 ]
+Elapsed: 54
+[ 30, 1346269 ]
+Elapsed: 13
+[ 32, 3524578 ]
+Elapsed: 39
+Elapsed: 106
 */
 ```
 
