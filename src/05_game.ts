@@ -13,16 +13,15 @@ import { pipe } from 'fp-ts/function'
 export const secret: T.Task<number> = T.fromIO(randomInt(1, 100))
 
 // combinatore: stampa un messaggio prima di una azione
-function withMessage<A>(message: string, next: T.Task<A>): T.Task<A> {
-  return pipe(
+const withMessage = <A>(message: string, next: T.Task<A>): T.Task<A> =>
+  pipe(
     putStrLn(message),
     T.chain(() => next)
   )
-}
 
 // l'input è una stringa perciò dobbiamo validarlo
 const isValidInteger = between(ordNumber)(1, 100)
-function parseGuess(s: string): O.Option<number> {
+const parseGuess = (s: string): O.Option<number> => {
   const n = parseInt(s, 10)
   return isNaN(n) || !isValidInteger(n) ? O.none : O.some(n)
 }
@@ -42,12 +41,12 @@ const answer: T.Task<number> = pipe(
   )
 )
 
-function check<A>(
-  secret: number,
-  guess: number,
-  ok: T.Task<A>,
-  ko: T.Task<A>
-): T.Task<A> {
+const check = <A>(
+  secret: number, // il numero segreto da indovinare
+  guess: number, // tentativo dell'utente
+  ok: T.Task<A>, // cosa fare se l'utente ha indovinato
+  ko: T.Task<A> // cosa fare se l'utente NON ha indovinato
+): T.Task<A> => {
   if (guess > secret) {
     return withMessage('Troppo alto', ko)
   } else if (guess < secret) {
@@ -60,12 +59,11 @@ function check<A>(
 const end: T.Task<void> = putStrLn('Hai indovinato!')
 
 // mantengo lo stato (secret) come argomento della funzione (alla Erlang)
-function loop(secret: number): T.Task<void> {
-  return pipe(
+const loop = (secret: number): T.Task<void> =>
+  pipe(
     answer,
     T.chain((guess) => check(secret, guess, end, loop(secret)))
   )
-}
 
 const program: T.Task<void> = pipe(secret, T.chain(loop))
 

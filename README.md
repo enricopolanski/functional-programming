@@ -1886,9 +1886,7 @@ readFile('./myfile', flow(
 
 # Teoria delle categorie
 
-Storicamente la prima astrazione avanzata contenuta in `fp-ts` è `Functor`, ma prima di poter parlare di funtori dobbiamo imparare qualcosa sulle **categorie** dato che i funtori sono costruiti su di esse.
-
-Una pietra miliare della programmazione funzionale è la **composizione**.
+Abbiamo visto che una pietra miliare della programmazione funzionale è la **composizione**.
 
 > And how do we solve problems? We decompose bigger problems into smaller problems. If the smaller problems are still too big,
 we decompose them further, and so on. Finally, we write code that solves all the small problems. And then comes the essence of programming: we compose those pieces of code to create solutions to larger problems. Decomposition wouldn't make sense if we weren't able to put the pieces back together. - Bartosz Milewski
@@ -2029,6 +2027,13 @@ function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
 Ma che succede se `B != C`? Come possiamo comporre due tali funzioni? Dobbiamo lasciar perdere?
 
 Nei prossimi capitoli vedremo sotto quali condizioni una tale composizione è possibile.
+
+**Spoiler**
+
+- per comporre `f: (a: A) => B` con `g: (b: B) => C` abbiamo solo bisogno della usuale composizione di funzioni
+- per comporre `f: (a: A) => F<B>` con `g: (b: B) => C` abbiamo bisogno di una istanza di **funtore** per `F`
+- per comporre `f: (a: A) => F<B>` con `g: (b: B) => (c: C) => D` abbiamo bisogno di una istanza di **funtore applicativo** per `F`
+- per comporre `f: (a: A) => F<B>` con `g: (b: B) => F<C>` abbiamo bisogno di una istanza di **monade** per `F`
 
 Cominciamo con i **funtori**.
 
