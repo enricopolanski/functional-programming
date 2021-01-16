@@ -2456,6 +2456,17 @@ export interface Apply<F> extends Functor<F> {
 }
 ```
 
+**Nota**. Come mai il nome "ap"? Perché può essere vista come una sorta di applicazione di funzione
+
+```ts
+// `apply` applica una funzione ad un valore
+const apply = <A, B>(f:     (a: A) => B)  => (a:    A):    B  => f(a)
+
+const ap =    <A, B>(fab: F<(a: A) => B>) => (fa: F<A>): F<B> => ...
+// `ap` applica una funzione racchiusa in un contesto ad un valore racchiuso in un contesto
+```
+
+
 Ora, data una istanza di `Apply` per un certo type constructor `F`, possiamo definire `liftA2`?
 
 ```ts
