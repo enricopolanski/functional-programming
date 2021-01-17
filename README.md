@@ -2171,7 +2171,9 @@ Quando parliamo di effetti siamo interessati a type constructor `n`-ari con `n >
 ove
 
 ```ts
-interface Task<A> extends IO<Promise<A>> {}
+interface Task<A> {
+  (): Promise<A>
+}
 ```
 
 Torniamo ora al nostro problema principale:
@@ -2614,15 +2616,19 @@ ove `liftA1 = map`
 
 ## L'astrazione `Applicative`
 
-Sarebbe comodo se esistesse un'altra operazione che sia in grado di trasformare un valore di tipo `A` in un valore di tipo `F<A>`. In questo modo potremo chiamare la funzione `liftA2(g)` sia fornendo valori di tipo `F<B>` e `F<C>`, sia tramite trasformazione di valori di tipo `B` o `C`.
+Ora sappiamo che se possediamo un valore di tipo `F<(a: A) => B>` e un valore di tipo `F<A>` possiamo ottenere un valore di tipo `F<B>`. Ma che succede se invece di un valore di tipo `F<A>` abbiamo un valore di tipo `A`?
 
-Introduciamo perciò l'astrazione `Applicative` che arricchisce `Apply` e che contiene una tale operazione (chiamata `of`):
+Sarebbe utile un'operazione che sia in grado di trasformare un valore di tipo `A` in un valore di tipo `F<A>`, in modo che si possa poi usare `ap`.
+
+Introduciamo perciò l'astrazione `Applicative` che arricchisce `Apply` con una tale operazione (chiamata `of`):
 
 ```ts
 interface Applicative<F> extends Apply<F> {
   readonly of: <A>(a: A) => HKT<F, A>
 }
 ```
+
+In letteratura si parla di **funtori applicativi** per i type constructor che ammettono una istanza di `Applicative`.
 
 Vediamo qualche esempio pratico:
 
@@ -2636,6 +2642,12 @@ export const Applicative: Applicative1<A.URI> = {
   ...A.Apply,
   of: (a) => [a]
 }
+
+import { pipe } from 'fp-ts/function'
+
+const sum = (a: number) => (b: number): number => a + b
+
+console.log(pipe(Applicative.of(sum), Applicative.ap([1]), Applicative.ap([2]))) // => [3]
 ```
 
 **Esempio** (`F = Option`)
@@ -2648,6 +2660,18 @@ export const Applicative: Applicative1<O.URI> = {
   ...O.Apply,
   of: O.some
 }
+
+import { pipe } from 'fp-ts/function'
+
+const sum = (a: number) => (b: number): number => a + b
+
+console.log(
+  pipe(
+    Applicative.of(sum),
+    Applicative.ap(O.some(1)),
+    Applicative.ap(O.some(2))
+  )
+) // => O.some(3)
 ```
 
 **Esempio** (`F = Task`)
@@ -2660,7 +2684,21 @@ export const Applicative: Applicative1<T.URI> = {
   ...T.ApplyPar,
   of: (a) => () => Promise.resolve(a)
 }
+
+import { pipe } from 'fp-ts/function'
+
+const sum = (a: number) => (b: number): number => a + b
+
+pipe(
+  Applicative.of(sum),
+  Applicative.ap(() => Promise.resolve(1)),
+  Applicative.ap(() => Promise.resolve(2))
+)().then(console.log) // => 3
 ```
+
+**Demo**
+
+[`04_applicative.ts`](src/04_applicative.ts)
 
 ## I funtori applicativi compongono
 
@@ -2688,10 +2726,6 @@ export const Applicative = {
     )
 }
 ```
-
-**Demo**
-
-[`04_applicative.ts`](src/04_applicative.ts)
 
 ## I funtori applicativi risolvono il problema centrale?
 

@@ -1,10 +1,24 @@
 /**
- * Definire una istanza di `Semigroup` per `Option`
+ * Modellare il punteggio di un game di tennis
  */
-import { Semigroup, semigroupString } from 'fp-ts/Semigroup'
-import { Option, some, none } from 'fp-ts/Option'
+type Player = 'A' | 'B'
 
-declare const getSemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>
+type Game = unknown
+
+/**
+ * Punteggio di partenza
+ */
+const start: Game = null
+
+/**
+ * Dato un punteggio e un giocatore che si è aggiudicato il punto restituisce il nuovo punteggio
+ */
+declare const win: (player: Player) => (game: Game) => Game
+
+/**
+ * Restituisce il punteggio in formato leggibile
+ */
+declare const show: (game: Game) => string
 
 // ------------------------------------
 // tests
@@ -13,9 +27,18 @@ declare const getSemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const S = getSemigroup(semigroupString)
+assert.deepStrictEqual(
+  pipe(start, win('A'), win('A'), win('A'), win('A'), show),
+  'game player A'
+)
 
-assert.deepStrictEqual(pipe(none, S.concat(none)), none)
-assert.deepStrictEqual(pipe(some('a'), S.concat(none)), none)
-assert.deepStrictEqual(pipe(none, S.concat(some('b'))), none)
-assert.deepStrictEqual(pipe(some('a'), S.concat(some('b'))), some('ab'))
+const fifteenAll = pipe(start, win('A'), win('B'))
+assert.deepStrictEqual(pipe(fifteenAll, show), '15 - all')
+
+const fourtyAll = pipe(fifteenAll, win('A'), win('B'), win('A'), win('B'))
+assert.deepStrictEqual(pipe(fourtyAll, show), '40 - all')
+
+const advantageA = pipe(fourtyAll, win('A'))
+assert.deepStrictEqual(pipe(advantageA, show), 'advantage player A')
+
+assert.deepStrictEqual(pipe(advantageA, win('B'), show), 'deuce')
