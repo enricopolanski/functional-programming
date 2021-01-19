@@ -1,5 +1,5 @@
 {
-  "extends": ["tslint-config-standard", "tslint-immutable"],
+  "extends": ["tslint-config-standard", "tslint-immutable", "tslint-etc"],
   "rules": {
     "space-before-function-paren": false,
     "no-use-before-declare": false,
@@ -13,6 +13,7 @@
     "readonly-keyword": true,
     "readonly-array": false,
     "no-string-throw": false,
-    "strict-type-predicates": false
+    "strict-type-predicates": false,
+    "expect-type": true
   }
 }

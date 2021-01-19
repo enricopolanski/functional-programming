@@ -9,8 +9,6 @@
 import * as fs from 'fs'
 import * as IO from 'fp-ts/IO'
 import { pipe } from 'fp-ts/function'
-import { traverse_ } from 'fp-ts/Foldable'
-import * as A from 'fp-ts/ReadonlyArray'
 
 class Employee {
   constructor(
@@ -88,9 +86,8 @@ const sendGreetings = (M: MonadApp) => (
   return pipe(
     M.read(fileName),
     IO.map((input) => getGreetings(today, parse(input))),
-    IO.chain((emails) =>
-      traverse_(IO.Applicative, A.Foldable)(emails, M.sendMessage)
-    )
+    IO.chain(IO.traverseReadonlyArray(M.sendMessage)),
+    IO.map(() => undefined)
   )
 }
 
