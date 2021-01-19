@@ -1,18 +1,24 @@
 /**
- * Convertire la funzione `parseJSON` in stile funzionale usando l'implementazione di `Either` in `fp-ts`
+ * Definire una istanza di `Semigroup` per `Either` che accumula gli errori
  */
-import { Json, right, left } from 'fp-ts/Either'
+import { Semigroup, semigroupString, semigroupSum } from 'fp-ts/Semigroup'
+import { Either, right, left } from 'fp-ts/Either'
 
-// may throw a SyntaxError
-export const parseJSON = (input: string): Json => JSON.parse(input)
+declare const getSemigroup: <E, A>(
+  SE: Semigroup<E>,
+  SA: Semigroup<A>
+) => Semigroup<Either<E, A>>
 
 // ------------------------------------
 // tests
 // ------------------------------------
 
 import * as assert from 'assert'
+import { pipe } from 'fp-ts/function'
 
-assert.deepStrictEqual(parseJSON('1'), right(1))
-assert.deepStrictEqual(parseJSON('"a"'), right('a'))
-assert.deepStrictEqual(parseJSON('{}'), right({}))
-assert.deepStrictEqual(parseJSON('{'), left(new SyntaxError()))
+const S = getSemigroup(semigroupSum, semigroupString)
+
+assert.deepStrictEqual(pipe(left(1), S.concat(left(2))), left(3))
+assert.deepStrictEqual(pipe(right('a'), S.concat(left(2))), left(2))
+assert.deepStrictEqual(pipe(left(1), S.concat(right('b'))), left(1))
+assert.deepStrictEqual(pipe(right('a'), S.concat(right('b'))), right('ab'))

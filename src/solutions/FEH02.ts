@@ -1,16 +1,18 @@
 /**
- * Definire una istanza di `Semigroup` per `Either`
+ * Definire una istanza di `Monoid` per `Option`
  */
-import { Semigroup, semigroupString } from 'fp-ts/Semigroup'
-import { Either, right, left, isLeft } from 'fp-ts/Either'
+import { Semigroup, semigroupSum } from 'fp-ts/Semigroup'
+import * as O from 'fp-ts/Option'
+import { Monoid, fold } from 'fp-ts/Monoid'
 
-const getSemigroup = <E, A>(S: Semigroup<A>): Semigroup<Either<E, A>> => ({
+const getMonoid = <A>(S: Semigroup<A>): Monoid<O.Option<A>> => ({
   concat: (second) => (first) =>
-    isLeft(first)
-      ? first
-      : isLeft(second)
+    O.isNone(first)
       ? second
-      : right(pipe(first.right, S.concat(second.right)))
+      : O.isNone(second)
+      ? first
+      : O.some(S.concat(second.value)(first.value)),
+  empty: O.none
 })
 
 // ------------------------------------
@@ -20,9 +22,16 @@ const getSemigroup = <E, A>(S: Semigroup<A>): Semigroup<Either<E, A>> => ({
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const S = getSemigroup<number, string>(semigroupString)
+const M = getMonoid(semigroupSum)
 
-assert.deepStrictEqual(pipe(left(1), S.concat(left(2))), left(1))
-assert.deepStrictEqual(pipe(right('a'), S.concat(left(2))), left(2))
-assert.deepStrictEqual(pipe(left(1), S.concat(right('b'))), left(1))
-assert.deepStrictEqual(pipe(right('a'), S.concat(right('b'))), right('ab'))
+assert.deepStrictEqual(pipe(O.none, M.concat(O.none)), O.none)
+assert.deepStrictEqual(pipe(O.some(1), M.concat(O.none)), O.some(1))
+assert.deepStrictEqual(pipe(O.none, M.concat(O.some(2))), O.some(2))
+assert.deepStrictEqual(pipe(O.some(1), M.concat(O.some(2))), O.some(3))
+assert.deepStrictEqual(pipe(O.some(1), M.concat(M.empty)), O.some(1))
+assert.deepStrictEqual(pipe(M.empty, M.concat(O.some(2))), O.some(2))
+
+assert.deepStrictEqual(
+  fold(M)([O.some(1), O.some(2), O.none, O.some(3)]),
+  O.some(6)
+)

@@ -1,23 +1,33 @@
 /**
- * Convertire la funzione `parseJSON` in stile funzionale usando l'implementazione di `Either` in `fp-ts`
+ * Definire una istanza di `Semigroup` per `Either` che accumula gli errori
  */
-import { Json, right, left, Either } from 'fp-ts/Either'
+import { Semigroup, semigroupString, semigroupSum } from 'fp-ts/Semigroup'
+import { Either, right, left, isLeft } from 'fp-ts/Either'
 
-export const parseJSON = (input: string): Either<Error, Json> => {
-  try {
-    return right(JSON.parse(input))
-  } catch (e) {
-    return left(new SyntaxError())
-  }
-}
+const getSemigroup = <E, A>(
+  SE: Semigroup<E>,
+  SA: Semigroup<A>
+): Semigroup<Either<E, A>> => ({
+  concat: (second) => (first) =>
+    isLeft(first)
+      ? isLeft(second)
+        ? left(pipe(first.left, SE.concat(second.left)))
+        : first
+      : isLeft(second)
+      ? second
+      : right(pipe(first.right, SA.concat(second.right)))
+})
 
 // ------------------------------------
 // tests
 // ------------------------------------
 
 import * as assert from 'assert'
+import { pipe } from 'fp-ts/function'
 
-assert.deepStrictEqual(parseJSON('1'), right(1))
-assert.deepStrictEqual(parseJSON('"a"'), right('a'))
-assert.deepStrictEqual(parseJSON('{}'), right({}))
-assert.deepStrictEqual(parseJSON('{'), left(new SyntaxError()))
+const S = getSemigroup(semigroupSum, semigroupString)
+
+assert.deepStrictEqual(pipe(left(1), S.concat(left(2))), left(3))
+assert.deepStrictEqual(pipe(right('a'), S.concat(left(2))), left(2))
+assert.deepStrictEqual(pipe(left(1), S.concat(right('b'))), left(1))
+assert.deepStrictEqual(pipe(right('a'), S.concat(right('b'))), right('ab'))
