@@ -1,5 +1,5 @@
 /**
- * E' possibile derivare una istanza di `Semigruppo` da una istanza di `Apply`?
+ * E' possibile derivare una istanza di `Semigroup` da una istanza di `Apply`?
  */
 import { Semigroup, semigroupString } from 'fp-ts/Semigroup'
 import * as O from 'fp-ts/Option'
