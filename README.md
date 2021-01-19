@@ -2997,6 +2997,8 @@ Ultima domanda: da dove nascono le leggi? Esse non sono altro che le leggi categ
 | Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `chain(f) ∘ of = f`                                     |
 | Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` |
 
+TODO qualche esempio di istanze di `Monad`...
+
 Se adesso torniamo agli esempi che mostravano il problema con i contesti innestati possiamo risolverli usando `chain`:
 
 ```ts
