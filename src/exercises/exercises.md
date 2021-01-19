@@ -1,2 +1,0 @@
-- Option
-  - definire un monoide per Option
