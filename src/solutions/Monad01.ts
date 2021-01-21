@@ -5,7 +5,6 @@ import { Monad2 } from 'fp-ts/lib/Monad'
 import * as E from 'fp-ts/Either'
 
 const Monad: Monad2<E.URI> = {
-  URI: E.URI,
   map: (f) => (fa) => (E.isLeft(fa) ? fa : E.right(f(fa.right))),
   of: E.right,
   chain: (f) => (ma) => (E.isLeft(ma) ? ma : f(ma.right))

@@ -5,7 +5,6 @@ import { Monad2 } from 'fp-ts/lib/Monad'
 import * as E from 'fp-ts/Either'
 
 const Monad: Monad2<E.URI> = {
-  URI: E.URI,
   map: null as any,
   of: null as any,
   chain: null as any

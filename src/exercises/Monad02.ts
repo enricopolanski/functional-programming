@@ -7,7 +7,6 @@ import { Monad2 } from 'fp-ts/lib/Monad'
 import { URI } from 'fp-ts/TaskEither'
 
 const Monad: Monad2<URI> = {
-  URI: URI,
   map: null as any,
   of: null as any,
   chain: null as any

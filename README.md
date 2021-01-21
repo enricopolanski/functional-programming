@@ -2358,13 +2358,11 @@ Per poter definire una istanza di funtore per `Response` dobbiamo definire una f
 
 import { Functor1 } from 'fp-ts/Functor'
 
-export const URI = 'Response'
-
-export type URI = typeof URI
+export type URI = 'Response'
 
 declare module 'fp-ts/HKT' {
   interface URItoKind<A> {
-    readonly [URI]: Response<A>
+    readonly Response: Response<A>
   }
 }
 
@@ -2382,7 +2380,6 @@ export const map = <A, B>(f: (a: A) => B) => (fa: Response<A>): Response<B> => (
 
 // functor instance for `Response<A>`
 export const Functor: Functor1<URI> = {
-  URI,
   map
 }
 ```

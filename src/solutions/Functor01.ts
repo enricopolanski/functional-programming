@@ -5,7 +5,6 @@ import { URI } from 'fp-ts/IO'
 import { Functor1 } from 'fp-ts/lib/Functor'
 
 const Functor: Functor1<URI> = {
-  URI,
   map: (f) => (fa) => () => f(fa())
 }
 

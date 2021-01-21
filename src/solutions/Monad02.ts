@@ -7,7 +7,6 @@ import { Monad2 } from 'fp-ts/lib/Monad'
 import { URI } from 'fp-ts/TaskEither'
 
 const Monad: Monad2<URI> = {
-  URI,
   map: (f) => T.map(E.map(f)),
   of: (a) => T.of(E.of(a)),
   chain: (f) => (ma) => pipe(ma, T.chain(E.fold((e) => T.of(E.left(e)), f)))

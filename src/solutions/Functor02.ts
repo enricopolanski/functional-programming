@@ -5,7 +5,6 @@ import { URI, right, left, isLeft } from 'fp-ts/Either'
 import { Functor2 } from 'fp-ts/lib/Functor'
 
 const Functor: Functor2<URI> = {
-  URI,
   map: (f) => (fa) => (isLeft(fa) ? fa : right(f(fa.right)))
 }
 

@@ -5,7 +5,6 @@ import { URI, right, left } from 'fp-ts/Either'
 import { Functor2 } from 'fp-ts/lib/Functor'
 
 const Functor: Functor2<URI> = {
-  URI,
   map: null as any
 }
 
