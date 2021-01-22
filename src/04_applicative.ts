@@ -1,111 +1,65 @@
 /*
 
-  Problema:
-
-  Dato
-  - dato l'id di un utente (il cui record contiene il valore del suo conto corrente in EUR)
-  - e il codice di una valuta
-  Calcolare
-  - il valore del suo conto corrente in quella valuta.
-
-  I servizi che restituiscono il record dell'utente e il cambio relativo
-  alla valuta sono asincroni
+  Modellare il lancio di dadi di un gioco di ruolo.
 
 */
-
-/*
-
-  Prima di tutto iniziamo con il modello
-
-*/
-
-interface User {
-  readonly id: string
-  readonly name: string
-  readonly amount: number // EUR
-}
-
-type Currency = 'USD' | 'CHF'
-
-import * as T from 'fp-ts/Task'
 import { pipe } from 'fp-ts/function'
+import * as IO from 'fp-ts/IO'
+import { Monoid } from 'fp-ts/Monoid'
+import * as R from 'fp-ts/Random'
 
-interface API {
-  readonly fetchUser: (id: string) => T.Task<User>
-  readonly fetchRate: (currency: Currency) => T.Task<number>
-}
+// ------------------------------------
+// model
+// ------------------------------------
 
-/*
+export interface Die extends IO.IO<number> {}
 
-  Se potessi ricavare il valore del conto corrente e il cambio
-  in modo sincrono, il calcolo sarebbe facile
+// ------------------------------------
+// constructors
+// ------------------------------------
 
-*/
+export const die = (faces: number): Die => R.randomInt(1, faces)
 
-const getAmountSync = (amount: number) => (rate: number): number =>
-  amount * rate
+// ------------------------------------
+// combinators
+// ------------------------------------
 
-/*
-
-  Quello che vorrei è definire la seguente funzione
-
-  const fetchAmount = (
-    userId: string,
-    currency: Currency
-  ): T.Task<number> => ???
-
-/*
-
-  Scriviamo la versione di liftA2 specializzata per Task
-
-*/
-
-export const liftA2 = <A, B, C>(f: (a: A) => (b: B) => C) => (
-  fa: T.Task<A>
-) => (fb: T.Task<B>): T.Task<C> => pipe(T.of(f), T.ap(fa), T.ap(fb))
-
-/*
-
-  L'API finale
-
-*/
-
-const getResult = (api: API) => (
-  userId: string,
-  currency: Currency
-): T.Task<number> => {
-  const amount = pipe(
-    api.fetchUser(userId),
-    T.map((user) => user.amount)
+export const modifier = (n: number) => (die: Die): Die =>
+  pipe(
+    die,
+    IO.map((m) => m + n)
   )
-  const rate = api.fetchRate(currency)
-  const getAmountAsync = liftA2(getAmountSync)
-  return getAmountAsync(amount)(rate)
+
+export const add = (second: Die) => (first: Die): Die =>
+  pipe(
+    first,
+    IO.map((a: number) => (b: number) => a + b),
+    IO.ap(second)
+  )
+
+export const multiply = (n: number) => (die: Die): Die =>
+  pipe(
+    die,
+    IO.map((m) => m * n)
+  )
+
+// ------------------------------------
+// instances
+// ------------------------------------
+
+export const monoidDie: Monoid<Die> = {
+  concat: add,
+  empty: () => 0 // <= un dado con zero facce
 }
 
-/*
+// ------------------------------------
+// tests
+// ------------------------------------
 
-  Definiamo una istanza di `API` che simula le chiamate
-  per poter testare il programma
+const d6 = die(6)
+const d8 = die(8)
 
-*/
+// 2d6 + 1d8 + 2
+const _2d6_1d8_2 = pipe(d6, multiply(2), add(d8), modifier(2))
 
-const API: API = {
-  fetchUser: (id: string): T.Task<User> => () =>
-    Promise.resolve({
-      id,
-      name: 'Foo',
-      amount: 100
-    }),
-  fetchRate: (_: Currency): T.Task<number> => () => Promise.resolve(0.12)
-}
-
-// program: (userId: string, currency: Currency) => T.Task<number>
-const program = getResult(API)
-
-const result: T.Task<number> = program('42', 'USD')
-
-// run del programma
-// tslint:disable-next-line: no-floating-promises
-result().then(console.log)
-// 12
+console.log(_2d6_1d8_2())
