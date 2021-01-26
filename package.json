@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "tslint -p .",
     "build": "tsc -p ./tsconfig.json",
-    "doctoc": "doctoc README.md"
+    "doctoc": "doctoc README.md",
+    "parcel": "npx parcel src/index.html"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^12.6.8",
+    "parcel-bundler": "^1.12.4",
     "prettier": "^2.2.1",
     "tslint": "^5.11.0",
     "tslint-config-standard": "^8.0.1",

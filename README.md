@@ -2290,6 +2290,10 @@ Devono valere le seguenti proprietà:
 - `map(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**le identità vanno in identità**)
 - `map(g ∘ f) = map(g) ∘ map(f)` (**l'immagine di una composizione è la composizione delle immagini**)
 
+**Demo**
+
+[`04_functor.ts`](src/04_functor.ts)
+
 ## I funtori compongono
 
 I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione `F<G<A>>` è ancora un funtore e la `map` della composizione è la composizione delle `map`
@@ -2695,7 +2699,7 @@ pipe(
 
 **Demo**
 
-[`04_applicative.ts`](src/04_applicative.ts)
+[`05_applicative.ts`](src/05_applicative.ts)
 
 ## I funtori applicativi compongono
 
@@ -3173,4 +3177,4 @@ Elapsed: 106
 
 **Demo**
 
-[`05_game.ts`](src/05_game.ts)
+[`06_game.ts`](src/06_game.ts)
