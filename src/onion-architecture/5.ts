@@ -115,7 +115,6 @@ const getMonadApp = (smtpHost: string, smtpPort: number): MonadApp => {
 }
 
 const program = sendGreetings(getMonadApp('localhost', 80))
-// tslint:disable-next-line: no-floating-promises
 program('src/onion-architecture/employee_data.txt', new Date(2008, 9, 8))()
 /*
 reading file...

@@ -270,7 +270,6 @@ const program = updateCustomerProfile5({
   email: 'b@gmail.com'
 })
 
-// tslint:disable-next-line: no-floating-promises
 program(testDeps)().then(console.log)
 /*
 getting email for 1: a@gmail.com

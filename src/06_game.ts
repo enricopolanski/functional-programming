@@ -67,5 +67,4 @@ const loop = (secret: number): T.Task<void> =>
 
 const program: T.Task<void> = pipe(secret, T.chain(loop))
 
-// tslint:disable-next-line: no-floating-promises
 program()

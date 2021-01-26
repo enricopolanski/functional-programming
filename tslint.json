@@ -14,6 +14,7 @@
     "readonly-array": false,
     "no-string-throw": false,
     "strict-type-predicates": false,
-    "expect-type": true
+    "expect-type": true,
+    "no-floating-promises": false
   }
 }

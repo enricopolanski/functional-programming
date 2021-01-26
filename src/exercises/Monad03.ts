@@ -35,5 +35,4 @@ async function test() {
   )
 }
 
-// tslint:disable-next-line: no-floating-promises
 test()
