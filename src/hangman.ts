@@ -1,15 +1,34 @@
-import * as T from 'fp-ts/Task'
-import { constFalse, constTrue, pipe } from 'fp-ts/function'
-import * as RA from 'fp-ts/ReadonlyArray'
+import {
+  constFalse,
+  constTrue,
+  constUndefined,
+  flow,
+  pipe
+} from 'fp-ts/function'
+import * as IO from 'fp-ts/IO'
 import { eqString } from 'fp-ts/lib/Eq'
-import { getLine, putStrLn } from './Console'
+import * as O from 'fp-ts/Option'
 import { randomInt } from 'fp-ts/Random'
+import * as RA from 'fp-ts/ReadonlyArray'
+import * as T from 'fp-ts/Task'
+import { getLine, putStrLn } from './Console'
 
 interface State {
   readonly name: string
   readonly guesses: ReadonlyArray<string>
   readonly word: ReadonlyArray<string>
 }
+
+const newState = (name: string, word: string): State => ({
+  name,
+  word: word.split(''),
+  guesses: []
+})
+
+const addGuess = (state: State, guess: string): State => ({
+  ...state,
+  guesses: pipe(state.guesses, RA.snoc(guess))
+})
 
 const difference = RA.difference(eqString)
 
@@ -21,29 +40,40 @@ const playerLost = (state: State): boolean => failures(state) > 10
 const playerWon = (state: State): boolean =>
   pipe(state.word, difference(state.guesses)).length === 0
 
-const getName: T.Task<string> = pipe(
-  putStrLn('What is your name:'),
-  T.chain(() => getLine)
-)
+const question = (question: string): T.Task<string> =>
+  pipe(
+    putStrLn(question),
+    T.chain(() => getLine)
+  )
 
-const getChoice: T.Task<string> = pipe(
-  putStrLn('Please enter a letter:'),
-  T.chain(() => getLine),
-  T.chain((char) =>
-    pipe(char.toLowerCase().trim(), (guess) =>
-      guess.length === 1 ? T.of(guess) : getChoice
+const getName: T.Task<string> = question('What is your name:')
+
+const parseGuess = (s: string): O.Option<string> => {
+  const out = s.toLowerCase().trim()
+  return out.length === 1 ? O.some(out) : O.none
+}
+
+const getGuess: T.Task<string> = pipe(
+  question('Please enter a letter:'),
+  T.chain(
+    flow(
+      parseGuess,
+      O.fold(() => getGuess, T.of)
     )
   )
 )
 
 const dictionary: ReadonlyArray<string> = getDictionary()
 
-const chooseWord: T.Task<string> = pipe(
-  T.fromIO(randomInt(0, dictionary.length - 1)),
-  T.map((i) => dictionary[i])
-)
+const randomElem = <A>(as: ReadonlyArray<A>): IO.IO<A> =>
+  pipe(
+    randomInt(0, as.length - 1),
+    IO.map((i) => as[i])
+  )
 
-const renderState = (state: State) => {
+const chooseWord: T.Task<string> = pipe(dictionary, randomElem, T.fromIO)
+
+const render = (state: State) => {
   const word = state.word
     .map((c) => (state.guesses.includes(c) ? ` ${c} ` : '   '))
     .join('')
@@ -52,40 +82,40 @@ const renderState = (state: State) => {
   return putStrLn(word + '\n' + line + '\n\n' + guesses + '\n')
 }
 
-const gameLoop = (state: State): T.Task<State> =>
+const doLoop = (state: State, guess: string): T.Task<boolean> => {
+  if (playerWon(state)) {
+    return pipe(
+      putStrLn(`Congratulations ${state.name} you won the game!`),
+      T.map(constFalse)
+    )
+  } else if (playerLost(state)) {
+    return pipe(
+      putStrLn(
+        `Sorry ${state.name} you lost the game. The word was ${state.word.join(
+          ''
+        )}`
+      ),
+      T.map(constFalse)
+    )
+  } else if (state.word.includes(guess)) {
+    return pipe(putStrLn('You guessed correctly!'), T.map(constTrue))
+  } else {
+    return pipe(
+      // tslint:disable-next-line: quotemark
+      putStrLn("That's wrong. but keep trying!"),
+      T.map(constTrue)
+    )
+  }
+}
+
+const loop = (oldState: State): T.Task<State> =>
   pipe(
     T.Do,
-    T.bind('guess', () => getChoice),
-    T.bind('state', ({ guess }) =>
-      T.of({ ...state, guesses: pipe(state.guesses, RA.snoc(guess)) })
-    ),
-    T.chainFirst(({ state }) => renderState(state)),
-    T.bind('loop', ({ state, guess }) => {
-      if (playerWon(state)) {
-        return pipe(
-          putStrLn(`Congratulations ${state.name} you won the game!`),
-          T.map(constFalse)
-        )
-      } else if (playerLost(state)) {
-        return pipe(
-          putStrLn(
-            `Sorry ${
-              state.name
-            } you lost the game. The word was ${state.word.join('')}`
-          ),
-          T.map(constFalse)
-        )
-      } else if (state.word.includes(guess)) {
-        return pipe(putStrLn('You guessed correctly!'), T.map(constTrue))
-      } else {
-        return pipe(
-          // tslint:disable-next-line: quotemark
-          putStrLn("That's wrong. but keep trying!"),
-          T.map(constTrue)
-        )
-      }
-    }),
-    T.chain(({ loop, state }) => (loop ? gameLoop(state) : T.of(state)))
+    T.bind('guess', () => getGuess),
+    T.bind('state', ({ guess }) => T.of(addGuess(oldState, guess))),
+    T.chainFirst(({ state }) => render(state)),
+    T.bind('doLoop', ({ state, guess }) => doLoop(state, guess)),
+    T.chain(({ doLoop, state }) => (doLoop ? loop(state) : T.of(state)))
   )
 
 const hangman: T.Task<void> = pipe(
@@ -94,12 +124,10 @@ const hangman: T.Task<void> = pipe(
   T.bind('name', () => getName),
   T.chainFirst(({ name }) => putStrLn(`Welcome ${name}. Let's begin!`)),
   T.bind('word', () => chooseWord),
-  T.bind('state', ({ name, word }) =>
-    T.of({ name, word: word.split(''), guesses: [] })
-  ),
-  T.chainFirst(({ state }) => renderState(state)),
-  T.chain(({ state }) => gameLoop(state)),
-  T.map(() => undefined)
+  T.bind('state', ({ name, word }) => T.of(newState(name, word))),
+  T.chainFirst(({ state }) => render(state)),
+  T.chain(({ state }) => loop(state)),
+  T.map(constUndefined)
 )
 
 hangman()
