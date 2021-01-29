@@ -1,5 +1,5 @@
 /**
- * Definire una istanza di `Eq` per `ReadonlyArray`
+ * Definire una istanza di `Ord` per `ReadonlyArray`
  */
 import { fromCompare, Ord, ordNumber } from 'fp-ts/Ord'
 
