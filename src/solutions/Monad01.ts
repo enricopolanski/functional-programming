@@ -1,7 +1,7 @@
 /**
  * Definire l'istanza di `Monad` per `Either<E, A>`
  */
-import { Monad2 } from 'fp-ts/lib/Monad'
+import { Monad2 } from 'fp-ts/Monad'
 import * as E from 'fp-ts/Either'
 
 const Monad: Monad2<E.URI> = {

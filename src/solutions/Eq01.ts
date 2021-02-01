@@ -1,7 +1,8 @@
 /**
  * Definire una istanza di `Eq` per `ReadonlyArray`
  */
-import { Eq, eqNumber, fromEquals } from 'fp-ts/Eq'
+import { Eq, fromEquals } from 'fp-ts/Eq'
+import * as N from 'fp-ts/number'
 
 export const getEq = <A>(E: Eq<A>): Eq<ReadonlyArray<A>> =>
   fromEquals((second) => (first) =>
@@ -16,7 +17,7 @@ export const getEq = <A>(E: Eq<A>): Eq<ReadonlyArray<A>> =>
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const E = getEq(eqNumber)
+const E = getEq(N.Eq)
 
 const as: ReadonlyArray<number> = [1, 2, 3]
 

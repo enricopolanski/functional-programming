@@ -60,7 +60,7 @@ export const showShape2D: Show<Shape2D> = {
   }
 }
 
-import { pipe } from 'fp-ts/function'
+import { pipe, getMonoid } from 'fp-ts/function'
 
 const origin: Point2D = { x: 0, y: 0 }
 
@@ -74,16 +74,17 @@ const origin: Point2D = { x: 0, y: 0 }
   del codominio ammette una istanza di monoide
 */
 import * as M from 'fp-ts/Monoid'
+import * as B from 'fp-ts/boolean'
 
-export const union: M.Monoid<Shape2D> = M.getFunctionMonoid(M.monoidAny)()
+export const MonoidUnion: M.Monoid<Shape2D> = getMonoid(B.MonoidAny)()
 
 // export const disk1 = disk({ x: -8, y: 0 }, 10)
 // export const disk2 = disk({ x: 8, y: 0 }, 10)
-// console.log(pipe(disk1, union.concat(disk2), showShape2D.show))
+// console.log(pipe(disk1, MonoidUnion.concat(disk2), showShape2D.show))
 
-const intersection: M.Monoid<Shape2D> = M.getFunctionMonoid(M.monoidAll)()
+const MonoidIntersection: M.Monoid<Shape2D> = getMonoid(B.MonoidAll)()
 
-// console.log(pipe(disk1, intersection.concat(disk2), showShape2D.show))
+// console.log(pipe(disk1, MonoidIntersection.concat(disk2), showShape2D.show))
 
 /*
   Un costruttore per la forma anello
@@ -95,7 +96,7 @@ export const ring = (
 ): Shape2D =>
   pipe(
     disk(point, bigRadius),
-    intersection.concat(outside(disk(point, smallRadius)))
+    MonoidIntersection.concat(outside(disk(point, smallRadius)))
   )
 
 // console.log(pipe(ring(origin, 10, 6), showShape2D.show))
@@ -107,4 +108,4 @@ export const shapes: ReadonlyArray<Shape2D> = [
 ]
 
 // mickey mouse
-// console.log(pipe(M.fold(union)(shapes), showShape2D.show))
+// console.log(pipe(M.fold(MonoidUnion)(shapes), showShape2D.show))

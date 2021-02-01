@@ -1,7 +1,8 @@
 /**
  * Definire una istanza di `Monoid` per `Option`
  */
-import { Semigroup, semigroupSum } from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
+import * as N from 'fp-ts/number'
 import * as O from 'fp-ts/Option'
 import { Monoid, fold } from 'fp-ts/Monoid'
 
@@ -22,7 +23,7 @@ const getMonoid = <A>(S: Semigroup<A>): Monoid<O.Option<A>> => ({
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const M = getMonoid(semigroupSum)
+const M = getMonoid(N.SemigroupSum)
 
 assert.deepStrictEqual(pipe(O.none, M.concat(O.none)), O.none)
 assert.deepStrictEqual(pipe(O.some(1), M.concat(O.none)), O.some(1))

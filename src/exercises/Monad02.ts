@@ -3,7 +3,7 @@
  */
 import * as T from 'fp-ts/Task'
 import * as E from 'fp-ts/Either'
-import { Monad2 } from 'fp-ts/lib/Monad'
+import { Monad2 } from 'fp-ts/Monad'
 import { URI } from 'fp-ts/TaskEither'
 
 const Monad: Monad2<URI> = {

@@ -21,7 +21,7 @@
   "homepage": "https://github.com/gcanti/functional-programming",
   "dependencies": {
     "doctoc": "^1.4.0",
-    "fp-ts": "^3.0.0-alpha.9"
+    "fp-ts": "^3.0.0-alpha.10"
   },
   "devDependencies": {
     "@types/node": "^12.6.8",

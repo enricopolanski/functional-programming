@@ -1,7 +1,8 @@
 /**
  * Definire una istanza di `Semigroup` per `Option`
  */
-import { Semigroup, semigroupString } from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
+import * as Str from 'fp-ts/string'
 import { Option, some, none } from 'fp-ts/Option'
 
 declare const getSemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>
@@ -13,7 +14,7 @@ declare const getSemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const S = getSemigroup(semigroupString)
+const S = getSemigroup(Str.Semigroup)
 
 assert.deepStrictEqual(pipe(none, S.concat(none)), none)
 assert.deepStrictEqual(pipe(some('a'), S.concat(none)), none)

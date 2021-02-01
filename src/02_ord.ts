@@ -6,17 +6,12 @@
 */
 
 import { pipe } from 'fp-ts/function'
-import {
-  contramap,
-  fromCompare,
-  getDualOrd,
-  Ord,
-  ordBoolean,
-  ordNumber,
-  ordString
-} from 'fp-ts/Ord'
+import { contramap, fromCompare, getDual, Ord } from 'fp-ts/Ord'
 import { sort } from 'fp-ts/ReadonlyArray'
 import { fold, Semigroup } from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/string'
+import * as N from 'fp-ts/number'
+import * as B from 'fp-ts/boolean'
 
 /*
 
@@ -46,21 +41,21 @@ interface User {
 }
 
 const byName = pipe(
-  ordString,
+  S.Ord,
   contramap((p: User) => p.name)
 )
 
 const byAge = pipe(
-  ordNumber,
+  N.Ord,
   contramap((p: User) => p.age)
 )
 
 const byRememberMe = pipe(
-  ordBoolean,
+  B.Ord,
   contramap((p: User) => p.rememberMe)
 )
 
-const S = getSemigroup<User>()
+const SemigroupUser = getSemigroup<User>()
 
 const users: ReadonlyArray<User> = [
   { id: 1, name: 'Guido', age: 47, rememberMe: false },
@@ -72,7 +67,7 @@ const users: ReadonlyArray<User> = [
 // un ordinamento classico:
 // prima per nome, poi per età, poi per `rememberMe`
 
-const byNameAgeRememberMe = fold(S)(byName)([byAge, byRememberMe])
+const byNameAgeRememberMe = fold(SemigroupUser)(byName)([byAge, byRememberMe])
 console.log(sort(byNameAgeRememberMe)(users))
 /*
 [ { id: 3, name: 'Giulio', age: 44, rememberMe: false },
@@ -84,7 +79,10 @@ console.log(sort(byNameAgeRememberMe)(users))
 // adesso invece voglio tutti gli utenti con
 // `rememberMe = true` per primi
 
-const byRememberMeNameAge = fold(S)(getDualOrd(byRememberMe))([byName, byAge])
+const byRememberMeNameAge = fold(SemigroupUser)(getDual(byRememberMe))([
+  byName,
+  byAge
+])
 console.log(sort(byRememberMeNameAge)(users))
 /*
 [ { id: 4, name: 'Giulio', age: 44, rememberMe: true },

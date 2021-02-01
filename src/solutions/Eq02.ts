@@ -1,7 +1,8 @@
 /**
  * Definire una istanza di `Eq` per `Tree`
  */
-import { Eq, eqString, fromEquals } from 'fp-ts/Eq'
+import { Eq, fromEquals } from 'fp-ts/Eq'
+import * as S from 'fp-ts/string'
 import * as A from 'fp-ts/ReadonlyArray'
 
 type Forest<A> = ReadonlyArray<Tree<A>>
@@ -32,7 +33,7 @@ const make = <A>(value: A, forest: Forest<A> = []): Tree<A> => ({
   forest
 })
 
-const E = getEq(eqString)
+const E = getEq(S.Eq)
 
 const t = make('a', [make('b'), make('c')])
 

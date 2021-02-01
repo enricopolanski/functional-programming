@@ -6,7 +6,7 @@ import {
   pipe
 } from 'fp-ts/function'
 import * as IO from 'fp-ts/IO'
-import { eqString } from 'fp-ts/lib/Eq'
+import * as S from 'fp-ts/string'
 import * as O from 'fp-ts/Option'
 import { randomInt } from 'fp-ts/Random'
 import * as RA from 'fp-ts/ReadonlyArray'
@@ -30,7 +30,7 @@ const addGuess = (state: State, guess: string): State => ({
   guesses: pipe(state.guesses, RA.snoc(guess))
 })
 
-const difference = RA.difference(eqString)
+const difference = RA.difference(S.Eq)
 
 const failures = (state: State): number =>
   pipe(state.guesses, difference(state.word)).length

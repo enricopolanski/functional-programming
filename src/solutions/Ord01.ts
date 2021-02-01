@@ -1,7 +1,8 @@
 /**
  * Definire una istanza di `Ord` per `ReadonlyArray`
  */
-import { fromCompare, Ord, ordNumber } from 'fp-ts/Ord'
+import { fromCompare, Ord } from 'fp-ts/Ord'
+import * as N from 'fp-ts/number'
 
 const getOrd = <A>(O: Ord<A>): Ord<ReadonlyArray<A>> =>
   fromCompare((second) => (first) => {
@@ -14,7 +15,7 @@ const getOrd = <A>(O: Ord<A>): Ord<ReadonlyArray<A>> =>
         return ordering
       }
     }
-    return ordNumber.compare(bLen)(aLen)
+    return N.Ord.compare(bLen)(aLen)
   })
 
 // ------------------------------------
@@ -24,7 +25,7 @@ const getOrd = <A>(O: Ord<A>): Ord<ReadonlyArray<A>> =>
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const O = getOrd(ordNumber)
+const O = getOrd(N.Ord)
 
 assert.deepStrictEqual(pipe([1], O.compare([1])), 0)
 assert.deepStrictEqual(pipe([1], O.compare([1, 2])), -1)

@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "noEmit": true,
-    "outDir": "./dist/lib",
     "target": "es5",
     "module": "commonjs",
     "moduleResolution": "node",
@@ -17,5 +16,5 @@
     "forceConsistentCasingInFileNames": true,
     "stripInternal": true
   },
-  "include": ["./src", "./dev"]
+  "include": ["./src"]
 }

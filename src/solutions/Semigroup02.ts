@@ -1,8 +1,9 @@
 /**
  * Definire un semigruppo per i predicati su `Point`
  */
-import { pipe, Predicate } from 'fp-ts/function'
-import { getFunctionSemigroup, Semigroup, semigroupAll } from 'fp-ts/Semigroup'
+import { pipe, Predicate, getSemigroup } from 'fp-ts/function'
+import { Semigroup } from 'fp-ts/Semigroup'
+import * as B from 'fp-ts/boolean'
 
 type Point = {
   readonly x: number
@@ -12,9 +13,7 @@ type Point = {
 const isPositiveX: Predicate<Point> = (p) => p.x >= 0
 const isPositiveY: Predicate<Point> = (p) => p.y >= 0
 
-const S: Semigroup<Predicate<Point>> = getFunctionSemigroup(
-  semigroupAll
-)<Point>()
+const S: Semigroup<Predicate<Point>> = getSemigroup(B.SemigroupAll)<Point>()
 
 // ------------------------------------
 // tests

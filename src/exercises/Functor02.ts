@@ -2,7 +2,7 @@
  * Implementare l'istanza di `Functor` per `Either`
  */
 import { URI, right, left } from 'fp-ts/Either'
-import { Functor2 } from 'fp-ts/lib/Functor'
+import { Functor2 } from 'fp-ts/Functor'
 
 const Functor: Functor2<URI> = {
   map: null as any

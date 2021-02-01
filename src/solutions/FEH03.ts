@@ -1,8 +1,9 @@
 /**
  * Definire una istanza di `Semigroup` per `Either`
  */
-import { Semigroup, semigroupString } from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 import { Either, right, left, isLeft } from 'fp-ts/Either'
+import * as Str from 'fp-ts/string'
 
 const getSemigroup = <E, A>(S: Semigroup<A>): Semigroup<Either<E, A>> => ({
   concat: (second) => (first) =>
@@ -20,7 +21,7 @@ const getSemigroup = <E, A>(S: Semigroup<A>): Semigroup<Either<E, A>> => ({
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const S = getSemigroup<number, string>(semigroupString)
+const S = getSemigroup<number, string>(Str.Semigroup)
 
 assert.deepStrictEqual(pipe(left(1), S.concat(left(2))), left(1))
 assert.deepStrictEqual(pipe(right('a'), S.concat(left(2))), left(2))

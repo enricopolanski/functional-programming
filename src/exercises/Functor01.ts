@@ -2,7 +2,7 @@
  * Implementare l'istanza di `Functor` per `IO`
  */
 import { URI } from 'fp-ts/IO'
-import { Functor1 } from 'fp-ts/lib/Functor'
+import { Functor1 } from 'fp-ts/Functor'
 
 const Functor: Functor1<URI> = {
   map: null as any

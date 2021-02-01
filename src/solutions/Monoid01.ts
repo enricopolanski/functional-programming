@@ -4,7 +4,8 @@
  *
  * Questa operazione è realizzata dalla seguente funzione `foldMap` che dovete implementare.
  */
-import { fold, Monoid, monoidSum } from 'fp-ts/Monoid'
+import { fold, Monoid } from 'fp-ts/Monoid'
+import * as N from 'fp-ts/number'
 import { flow, pipe } from 'fp-ts/function'
 import { map } from 'fp-ts/ReadonlyArray'
 
@@ -34,7 +35,7 @@ const bonifici: ReadonlyArray<Bonifico> = [
 assert.deepStrictEqual(
   pipe(
     bonifici,
-    foldMap(monoidSum)((bonifico) => bonifico.importo)
+    foldMap(N.MonoidSum)((bonifico) => bonifico.importo)
   ),
   1850
 )

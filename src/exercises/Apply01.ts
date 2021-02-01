@@ -1,7 +1,8 @@
 /**
  * E' possibile derivare una istanza di `Semigroup` da una istanza di `Apply`?
  */
-import { Semigroup, semigroupString } from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
+import * as Str from 'fp-ts/string'
 import * as O from 'fp-ts/Option'
 
 declare const getSemigroup: <A>(S: Semigroup<A>) => Semigroup<O.Option<A>>
@@ -13,7 +14,7 @@ declare const getSemigroup: <A>(S: Semigroup<A>) => Semigroup<O.Option<A>>
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const S = getSemigroup(semigroupString)
+const S = getSemigroup(Str.Semigroup)
 
 assert.deepStrictEqual(pipe(O.none, S.concat(O.none)), O.none)
 assert.deepStrictEqual(pipe(O.some('a'), S.concat(O.none)), O.none)

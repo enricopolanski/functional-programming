@@ -1,8 +1,10 @@
 /**
  * Definire una istanza di `Semigroup` per `Either` che accumula gli errori
  */
-import { Semigroup, semigroupString, semigroupSum } from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
+import * as N from 'fp-ts/number'
 import { Either, right, left, isLeft } from 'fp-ts/Either'
+import * as Str from 'fp-ts/string'
 
 const getSemigroup = <E, A>(
   SE: Semigroup<E>,
@@ -25,7 +27,7 @@ const getSemigroup = <E, A>(
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const S = getSemigroup(semigroupSum, semigroupString)
+const S = getSemigroup(N.SemigroupSum, Str.Semigroup)
 
 assert.deepStrictEqual(pipe(left(1), S.concat(left(2))), left(3))
 assert.deepStrictEqual(pipe(right('a'), S.concat(left(2))), left(2))

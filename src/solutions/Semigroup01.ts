@@ -1,8 +1,9 @@
 /**
  * Implementare la funzione `fold`
  */
-import { pipe } from 'fp-ts/lib/function'
-import { Semigroup, semigroupProduct, semigroupSum } from 'fp-ts/Semigroup'
+import { pipe } from 'fp-ts/function'
+import { Semigroup } from 'fp-ts/Semigroup'
+import * as N from 'fp-ts/number'
 
 const fold = <A>(S: Semigroup<A>) => (startWith: A) => (
   as: ReadonlyArray<A>
@@ -14,6 +15,6 @@ const fold = <A>(S: Semigroup<A>) => (startWith: A) => (
 
 import * as assert from 'assert'
 
-assert.deepStrictEqual(fold(semigroupSum)(0)([1, 2, 3, 4]), 10)
+assert.deepStrictEqual(fold(N.SemigroupSum)(0)([1, 2, 3, 4]), 10)
 
-assert.deepStrictEqual(fold(semigroupProduct)(1)([1, 2, 3, 4]), 24)
+assert.deepStrictEqual(fold(N.SemigroupProduct)(1)([1, 2, 3, 4]), 24)

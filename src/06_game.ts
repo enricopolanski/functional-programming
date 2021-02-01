@@ -6,8 +6,9 @@ import * as T from 'fp-ts/Task'
 import * as O from 'fp-ts/Option'
 import { getLine, putStrLn } from './Console'
 import { randomInt } from 'fp-ts/Random'
-import { between, ordNumber } from 'fp-ts/Ord'
+import { between } from 'fp-ts/Ord'
 import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
 
 // il numero da indovinare
 export const secret: T.Task<number> = T.fromIO(randomInt(1, 100))
@@ -20,7 +21,7 @@ const withMessage = <A>(message: string, next: T.Task<A>): T.Task<A> =>
   )
 
 // l'input è una stringa perciò dobbiamo validarlo
-const isValidInteger = between(ordNumber)(1, 100)
+const isValidInteger = between(N.Ord)(1, 100)
 const parseGuess = (s: string): O.Option<number> => {
   const n = parseInt(s, 10)
   return isNaN(n) || !isValidInteger(n) ? O.none : O.some(n)

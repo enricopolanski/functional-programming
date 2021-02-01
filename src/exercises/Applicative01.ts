@@ -1,7 +1,8 @@
 /**
  * E' possibile derivare una istanza di `Monoid` da una istanza di `Applicative`?
  */
-import { Monoid, monoidString } from 'fp-ts/Monoid'
+import { Monoid } from 'fp-ts/Monoid'
+import * as Str from 'fp-ts/string'
 import * as O from 'fp-ts/Option'
 
 declare const getMonoid: <A>(M: Monoid<A>) => Monoid<O.Option<A>>
@@ -13,7 +14,7 @@ declare const getMonoid: <A>(M: Monoid<A>) => Monoid<O.Option<A>>
 import * as assert from 'assert'
 import { pipe } from 'fp-ts/function'
 
-const M = getMonoid(monoidString)
+const M = getMonoid(Str.Monoid)
 
 assert.deepStrictEqual(pipe(O.none, M.concat(O.none)), O.none)
 assert.deepStrictEqual(pipe(O.some('a'), M.concat(O.none)), O.none)
