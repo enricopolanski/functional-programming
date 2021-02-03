@@ -90,13 +90,15 @@ for (let i = 0; i < xs.length; i++) {
 }
 ```
 
-Un ciclo `for` è molto flessibile, posso modificare
+Un ciclo `for` è molto flessibile, posso modificare:
 
 - l'indice di partenza
 - la condizione di fine
 - il passo
 
 Ma ciò vuol dire anche che ci sono più possibilità di introdurre **errori** e non ho alcuna **garanzia sul risultato**.
+
+**Quiz**. Avete controllato che io abbia scritto bene il ciclo?
 
 Vediamo ora come si utilizza `map`
 
@@ -117,14 +119,18 @@ Pensate per esempio a quanto sia più facile la review di una PR che coinvolga u
 
 # I due pilastri della programmazione funzionale
 
+La programmazione funzionale si appoggia a questi due pilastri:
+
 - trasparenza referenziale
 - composizione come design pattern universale
 
-Tutto ciò che vedremo in seguito deriva direttamente o indirettamente da questi due pilastri.
+Tutto ciò che vedremo in seguito nel corso deriva direttamente o indirettamente da questi due punti.
+
+Incominciamo dalla trasparenza referenziale.
 
 ## Trasparenza referenziale
 
-> An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
+**Definizione**. An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
 
 **Esempio**
 
@@ -161,20 +167,21 @@ Non posso sostituire l'espressione `inverse(0)` con il suo valore, perciò l'esp
 
 Perché è così importante la trasparenza referenziale? Perché permette di:
 
-- ragionare meglio sul codice
-- **rifattorizzare** senza cambiare il comportamento del programma
+- **ragionare localmente** sul codice (ovvero non ho bisogno di conoscere un contesto più ampio per capire un frammento di codice)
+- **rifattorizzare** senza cambiare il comportamento del programma (per la definizione stessa di trasparenza referenziale)
 
-**Esempio**
+**Quiz**. Supponiamo di avere il seguente programma:
 
 ```ts
-// `declare` permette di introdurre una definizione senza specificarne l'implementazione
 declare function question(message: string): Promise<string>
 
 const x = await question('What is your name?')
 const y = await question('What is your name?')
 ```
 
-Posso rifattorizzare in questo modo?
+**Nota**. In TypeScript `declare` permette di introdurre una definizione senza specificarne l'implementazione.
+
+Posso rifattorizzarlo in questo modo? Il comportamento è cambiato?
 
 ```ts
 const x = await question('What is your name?')
