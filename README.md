@@ -65,7 +65,7 @@
 > The idea is that there's some higher level than the code in which you need to be able to think precisely,
 > and that mathematics actually allows you to think precisely about it - Leslie Lamport
 
-L'obbiettivo della programmazione funzionale è dominare la complessità di un sistema usando _modelli_ formali, ponendo particolare attenzione alle **proprietà del codice** e alla facilità di **refactoring**.
+L'obbiettivo della programmazione funzionale è dominare la complessità di un sistema usando **modelli formali**, ponendo particolare attenzione alle **proprietà del codice** e alla facilità di **refactoring**.
 
 > Functional programming will help teach people the mathematics behind program construction:
 > - how to write composable code
