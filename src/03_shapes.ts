@@ -73,16 +73,16 @@ const origin: Point2D = { x: 0, y: 0 }
   di una funzione ammette una istanza di monoide se il tipo
   del codominio ammette una istanza di monoide
 */
-import * as M from 'fp-ts/Monoid'
+import * as Mo from 'fp-ts/Monoid'
 import * as B from 'fp-ts/boolean'
 
-export const MonoidUnion: M.Monoid<Shape2D> = getMonoid(B.MonoidAny)()
+export const MonoidUnion: Mo.Monoid<Shape2D> = getMonoid(B.MonoidAny)()
 
 // export const disk1 = disk({ x: -8, y: 0 }, 10)
 // export const disk2 = disk({ x: 8, y: 0 }, 10)
 // console.log(pipe(disk1, MonoidUnion.concat(disk2), showShape2D.show))
 
-const MonoidIntersection: M.Monoid<Shape2D> = getMonoid(B.MonoidAll)()
+const MonoidIntersection: Mo.Monoid<Shape2D> = getMonoid(B.MonoidAll)()
 
 // console.log(pipe(disk1, MonoidIntersection.concat(disk2), showShape2D.show))
 

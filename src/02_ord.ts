@@ -6,7 +6,7 @@
 */
 
 import { pipe } from 'fp-ts/function'
-import { contramap, fromCompare, getDual, Ord } from 'fp-ts/Ord'
+import * as O from 'fp-ts/Ord'
 import { sort } from 'fp-ts/ReadonlyArray'
 import { fold, Semigroup } from 'fp-ts/Semigroup'
 import * as S from 'fp-ts/string'
@@ -19,9 +19,9 @@ import * as B from 'fp-ts/boolean'
 
 */
 
-const getSemigroup = <A = never>(): Semigroup<Ord<A>> => ({
+const getSemigroup = <A = never>(): Semigroup<O.Ord<A>> => ({
   concat: (second) => (first) =>
-    fromCompare((a2) => (a1) => {
+    O.fromCompare((a2) => (a1) => {
       const ordering = first.compare(a2)(a1)
       return ordering !== 0 ? ordering : second.compare(a2)(a1)
     })
@@ -42,17 +42,17 @@ interface User {
 
 const byName = pipe(
   S.Ord,
-  contramap((p: User) => p.name)
+  O.contramap((p: User) => p.name)
 )
 
 const byAge = pipe(
   N.Ord,
-  contramap((p: User) => p.age)
+  O.contramap((p: User) => p.age)
 )
 
 const byRememberMe = pipe(
   B.Ord,
-  contramap((p: User) => p.rememberMe)
+  O.contramap((p: User) => p.rememberMe)
 )
 
 const SemigroupUser = getSemigroup<User>()
@@ -79,7 +79,7 @@ console.log(sort(byNameAgeRememberMe)(users))
 // adesso invece voglio tutti gli utenti con
 // `rememberMe = true` per primi
 
-const byRememberMeNameAge = fold(SemigroupUser)(getDual(byRememberMe))([
+const byRememberMeNameAge = fold(SemigroupUser)(O.getDual(byRememberMe))([
   byName,
   byAge
 ])
