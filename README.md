@@ -234,7 +234,7 @@ Proviamo ad implementare un modulo di questo tipo.
 
 [`01_retry.ts`](src/01_retry.ts)
 
-Come potete vedere dalla demo precedente, con sole tre primitive e due combinatori siamo stati in grado si esprimere una policy piuttosto complessa.
+Come potete vedere dalla demo precedente, con sole tre primitive e due combinatori siamo stati in grado di esprimere una policy piuttosto complessa.
 Pensate a come, aggiungendo anche una sola nuova primitiva (o un nuovo combinatore) a quelli già definiti, le possibilità espressive aumentano velocemente.
 
 Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat` dato che è possibile collegarlo ad una importante astrazione della programmazione funzionale: i semigruppi.
