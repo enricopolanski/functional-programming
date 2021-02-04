@@ -1403,9 +1403,9 @@ Cominciamo da quelli più familiari: i product type.
 
 ## Product types
 
-Un product type è una collezione di tipi T<sub>i</sub> inidicizzati da un insieme finito `I`.
+Un product type è una collezione di tipi T<sub>i</sub> inidicizzati da un insieme `I`.
 
-Due membri comuni di questa famiglia sono le `n`-tuple, dove `I` è un intervallo finito di numeri naturali:
+Due membri comuni di questa famiglia sono le `n`-tuple, dove `I` è un intervallo di numeri naturali:
 
 ```ts
 type Tuple1 = [string] // I = [0]
@@ -1417,7 +1417,7 @@ type Fst = Tuple2[0] // string
 type Snd = Tuple2[1] // number
 ```
 
-e le struct, ove `I` è un insieme finito di label:
+e le struct, ove `I` è un insieme di label:
 
 ```ts
 // I = {"name", "age"}
@@ -1526,7 +1526,13 @@ type List<A> =
 //                                                              ↑ recursion
 ```
 
-**Quiz**. `ReadonlyArray` è un product type o un sum type?
+**Quiz**. Delle seguenti strutture dati dire se sono dei product type o dei sum type
+
+- `ReadonlyArray<A>`
+- `Record<string, A>`
+- `Record<'k1' | 'k2', A>`
+- `ReadonlyMap<string, A>`
+- `ReadonlyMap<'k1' | 'k2', A>`
 
 ### Pattern matching
 
