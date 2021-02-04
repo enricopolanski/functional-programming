@@ -22,6 +22,11 @@ export interface RetryStatus {
   readonly previousDelay: number | undefined
 }
 
+export const startStatus: RetryStatus = {
+  iterNumber: 0,
+  previousDelay: undefined
+}
+
 /**
  * A `RetryPolicy` is a function that takes an `RetryStatus` and
  * possibly returns a delay in milliseconds. Iteration numbers start
@@ -30,26 +35,6 @@ export interface RetryStatus {
  */
 export interface RetryPolicy {
   (status: RetryStatus): number | undefined
-}
-
-/**
- * Apply a policy to see what the decision would be.
- */
-export const dryRun = (policy: RetryPolicy): ReadonlyArray<RetryStatus> => {
-  const out: Array<RetryStatus> = []
-  let status: RetryStatus = {
-    iterNumber: 0,
-    previousDelay: 0
-  }
-  while (status.previousDelay !== undefined) {
-    out.push(
-      (status = {
-        iterNumber: status.iterNumber + 1,
-        previousDelay: policy(status)
-      })
-    )
-  }
-  return out
 }
 
 // -------------------------------------------------------------------------------------
@@ -106,6 +91,29 @@ export const concat = (second: RetryPolicy) => (
 // -------------------------------------------------------------------------------------
 // tests
 // -------------------------------------------------------------------------------------
+
+/**
+ * Apply policy on status to see what the decision would be.
+ */
+export const applyPolicy = (policy: RetryPolicy) => (
+  status: RetryStatus
+): RetryStatus => ({
+  iterNumber: status.iterNumber + 1,
+  previousDelay: policy(status)
+})
+
+/**
+ * Apply a policy keeping all intermediate results.
+ */
+export const dryRun = (policy: RetryPolicy): ReadonlyArray<RetryStatus> => {
+  const apply = applyPolicy(policy)
+  let status: RetryStatus = apply(startStatus)
+  const out: Array<RetryStatus> = [status]
+  while (status.previousDelay !== undefined) {
+    out.push((status = apply(out[out.length - 1])))
+  }
+  return out
+}
 
 import { pipe } from 'fp-ts/function'
 

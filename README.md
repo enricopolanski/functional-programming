@@ -188,22 +188,30 @@ const x = await question('What is your name?')
 const y = x
 ```
 
+Parliamo ora del secondo pilastro, la composizione.
+
 ## Composizione
 
 Il pattern fondamentale della programmazione funzionale è la _componibilità_, ovvero la costruzione di piccole unità
 che fanno qualcosa di specifico in grado di essere combinate al fine di ottenere entità più grandi e complesse.
 
-Possiamo parlare di _programmazione modulare_
+Come esempi, e in un percorso dal "più piccolo al più grande", possiamo pensare:
+
+- alla composizione di due semplici valori (come due numeri o due stringhe)
+- oppure alla composizione di funzioni
+- o anche alla composizione di interi programmi
+
+In questo ultimo caso possiamo parlare di "programmazione modulare":
 
 > By modular programming I mean the process of building large programs by gluing together smaller programs - Simon Peyton Jones
 
-Vediamo nella pratica come è possibile tendere verso questo stile di programmazione attraverso quelli che vengono chiamati combinatori.
+Vediamo nella pratica come è possibile tendere verso questo stile di programmazione attraverso l'uso di quelli che vengono chiamati combinatori.
 
 Il termine **combinatore** si riferisce al [combinator pattern](https://wiki.haskell.org/Combinator):
 
 > A style of organizing libraries centered around the idea of combining things. Usually there is some type `T`, some "primitive" values of type `T`, and some "combinators" which can combine values of type `T` in various ways to build up more complex values of type `T`
 
-La forma più semplice di un combinatore è questa:
+Il concetto di combinatore è piuttosto sfumato e si può presentare in diverse forme, la sua forma più semplice è questa:
 
 ```ts
 combinator: Thing -> Thing
@@ -217,6 +225,8 @@ Perciò il design generale che potete spesso trovare in un modulo funzionale è 
 
 - un insieme di semplici "primitive"
 - un insieme di combinatori per combinare le primitive in strutture più complesse
+
+Proviamo ad implementare un modulo di questo tipo.
 
 **Demo**
 
