@@ -241,7 +241,7 @@ Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat
 
 # Modellare la composizione con i semigruppi
 
-Un semigruppo è un'algebra e le algebre possono essere considerate tra i migliori design pattern che offre la programmazione funzionale.
+Un semigruppo è un'algebra e le algebre possono essere considerate tra i migliori strumenti di design che offre la programmazione funzionale.
 
 Ma cosa si intende con il termine **algebra**?
 
