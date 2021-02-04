@@ -75,7 +75,7 @@ export const capDelay = (maxDelay: number) => (
 }
 
 /**
- * Merges two policies.
+ * Merges two policies. **Quiz**: cosa vuol dire fare merge di due policy?
  */
 export const concat = (second: RetryPolicy) => (
   first: RetryPolicy
