@@ -362,6 +362,8 @@ Ci sono molti esempi familiari di semigruppi:
 Come già successo per `Magma`, l'algebra semigruppo può essere implementata con una `interface` di TypeScript:
 
 ```ts
+import { Magma } from 'fp-ts/Magma'
+
 interface Semigroup<A> extends Magma<A> {}
 ```
 
