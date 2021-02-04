@@ -300,6 +300,7 @@ Per i linguaggi che supportano l'operatore `|>` ("pipe")
 la scrittura sopra è equivalente a:
 
 1 |> MagmaSum.concat(2) // => 3
+*/
 ```
 
 **Quiz**. Consideriamo la seguente funzione:
