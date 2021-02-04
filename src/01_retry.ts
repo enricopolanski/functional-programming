@@ -117,9 +117,15 @@ export const dryRun = (policy: RetryPolicy): ReadonlyArray<RetryStatus> => {
 
 import { pipe } from 'fp-ts/function'
 
-// exponentialBackoff(200) |> concat(limitRetries(5)) |> capDelay(2000)
+/*
+  constantDelay(300)
+    |> concat(exponentialBackoff(200))
+    |> concat(limitRetries(5))
+    |> capDelay(2000)
+*/
 const myPolicy = pipe(
-  exponentialBackoff(200),
+  constantDelay(300),
+  concat(exponentialBackoff(200)),
   concat(limitRetries(5)),
   capDelay(2000)
 )
@@ -127,11 +133,11 @@ const myPolicy = pipe(
 console.log(dryRun(myPolicy))
 /*
 [
-  { iterNumber: 1, previousDelay: 200 },      <= exponentialBackoff
+  { iterNumber: 1, previousDelay: 300 },      <= constantDelay
   { iterNumber: 2, previousDelay: 400 },      <= exponentialBackoff
   { iterNumber: 3, previousDelay: 800 },      <= exponentialBackoff
   { iterNumber: 4, previousDelay: 1600 },     <= exponentialBackoff
-  { iterNumber: 5, previousDelay: 2000 },     <= exponentialBackoff + capDelay
+  { iterNumber: 5, previousDelay: 2000 },     <= capDelay
   { iterNumber: 6, previousDelay: undefined } <= limitRetries
 ]
 */
