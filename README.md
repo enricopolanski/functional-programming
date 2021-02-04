@@ -274,37 +274,39 @@ Vediamo come si può codificare un magma in TypeScript proprio usando una `inter
 - l'operazione `*` è qui chiamata `concat`
 
 ```ts
-// fp-ts/Magma.ts
-
 interface Magma<A> {
   readonly concat: (second: A) => (first: A) => A
 }
 ```
 
-Per avere una *istanza* concreta per un determinato tipo occorre perciò definire un oggetto conforme a questa interfaccia (alla quale a volte ci si riferisce con la dicitura *type class*).
+Per avere una *istanza* concreta per un determinato tipo occorre perciò definire un oggetto conforme a questa interfaccia (interfaccia alla quale a volte ci si riferisce con la dicitura *type class*).
 
 **Esempio**
 
 ```ts
+import { Magma } from 'fp-ts/Magma'
+
 // una istanza di Magma per il tipo `number`
-const magmaSum: Magma<number> = {
+const MagmaSum: Magma<number> = {
   concat: (second) => (first) => first + second
 }
 
 import { pipe } from 'fp-ts/function'
 
-console.log(pipe(1, magmaSum.concat(2))) // => 3
+console.log(pipe(1, MagmaSum.concat(2))) // => 3
 
 /*
 Per i linguaggi che supportano l'operatore `|>` ("pipe")
 la scrittura sopra è equivalente a:
 
-1 |> magmaSum.concat(2) // => 3
+1 |> MagmaSum.concat(2) // => 3
 ```
 
 **Quiz**. Consideriamo la seguente funzione:
 
 ```ts
+import { Magma } from 'fp-ts/Magma'
+
 declare const fromArray: <A>(
   M: Magma<A>
 ) => (as: ReadonlyArray<readonly [string, A]>) => Record<string, A>
@@ -359,8 +361,6 @@ Ci sono molti esempi familiari di semigruppi:
 Come già successo per `Magma`, l'algebra semigruppo può essere implementata con una `interface` di TypeScript:
 
 ```ts
-// fp-ts/Semigroup.ts
-
 interface Semigroup<A> extends Magma<A> {}
 ```
 
@@ -375,9 +375,9 @@ Deve valere la seguente legge:
 Implementiamo un semigruppo per gli `Array<string>`
 
 ```ts
-import { Semigroup } from 'fp-ts/Semigroup'
+import * as Se from 'fp-ts/Semigroup'
 
-const semigroupReadonlyArray: Semigroup<ReadonlyArray<string>> = {
+const Semigroup: Se.Semigroup<ReadonlyArray<string>> = {
   concat: (second) => (first) => first.concat(second)
 }
 ```
@@ -402,7 +402,7 @@ Ecco come implementare il semigruppo `(number, +)` dove `+` è l'usuale addizion
 import { Semigroup } from 'fp-ts/Semigroup'
 
 /** number `Semigroup` under addition */
-const semigroupSum: Semigroup<number> = {
+const SemigroupSum: Semigroup<number> = {
   concat: (second) => (first) => first + second
 }
 ```
@@ -417,7 +417,7 @@ Per esempio, considerando ancora il tipo `number`, possiamo definire il semigrup
 import { Semigroup } from 'fp-ts/Semigroup'
 
 /** number `Semigroup` under multiplication */
-const semigroupProduct: Semigroup<number> = {
+const SemigroupProduct: Semigroup<number> = {
   concat: (second) => (first) => first * second
 }
 ```
@@ -425,9 +425,9 @@ const semigroupProduct: Semigroup<number> = {
 Un'altro esempio, con le stringhe questa volta:
 
 ```ts
-import { Semigroup } from 'fp-ts/Semigroup'
+import * as Se from 'fp-ts/Semigroup'
 
-const semigroupString: Semigroup<string> = {
+const Semigroup: Se.Semigroup<string> = {
   concat: (second) => (first) => first + second
 }
 ```
@@ -439,13 +439,14 @@ Per definizione `concat` combina solo due elementi di `A` alla volta, è possibi
 La funzione `fold` prende in input una istanza di semigruppo, un valore iniziale e un array di elementi da combinare:
 
 ```ts
-import { fold, semigroupSum, semigroupProduct } from 'fp-ts/Semigroup'
+import { fold } from 'fp-ts/Semigroup'
+import * as N from 'fp-ts/number'
 
-const sum = fold(semigroupSum)(0)
+const sum = fold(N.SemigroupSum)(0)
 
 sum([1, 2, 3, 4]) // 10
 
-const product = fold(semigroupProduct)(1)
+const product = fold(N.SemigroupProduct)(1)
 
 product([1, 2, 3, 4]) // 24
 ```
@@ -457,20 +458,21 @@ product([1, 2, 3, 4]) // 24
 Ora, come esempi di applicazione di `fold`, possiamo reimplementare alcune popolari funzioni della standard library di JavaScript:
 
 ```ts
+import { SemigroupAll, SemigroupAny } from 'fp-ts/boolean'
 import { Predicate } from 'fp-ts/function'
-import { fold, Semigroup, semigroupAll, semigroupAny } from 'fp-ts/Semigroup'
+import { fold, Semigroup } from 'fp-ts/Semigroup'
 
 const every = <A>(p: Predicate<A>) => (as: ReadonlyArray<A>): boolean =>
-  fold(semigroupAll)(true, as.map(p))
+  fold(SemigroupAll)(true)(as.map(p))
 
 const some = <A>(p: Predicate<A>) => (as: ReadonlyArray<A>): boolean =>
-  fold(semigroupAny)(false, as.map(p))
+  fold(SemigroupAny)(false)(as.map(p))
 
-const semigroupObject: Semigroup<object> = {
-  concat: (x, y) => ({ ...x, ...y })
+const SemigroupSpread: Semigroup<object> = {
+  concat: (second) => (first) => ({ ...first, ...second })
 }
 
-const assign: (as: ReadonlyArray<object>) => object = fold(semigroupObject)({})
+const assign: (as: ReadonlyArray<object>) => object = fold(SemigroupSpread)({})
 ```
 
 **Quiz**. La seguente istanza è legale?
@@ -480,7 +482,7 @@ import { Semigroup } from 'fp-ts/Semigroup'
 
 /** Always return the first argument */
 const getFirstSemigroup = <A = never>(): Semigroup<A> => ({
-  concat: (x, _) => x
+  concat: (_second) => (first) => first
 })
 ```
 
@@ -489,9 +491,11 @@ const getFirstSemigroup = <A = never>(): Semigroup<A> => ({
 **Quiz**. La seguente istanza è legale?
 
 ```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
 /** Always return the second argument */
 const getLastSemigroup = <A = never>(): Semigroup<A> => ({
-  concat: (_, y) => y
+  concat: (second) => (_first) => second
 })
 ```
 
@@ -504,7 +508,7 @@ import { pipe } from 'fp-ts/function'
 import { Semigroup } from 'fp-ts/Semigroup'
 
 // questo è un combinatore di semigruppi...
-const getDualSemigroup = <A>(S: Semigroup<A>): Semigroup<A> => ({
+const getDual = <A>(S: Semigroup<A>): Semigroup<A> => ({
   concat: (second) => (first) => pipe(second, S.concat(first))
 })
 ```
@@ -543,14 +547,15 @@ Il semigruppo libero di `A` può essere visto come un modo *lazy* di concatenare
 
 ```ts
 import { pipe } from 'fp-ts/function'
+import { SemigroupSum } from 'fp-ts/number'
 import { ReadonlyNonEmptyArray } from 'fp-ts/ReadonlyNonEmptyArray'
-import { fold, semigroupSum as S } from 'fp-ts/Semigroup'
+import { fold } from 'fp-ts/Semigroup'
 
-console.log(pipe(1, S.concat(2), S.concat(3))) // => 6
+console.log(pipe(1, SemigroupSum.concat(2), SemigroupSum.concat(3))) // => 6
 
 const as: ReadonlyNonEmptyArray<number> = [1, 2, 3]
 
-console.log(fold(S)(as[0])(as.slice(1))) // => 6
+console.log(fold(SemigroupSum)(as[0])(as.slice(1))) // => 6
 ```
 
 Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di usare ugualmente il suo semigruppo libero perché:
@@ -565,7 +570,8 @@ Proviamo a definire delle istanze di semigruppo per tipi più complessi:
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import { Semigroup, semigroupSum } from 'fp-ts/Semigroup'
+import { SemigroupSum } from 'fp-ts/number'
+import * as Se from 'fp-ts/Semigroup'
 
 // modella un vettore che parte dall'origine
 type Vector = {
@@ -573,10 +579,10 @@ type Vector = {
   readonly y: number
 }
 
-const semigroupVector: Semigroup<Vector> = {
+const Semigroup: Se.Semigroup<Vector> = {
   concat: (second) => (first) => ({
-    x: pipe(first.x, semigroupSum.concat(second.x)),
-    y: pipe(first.y, semigroupSum.concat(second.y))
+    x: pipe(first.x, SemigroupSum.concat(second.x)),
+    y: pipe(first.y, SemigroupSum.concat(second.y))
   })
 }
 ```
@@ -587,7 +593,7 @@ const semigroupVector: Semigroup<Vector> = {
 const v1: Vector = { x: 1, y: 1 }
 const v2: Vector = { x: 1, y: 2 }
 
-console.log(pipe(v1, semigroupVector.concat(v2))) // => { x: 2, y: 3 }
+console.log(pipe(v1, Semigroup.concat(v2))) // => { x: 2, y: 3 }
 ```
 
 ![semigroupVector](images/semigroupVector.png)
@@ -597,9 +603,9 @@ Troppo boilerplate? La buona notizia è che **la teoria matematica** che sta die
 Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `getStructSemigroup`:
 
 ```ts
-const semigroupVector: Semigroup<Vector> = getStructSemigroup({
-  x: semigroupSum,
-  y: semigroupSum
+const Semigroup: Se.Semigroup<Vector> = Se.getStructSemigroup({
+  x: SemigroupSum,
+  y: SemigroupSum
 })
 ```
 
@@ -607,35 +613,37 @@ const semigroupVector: Semigroup<Vector> = getStructSemigroup({
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import { getTupleSemigroup, Semigroup, semigroupSum } from 'fp-ts/Semigroup'
+import { SemigroupSum } from 'fp-ts/number'
+import * as Se from 'fp-ts/Semigroup'
 
 // modella un vettore che parte dall'origine
 type Vector = readonly [number, number]
 
-const semigroupVector: Semigroup<Vector> = getTupleSemigroup<Vector>(
-  semigroupSum,
-  semigroupSum
+const Semigroup: Se.Semigroup<Vector> = Se.getTupleSemigroup<Vector>(
+  SemigroupSum,
+  SemigroupSum
 )
 
 const v1: Vector = [1, 1]
 const v2: Vector = [1, 2]
 
-console.log(pipe(v1, semigroupVector.concat(v2))) // => [2, 3]
+console.log(pipe(v1, Semigroup.concat(v2))) // => [2, 3]
 ```
 
 **Quiz**. E' vero che dato un semigruppo per `A` e scelto un qualsiasi elemento di `A`, se lo infilo tra i due parametri di `concat`, ottengo ancora un semigruppo?
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import { Semigroup, semigroupString } from 'fp-ts/Semigroup'
+import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/string'
 
 export const getIntercalateSemigroup = <A>(a: A) => (
-  S: Semigroup<A>
-): Semigroup<A> => ({
+  S: Se.Semigroup<A>
+): Se.Semigroup<A> => ({
   concat: (second) => (first) => pipe(first, S.concat(a), S.concat(second))
 })
 
-const S = getIntercalateSemigroup(' + ')(semigroupString)
+const S = getIntercalateSemigroup(' + ')(Semigroup)
 
 console.log(pipe('a', S.concat('b'), S.concat('c'))) // => 'a + b + c'
 ```
@@ -647,11 +655,11 @@ Dato che `number` è **totalmente ordinabile** (ovvero dati due qualsiasi numeri
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-const meet: Semigroup<number> = {
+const Meet: Semigroup<number> = {
   concat: (second) => (first) => Math.min(first, second)
 }
 
-const join: Semigroup<number> = {
+const Join: Semigroup<number> = {
   concat: (second) => (first) => Math.max(first, second)
 }
 ```
@@ -682,14 +690,15 @@ Intuitivamente:
 Proviamo a definire una istanza di `Eq` per il tipo `number`:
 
 ```ts
-import { Eq } from 'fp-ts/Eq'
+import * as E from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
 
-const eqNumber: Eq<number> = {
+const Eq: E.Eq<number> = {
   equals: (second) => (first) => first === second
 }
 
-console.log(pipe(1, eqNumber.equals(1))) // => true
-console.log(pipe(1, eqNumber.equals(2))) // => false
+console.log(pipe(1, Eq.equals(1))) // => true
+console.log(pipe(1, Eq.equals(2))) // => false
 ```
 
 Devono valere le seguenti leggi:
@@ -703,32 +712,34 @@ Devono valere le seguenti leggi:
 Come primo esempio di utilizzo definiamo una funzione `elem` che indica se un dato valore è un elemento di in un `ReadonlyArray`:
 
 ```ts
-import { Eq, eqNumber } from 'fp-ts/Eq'
+import { Eq } from 'fp-ts/Eq'
 import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
 
 const elem = <A>(E: Eq<A>) => (a: A) => (as: ReadonlyArray<A>): boolean =>
   as.some((item) => E.equals(a)(item))
 
-console.log(pipe([1, 2, 3], elem(eqNumber)(2))) // => true
-console.log(pipe([1, 2, 3], elem(eqNumber)(4))) // => false
+console.log(pipe([1, 2, 3], elem(N.Eq)(2))) // => true
+console.log(pipe([1, 2, 3], elem(N.Eq)(4))) // => false
 ```
 
 Proviamo a definire una istanza per un tipo più complesso
 
 ```ts
-import { Eq } from 'fp-ts/Eq'
+import * as E from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
 
 type Point = {
   readonly x: number
   readonly y: number
 }
 
-const eqPoint: Eq<Point> = {
+const Eq: E.Eq<Point> = {
   equals: (second) => (first) => first.x === second.x && first.y === second.y
 }
 
-console.log(pipe({ x: 1, y: 2 }, eqPoint.equals({ x: 1, y: 2 }))) // => true
-console.log(pipe({ x: 1, y: 2 }, eqPoint.equals({ x: 1, y: -2 }))) // => false
+console.log(pipe({ x: 1, y: 2 }, Eq.equals({ x: 1, y: 2 }))) // => true
+console.log(pipe({ x: 1, y: 2 }, Eq.equals({ x: 1, y: -2 }))) // => false
 ```
 
 Troppo boilerplate? La buona notizia è che la teoria ci dice che possiamo costruire una istanza di `Eq` per una struct come `Point` se siamo in grado di fornire una istanza di `Eq` per ogni suo campo.
@@ -736,39 +747,43 @@ Troppo boilerplate? La buona notizia è che la teoria ci dice che possiamo costr
 Convenientemente il modulo `fp-ts/Eq` esporta un combinatore `getStructEq`:
 
 ```ts
-import { getStructEq } from 'fp-ts/Eq'
+import * as N from 'fp-ts/number'
 
-const eqPoint: Eq<Point> = getStructEq({
-  x: eqNumber,
-  y: eqNumber
+const Eq: E.Eq<Point> = E.getStructEq({
+  x: N.Eq,
+  y: N.Eq
 })
 ```
 
 **Nota**. Esiste un combinatore simile a `getStructEq` ma che lavora con le tuple: `getTupleEq`
 
 ```ts
-import { Eq, eqNumber, getTupleEq } from 'fp-ts/Eq'
+import * as E from 'fp-ts/Eq'
 import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
 
 type Point = readonly [number, number]
 
-const eqPoint: Eq<Point> = getTupleEq<Point>(eqNumber, eqNumber)
+const Eq: E.Eq<Point> = E.getTupleEq<Point>(N.Eq, N.Eq)
 
-console.log(pipe([1, 2], eqPoint.equals([1, 2]))) // => true
-console.log(pipe([1, 2], eqPoint.equals([1, -2]))) // => false
+console.log(pipe([1, 2], Eq.equals([1, 2]))) // => true
+console.log(pipe([1, 2], Eq.equals([1, -2]))) // => false
 ```
 
 Ci sono altri combinatori messi a disposizione da `fp-ts`, ecco un combinatore che permette di derivare una istanza di `Eq` per i `ReadonlyArray`:
 
 ```ts
-const eqArrayOfPoints: Eq<ReadonlyArray<Point>> = getEq(eqPoint)
+import { getEq } from 'fp-ts/ReadonlyArray'
+
+const EqPoints: E.Eq<ReadonlyArray<Point>> = getEq(Eq)
 ```
 
 Un altro utile combinatore per costruire nuove istanze di `Eq` è il combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
 
 ```ts
-import { contramap, eqNumber } from 'fp-ts/Eq'
+import { contramap } from 'fp-ts/Eq'
 import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
 
 type User = {
   readonly id: number
@@ -776,20 +791,17 @@ type User = {
 }
 
 /** due utenti sono uguali se sono uguali il loro campi `id` */
-const eqUser = pipe(
-  eqNumber,
+const Eq = pipe(
+  N.Eq,
   contramap((user: User) => user.id)
 )
 
 console.log(
-  pipe(
-    { id: 1, name: 'Giulio' },
-    eqUser.equals({ id: 1, name: 'Giulio Canti' })
-  )
+  pipe({ id: 1, name: 'Giulio' }, Eq.equals({ id: 1, name: 'Giulio Canti' }))
 ) // => true (nonostante le proprietà `name` siano diverse)
 
 console.log(
-  pipe({ id: 1, name: 'Giulio' }, eqUser.equals({ id: 2, name: 'Giulio' }))
+  pipe({ id: 1, name: 'Giulio' }, Eq.equals({ id: 2, name: 'Giulio' }))
 ) // => false (nonostante le proprietà `name` siano uguali)
 ```
 
@@ -844,7 +856,9 @@ Di conseguenza possiamo dire che `x <= y` se e solo se `x |> compare(y) <= 0`
 Proviamo a definire una istanza di `Ord` per il tipo `number`:
 
 ```ts
-const ordNumber: Ord<number> = {
+import * as O from 'fp-ts/Ord'
+
+const Ord: O.Ord<number> = {
   equals: (second) => (first) => first === second,
   compare: (second) => (first) => (first < second ? -1 : first > second ? 1 : 0)
 }
@@ -869,9 +883,9 @@ equals: (second) => (first) => pipe(first, compare(second)) === 0
 Perciò il modulo `fp-ts/Ord` esporta un comodo helper `fromCompare` che permette di definire una istanza di `Ord` semplicemente specificando la funzione `compare`
 
 ```ts
-import { fromCompare, Ord } from 'fp-ts/Ord'
+import * as O from 'fp-ts/Ord'
 
-const ordNumber: Ord<number> = fromCompare((second) => (first) =>
+const Ord: O.Ord<number> = O.fromCompare((second) => (first) =>
   first < second ? -1 : first > second ? 1 : 0
 )
 ```
@@ -882,12 +896,13 @@ Come primo esempio di utilizzo definiamo una funzione `min` che restituisce il m
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import { Ord, ordNumber } from 'fp-ts/Ord'
+import * as N from 'fp-ts/number'
+import { Ord } from 'fp-ts/Ord'
 
 const min = <A>(O: Ord<A>) => (second: A) => (first: A): A =>
   O.compare(second)(first) === 1 ? second : first
 
-console.log(pipe(2, min(ordNumber)(1))) // => 1
+console.log(pipe(2, min(N.Ord)(1))) // => 1
 ```
 
 La **totalità** dell'ordinamento (ovvero dati due qualsiasi `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) può sembrare ovvia quando parliamo di numeri, ma non è sempre così. Consideriamo un caso più complesso
@@ -907,7 +922,8 @@ Dipende davvero dal contesto, ma una possibile scelta potrebbe essere quella per
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import { fromCompare, Ord, ordNumber } from 'fp-ts/Ord'
+import { fromCompare, Ord } from 'fp-ts/Ord'
+import * as N from 'fp-ts/number'
 
 type User = {
   readonly name: string
@@ -915,7 +931,7 @@ type User = {
 }
 
 const byAge: Ord<User> = fromCompare((second) => (first) =>
-  pipe(first.age, ordNumber.compare(second.age))
+  pipe(first.age, N.Ord.compare(second.age))
 )
 ```
 
@@ -923,7 +939,8 @@ Possiamo eliminare un po' di boilerplate usando il combinatore `contramap`: data
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import { contramap, Ord, ordNumber } from 'fp-ts/Ord'
+import * as N from 'fp-ts/number'
+import { contramap, Ord } from 'fp-ts/Ord'
 
 type User = {
   readonly name: string
@@ -931,7 +948,7 @@ type User = {
 }
 
 const byAge: Ord<User> = pipe(
-  ordNumber,
+  N.Ord,
   contramap((user: User) => user.age)
 )
 ```
@@ -960,11 +977,12 @@ per quale motivo questa API richiede un `Ord<K>`?
 
 Torniamo finalmente al quesito iniziale: definire i due semigruppi `meet` e `join` anche per altri tipi oltre a `number`.
 
-Ora che abbiamo a disposizione l'astrazione `Ord` possiamo farlo
+Ora che abbiamo a disposizione l'astrazione `Ord` possiamo farlo:
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import { contramap, max, min, Ord, ordNumber } from 'fp-ts/Ord'
+import * as N from 'fp-ts/number'
+import { contramap, max, min, Ord } from 'fp-ts/Ord'
 import { Semigroup } from 'fp-ts/Semigroup'
 
 export const getMeetSemigroup = <A>(O: Ord<A>): Semigroup<A> => ({
@@ -981,7 +999,7 @@ type User = {
 }
 
 const byAge: Ord<User> = pipe(
-  ordNumber,
+  N.Ord,
   contramap((user: User) => user.age)
 )
 
@@ -1020,15 +1038,11 @@ Per qualche ragione potreste finire per avere dei record duplicati per la stessa
 Abbiamo bisogno di una strategia di merging. Ma questo è proprio quello di cui si occupano i semigruppi!
 
 ```ts
+import { SemigroupAny } from 'fp-ts/boolean'
 import { pipe } from 'fp-ts/function'
-import { contramap, ordNumber } from 'fp-ts/Ord'
-import {
-  getJoinSemigroup,
-  getMeetSemigroup,
-  getStructSemigroup,
-  Semigroup,
-  semigroupAny
-} from 'fp-ts/Semigroup'
+import * as N from 'fp-ts/number'
+import { contramap } from 'fp-ts/Ord'
+import * as Se from 'fp-ts/Semigroup'
 
 interface Customer {
   readonly name: string
@@ -1038,28 +1052,28 @@ interface Customer {
   readonly hasMadePurchase: boolean
 }
 
-const getReadonlyArraySemigroup = <A = never>(): Semigroup<
+const getReadonlyArraySemigroup = <A = never>(): Se.Semigroup<
   ReadonlyArray<A>
 > => ({
   concat: (second) => (first) => first.concat(second)
 })
 
-const semigroupCustomer: Semigroup<Customer> = getStructSemigroup({
+const Semigroup: Se.Semigroup<Customer> = Se.getStructSemigroup({
   // keep the longer name
-  name: getJoinSemigroup(
+  name: Se.getJoinSemigroup(
     pipe(
-      ordNumber,
+      N.Ord,
       contramap((s: string) => s.length)
     )
   ),
   // accumulate things
   favouriteThings: getReadonlyArraySemigroup<string>(),
   // keep the least recent date
-  registeredAt: getMeetSemigroup(ordNumber),
+  registeredAt: Se.getMeetSemigroup(N.Ord),
   // keep the most recent date
-  lastUpdatedAt: getJoinSemigroup(ordNumber),
+  lastUpdatedAt: Se.getJoinSemigroup(N.Ord),
   // boolean semigroup under disjunction
-  hasMadePurchase: semigroupAny
+  hasMadePurchase: SemigroupAny
 })
 
 console.log(
@@ -1071,7 +1085,7 @@ console.log(
       lastUpdatedAt: new Date(2018, 2, 18).getTime(),
       hasMadePurchase: false
     },
-    semigroupCustomer.concat({
+    Semigroup.concat({
       name: 'Giulio Canti',
       favouriteThings: ['functional programming'],
       registeredAt: new Date(2018, 1, 22).getTime(),
@@ -1127,30 +1141,30 @@ Molti dei semigruppi che abbiamo visto nelle sezioni precedenti sono in realtà 
 import { Monoid } from 'fp-ts/Monoid'
 
 /** number `Monoid` under addition */
-const monoidSum: Monoid<number> = {
+const MonoidSum: Monoid<number> = {
   concat: (second) => (first) => first + second,
   empty: 0
 }
 
 /** number `Monoid` under multiplication */
-const monoidProduct: Monoid<number> = {
+const MonoidProduct: Monoid<number> = {
   concat: (second) => (first) => first * second,
   empty: 1
 }
 
-const monoidString: Monoid<string> = {
+const MonoidString: Monoid<string> = {
   concat: (second) => (first) => first + second,
   empty: ''
 }
 
 /** boolean monoid under conjunction */
-const monoidAll: Monoid<boolean> = {
+const MonoidAll: Monoid<boolean> = {
   concat: (second) => (first) => first && second,
   empty: true
 }
 
 /** boolean monoid under disjunction */
-const monoidAny: Monoid<boolean> = {
+const MonoidAny: Monoid<boolean> = {
   concat: (second) => (first) => first || second,
   empty: false
 }
@@ -1164,12 +1178,10 @@ Dato un tipo `A`, gli *endomorfismi* (un endomorfismo non è altro che una funzi
 su `A` ammettono una istanza di monoide:
 
 ```ts
-import { flow } from 'fp-ts/function'
+import { flow, identity } from 'fp-ts/function'
 import { Monoid } from 'fp-ts/Monoid'
 
 type Endomorphism<A> = (a: A) => A
-
-const identity = <A>(a: A): A => a
 
 export const getEndomorphismMonoid = <A = never>(): Monoid<
   Endomorphism<A>
@@ -1186,15 +1198,12 @@ Se il tipo `M` ammette una istanza di monoide allora per ogni tipo `A` il tipo `
 ```ts
 import { Monoid } from 'fp-ts/Monoid'
 
-export const getFunctionMonoid = <M>(
-  M: Monoid<M>
-): (<A = never>() => Monoid<(a: A) => M>) => {
-  const empty = () => M.empty
-  return () => ({
-    concat: (second) => (first) => (a) => M.concat(second(a))(first(a)),
-    empty
-  })
-}
+export const getFunctionMonoid = <M>(M: Monoid<M>) => <A = never>(): Monoid<
+  (a: A) => M
+> => ({
+  concat: (second) => (first) => (a) => M.concat(second(a))(first(a)),
+  empty: () => M.empty
+})
 ```
 
 Come corollario otteniamo che i reducer ammettono una istanza di monoide:
@@ -1211,7 +1220,7 @@ Potrebbe venire il dubbio che tutti i semigruppi siano anche dei monoidi. Non è
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-const semigroupSpace: Semigroup<string> = {
+const SemigroupSpace: Semigroup<string> = {
   concat: (second) => (first) => first + ' ' + second
 }
 ```
@@ -1223,27 +1232,32 @@ Come abbiamo già visto per i semigruppi, è possibile costruire una istanza di 
 **Esempio**
 
 ```ts
-import { getStructMonoid, Monoid, monoidSum } from 'fp-ts/Monoid'
+import * as Mo from 'fp-ts/Monoid'
+import * as N from 'fp-ts/number'
 
 type Vector = {
   readonly x: number
   readonly y: number
 }
 
-const monoidPoint: Monoid<Vector> = getStructMonoid({
-  x: monoidSum,
-  y: monoidSum
+const Monoid: Mo.Monoid<Vector> = Mo.getStructMonoid({
+  x: N.MonoidSum,
+  y: N.MonoidSum
 })
 ```
 
 **Nota**. Esiste un combinatore simile a `getStructMonoid` ma che lavora con le tuple: `getTupleMonoid`.
 
 ```ts
-import { getTupleMonoid, Monoid, monoidSum } from 'fp-ts/Monoid'
+import * as Mo from 'fp-ts/Monoid'
+import * as N from 'fp-ts/number'
 
 type Vector = readonly [number, number]
 
-const monoidPoint: Monoid<Vector> = getTupleMonoid<Vector>(monoidSum, monoidSum)
+const Monoid: Mo.Monoid<Vector> = Mo.getTupleMonoid<Vector>(
+  N.MonoidSum,
+  N.MonoidSum
+)
 ```
 
 ## La funzione `fold`
@@ -1253,20 +1267,16 @@ Quando usiamo un monoide invece di un semigruppo, il folding è ancora più semp
 **Quiz**. Perché non è necessario fornire un valore iniziale?
 
 ```ts
-import {
-  fold,
-  monoidAll,
-  monoidAny,
-  monoidProduct,
-  monoidString,
-  monoidSum
-} from 'fp-ts/Monoid'
+import { fold } from 'fp-ts/Monoid'
+import * as S from 'fp-ts/string'
+import * as N from 'fp-ts/number'
+import * as B from 'fp-ts/boolean'
 
-console.log(fold(monoidSum)([1, 2, 3, 4])) // => 10
-console.log(fold(monoidProduct)([1, 2, 3, 4])) // => 24
-console.log(fold(monoidString)(['a', 'b', 'c'])) // => 'abc'
-console.log(fold(monoidAll)([true, false, true])) // => false
-console.log(fold(monoidAny)([true, false, true])) // => true
+console.log(fold(N.MonoidSum)([1, 2, 3, 4])) // => 10
+console.log(fold(N.MonoidProduct)([1, 2, 3, 4])) // => 24
+console.log(fold(S.Monoid)(['a', 'b', 'c'])) // => 'abc'
+console.log(fold(B.MonoidAll)([true, false, true])) // => false
+console.log(fold(B.MonoidAny)([true, false, true])) // => true
 ```
 
 **Demo**
@@ -1905,8 +1915,13 @@ e consumare l'API in questo modo:
 ```ts
 import { flow } from 'fp-ts/function'
 
-readFile('./myfile', flow(
-    fold(err => `Error: ${err.message}`, data => `Data: ${data.trim()}`),
+readFile(
+  './myfile',
+  flow(
+    fold(
+      (err) => `Error: ${err.message}`,
+      (data) => `Data: ${data.trim()}`
+    ),
     console.log
   )
 )
