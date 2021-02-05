@@ -731,7 +731,7 @@ const SemigroupJoin: Se.Semigroup<number> = {
 
 **Quiz**. Perché è importante che `number` sia *totalmente* ordinabile?
 
-Sarebbe utile poter definire questi due semigruppi (`meet` e `join`) anche per altri tipi oltre a `number`.
+Sarebbe utile poter definire questi due semigruppi (`SemigroupMeet` e `SemigroupJoin`) anche per altri tipi oltre a `number`.
 
 È possibile catturare la nozione di totalmente ordinabile per altri tipi? Per farlo dobbiamo prima di tutto catturare la nozione di *uguaglianza*.
 
