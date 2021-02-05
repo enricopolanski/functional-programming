@@ -567,11 +567,15 @@ Data una istanza di semigruppo, è possibile ricavarne un'altra semplicemente sc
 ```ts
 import { pipe } from 'fp-ts/function'
 import * as Se from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/string'
 
 // questo è un combinatore di semigruppi...
 const getDual = <A>(S: Se.Semigroup<A>): Se.Semigroup<A> => ({
   concat: (second) => (first) => pipe(second, S.concat(first))
 })
+
+console.log(pipe('a', S.Semigroup.concat('b'))) // => 'ab'
+console.log(pipe('a', getDual(S.Semigroup).concat('b'))) // => 'ba'
 ```
 
 **Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero `x |> concat(y) !== y |> concat(x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
