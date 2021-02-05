@@ -519,14 +519,15 @@ Come altri esempi di applicazione di `fold`, possiamo reimplementare alcune popo
 
 ```ts
 import * as B from 'fp-ts/boolean'
-import { Predicate } from 'fp-ts/function'
 import * as Se from 'fp-ts/Semigroup'
 
-const every = <A>(p: Predicate<A>) => (as: ReadonlyArray<A>): boolean =>
-  Se.fold(B.SemigroupAll)(true)(as.map(p))
+const every = <A>(predicate: (a: A) => boolean) => (
+  as: ReadonlyArray<A>
+): boolean => Se.fold(B.SemigroupAll)(true)(as.map(predicate))
 
-const some = <A>(p: Predicate<A>) => (as: ReadonlyArray<A>): boolean =>
-  Se.fold(B.SemigroupAny)(false)(as.map(p))
+const some = <A>(predicate: (a: A) => boolean) => (
+  as: ReadonlyArray<A>
+): boolean => Se.fold(B.SemigroupAny)(false)(as.map(predicate))
 
 const SemigroupSpread: Se.Semigroup<object> = {
   concat: (second) => (first) => ({ ...first, ...second })
