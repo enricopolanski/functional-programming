@@ -502,13 +502,13 @@ La funzione `fold` prende in input una istanza di semigruppo, un valore iniziale
 import * as Se from 'fp-ts/Semigroup'
 import * as N from 'fp-ts/number'
 
-const sum = Se.fold(N.SemigroupSum)(0)
+const sum = Se.fold(N.SemigroupSum)(2)
 
-sum([1, 2, 3, 4]) // 10
+console.log(sum([1, 2, 3, 4])) // => 12
 
-const product = Se.fold(N.SemigroupProduct)(1)
+const product = Se.fold(N.SemigroupProduct)(3)
 
-product([1, 2, 3, 4]) // 24
+console.log(product([1, 2, 3, 4])) // => 72
 ```
 
 **Quiz**. Perché ho bisogno di un valore iniziale?
