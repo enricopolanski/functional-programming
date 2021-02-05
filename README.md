@@ -83,6 +83,11 @@ const program = pipe(
 )
 ```
 
+**Demo**
+
+[`00_pipe_and_flow.ts`](src/00_pipe_and_flow.ts)
+
+
 Ciò che accade è che `input` viene passato come input alla prima funzione `f1`, la quale restituisce un valore in output che viene passato come input alla seconda funzione `f2`, la quale restituisce un valore in output che viene passato come input alla terza funzione `f3`, e così di seguito.
 
 Vedremo come la programmazione funzionale ci fornisce i mezzi per strutturare il nostro codice in questo stile.
