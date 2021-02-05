@@ -61,16 +61,42 @@
 
 # Che cos'è la programmazione funzionale
 
-> Though programming was born in mathematics, it has since largely been divorced from it.
-> The idea is that there's some higher level than the code in which you need to be able to think precisely,
-> and that mathematics actually allows you to think precisely about it - Leslie Lamport
+> Functional Programming is programming with pure functions. Mathematical functions.
 
-L'obbiettivo della programmazione funzionale è dominare la complessità di un sistema usando **modelli formali**, ponendo particolare attenzione alle **proprietà del codice** e alla facilità di **refactoring**.
+Una rapida ricerca su internet vi può portare alla seguente definizione:
+
+> Una funzione pura è una procedura che dato lo stesso input restituisce sempre lo stesso output e non ha alcun side effect osservabile.
+
+Il termine "side effect" non ha ancora un significato preciso (vedremo in seguito come darne una definizione formale), ciò che conta per ora è averne una qualche intuizione, pensate per esempio ad aprire un file per leggerne il contenuto, oppure scrivere su un database.
+
+Ma com'è strutturato un programma che usa solo funzioni pure?
+
+Un programma in stile funzionale tende ad essere scritto come una **pipeline**:
+
+```ts
+const program = pipe(
+  input,
+  f1, // funzione pura
+  f2, // funzione pura
+  f3, // funzione pura
+  ...
+)
+```
+
+Ciò che accade è che `input` viene passato come input alla prima funzione `f1`, la quale restituisce un valore in output che viene passato come input alla seconda funzione `f2`, la quale restituisce un valore in output che viene passato come input alla terza funzione `f3`, e così di seguito.
+
+Vedremo come la programmazione funzionale ci fornisce i mezzi per strutturare il nostro codice in questo stile.
+
+Oltre a capire cosa sia la programmazione funzionale, è altrettanto fondamentale capire quale sia il suo scopo.
+
+L'obbiettivo della programmazione funzionale è **dominare la complessità di un sistema** usando modelli formali e ponendo particolare attenzione alle **proprietà del codice** e alla facilità di refactoring.
 
 > Functional programming will help teach people the mathematics behind program construction:
 > - how to write composable code
-> - how to reason about effects
+> - how to reason about side effects
 > - how to write consistent, general, less ad-hoc APIs
+
+Che vuol dire porre attenzione alle proprietà del codice? Vediamo un esempio
 
 **Esempio**
 
@@ -130,7 +156,7 @@ Incominciamo dalla trasparenza referenziale.
 
 ## Trasparenza referenziale
 
-**Definizione**. An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
+> **Definition**. An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
 
 **Esempio**
 
@@ -173,27 +199,28 @@ Perché è così importante la trasparenza referenziale? Perché permette di:
 **Quiz**. Supponiamo di avere il seguente programma:
 
 ```ts
+// In TypeScript `declare` permette di introdurre una definizione senza specificarne l'implementazione.
 declare function question(message: string): Promise<string>
 
 const x = await question('What is your name?')
 const y = await question('What is your name?')
 ```
 
-**Nota**. In TypeScript `declare` permette di introdurre una definizione senza specificarne l'implementazione.
-
-Posso rifattorizzarlo in questo modo? Il comportamento è cambiato?
+Posso rifattorizzarlo in questo modo? Il comportamento del programma è lo stesso o è cambiato?
 
 ```ts
 const x = await question('What is your name?')
 const y = x
 ```
 
+Come potete vedere il refactoring di un programma che contiene espressioni che non godono della proprietà di trasparenza referenziale va affontato con molta cautela. Nella programmazione funzionale, ove ogni espressione gode della proprietà di trasparenza referenziale, il carico cognitivo in fase di refactoring è ridotto.
+
 Parliamo ora del secondo pilastro, la composizione.
 
 ## Composizione
 
 Il pattern fondamentale della programmazione funzionale è la _componibilità_, ovvero la costruzione di piccole unità
-che fanno qualcosa di specifico in grado di essere combinate al fine di ottenere entità più grandi e complesse.
+che fanno qualcosa di specifico in grado di essere combinate tra loro al fine di ottenere entità più grandi e complesse.
 
 Come esempi, e in un percorso dal "più piccolo al più grande", possiamo pensare:
 
@@ -211,7 +238,7 @@ Il termine **combinatore** si riferisce al [combinator pattern](https://wiki.has
 
 > A style of organizing libraries centered around the idea of combining things. Usually there is some type `T`, some "primitive" values of type `T`, and some "combinators" which can combine values of type `T` in various ways to build up more complex values of type `T`
 
-Il concetto di combinatore è piuttosto sfumato e si può presentare in diverse forme, la sua forma più semplice è questa:
+Il concetto di combinatore è piuttosto sfumato e si può presentare in diverse forme, ma la sua forma più semplice è questa:
 
 ```ts
 combinator: Thing -> Thing
@@ -219,59 +246,48 @@ combinator: Thing -> Thing
 
 Lo scopo di un combinatore è quello di creare nuove "cose" da "cose" definite precedentemente.
 
-Dato che il risultato può essere nuovamente passato come input, si ottiene una esplosione combinatoria di possibilità, il che rende questo pattern molto potente.
+Notate che il risultato del combinatore può essere nuovamente passato come input, si ottiene perciò una esplosione combinatoria di possibilità, il che rende questo pattern molto potente.
 
 Perciò il design generale che potete spesso trovare in un modulo funzionale è questo:
 
-- un insieme di semplici "primitive"
+- un modello per `T`
+- un insieme di semplici "primitive" di tipo `T`
 - un insieme di combinatori per combinare le primitive in strutture più complesse
 
-Proviamo ad implementare un modulo di questo tipo.
+Proviamo ad implementare un modulo di questo tipo:
 
 **Demo**
-
-> Sometimes, the elegant implementation is just a function. Not a method. Not a class. Not a framework. Just a function. - John Carmack
 
 [`01_retry.ts`](src/01_retry.ts)
 
 Come potete vedere dalla demo precedente, con sole tre primitive e due combinatori siamo stati in grado di esprimere una policy piuttosto complessa.
-Pensate a come, aggiungendo anche una sola nuova primitiva (o un nuovo combinatore) a quelli già definiti, le possibilità espressive aumentano velocemente.
+
+Pensate a come, aggiungendo anche una sola nuova primitiva (o un nuovo combinatore) a quelli già definiti, le possibilità espressive aumentano esponenzialmente.
 
 Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat` dato che è possibile collegarlo ad una importante astrazione della programmazione funzionale: i semigruppi.
 
 # Modellare la composizione con i semigruppi
 
-Un semigruppo è un'algebra e le algebre possono essere considerate tra i migliori strumenti di design che offre la programmazione funzionale.
+Un semigruppo è una ricetta per combinare due (o più) valori.
 
-Ma cosa si intende con il termine **algebra**?
+Tecnicamente un semigruppo è un'algebra, cosa si intende con il termine "algebra"?
 
-In generale si intende una qualunque combinazione di:
+In generale si intende una particolare combinazione di:
 
 - insiemi
-- operazioni
-- leggi
+- operazioni sugli insiemi precedenti
+- leggi a cui devono obbedire le operazioni precedenti
 
-Le algebre sono il modo in cui i matematici tendono a catturare un concetto nel modo più diretto,
-ovvero eliminando tutto ciò che è superfluo.
+Le algebre sono il modo in cui i matematici catturano un concetto nel modo più diretto, ovvero eliminando tutto ciò che è superfluo.
 
-Le interfacce in programmazione possono essere considerate come l'equivalente delle algebre: quando si manipola una struttura algebrica
-sono permesse solo le operazioni definite dall'algebra in oggetto e **in conformità alle sue leggi**.
+L'equivalente delle algebre in programmazione sono le **interfacce**: quando si manipola un'algebra
+sono permesse solo le operazioni definite dall'algebra stessa e in conformità alle sue leggi.
 
-Vediamo un primo semplice esempio di algebra (senza leggi), il magma.
+Prima di affrontare i semigruppi vediamo un primo semplice esempio di algebra che li precede: il magma.
 
 ## Definizione di magma
 
-**Definizione**. Sia `A` un insieme non vuoto e `*` un'operazione binaria `*: A × A ⟶ A`,
-allora la coppia `(A, *)` si chiama _magma_.
-
-> Because the binary operation of a magma takes two values of a given type and returns a new value of the same type (*closure property*), this operation can be chained indefinitely.
-
-Il fatto che l'operazione sia chiusa è una proprietà non banale, per esempio sui numeri naturali (ovvero i numeri interi positivi) la somma è una operazione chiusa mentre la sottrazione non lo è.
-
-Vediamo come si può codificare un magma in TypeScript proprio usando una `interface`:
-
-- l'insieme è codificato con un type parameter (`A`)
-- l'operazione `*` è qui chiamata `concat`
+Possiamo usare una `interface` di TypeScript per modellare un magma:
 
 ```ts
 interface Magma<A> {
@@ -279,7 +295,11 @@ interface Magma<A> {
 }
 ```
 
-Per avere una *istanza* concreta per un determinato tipo occorre perciò definire un oggetto conforme a questa interfaccia (interfaccia alla quale a volte ci si riferisce con la dicitura *type class*).
+Abbiamo quindi un'operazione binaria `concat` che prende due valori di un certo tipo `A` e restituisce un nuovo valore dello stesso tipo (proprietà di chiusura), perciò questa operazione può essere ripetuta a piacimento.
+
+**Quiz**. Il fatto che una operazione sia chiusa non è una proprietà banale, potete fare un esempio di operazione sui numeri naturali (ovvero i numeri interi positivi) per cui la proprietà di chiusura non vale?
+
+Per avere una istanza concreta di magma per un determinato tipo occorre perciò definire un oggetto conforme a questa interfaccia.
 
 **Esempio**
 
@@ -303,14 +323,30 @@ la scrittura sopra è equivalente a:
 */
 ```
 
-**Quiz**. Consideriamo la seguente funzione:
+**Quiz**. Consideriamo la seguente funzione che trasforma una lista in un dizionario:
 
 ```ts
 import { Magma } from 'fp-ts/Magma'
 
-declare const fromArray: <A>(
+declare const fromReadonlyArray: <A>(
   M: Magma<A>
 ) => (as: ReadonlyArray<readonly [string, A]>) => Record<string, A>
+
+const MagmaSum: Magma<number> = {
+  concat: (second) => (first) => first + second
+}
+
+// esempi di utilizzo
+
+fromReadonlyArray(MagmaSum)([
+  ['a', 1],
+  ['b', 2]
+]) // => { a: 1, b: 2 }
+fromReadonlyArray(MagmaSum)([
+  ['a', 1],
+  ['b', 2],
+  ['a', 3]
+]) // => { a: 4, b: 2 }
 ```
 
 perché c'è bisogno di una istanza di `Magma` come parametro?
@@ -319,15 +355,15 @@ Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo o
 
 ## Definizione di semigruppo
 
-**Definizione**. Sia `(A, *)` un magma, se `*` è **associativa** allora è un _semigruppo_.
+Se l'operazione binaria di un `Magma` è anche **associativa** allora parliamo di semigruppo.
 
-Il termine "associativa" vuol dire che l'equazione:
+Il termine "associativa" vuol dire che vale:
 
 ```ts
 (x * y) * z = x * (y * z)
 ```
 
-vale per ogni `x`, `y`, `z` in `A`.
+per ogni `x`, `y`, `z`.
 
 L'associatività ci dice che non dobbiamo preoccuparci delle parentesi nelle espressioni e che, volendo, possiamo scrivere semplicemente `x * y * z` (non c'è ambiguità).
 
@@ -339,17 +375,15 @@ La concatenazione di stringhe gode della proprietà associativa.
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
 ```
 
-Una caratterizzazione della proprietà associativa è:
+I semigruppi catturano l'essenza delle operazioni parallelizzabili.
 
-> Semigroups capture the essence of parallelizable operations
-
-Se sappiamo che una data operazione gode della proprietà associativa possiamo suddividere una computazione in due sotto computazioni, ognuna delle quali può essere ulteriormente suddivisa
+Infatti se sappiamo che una data operazione gode della proprietà associativa possiamo suddividere una computazione in due sotto computazioni, ognuna delle quali può essere ulteriormente suddivisa
 
 ```ts
 a * b * c * d * e * f * g * h = ((a * b) * (c * d)) * ((e * f) * (g * h))
 ```
 
-Le sotto computazioni possono essere distribuite ed eseguite parallelamente.
+Le sotto computazioni possono essere distribuite ed eseguite parallelamente per poi racconglierne i risultati parziali e comporre il risultato finale.
 
 Ci sono molti esempi familiari di semigruppi:
 
@@ -359,19 +393,23 @@ Ci sono molti esempi familiari di semigruppi:
 - `(boolean, &&)` dove `&&` è l'usuale congiunzione
 - `(boolean, ||)` dove `||` è l'usuale disgiunzione
 
-Come già successo per `Magma`, l'algebra semigruppo può essere implementata con una `interface` di TypeScript:
+Come già successo per `Magma`, i semigruppi possono essere modellati con una `interface` di TypeScript:
 
 ```ts
-import { Magma } from 'fp-ts/Magma'
-
-interface Semigroup<A> extends Magma<A> {}
+interface Semigroup<A> {
+  readonly concat: (second: A) => (first: A) => A
+}
 ```
 
-Deve valere la seguente legge:
+Come vedete la definizione è identica a quella di `Magma` ma c'è una differenza importante, deve valere la seguente legge (che purtroppo non può essere codificata nel type system di TypeScript):
 
-- **Associativity**: `(x |> concat(y)) |> concat(z) = x |> concat(y |> concat(z))`, per ogni `x`, `y`, `z` in `A`
+**Associativity**
 
-**Nota**. Purtroppo questa legge non può essere codificata nel type system di TypeScript.
+```ts
+(x |> concat(y)) |> concat(z) = x |> concat(y |> concat(z))
+```
+
+per ogni `x`, `y`, `z` in `A`
 
 **Esempio**
 
@@ -412,7 +450,7 @@ const SemigroupSum: Se.Semigroup<number> = {
 
 **Quiz**. Il combinatore `concat` definito nella demo [`01_retry.ts`](src/01_retry.ts) può essere utilizzato per definire una istanza di `Semigroup` per il tipo `RetryPolicy`?
 
-Si noti che, fissato un tipo, si possono definire **molteplici istanze** della stessa type class `Semigroup`.
+Si noti che, fissato un tipo, si possono definire **molteplici istanze** dell'interfaccia `Semigroup`.
 
 Per esempio, considerando ancora il tipo `number`, possiamo definire il semigruppo `(number, *)` dove `*` è l'usuale moltiplicazione di numeri:
 
@@ -432,6 +470,20 @@ import * as Se from 'fp-ts/Semigroup'
 
 const SemigroupString: Se.Semigroup<string> = {
   concat: (second) => (first) => first + second
+}
+```
+
+E ancora altri due esempi, con `boolean`
+
+```ts
+import * as Se from 'fp-ts/Semigroup'
+
+const SemigroupAll: Se.Semigroup<boolean> = {
+  concat: (second) => (first) => first && second
+}
+
+const SemigroupAny: Se.Semigroup<boolean> = {
+  concat: (second) => (first) => first || second
 }
 ```
 
@@ -458,7 +510,7 @@ product([1, 2, 3, 4]) // 24
 
 **Esempio**
 
-Ora, come esempi di applicazione di `fold`, possiamo reimplementare alcune popolari funzioni della standard library di JavaScript:
+Come altri esempi di applicazione di `fold`, possiamo reimplementare alcune popolari funzioni della standard library di JavaScript:
 
 ```ts
 import * as B from 'fp-ts/boolean'
@@ -486,12 +538,10 @@ const assign: (as: ReadonlyArray<object>) => object = Se.fold(SemigroupSpread)(
 import * as Se from 'fp-ts/Semigroup'
 
 /** Always return the first argument */
-const getFirstSemigroup = <A = never>(): Se.Semigroup<A> => ({
+const getFirstSemigroup = <A>(): Se.Semigroup<A> => ({
   concat: (_second) => (first) => first
 })
 ```
-
-**Quiz** (solo per gli interessati a TypeScript): Potete spiegare la presenza del default `= never` per il type parameter `A` nel precedente quiz?
 
 **Quiz**. La seguente istanza è legale?
 
@@ -499,7 +549,7 @@ const getFirstSemigroup = <A = never>(): Se.Semigroup<A> => ({
 import * as Se from 'fp-ts/Semigroup'
 
 /** Always return the second argument */
-const getLastSemigroup = <A = never>(): Se.Semigroup<A> => ({
+const getLastSemigroup = <A>(): Se.Semigroup<A> => ({
   concat: (second) => (_first) => second
 })
 ```
@@ -518,7 +568,7 @@ const getDual = <A>(S: Se.Semigroup<A>): Se.Semigroup<A> => ({
 })
 ```
 
-**Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero `x |> concat(y) !== y |> concat(x)`, potete portare un esempio in cui `concat` è commutativa?
+**Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero `x |> concat(y) !== y |> concat(x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
 
 ## Non riesco a trovare una istanza!
 
@@ -533,12 +583,12 @@ type ReadonlyNonEmptyArray<A> = ReadonlyArray<A> & {
   readonly 0: A
 }
 
-const getSemigroup = <A = never>(): Se.Semigroup<ReadonlyNonEmptyArray<A>> => ({
+const getSemigroup = <A>(): Se.Semigroup<ReadonlyNonEmptyArray<A>> => ({
   concat: (second) => (first) => [first[0], ...first.slice(1), ...second]
 })
 ```
 
-e poi mappare gli elementi di `A` ai "singoletti" di `ReadonlyNonEmptyArray<A>`, ovvero un `ReadonlyNonEmptyArray` con un solo elemento:
+e poi mappare gli elementi di `A` ai "singoletti" di `ReadonlyNonEmptyArray<A>`, ovvero un array con un solo elemento:
 
 ```ts
 const of = <A>(a: A): ReadonlyNonEmptyArray<A> => [a]
@@ -1060,7 +1110,7 @@ interface Customer {
   readonly hasMadePurchase: boolean
 }
 
-const getReadonlyArraySemigroup = <A = never>(): Se.Semigroup<
+const getReadonlyArraySemigroup = <A>(): Se.Semigroup<
   ReadonlyArray<A>
 > => ({
   concat: (second) => (first) => first.concat(second)
@@ -1191,7 +1241,7 @@ import * as Mo from 'fp-ts/Monoid'
 
 type Endomorphism<A> = (a: A) => A
 
-export const getEndomorphismMonoid = <A = never>(): Mo.Monoid<
+export const getEndomorphismMonoid = <A>(): Mo.Monoid<
   Endomorphism<A>
 > => ({
   concat: (second) => (first) => flow(first, second),
@@ -1206,9 +1256,9 @@ Se il tipo `M` ammette una istanza di monoide allora per ogni tipo `A` il tipo `
 ```ts
 import * as Mo from 'fp-ts/Monoid'
 
-export const getFunctionMonoid = <M>(M: Mo.Monoid<M>) => <
-  A = never
->(): Mo.Monoid<(a: A) => M> => ({
+export const getFunctionMonoid = <M>(M: Mo.Monoid<M>) => <A>(): Mo.Monoid<
+  (a: A) => M
+> => ({
   concat: (second) => (first) => (a) => M.concat(second(a))(first(a)),
   empty: () => M.empty
 })
