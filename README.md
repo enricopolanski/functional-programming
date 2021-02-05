@@ -663,7 +663,7 @@ console.log(pipe(v1, SemigroupVector.concat(v2))) // => { x: 2, y: 3 }
 
 ![semigroupVector](images/semigroupVector.png)
 
-Troppo boilerplate? La buona notizia è che **la teoria matematica** che sta dietro al concetto di semigruppo ci dice che possiamo costruire una istanza di semigruppo per una struct come `Point` se siamo in grado di fornire una istanza di semigruppo per ogni suo campo.
+Troppo boilerplate? La buona notizia è che **la teoria matematica** che sta dietro al concetto di semigruppo ci dice che possiamo costruire una istanza di semigruppo per una struct come `Vector` se siamo in grado di fornire una istanza di semigruppo per ogni suo campo.
 
 Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `getStructSemigroup`:
 
