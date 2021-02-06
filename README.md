@@ -404,7 +404,7 @@ const MagmaSub: Magma<number> = {
 const lhs = pipe(1, MagmaSub.concat(2), MagmaSub.concat(3))
 const rhs = pipe(1, MagmaSub.concat(pipe(2, MagmaSub.concat(3))))
 
-console.log(lhs) // => -1
+console.log(lhs) // => -4
 console.log(rhs) // => 2
 ```
 
