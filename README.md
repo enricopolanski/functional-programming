@@ -279,14 +279,17 @@ Tecnicamente un semigruppo è un'algebra, cosa si intende con il termine "algebr
 
 In generale si intende una particolare combinazione di:
 
-- insiemi
+- uno o più insiemi
 - operazioni sugli insiemi precedenti
 - leggi a cui devono obbedire le operazioni precedenti
 
 Le algebre sono il modo in cui i matematici catturano un concetto nel modo più diretto, ovvero eliminando tutto ciò che è superfluo.
 
-L'equivalente delle algebre in programmazione sono le **interfacce**: quando si manipola un'algebra
-sono permesse solo le operazioni definite dall'algebra stessa e in conformità alle sue leggi.
+> Quando si manipola un'algebra sono permesse solo le operazioni definite dall'algebra stessa e in conformità alle sue leggi
+
+L'equivalente delle algebre in programmazione sono le **interfacce**:
+
+> Quando si manipola una interfaccia sono permesse solo le operazioni definite dall'interfaccia stessa e in conformità alle sue leggi.
 
 Prima di affrontare i semigruppi vediamo un primo semplice esempio di algebra che li precede: il magma.
 
