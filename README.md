@@ -418,14 +418,6 @@ a * b * c * d * e * f * g * h = ((a * b) * (c * d)) * ((e * f) * (g * h))
 
 Le sotto computazioni possono essere distribuite ed eseguite parallelamente per poi racconglierne i risultati parziali e comporre il risultato finale.
 
-Ci sono molti esempi familiari di semigruppi:
-
-- `(number, +)` dove `+` è l'usuale addizione di numeri
-- `(number, *)` dove `*` è l'usuale moltiplicazione di numeri
-- `(string, +)` dove `+` è l'usuale concatenazione di stringhe
-- `(boolean, &&)` dove `&&` è l'usuale congiunzione
-- `(boolean, ||)` dove `||` è l'usuale disgiunzione
-
 Come già successo per `Magma`, i semigruppi possono essere modellati con una `interface` di TypeScript:
 
 ```ts
