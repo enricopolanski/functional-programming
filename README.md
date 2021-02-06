@@ -432,7 +432,7 @@ Infatti se sappiamo che una data operazione gode della proprietà associativa po
 a * b * c * d * e * f * g * h = ((a * b) * (c * d)) * ((e * f) * (g * h))
 ```
 
-Le sotto computazioni possono essere distribuite ed eseguite parallelamente per poi racconglierne i risultati parziali e comporre il risultato finale.
+Le sotto computazioni possono essere distribuite ed eseguite parallelamente per poi raccoglierne i risultati parziali e comporre il risultato finale.
 
 Come già successo per `Magma`, i semigruppi possono essere modellati con una `interface` di TypeScript:
 
