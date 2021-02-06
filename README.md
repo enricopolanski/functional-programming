@@ -616,7 +616,7 @@ console.log(pipe('a', getDual(S.Semigroup).concat('b'))) // => 'ba'
 
 **Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero non è detto che valga sempre `x |> concat(y) = y |> concat(x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
 
-## Non riesco a trovare una istanza!
+## <font style="color: gray;">Non riesco a trovare una istanza!</font>
 
 Cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operazione associativa su `A`?
 
@@ -652,11 +652,14 @@ import * as N from 'fp-ts/number'
 import { ReadonlyNonEmptyArray } from 'fp-ts/ReadonlyNonEmptyArray'
 import * as Se from 'fp-ts/Semigroup'
 
+// eseguo subito la concatenazione di 1, 2, 3
 console.log(pipe(1, N.SemigroupSum.concat(2), N.SemigroupSum.concat(3))) // => 6
 
+// impacchetto 1, 2, 3 in un ReadonlyNonEmptyArray...
 const as: ReadonlyNonEmptyArray<number> = [1, 2, 3]
 
-console.log(Se.fold(N.SemigroupSum)(as[0])(as.slice(1))) // => 6
+// ...ed eseguo la concatenazione solo in un secondo momento
+console.log(Se.fold(N.SemigroupSum)(0)(as)) // => 6
 ```
 
 Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di usare ugualmente il suo semigruppo libero perché:
