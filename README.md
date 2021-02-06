@@ -598,7 +598,7 @@ console.log(pipe('a', S.Semigroup.concat('b'))) // => 'ab'
 console.log(pipe('a', getDual(S.Semigroup).concat('b'))) // => 'ba'
 ```
 
-**Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero `x |> concat(y) !== y |> concat(x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
+**Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero non è detto che valga sempre `x |> concat(y) = y |> concat(x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
 
 ## Non riesco a trovare una istanza!
 
