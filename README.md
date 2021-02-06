@@ -340,11 +340,11 @@ declare const fromReadonlyArray: <A>(
   M: Magma<A>
 ) => (as: ReadonlyArray<readonly [string, A]>) => Record<string, A>
 
+// esempio di utilizzo
+
 const MagmaSum: Magma<number> = {
   concat: (second) => (first) => first + second
 }
-
-// esempi di utilizzo
 
 fromReadonlyArray(MagmaSum)([
   ['a', 1],
