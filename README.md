@@ -737,7 +737,7 @@ const v2: Vector = [1, 2]
 console.log(pipe(v1, SemigroupVector.concat(v2))) // => [2, 3]
 ```
 
-**Quiz**. E' vero che dato un semigruppo per `A` e scelto un qualsiasi elemento di `A`, se lo infilo tra i due parametri di `concat`, ottengo ancora un semigruppo?
+**Quiz**. E' vero che dato un semigruppo per `A` e scelto un qualsiasi elemento `middle` di `A`, se lo infilo tra i due parametri di `concat`, ottengo ancora un semigruppo?
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -750,7 +750,7 @@ export const intercalate = <A>(middle: A) => (
   concat: (second) => (first) => pipe(first, S.concat(middle), S.concat(second))
 })
 
-const Semigroup = intercalate(' + ')(S.Semigroup)
+const Semigroup = pipe(S.Semigroup, intercalate(' + '))
 
 console.log(pipe('a', Semigroup.concat('b'), Semigroup.concat('c'))) // => 'a + b + c'
 ```
