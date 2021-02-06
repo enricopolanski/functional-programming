@@ -498,7 +498,7 @@ const SemigroupString: Se.Semigroup<string> = {
 }
 ```
 
-E ancora altri due esempi, con `boolean`
+E ancora altri due esempi, con `boolean`:
 
 ```ts
 import * as Se from 'fp-ts/Semigroup'
@@ -558,7 +558,7 @@ const assign: (as: ReadonlyArray<object>) => object = Se.fold(SemigroupSpread)(
 )
 ```
 
-**Quiz**. La seguente istanza è legale?
+**Quiz**. La seguente istanza è "legale" (ovvero rispetta le leggi dei semigruppi)?
 
 ```ts
 import * as Se from 'fp-ts/Semigroup'
