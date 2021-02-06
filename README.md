@@ -210,6 +210,8 @@ append(xs)
 const ys = xs
 ```
 
+Nell'ultima riga non posso sostituire l'espressione `xs` con il suo valore iniziale `[1, 2, 3]` dato che il suo valore attuale è stato cambiato dalla chiamata alla funzione `append`.
+
 Perché è così importante la trasparenza referenziale? Perché permette di:
 
 - **ragionare localmente** sul codice (ovvero non ho bisogno di conoscere un contesto più ampio per capire un frammento di codice)
