@@ -915,7 +915,7 @@ console.log(
 ) // => false (nonostante le proprietà `name` siano uguali)
 ```
 
-Aver catturato il concetto di uguaglianza è fondamentale, sopratutto in un linguaggio come JavaScript in cui alcune strutture dati possiedono delle API poco usabili rispetto ad un concetto di uguaglianza custom. E' il caso di `Set` per esempio:
+Aver catturato il concetto di uguaglianza è fondamentale, soprattutto in un linguaggio come JavaScript in cui alcune strutture dati possiedono delle API poco usabili rispetto ad un concetto di uguaglianza custom. E' il caso di `Set` per esempio:
 
 ```ts
 type User = {
