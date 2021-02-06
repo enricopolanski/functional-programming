@@ -824,7 +824,7 @@ import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 
 const elem = <A>(E: E.Eq<A>) => (a: A) => (as: ReadonlyArray<A>): boolean =>
-  as.some((item) => E.equals(a)(item))
+  as.some(E.equals(a))
 
 console.log(pipe([1, 2, 3], elem(N.Eq)(2))) // => true
 console.log(pipe([1, 2, 3], elem(N.Eq)(4))) // => false
