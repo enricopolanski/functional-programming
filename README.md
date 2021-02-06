@@ -931,15 +931,15 @@ console.log(users)
 // => Set { { id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio' } }
 ```
 
-Dato che JavaScript utilizza `===` come concetto di uguaglianza `users` ora contiene **due copie identiche** di `user`, un risultato certo non voluto. Conviene perciò definire una nuova API che sfrutti l'astrazione `Eq`.
+Dato che `Set` utilizza `===` come concetto di uguaglianza fisso, `users` ora contiene **due copie identiche** di `user`, un risultato certo non voluto. Conviene perciò definire una nuova API che sfrutti l'astrazione `Eq`.
 
 **Quiz**. Che firma potrebbe avere questa nuova API?
 
 # Modellare l'ordinamento con `Ord`
 
-Nel capitolo precedente riguardante `Eq` avevamo a che fare con il concetto di **uguaglianza**. In questo capitolo avremo a che fare con il concetto di **ordinamento**.
+Ora che abbiamo modellato il concetto di uguaglianza, vediamo in questo capitolo come modellare il concetto di **ordinamento**.
 
-Il concetto di **relazione d'ordine totale** può essere implementato in TypeScript con la seguente `interface`:
+Una relazione d'ordine totale può essere modellata in TypeScript con i seguenti tipi:
 
 ```ts
 import * as E from 'fp-ts/Eq'
@@ -988,7 +988,7 @@ In più `compare` deve essere compatibile con l'operazione `equals` di `Eq`:
 equals: (second) => (first) => pipe(first, compare(second)) === 0
 ```
 
-Perciò il modulo `fp-ts/Ord` esporta un comodo helper `fromCompare` che permette di definire una istanza di `Ord` semplicemente specificando la funzione `compare`
+Perciò il modulo `fp-ts/Ord` esporta un comodo helper `fromCompare` che permette di definire una istanza di `Ord` semplicemente specificando la funzione `compare`:
 
 ```ts
 import * as O from 'fp-ts/Ord'
@@ -1000,7 +1000,7 @@ const OrdNumber: O.Ord<number> = O.fromCompare((second) => (first) =>
 
 **Quiz**. E' possibile definire un ordinamento per il gioco Sasso-Carta-Forbice compatibile con le mosse vincenti (ovvero `move1 <= move2` se `move2` batte `move1`)?
 
-Come primo esempio di utilizzo definiamo una funzione `min` che restituisce il minimo fra due valori
+Come primo esempio di utilizzo definiamo una funzione `min` che restituisce il minimo fra due valori:
 
 ```ts
 import { pipe } from 'fp-ts/function'
