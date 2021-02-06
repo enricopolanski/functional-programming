@@ -315,19 +315,19 @@ Per avere una istanza concreta di magma per un determinato tipo occorre perciò 
 import { Magma } from 'fp-ts/Magma'
 
 // una istanza di Magma per il tipo `number`
-const MagmaSum: Magma<number> = {
-  concat: (second) => (first) => first + second
+const MagmaSub: Magma<number> = {
+  concat: (second) => (first) => first - second
 }
 
 import { pipe } from 'fp-ts/function'
 
-console.log(pipe(1, MagmaSum.concat(2))) // => 3
+console.log(pipe(1, MagmaSub.concat(2))) // => -1
 
 /*
 Per i linguaggi che supportano l'operatore `|>` ("pipe")
 la scrittura sopra è equivalente a:
 
-1 |> MagmaSum.concat(2) // => 3
+1 |> MagmaSub.concat(2) // => -1
 */
 ```
 
@@ -342,19 +342,23 @@ declare const fromReadonlyArray: <A>(
 
 // esempio di utilizzo
 
-const MagmaSum: Magma<number> = {
-  concat: (second) => (first) => first + second
+const MagmaSub: Magma<number> = {
+  concat: (second) => (first) => first - second
 }
 
-fromReadonlyArray(MagmaSum)([
-  ['a', 1],
-  ['b', 2]
-]) // => { a: 1, b: 2 }
-fromReadonlyArray(MagmaSum)([
-  ['a', 1],
-  ['b', 2],
-  ['a', 3]
-]) // => { a: 4, b: 2 }
+console.log(
+  fromReadonlyArray(MagmaSub)([
+    ['a', 1],
+    ['b', 2]
+  ])
+) // => { a: 1, b: 2 }
+console.log(
+  fromReadonlyArray(MagmaSub)([
+    ['a', 1],
+    ['b', 2],
+    ['a', 3]
+  ])
+) // => { a: -2, b: 2 }
 ```
 
 perché c'è bisogno di una istanza di `Magma` come parametro?
@@ -381,6 +385,27 @@ La concatenazione di stringhe gode della proprietà associativa.
 
 ```ts
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
+```
+
+Ogni semigruppo è un magma, ma non ogni magma è un semigruppo.
+
+**Esempio**
+
+Il magma `MagmaSub` che abbiamo visto nella sezione precedente non è un semigruppo poiché la sua operazione `concat` non è associativa:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { Magma } from 'fp-ts/Magma'
+
+const MagmaSub: Magma<number> = {
+  concat: (second) => (first) => first - second
+}
+
+const lhs = pipe(1, MagmaSub.concat(2), MagmaSub.concat(3))
+const rhs = pipe(1, MagmaSub.concat(pipe(2, MagmaSub.concat(3))))
+
+console.log(lhs) // => -1
+console.log(rhs) // => 2
 ```
 
 I semigruppi catturano l'essenza delle operazioni parallelizzabili.
