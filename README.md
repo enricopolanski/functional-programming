@@ -163,7 +163,7 @@ Incominciamo dalla trasparenza referenziale.
 
 > **Definition**. An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
 
-**Esempio**
+**Esempio** (la trasparenza referenziale implica l'uso di funzioni pure)
 
 ```ts
 const double = (n: number): number => n * 2
@@ -181,9 +181,9 @@ const x = 4
 const y = x
 ```
 
-Non tutte le espressioni godono della proprietà di trasparenza referenziale, vediamo un esempio
+Non tutte le espressioni godono della proprietà di trasparenza referenziale, vediamo qualche esempio
 
-**Esempio**
+**Esempio** (la trasparenza referenziale implica non lanciare eccezioni)
 
 ```ts
 const inverse = (n: number): number => {
@@ -195,6 +195,20 @@ const x = inverse(0) + 1
 ```
 
 Non posso sostituire l'espressione `inverse(0)` con il suo valore, perciò l'espressione non gode della proprietà di trasparenza referenziale.
+
+**Esempio** (la trasparenza referenziale implica l'utilizzo di strutture dati immutabili)
+
+```ts
+const xs = [1, 2, 3]
+
+const append = (xs: Array<number>): void => {
+  xs.push(4)
+}
+
+append(xs)
+
+const ys = xs
+```
 
 Perché è così importante la trasparenza referenziale? Perché permette di:
 
