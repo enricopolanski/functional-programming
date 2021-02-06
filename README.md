@@ -757,7 +757,7 @@ console.log(pipe('a', Semigroup.concat('b'), Semigroup.concat('c'))) // => 'a + 
 
 ## Semigruppi derivabili da un ordinamento
 
-Dato che `number` è **totalmente ordinabile** (ovvero dati due qualsiasi numeri `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) possiamo definire due sue ulteriori istanze di semigruppo usando `min` (o `max`) come operazioni:
+Dato che `number` è **totalmente ordinabile** (ovvero dati due qualsiasi numeri `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) possiamo definire due sue ulteriori istanze di semigruppo usando `min` e `max` come operazioni:
 
 ```ts
 import * as Se from 'fp-ts/Semigroup'
@@ -779,7 +779,7 @@ Sarebbe utile poter definire questi due semigruppi (`SemigroupMeet` e `Semigroup
 
 # Modellare l'uguaglianza con `Eq`
 
-Ancora una volta possiamo catturare la nozione di uguaglianza utilizzando una `interface`
+Ancora una volta possiamo modellare la nozione di uguaglianza tramite una `interface` di TypeScript:
 
 ```ts
 interface Eq<A> {
@@ -816,7 +816,7 @@ Devono valere le seguenti leggi:
 
 **Esempio**
 
-Come primo esempio di utilizzo definiamo una funzione `elem` che indica se un dato valore è un elemento di in un `ReadonlyArray`:
+Come primo esempio di utilizzo dell'astrazione `Eq` definiamo una funzione `elem` che indica se un dato valore è un elemento di un `ReadonlyArray`:
 
 ```ts
 import * as E from 'fp-ts/Eq'
@@ -830,7 +830,7 @@ console.log(pipe([1, 2, 3], elem(N.Eq)(2))) // => true
 console.log(pipe([1, 2, 3], elem(N.Eq)(4))) // => false
 ```
 
-Proviamo a definire una istanza per un tipo più complesso
+Proviamo a definire una istanza per un tipo più complesso:
 
 ```ts
 import * as E from 'fp-ts/Eq'
