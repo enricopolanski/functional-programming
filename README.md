@@ -616,7 +616,7 @@ console.log(pipe('a', getDual(S.Semigroup).concat('b'))) // => 'ba'
 
 **Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero non è detto che valga sempre `x |> concat(y) = y |> concat(x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
 
-## <font style="color: gray;">Non riesco a trovare una istanza!</font>
+## Non riesco a trovare una istanza!
 
 Cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operazione associativa su `A`?
 
@@ -683,6 +683,7 @@ type Vector = {
   readonly y: number
 }
 
+// modella la somma di due vettori
 const SemigroupVector: Se.Semigroup<Vector> = {
   concat: (second) => (first) => ({
     x: pipe(first.x, N.SemigroupSum.concat(second.x)),
@@ -707,6 +708,7 @@ Troppo boilerplate? La buona notizia è che **la teoria matematica** che sta die
 Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `getStructSemigroup`:
 
 ```ts
+// modella la somma di due vettori
 const SemigroupVector: Se.Semigroup<Vector> = Se.getStructSemigroup({
   x: N.SemigroupSum,
   y: N.SemigroupSum
@@ -723,6 +725,7 @@ import * as Se from 'fp-ts/Semigroup'
 // modella un vettore che parte dall'origine
 type Vector = readonly [number, number]
 
+// modella la somma di due vettori
 const SemigroupVector: Se.Semigroup<Vector> = Se.getTupleSemigroup<Vector>(
   N.SemigroupSum,
   N.SemigroupSum
