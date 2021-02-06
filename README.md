@@ -606,12 +606,12 @@ import * as Se from 'fp-ts/Semigroup'
 import * as S from 'fp-ts/string'
 
 // questo è un combinatore di semigruppi...
-const getDual = <A>(S: Se.Semigroup<A>): Se.Semigroup<A> => ({
+const reverse = <A>(S: Se.Semigroup<A>): Se.Semigroup<A> => ({
   concat: (second) => (first) => pipe(second, S.concat(first))
 })
 
 console.log(pipe('a', S.Semigroup.concat('b'))) // => 'ab'
-console.log(pipe('a', getDual(S.Semigroup).concat('b'))) // => 'ba'
+console.log(pipe('a', reverse(S.Semigroup).concat('b'))) // => 'ba'
 ```
 
 **Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero non è detto che valga sempre `x |> concat(y) = y |> concat(x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
@@ -744,13 +744,13 @@ import { pipe } from 'fp-ts/function'
 import * as Se from 'fp-ts/Semigroup'
 import * as S from 'fp-ts/string'
 
-export const getIntercalateSemigroup = <A>(a: A) => (
+export const intercalate = <A>(middle: A) => (
   S: Se.Semigroup<A>
 ): Se.Semigroup<A> => ({
-  concat: (second) => (first) => pipe(first, S.concat(a), S.concat(second))
+  concat: (second) => (first) => pipe(first, S.concat(middle), S.concat(second))
 })
 
-const Semigroup = getIntercalateSemigroup(' + ')(S.Semigroup)
+const Semigroup = intercalate(' + ')(S.Semigroup)
 
 console.log(pipe('a', Semigroup.concat('b'), Semigroup.concat('c'))) // => 'a + b + c'
 ```
