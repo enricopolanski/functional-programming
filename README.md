@@ -923,11 +923,9 @@ type User = {
   readonly name: string
 }
 
-const user: User = { id: 1, name: 'Giulio' }
+const users: Set<User> = new Set([{ id: 1, name: 'Giulio' }])
 
-const users: Set<User> = new Set([user])
-
-users.add(user)
+users.add({ id: 1, name: 'Giulio' })
 
 console.log(users)
 // => Set { { id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio' } }
