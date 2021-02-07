@@ -291,9 +291,7 @@ Dei due combinatori definiti in `01_retry.ts` una menzione speciale va a `concat
 
 Un semigruppo è una ricetta per combinare due (o più) valori.
 
-Tecnicamente un semigruppo è un'algebra, cosa si intende con il termine "algebra"?
-
-In generale si intende una particolare combinazione di:
+Tecnicamente un semigruppo è un'algebra, in generale con il termine "algebra" si intende una particolare combinazione di:
 
 - uno o più insiemi
 - operazioni sugli insiemi precedenti
