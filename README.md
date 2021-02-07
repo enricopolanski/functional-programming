@@ -17,8 +17,8 @@
 - [Modellare l'uguaglianza con `Eq`](#modellare-luguaglianza-con-eq)
 - [Modellare l'ordinamento con `Ord`](#modellare-lordinamento-con-ord)
 - [Modellare la composizione con i monoidi](#modellare-la-composizione-con-i-monoidi)
-  - [Monoide prodotto](#monoide-prodotto)
   - [La funzione `fold`](#la-funzione-fold-1)
+  - [Monoide prodotto](#monoide-prodotto)
 - [Funzioni pure e funzioni parziali](#funzioni-pure-e-funzioni-parziali)
 - [Algebraic Data Types](#algebraic-data-types)
   - [Che cos'è un algebraic Data Types?](#che-cos%C3%A8-un-algebraic-data-types)
@@ -1243,7 +1243,7 @@ interface Monoid<A> extends Se.Semigroup<A> {
 }
 ```
 
-Molti dei semigruppi che abbiamo visto nelle sezioni precedenti sono in realtà dei monoidi
+Molti dei semigruppi che abbiamo visto nelle sezioni precedenti sono in realtà dei monoidi:
 
 ```ts
 import * as Mo from 'fp-ts/Monoid'
@@ -1280,7 +1280,7 @@ const MonoidAny: Mo.Monoid<boolean> = {
 
 **Quiz** (difficile). Dato un monoide, è possibile che esista più di un elemento neutro?
 
-Ogni monoide è un semigruppo, ma non ogni semigruppo è un monoide
+Ogni monoide è un semigruppo, ma non ogni semigruppo è un monoide.
 
 <center>
 <img src="images/monoid.png" width="300" alt="Magma vs Semigroup vs Monoid" />
@@ -1302,7 +1302,7 @@ console.log(pipe('a', SemigroupIntercalate.concat('b'))) // => 'a + b'
 
 Notate come non sia possibile trovare un valore `empty` di tipo `string` tale che `a |> concat(empty) = a`.
 
-Infine un esempio più esotico.
+Infine un esempio più "esotico", sulle funzioni:
 
 **Esempio**
 
@@ -1329,6 +1329,25 @@ export const getEndomorphismMonoid = <A>(): Mo.Monoid<
   concat: (second) => (first) => flow(first, second),
   empty: identity
 })
+```
+
+## La funzione `fold`
+
+Quando usiamo un monoide invece di un semigruppo, il `fold`ing è ancora più semplice: non è necessario fornire esplicitamente un valore iniziale.
+
+**Quiz**. Perché non è necessario fornire un valore iniziale?
+
+```ts
+import * as Mo from 'fp-ts/Monoid'
+import * as S from 'fp-ts/string'
+import * as N from 'fp-ts/number'
+import * as B from 'fp-ts/boolean'
+
+console.log(Mo.fold(N.MonoidSum)([1, 2, 3, 4])) // => 10
+console.log(Mo.fold(N.MonoidProduct)([1, 2, 3, 4])) // => 24
+console.log(Mo.fold(S.Monoid)(['a', 'b', 'c'])) // => 'abc'
+console.log(Mo.fold(B.MonoidAll)([true, false, true])) // => false
+console.log(Mo.fold(B.MonoidAny)([true, false, true])) // => true
 ```
 
 ## Monoide prodotto
@@ -1361,25 +1380,6 @@ import * as N from 'fp-ts/number'
 type Vector = readonly [number, number]
 
 const Monoid: Mo.Monoid<Vector> = Mo.tuple(N.MonoidSum, N.MonoidSum)
-```
-
-## La funzione `fold`
-
-Quando usiamo un monoide invece di un semigruppo, il folding è ancora più semplice: non è necessario fornire esplicitamente un valore iniziale.
-
-**Quiz**. Perché non è necessario fornire un valore iniziale?
-
-```ts
-import * as Mo from 'fp-ts/Monoid'
-import * as S from 'fp-ts/string'
-import * as N from 'fp-ts/number'
-import * as B from 'fp-ts/boolean'
-
-console.log(Mo.fold(N.MonoidSum)([1, 2, 3, 4])) // => 10
-console.log(Mo.fold(N.MonoidProduct)([1, 2, 3, 4])) // => 24
-console.log(Mo.fold(S.Monoid)(['a', 'b', 'c'])) // => 'abc'
-console.log(Mo.fold(B.MonoidAll)([true, false, true])) // => false
-console.log(Mo.fold(B.MonoidAny)([true, false, true])) // => true
 ```
 
 **Demo**
