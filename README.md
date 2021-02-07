@@ -17,6 +17,7 @@
 - [Modellare l'uguaglianza con `Eq`](#modellare-luguaglianza-con-eq)
 - [Modellare l'ordinamento con `Ord`](#modellare-lordinamento-con-ord)
 - [Modellare la composizione con i monoidi](#modellare-la-composizione-con-i-monoidi)
+  - [Monoide prodotto](#monoide-prodotto)
   - [La funzione `fold`](#la-funzione-fold-1)
 - [Funzioni pure e funzioni parziali](#funzioni-pure-e-funzioni-parziali)
 - [Algebraic Data Types](#algebraic-data-types)
@@ -389,9 +390,9 @@ vediamo ora un'algebra che definisce una legge: i semigruppi.
 
 ## Definizione di semigruppo
 
-Se l'operazione binaria di un `Magma` è anche **associativa** allora parliamo di semigruppo.
+Se l'operazione `concat` di un `Magma` è anche **associativa** allora parliamo di semigruppo.
 
-Il termine "associativa" vuol dire che vale:
+Un'operazione binaria `*` si dice "associativa" se vale:
 
 ```ts
 (x * y) * z = x * (y * z)
@@ -403,13 +404,17 @@ L'associatività ci dice che non dobbiamo preoccuparci delle parentesi nelle esp
 
 **Esempio**
 
-La concatenazione di stringhe gode della proprietà associativa.
+La concatenazione di stringhe (`+`) gode della proprietà associativa.
 
 ```ts
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
 ```
 
 Ogni semigruppo è un magma, ma non ogni magma è un semigruppo.
+
+<center>
+<img src="images/semigroup.png" width="300" alt="Magma vs Semigroup" />
+</center>
 
 **Esempio**
 
@@ -432,7 +437,7 @@ console.log(rhs) // => 2
 
 I semigruppi catturano l'essenza delle operazioni parallelizzabili.
 
-Infatti se sappiamo che una data operazione gode della proprietà associativa possiamo suddividere una computazione in due sotto computazioni, ognuna delle quali può essere ulteriormente suddivisa
+Infatti se sappiamo che una data operazione `*` gode della proprietà associativa possiamo suddividere una computazione in due sotto computazioni, ognuna delle quali può essere ulteriormente suddivisa
 
 ```ts
 a * b * c * d * e * f * g * h = ((a * b) * (c * d)) * ((e * f) * (g * h))
@@ -752,9 +757,11 @@ export const intercalate = <A>(middle: A) => (
   concat: (second) => (first) => pipe(first, S.concat(middle), S.concat(second))
 })
 
-const Semigroup = pipe(S.Semigroup, intercalate(' + '))
+const SemigroupIntercalate = pipe(S.Semigroup, intercalate(' + '))
 
-console.log(pipe('a', Semigroup.concat('b'), Semigroup.concat('c'))) // => 'a + b + c'
+console.log(
+  pipe('a', SemigroupIntercalate.concat('b'), SemigroupIntercalate.concat('c'))
+) // => 'a + b + c'
 ```
 
 ## Semigruppi derivabili da un ordinamento
@@ -1218,15 +1225,15 @@ console.log(
 
 # Modellare la composizione con i monoidi
 
-Se aggiungiamo una condizione in più alla definizione di un semigruppo `(A, *)`, ovvero che esista un elemento `u` in `A`
+Se aggiungiamo una condizione in più alla definizione di un semigruppo, ovvero che esista un elemento `empty` in `A`
 tale che per ogni elemento `a` in `A` vale
 
-```ts
-u * a = a * u = a
-```
+- **Right identity**: `a |> concat(empty) = a`
+- **Left identity**: `empty |> concat(a) = a`
 
-allora la terna `(A, *, u)` viene detta *monoide* e l'elemento `u` viene detto *unità*
-(sinonimi: *elemento neutro*, *elemento identità*).
+allora parliamo di monoide e l'elemento `empty` viene detto **unità** (o "elemento neutro").
+
+Come già successo per `Magma` e `Semigroup`, i monoidi possono essere modellati con una `interface` di TypeScript:
 
 ```ts
 import * as Se from 'fp-ts/Semigroup'
@@ -1235,13 +1242,6 @@ interface Monoid<A> extends Se.Semigroup<A> {
   readonly empty: A
 }
 ```
-
-Devono valere le seguenti leggi:
-
-- **Right identity**: `a |> concat(empty) = a`, per ogni `a` in `A`
-- **Left identity**: `empty |> concat(a) = a`, per ogni `a` in `A`
-
-**Quiz**. Dato un monoide, è possibile che esista più di un elemento neutro?
 
 Molti dei semigruppi che abbiamo visto nelle sezioni precedenti sono in realtà dei monoidi
 
@@ -1278,12 +1278,44 @@ const MonoidAny: Mo.Monoid<boolean> = {
 }
 ```
 
-Vediamo ora qualche esempio più affascinante.
+**Quiz** (difficile). Dato un monoide, è possibile che esista più di un elemento neutro?
+
+Ogni monoide è un semigruppo, ma non ogni semigruppo è un monoide
+
+<center>
+<img src="images/monoid.png" width="300" alt="Magma vs Semigroup vs Monoid" />
+</center>
 
 **Esempio**
 
-Dato un tipo `A`, gli *endomorfismi* (un endomorfismo non è altro che una funzione il cui dominio e codominio coincidono)
-su `A` ammettono una istanza di monoide:
+Si consideri il seguente semigruppo:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as Se from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/string'
+
+const SemigroupIntercalate = pipe(S.Semigroup, Se.intercalate(' + '))
+
+console.log(pipe('a', SemigroupIntercalate.concat('b'))) // => 'a + b'
+```
+
+Notate come non sia possibile trovare un valore `empty` di tipo `string` tale che `a |> concat(empty) = a`.
+
+Infine un esempio più esotico.
+
+**Esempio**
+
+Un **endomorfismo** è una funzione in cui il tipo in input e il tipo in output coincidono:
+
+```ts
+type Endomorphism<A> = (a: A) => A
+```
+
+Dato un tipo `A`, gli endomorfismi su `A` sono un monoide, tale che:
+
+- l'operazione `concat` è l'usuale composizione di funzioni
+- l'unità è la funzione identità
 
 ```ts
 import { flow, identity } from 'fp-ts/function'
@@ -1299,41 +1331,7 @@ export const getEndomorphismMonoid = <A>(): Mo.Monoid<
 })
 ```
 
-**Esempio**
-
-Se il tipo `M` ammette una istanza di monoide allora per ogni tipo `A` il tipo `(a: A) => M` ammette una istanza di monoide
-
-```ts
-import * as Mo from 'fp-ts/Monoid'
-
-export const getFunctionMonoid = <M>(M: Mo.Monoid<M>) => <A>(): Mo.Monoid<
-  (a: A) => M
-> => ({
-  concat: (second) => (first) => (a) => M.concat(second(a))(first(a)),
-  empty: () => M.empty
-})
-```
-
-Come corollario otteniamo che i reducer ammettono una istanza di monoide:
-
-```ts
-type Reducer<S, A> = (a: A) => (s: S) => S
-
-const getReducerMonoid = <S, A>(): Mo.Monoid<Reducer<S, A>> =>
-  getFunctionMonoid(getEndomorphismMonoid<S>())<A>()
-```
-
-Potrebbe venire il dubbio che tutti i semigruppi siano anche dei monoidi. Non è così, come controesempio si consideri il seguente semigruppo:
-
-```ts
-import * as Se from 'fp-ts/Semigroup'
-
-const SemigroupSpace: Se.Semigroup<string> = {
-  concat: (second) => (first) => first + ' ' + second
-}
-```
-
-Infatti non è possibile trovare un valore `empty` tale che `a |> concat(empty) = a`.
+## Monoide prodotto
 
 Come abbiamo già visto per i semigruppi, è possibile costruire una istanza di monoide per una struct se siamo in grado di fornire una istanza di monoide per ogni suo campo.
 
