@@ -323,26 +323,20 @@ Abbiamo quindi un'operazione binaria `concat` che prende due valori di un certo 
 
 Per avere una istanza concreta di magma per un determinato tipo occorre perciò definire un oggetto conforme a questa interfaccia.
 
-**Esempio**
+**Esempio** (una istanza di `Magma` per il tipo `number`)
 
 ```ts
 import { Magma } from 'fp-ts/Magma'
 
-// una istanza di Magma per il tipo `number`
 const MagmaSub: Magma<number> = {
   concat: (second) => (first) => first - second
 }
 
+// esempio di utilizzo
+
 import { pipe } from 'fp-ts/function'
 
 console.log(pipe(1, MagmaSub.concat(2))) // => -1
-
-/*
-Per i linguaggi che supportano l'operatore `|>` ("pipe")
-la scrittura sopra è equivalente a:
-
-1 |> MagmaSub.concat(2) // => -1
-*/
 ```
 
 **Quiz**. Consideriamo la seguente funzione che trasforma una lista in un dizionario:
