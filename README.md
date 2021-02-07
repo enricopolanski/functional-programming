@@ -896,7 +896,7 @@ type User = {
 /** due utenti sono uguali se sono uguali il loro campi `id` */
 const EqUser: E.Eq<User> = pipe(
   N.Eq,
-  E.contramap((user: User) => user.id)
+  E.contramap((_: User) => _.id)
 )
 
 console.log(
@@ -1053,7 +1053,7 @@ type User = {
 
 const byAge: O.Ord<User> = pipe(
   N.Ord,
-  O.contramap((user: User) => user.age)
+  O.contramap((_: User) => _.age)
 )
 ```
 
@@ -1104,7 +1104,7 @@ type User = {
 
 const byAge: O.Ord<User> = pipe(
   N.Ord,
-  O.contramap((user: User) => user.age)
+  O.contramap((_: User) => _.age)
 )
 
 console.log(
