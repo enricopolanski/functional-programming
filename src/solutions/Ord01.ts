@@ -3,6 +3,7 @@
  */
 import { fromCompare, Ord } from 'fp-ts/Ord'
 import * as N from 'fp-ts/number'
+import { pipe } from 'fp-ts/function'
 
 const getOrd = <A>(O: Ord<A>): Ord<ReadonlyArray<A>> =>
   fromCompare((second) => (first) => {
@@ -10,12 +11,12 @@ const getOrd = <A>(O: Ord<A>): Ord<ReadonlyArray<A>> =>
     const bLen = second.length
     const len = Math.min(aLen, bLen)
     for (let i = 0; i < len; i++) {
-      const ordering = O.compare(second[i])(first[i])
+      const ordering = pipe(first[i], O.compare(second[i]))
       if (ordering !== 0) {
         return ordering
       }
     }
-    return N.Ord.compare(bLen)(aLen)
+    return pipe(aLen, N.Ord.compare(bLen))
   })
 
 // ------------------------------------
@@ -23,7 +24,6 @@ const getOrd = <A>(O: Ord<A>): Ord<ReadonlyArray<A>> =>
 // ------------------------------------
 
 import * as assert from 'assert'
-import { pipe } from 'fp-ts/function'
 
 const O = getOrd(N.Ord)
 

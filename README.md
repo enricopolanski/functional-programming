@@ -1008,7 +1008,7 @@ import * as N from 'fp-ts/number'
 import * as O from 'fp-ts/Ord'
 
 const min = <A>(O: O.Ord<A>) => (second: A) => (first: A): A =>
-  O.compare(second)(first) === 1 ? second : first
+  pipe(first, O.compare(second)) === 1 ? second : first
 
 console.log(pipe(2, min(N.Ord)(1))) // => 1
 ```
