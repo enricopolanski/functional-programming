@@ -762,18 +762,18 @@ Dato che `number` è **totalmente ordinabile** (ovvero dati due qualsiasi numeri
 ```ts
 import * as Se from 'fp-ts/Semigroup'
 
-const SemigroupMeet: Se.Semigroup<number> = {
+const SemigroupMin: Se.Semigroup<number> = {
   concat: (second) => (first) => Math.min(first, second)
 }
 
-const SemigroupJoin: Se.Semigroup<number> = {
+const SemigroupMax: Se.Semigroup<number> = {
   concat: (second) => (first) => Math.max(first, second)
 }
 ```
 
 **Quiz**. Perché è importante che `number` sia *totalmente* ordinabile?
 
-Sarebbe utile poter definire questi due semigruppi (`SemigroupMeet` e `SemigroupJoin`) anche per altri tipi oltre a `number`.
+Sarebbe utile poter definire questi due semigruppi (`SemigroupMin` e `SemigroupMax`) anche per altri tipi oltre a `number`.
 
 È possibile catturare la nozione di totalmente ordinabile per altri tipi? Per farlo dobbiamo prima di tutto catturare la nozione di *uguaglianza*.
 
@@ -1083,7 +1083,7 @@ declare const keys: <K>(O: Ord<K>) => <A>(m: ReadonlyMap<K, A>) => ReadonlyArray
 
 per quale motivo questa API richiede un `Ord<K>`?
 
-Torniamo finalmente al quesito iniziale: definire i due semigruppi `meet` e `join` anche per altri tipi oltre a `number`.
+Torniamo finalmente al quesito iniziale: definire i due semigruppi `SemigroupMin` e `SemigroupMax` anche per altri tipi oltre a `number`.
 
 Ora che abbiamo a disposizione l'astrazione `Ord` possiamo farlo:
 
@@ -1093,11 +1093,11 @@ import * as N from 'fp-ts/number'
 import * as O from 'fp-ts/Ord'
 import { Semigroup } from 'fp-ts/Semigroup'
 
-export const getMeetSemigroup = <A>(OA: O.Ord<A>): Semigroup<A> => ({
+export const getMinSemigroup = <A>(OA: O.Ord<A>): Semigroup<A> => ({
   concat: O.min(OA)
 })
 
-export const getJoinSemigroup = <A>(OA: O.Ord<A>): Semigroup<A> => ({
+export const getMaxSemigroup = <A>(OA: O.Ord<A>): Semigroup<A> => ({
   concat: O.max(OA)
 })
 
@@ -1114,13 +1114,13 @@ const byAge: O.Ord<User> = pipe(
 console.log(
   pipe(
     { name: 'Guido', age: 50 },
-    getMeetSemigroup(byAge).concat({ name: 'Giulio', age: 47 })
+    getMinSemigroup(byAge).concat({ name: 'Giulio', age: 47 })
   )
 ) // => { name: 'Giulio', age: 47 }
 console.log(
   pipe(
     { name: 'Guido', age: 50 },
-    getJoinSemigroup(byAge).concat({ name: 'Giulio', age: 47 })
+    getMaxSemigroup(byAge).concat({ name: 'Giulio', age: 47 })
   )
 ) // => { name: 'Guido', age: 50 }
 ```
@@ -1168,7 +1168,7 @@ const getReadonlyArraySemigroup = <A>(): Se.Semigroup<
 
 const SemigroupCustomer: Se.Semigroup<Customer> = Se.getStructSemigroup({
   // keep the longer name
-  name: Se.getJoinSemigroup(
+  name: Se.getMaxSemigroup(
     pipe(
       N.Ord,
       O.contramap((s: string) => s.length)
@@ -1177,9 +1177,9 @@ const SemigroupCustomer: Se.Semigroup<Customer> = Se.getStructSemigroup({
   // accumulate things
   favouriteThings: getReadonlyArraySemigroup<string>(),
   // keep the least recent date
-  registeredAt: Se.getMeetSemigroup(N.Ord),
+  registeredAt: Se.getMinSemigroup(N.Ord),
   // keep the most recent date
-  lastUpdatedAt: Se.getJoinSemigroup(N.Ord),
+  lastUpdatedAt: Se.getMaxSemigroup(N.Ord),
   // boolean semigroup under disjunction
   hasMadePurchase: B.SemigroupAny
 })
