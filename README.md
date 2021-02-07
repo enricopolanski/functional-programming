@@ -313,11 +313,11 @@ Possiamo usare una `interface` di TypeScript per modellare un magma:
 
 ```ts
 interface Magma<A> {
-  readonly concat: (second: A) => (first: A) => A
+  readonly concat: (y: A) => (x: A) => A
 }
 ```
 
-Abbiamo quindi un'operazione binaria `concat` che prende due valori di un certo tipo `A` e restituisce un nuovo valore dello stesso tipo (proprietà di chiusura). Dato che il risultato può a sua volta essere utilizzato come input l'operazione può essere ripetuta a piacimento. In altre parole `concat` è un [combinatore](#composizione) per il tipo `A`.
+Abbiamo quindi un'operazione `concat` che prende due valori di un certo tipo `A` e restituisce un nuovo valore dello stesso tipo (proprietà di chiusura). Dato che il risultato può a sua volta essere utilizzato come input l'operazione può essere ripetuta a piacimento. In altre parole `concat` è un [combinatore](#composizione) per il tipo `A`.
 
 **Quiz**. Il fatto che una operazione sia chiusa non è una proprietà banale, potete fare un esempio di operazione sui numeri naturali (ovvero i numeri interi positivi) per cui la proprietà di chiusura non vale?
 
@@ -329,7 +329,7 @@ Per avere una istanza concreta di magma per un determinato tipo occorre perciò 
 import { Magma } from 'fp-ts/Magma'
 
 const MagmaSub: Magma<number> = {
-  concat: (second) => (first) => first - second
+  concat: (y) => (x) => x - y
 }
 
 // esempio di utilizzo
@@ -339,7 +339,9 @@ import { pipe } from 'fp-ts/function'
 console.log(pipe(1, MagmaSub.concat(2))) // => -1
 ```
 
-**Quiz**. Consideriamo la seguente funzione che trasforma una lista in un dizionario:
+Notate che la definizione di `concat` è stata concepita per agevolarne l'uso con `pipe`.
+
+**Quiz**. Consideriamo la seguente funzione che trasforma una lista in un dizionario, perché si richiede un `Magma` come parametro?
 
 ```ts
 import { Magma } from 'fp-ts/Magma'
@@ -351,7 +353,7 @@ declare const fromReadonlyArray: <A>(
 // esempio di utilizzo
 
 const MagmaSub: Magma<number> = {
-  concat: (second) => (first) => first - second
+  concat: (y) => (x) => x - y
 }
 
 console.log(
@@ -369,9 +371,13 @@ console.log(
 ) // => { a: -2, b: 2 }
 ```
 
-perché c'è bisogno di una istanza di `Magma` come parametro?
+Un `Magma<A>` è un'algebra molto semplice:
 
-Un magma non possiede alcuna legge (c'è solo il vincolo di chiusura), vediamo ora un'algebra che definisce una legge: i semigruppi.
+- un insieme (`A`)
+- una operazione (`concat`)
+- nessuna legge
+
+vediamo ora un'algebra che definisce una legge: i semigruppi.
 
 ## Definizione di semigruppo
 
