@@ -336,7 +336,15 @@ const MagmaSub: Magma<number> = {
 
 import { pipe } from 'fp-ts/function'
 
-console.log(pipe(1, MagmaSub.concat(2))) // => -1
+console.log(
+  pipe(
+    10,
+    MagmaSub.concat(2),
+    MagmaSub.concat(3),
+    MagmaSub.concat(1),
+    MagmaSub.concat(2)
+  )
+) // => 2
 ```
 
 Notate che la definizione di `concat` è stata concepita per agevolarne l'uso con `pipe`.
