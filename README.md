@@ -294,10 +294,10 @@ Un semigruppo è una ricetta per combinare due (o più) valori.
 Tecnicamente un semigruppo è un'algebra, in generale con il termine "algebra" si intende una particolare combinazione di:
 
 - uno o più insiemi
-- operazioni sugli insiemi precedenti
-- leggi a cui devono obbedire le operazioni precedenti
+- una o più operazioni sugli insiemi precedenti
+- una o più leggi a cui devono obbedire le operazioni precedenti
 
-Le algebre sono il modo in cui i matematici catturano un concetto nel modo più diretto, ovvero eliminando tutto ciò che è superfluo.
+Le algebre sono il modo in cui i matematici catturano un concetto nel modo più diretto eliminando tutto ciò che è superfluo.
 
 > Quando si manipola un'algebra sono permesse solo le operazioni definite dall'algebra stessa e in conformità alle sue leggi
 
@@ -317,7 +317,7 @@ interface Magma<A> {
 }
 ```
 
-Abbiamo quindi un'operazione binaria `concat` che prende due valori di un certo tipo `A` e restituisce un nuovo valore dello stesso tipo (proprietà di chiusura), perciò questa operazione può essere ripetuta a piacimento.
+Abbiamo quindi un'operazione binaria `concat` che prende due valori di un certo tipo `A` e restituisce un nuovo valore dello stesso tipo (proprietà di chiusura). Dato che il risultato può a sua volta essere utilizzato come input l'operazione può essere ripetuta a piacimento. In altre parole `concat` è un [combinatore](#composizione) per il tipo `A`.
 
 **Quiz**. Il fatto che una operazione sia chiusa non è una proprietà banale, potete fare un esempio di operazione sui numeri naturali (ovvero i numeri interi positivi) per cui la proprietà di chiusura non vale?
 
