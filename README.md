@@ -722,7 +722,7 @@ import * as Se from 'fp-ts/Semigroup'
 type Vector = readonly [number, number]
 
 // modella la somma di due vettori
-const SemigroupVector: Se.Semigroup<Vector> = Se.tuple<Vector>(
+const SemigroupVector: Se.Semigroup<Vector> = Se.tuple(
   N.SemigroupSum,
   N.SemigroupSum
 )
@@ -867,7 +867,7 @@ import * as N from 'fp-ts/number'
 
 type Point = readonly [number, number]
 
-const EqPoint: E.Eq<Point> = E.tuple<Point>(N.Eq, N.Eq)
+const EqPoint: E.Eq<Point> = E.tuple(N.Eq, N.Eq)
 
 console.log(pipe([1, 2], EqPoint.equals([1, 2]))) // => true
 console.log(pipe([1, 2], EqPoint.equals([1, -2]))) // => false
@@ -1356,7 +1356,7 @@ import * as N from 'fp-ts/number'
 
 type Vector = readonly [number, number]
 
-const Monoid: Mo.Monoid<Vector> = Mo.tuple<Vector>(N.MonoidSum, N.MonoidSum)
+const Monoid: Mo.Monoid<Vector> = Mo.tuple(N.MonoidSum, N.MonoidSum)
 ```
 
 ## La funzione `fold`
