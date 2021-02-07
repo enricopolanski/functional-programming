@@ -565,13 +565,9 @@ const some = <A>(predicate: (a: A) => boolean) => (
   as: ReadonlyArray<A>
 ): boolean => Se.fold(B.SemigroupAny)(false)(as.map(predicate))
 
-const SemigroupSpread: Se.Semigroup<object> = {
-  concat: (second) => (first) => ({ ...first, ...second })
-}
-
-const assign: (as: ReadonlyArray<object>) => object = Se.fold(SemigroupSpread)(
-  {}
-)
+const assign: (as: ReadonlyArray<object>) => object = Se.fold(
+  Se.object<object>()
+)({})
 ```
 
 **Quiz**. La seguente istanza è "legale" (ovvero rispetta le leggi dei semigruppi)?
@@ -580,8 +576,8 @@ const assign: (as: ReadonlyArray<object>) => object = Se.fold(SemigroupSpread)(
 import * as Se from 'fp-ts/Semigroup'
 
 /** Always return the first argument */
-const getFirstSemigroup = <A>(): Se.Semigroup<A> => ({
-  concat: (_second) => (first) => first
+const first = <A>(): Se.Semigroup<A> => ({
+  concat: () => (a) => a
 })
 ```
 
@@ -591,8 +587,8 @@ const getFirstSemigroup = <A>(): Se.Semigroup<A> => ({
 import * as Se from 'fp-ts/Semigroup'
 
 /** Always return the second argument */
-const getLastSemigroup = <A>(): Se.Semigroup<A> => ({
-  concat: (second) => (_first) => second
+const last = <A>(): Se.Semigroup<A> => ({
+  concat: (a) => () => a
 })
 ```
 
@@ -705,17 +701,17 @@ console.log(pipe(v1, SemigroupVector.concat(v2))) // => { x: 2, y: 3 }
 
 Troppo boilerplate? La buona notizia è che **la teoria matematica** che sta dietro al concetto di semigruppo ci dice che possiamo costruire una istanza di semigruppo per una struct come `Vector` se siamo in grado di fornire una istanza di semigruppo per ogni suo campo.
 
-Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `getStructSemigroup`:
+Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `struct`:
 
 ```ts
 // modella la somma di due vettori
-const SemigroupVector: Se.Semigroup<Vector> = Se.getStructSemigroup({
+const SemigroupVector: Se.Semigroup<Vector> = Se.struct({
   x: N.SemigroupSum,
   y: N.SemigroupSum
 })
 ```
 
-**Nota**. Esiste un combinatore simile a `getStructSemigroup` ma che lavora con le tuple: `getTupleSemigroup`
+**Nota**. Esiste un combinatore simile a `struct` ma che lavora con le tuple: `tuple`
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -726,7 +722,7 @@ import * as Se from 'fp-ts/Semigroup'
 type Vector = readonly [number, number]
 
 // modella la somma di due vettori
-const SemigroupVector: Se.Semigroup<Vector> = Se.getTupleSemigroup<Vector>(
+const SemigroupVector: Se.Semigroup<Vector> = Se.tuple<Vector>(
   N.SemigroupSum,
   N.SemigroupSum
 )
@@ -851,18 +847,18 @@ console.log(pipe({ x: 1, y: 2 }, EqPoint.equals({ x: 1, y: -2 }))) // => false
 
 Troppo boilerplate? La buona notizia è che la teoria ci dice che possiamo costruire una istanza di `Eq` per una struct come `Point` se siamo in grado di fornire una istanza di `Eq` per ogni suo campo.
 
-Convenientemente il modulo `fp-ts/Eq` esporta un combinatore `getStructEq`:
+Convenientemente il modulo `fp-ts/Eq` esporta un combinatore `struct`:
 
 ```ts
 import * as N from 'fp-ts/number'
 
-const EqPoint: E.Eq<Point> = E.getStructEq({
+const EqPoint: E.Eq<Point> = E.struct({
   x: N.Eq,
   y: N.Eq
 })
 ```
 
-**Nota**. Esiste un combinatore simile a `getStructEq` ma che lavora con le tuple: `getTupleEq`
+**Nota**. Esiste un combinatore simile a `struct` ma che lavora con le tuple: `tuple`
 
 ```ts
 import * as E from 'fp-ts/Eq'
@@ -871,7 +867,7 @@ import * as N from 'fp-ts/number'
 
 type Point = readonly [number, number]
 
-const EqPoint: E.Eq<Point> = E.getTupleEq<Point>(N.Eq, N.Eq)
+const EqPoint: E.Eq<Point> = E.tuple<Point>(N.Eq, N.Eq)
 
 console.log(pipe([1, 2], EqPoint.equals([1, 2]))) // => true
 console.log(pipe([1, 2], EqPoint.equals([1, -2]))) // => false
@@ -1093,11 +1089,11 @@ import * as N from 'fp-ts/number'
 import * as O from 'fp-ts/Ord'
 import { Semigroup } from 'fp-ts/Semigroup'
 
-export const getMinSemigroup = <A>(OA: O.Ord<A>): Semigroup<A> => ({
+export const min = <A>(OA: O.Ord<A>): Semigroup<A> => ({
   concat: O.min(OA)
 })
 
-export const getMaxSemigroup = <A>(OA: O.Ord<A>): Semigroup<A> => ({
+export const max = <A>(OA: O.Ord<A>): Semigroup<A> => ({
   concat: O.max(OA)
 })
 
@@ -1114,13 +1110,13 @@ const byAge: O.Ord<User> = pipe(
 console.log(
   pipe(
     { name: 'Guido', age: 50 },
-    getMinSemigroup(byAge).concat({ name: 'Giulio', age: 47 })
+    min(byAge).concat({ name: 'Giulio', age: 47 })
   )
 ) // => { name: 'Giulio', age: 47 }
 console.log(
   pipe(
     { name: 'Guido', age: 50 },
-    getMaxSemigroup(byAge).concat({ name: 'Giulio', age: 47 })
+    max(byAge).concat({ name: 'Giulio', age: 47 })
   )
 ) // => { name: 'Guido', age: 50 }
 ```
@@ -1160,15 +1156,13 @@ interface Customer {
   readonly hasMadePurchase: boolean
 }
 
-const getReadonlyArraySemigroup = <A>(): Se.Semigroup<
-  ReadonlyArray<A>
-> => ({
+const getReadonlyArraySemigroup = <A>(): Se.Semigroup<ReadonlyArray<A>> => ({
   concat: (second) => (first) => first.concat(second)
 })
 
-const SemigroupCustomer: Se.Semigroup<Customer> = Se.getStructSemigroup({
+const SemigroupCustomer: Se.Semigroup<Customer> = Se.struct({
   // keep the longer name
-  name: Se.getMaxSemigroup(
+  name: Se.max(
     pipe(
       N.Ord,
       O.contramap((s: string) => s.length)
@@ -1177,9 +1171,9 @@ const SemigroupCustomer: Se.Semigroup<Customer> = Se.getStructSemigroup({
   // accumulate things
   favouriteThings: getReadonlyArraySemigroup<string>(),
   // keep the least recent date
-  registeredAt: Se.getMinSemigroup(N.Ord),
+  registeredAt: Se.min(N.Ord),
   // keep the most recent date
-  lastUpdatedAt: Se.getMaxSemigroup(N.Ord),
+  lastUpdatedAt: Se.max(N.Ord),
   // boolean semigroup under disjunction
   hasMadePurchase: B.SemigroupAny
 })
@@ -1348,13 +1342,13 @@ type Vector = {
   readonly y: number
 }
 
-const Monoid: Mo.Monoid<Vector> = Mo.getStructMonoid({
+const Monoid: Mo.Monoid<Vector> = Mo.struct({
   x: N.MonoidSum,
   y: N.MonoidSum
 })
 ```
 
-**Nota**. Esiste un combinatore simile a `getStructMonoid` ma che lavora con le tuple: `getTupleMonoid`.
+**Nota**. Esiste un combinatore simile a `struct` ma che lavora con le tuple: `tuple`.
 
 ```ts
 import * as Mo from 'fp-ts/Monoid'
@@ -1362,10 +1356,7 @@ import * as N from 'fp-ts/number'
 
 type Vector = readonly [number, number]
 
-const Monoid: Mo.Monoid<Vector> = Mo.getTupleMonoid<Vector>(
-  N.MonoidSum,
-  N.MonoidSum
-)
+const Monoid: Mo.Monoid<Vector> = Mo.tuple<Vector>(N.MonoidSum, N.MonoidSum)
 ```
 
 ## La funzione `fold`
@@ -1922,7 +1913,7 @@ console.log(pipe(some(1), M.concat(some(2)))) // => some(2)
 `getLastMonoid` può essere utile per gestire valori opzionali:
 
 ```ts
-import { Monoid, getStructMonoid } from 'fp-ts/Monoid'
+import { Monoid, struct } from 'fp-ts/Monoid'
 import { Option, some, none, getLastMonoid } from 'fp-ts/Option'
 import { pipe } from 'fp-ts/function'
 
@@ -1936,7 +1927,7 @@ interface Settings {
   readonly maxColumn: Option<number>
 }
 
-const monoidSettings: Monoid<Settings> = getStructMonoid({
+const monoidSettings: Monoid<Settings> = struct({
   fontFamily: getLastMonoid<string>(),
   fontSize: getLastMonoid<number>(),
   maxColumn: getLastMonoid<number>()

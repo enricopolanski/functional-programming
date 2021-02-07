@@ -79,7 +79,7 @@ console.log(sort(byNameAgeRememberMe)(users))
 // adesso invece voglio tutti gli utenti con
 // `rememberMe = true` per primi
 
-const byRememberMeNameAge = fold(SemigroupUser)(O.getDual(byRememberMe))([
+const byRememberMeNameAge = fold(SemigroupUser)(O.reverse(byRememberMe))([
   byName,
   byAge
 ])

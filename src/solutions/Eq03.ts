@@ -3,7 +3,7 @@
  *
  * Per completare l'esercizio occorre definire il tipo `Clock`, una sia istanza di `Eq`
  */
-import { Eq, getTupleEq } from 'fp-ts/Eq'
+import { Eq, tuple } from 'fp-ts/Eq'
 import * as N from 'fp-ts/number'
 
 type Hour =
@@ -101,7 +101,7 @@ const minute = (m: number): Minute => (Math.floor(m) % 60) as any
 // It's a 24 hour clock going from "00:00" to "23:59".
 type Clock = [Hour, Minute]
 
-const eqClock: Eq<Clock> = getTupleEq(N.Eq, N.Eq)
+const eqClock: Eq<Clock> = tuple(N.Eq, N.Eq)
 
 // takes an hour and minute, and returns an instance of Clock with those hours and minutes
 const fromHourMin = (h: number, m: number): Clock => [hour(h), minute(m)]
