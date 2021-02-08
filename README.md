@@ -1159,6 +1159,7 @@ import * as B from 'fp-ts/boolean'
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 import * as O from 'fp-ts/Ord'
+import * as RA from 'fp-ts/ReadonlyArray'
 import * as Se from 'fp-ts/Semigroup'
 
 interface Customer {
@@ -1169,10 +1170,6 @@ interface Customer {
   readonly hasMadePurchase: boolean
 }
 
-const getReadonlyArraySemigroup = <A>(): Se.Semigroup<ReadonlyArray<A>> => ({
-  concat: (second) => (first) => first.concat(second)
-})
-
 const SemigroupCustomer: Se.Semigroup<Customer> = Se.struct({
   // keep the longer name
   name: Se.max(
@@ -1182,7 +1179,7 @@ const SemigroupCustomer: Se.Semigroup<Customer> = Se.struct({
     )
   ),
   // accumulate things
-  favouriteThings: getReadonlyArraySemigroup<string>(),
+  favouriteThings: RA.getSemigroup<string>(),
   // keep the least recent date
   registeredAt: Se.min(N.Ord),
   // keep the most recent date
