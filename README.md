@@ -1487,7 +1487,7 @@ h(x) = f(g(x))
 
 si dice _composizione_ di `f` e `g` e si scrive `h = f ∘ g`
 
-Si noti che affinché due funzioni `f` e `g` possano comporre, il dominio di `f` deve essere contenuto nel codominio di `g`.
+Si noti che affinché due funzioni `f` e `g` possano comporre, il dominio di `f` deve coincidere col codominio di `g`.
 
 **Definizione**. Una funzione _parziale_ è una funzione che non è definita per tutti i valori del dominio.
 
@@ -1670,7 +1670,7 @@ type List<A> =
 
 ### Pattern matching
 
-JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo in modo grezzo tramite una funzione `fold`:
+JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo tramite una funzione `fold`:
 
 ```ts
 const fold = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
@@ -1685,9 +1685,9 @@ const fold = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
 }
 ```
 
-**Nota**. TypeScript offre una straordinaria feature legata ai sum type: **exhaustive check**. Ovvero il type checker è in grado di determinare se tutti i casi sono stati gestiti nello `switch`.
+**Nota**. TypeScript offre una ottima feature legata ai sum type: **exhaustive check**. Ovvero il type checker è in grado di determinare se tutti i casi sono stati gestiti nello `switch`.
 
-**Esempio** (calculate the length of a `List` recursively)
+**Esempio** (calcolare la lunghezza di una `List` ricorsivamente)
 
 ```ts
 const length: <A>(fa: List<A>) => number = fold(
@@ -1723,7 +1723,7 @@ Dalla formula generale `C(Option<A>) = 1 + C(A)` possiamo derivare per esempio l
 
 Quando le sue componenti sarebbero **dipendenti** se implementate con un product type.
 
-**Esempio** (component props)
+**Esempio** (`React` props)
 
 ```ts
 interface Props {
