@@ -4,7 +4,7 @@
  *
  * Questa operazione è realizzata dalla seguente funzione `foldMap` che dovete implementare.
  */
-import { fold, Monoid } from 'fp-ts/Monoid'
+import { concatAll, Monoid } from 'fp-ts/Monoid'
 import * as N from 'fp-ts/number'
 import { flow, pipe } from 'fp-ts/function'
 import { map } from 'fp-ts/ReadonlyArray'
@@ -12,7 +12,7 @@ import { map } from 'fp-ts/ReadonlyArray'
 const foldMap = <B>(
   M: Monoid<B>
 ): (<A>(f: (a: A) => B) => (as: ReadonlyArray<A>) => B) => (f) =>
-  flow(map(f), fold(M))
+  flow(map(f), concatAll(M))
 
 // ------------------------------------
 // tests

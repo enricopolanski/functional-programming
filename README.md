@@ -9,7 +9,7 @@
 - [Modellare la composizione con i semigruppi](#modellare-la-composizione-con-i-semigruppi)
   - [Definizione di magma](#definizione-di-magma)
   - [Definizione di semigruppo](#definizione-di-semigruppo)
-  - [La funzione `fold`](#la-funzione-fold)
+  - [La funzione `concatAll`](#la-funzione-concatall)
   - [Il semigruppo duale](#il-semigruppo-duale)
   - [Non riesco a trovare una istanza!](#non-riesco-a-trovare-una-istanza)
   - [Semigruppo prodotto](#semigruppo-prodotto)
@@ -17,7 +17,7 @@
 - [Modellare l'uguaglianza con `Eq`](#modellare-luguaglianza-con-eq)
 - [Modellare l'ordinamento con `Ord`](#modellare-lordinamento-con-ord)
 - [Modellare la composizione con i monoidi](#modellare-la-composizione-con-i-monoidi)
-  - [La funzione `fold`](#la-funzione-fold-1)
+  - [La funzione `concatAll`](#la-funzione-concatall-1)
   - [Monoide prodotto](#monoide-prodotto)
 - [Funzioni pure e funzioni parziali](#funzioni-pure-e-funzioni-parziali)
 - [Algebraic Data Types](#algebraic-data-types)
@@ -547,21 +547,21 @@ const SemigroupAny: Se.Semigroup<boolean> = {
 }
 ```
 
-## La funzione `fold`
+## La funzione `concatAll`
 
 Per definizione `concat` combina solo due elementi di `A` alla volta, è possibile combinare più elementi?
 
-La funzione `fold` prende in input una istanza di semigruppo, un valore iniziale e un array di elementi da combinare:
+La funzione `concatAll` prende in input una istanza di semigruppo, un valore iniziale e un array di elementi da combinare:
 
 ```ts
 import * as Se from 'fp-ts/Semigroup'
 import * as N from 'fp-ts/number'
 
-const sum = Se.fold(N.SemigroupSum)(2)
+const sum = Se.concatAll(N.SemigroupSum)(2)
 
 console.log(sum([1, 2, 3, 4])) // => 12
 
-const product = Se.fold(N.SemigroupProduct)(3)
+const product = Se.concatAll(N.SemigroupProduct)(3)
 
 console.log(product([1, 2, 3, 4])) // => 72
 ```
@@ -570,7 +570,7 @@ console.log(product([1, 2, 3, 4])) // => 72
 
 **Esempio**
 
-Come altri esempi di applicazione di `fold`, possiamo reimplementare alcune popolari funzioni della standard library di JavaScript:
+Come altri esempi di applicazione di `concatAll`, possiamo reimplementare alcune popolari funzioni della standard library di JavaScript:
 
 ```ts
 import * as B from 'fp-ts/boolean'
@@ -578,13 +578,13 @@ import * as Se from 'fp-ts/Semigroup'
 
 const every = <A>(predicate: (a: A) => boolean) => (
   as: ReadonlyArray<A>
-): boolean => Se.fold(B.SemigroupAll)(true)(as.map(predicate))
+): boolean => Se.concatAll(B.SemigroupAll)(true)(as.map(predicate))
 
 const some = <A>(predicate: (a: A) => boolean) => (
   as: ReadonlyArray<A>
-): boolean => Se.fold(B.SemigroupAny)(false)(as.map(predicate))
+): boolean => Se.concatAll(B.SemigroupAny)(false)(as.map(predicate))
 
-const assign: (as: ReadonlyArray<object>) => object = Se.fold(
+const assign: (as: ReadonlyArray<object>) => object = Se.concatAll(
   Se.object<object>()
 )({})
 ```
@@ -674,7 +674,7 @@ console.log(pipe(1, N.SemigroupSum.concat(2), N.SemigroupSum.concat(3))) // => 6
 const as: ReadonlyNonEmptyArray<number> = [1, 2, 3]
 
 // ...ed eseguo la concatenazione solo in un secondo momento
-console.log(Se.fold(N.SemigroupSum)(0)(as)) // => 6
+console.log(Se.concatAll(N.SemigroupSum)(0)(as)) // => 6
 ```
 
 Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di usare ugualmente il suo semigruppo libero perché:
@@ -1338,9 +1338,9 @@ export const getEndomorphismMonoid = <A>(): Mo.Monoid<
 })
 ```
 
-## La funzione `fold`
+## La funzione `concatAll`
 
-Quando usiamo un monoide invece di un semigruppo, il `fold`ing è ancora più semplice: non è necessario fornire esplicitamente un valore iniziale.
+Quando usiamo un monoide invece di un semigruppo, la concatenazione di più elementi è ancora più semplice: non è necessario fornire esplicitamente un valore iniziale.
 
 **Quiz**. Perché non è necessario fornire un valore iniziale?
 
@@ -1350,11 +1350,11 @@ import * as S from 'fp-ts/string'
 import * as N from 'fp-ts/number'
 import * as B from 'fp-ts/boolean'
 
-console.log(Mo.fold(N.MonoidSum)([1, 2, 3, 4])) // => 10
-console.log(Mo.fold(N.MonoidProduct)([1, 2, 3, 4])) // => 24
-console.log(Mo.fold(S.Monoid)(['a', 'b', 'c'])) // => 'abc'
-console.log(Mo.fold(B.MonoidAll)([true, false, true])) // => false
-console.log(Mo.fold(B.MonoidAny)([true, false, true])) // => true
+console.log(Mo.concatAll(N.MonoidSum)([1, 2, 3, 4])) // => 10
+console.log(Mo.concatAll(N.MonoidProduct)([1, 2, 3, 4])) // => 24
+console.log(Mo.concatAll(S.Monoid)(['a', 'b', 'c'])) // => 'abc'
+console.log(Mo.concatAll(B.MonoidAll)([true, false, true])) // => false
+console.log(Mo.concatAll(B.MonoidAny)([true, false, true])) // => true
 ```
 
 ## Monoide prodotto
@@ -1453,13 +1453,13 @@ se non esce dai confini della implementazione.
 
 ![mutable / immutable](images/mutable-immutable.jpg)
 
-**Esempio** (Implementazione della funzione `fold` dei monoidi)
+**Esempio** (Implementazione della funzione `concatAll` dei monoidi)
 
 ```ts
 import { pipe } from 'fp-ts/function'
 import { Monoid } from 'fp-ts/Monoid'
 
-const fold = <A>(M: Monoid<A>) => (as: ReadonlyArray<A>): A => {
+const concatAll = <A>(M: Monoid<A>) => (as: ReadonlyArray<A>): A => {
   let out: A = M.empty // <= mutabilità locale
   for (let i = 0; i < as.length; i++) {
     out = pipe(out, M.concat(as[i]))
@@ -1670,10 +1670,10 @@ type List<A> =
 
 ### Pattern matching
 
-JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo tramite una funzione `fold`:
+JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo tramite una funzione `match`:
 
 ```ts
-const fold = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
+const match = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
   fa: List<A>
 ): R => {
   switch (fa._tag) {
@@ -1690,7 +1690,7 @@ const fold = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
 **Esempio** (calcolare la lunghezza di una `List` ricorsivamente)
 
 ```ts
-const length: <A>(fa: List<A>) => number = fold(
+const length: <A>(fa: List<A>) => number = match(
   () => 0,
   (_, tail) => 1 + length(tail)
 )
@@ -1823,7 +1823,7 @@ const none: Option<never> = { _tag: 'None' }
 
 const some = <A>(value: A): Option<A> => ({ _tag: 'Some', value })
 
-const fold = <R, A>(onNone: () => R, onSome: (a: A) => R) => (fa: Option<A>): R =>
+const match = <R, A>(onNone: () => R, onSome: (a: A) => R) => (fa: Option<A>): R =>
   fa._tag === 'None' ? onNone() : onSome(fa.value)
 ```
 
@@ -1857,7 +1857,7 @@ import { pipe } from 'fp-ts/function'
 
 const s = pipe(
   head([]),
-  fold(() => 'Empty array', a => String(a))
+  match(() => 'Empty array', a => String(a))
 )
 ```
 
@@ -1998,7 +1998,7 @@ const left = <E, A>(left: E): Either<E, A> => ({ _tag: 'Left', left })
 
 const right = <A, E>(right: A): Either<E, A> => ({ _tag: 'Right', right })
 
-const fold = <E, R, A>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
+const match = <E, R, A>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
   fa: Either<E, A>
 ): R => (fa._tag === 'Left' ? onLeft(fa.left) : onRight(fa.right))
 ```
@@ -2042,7 +2042,7 @@ import { flow } from 'fp-ts/function'
 readFile(
   './myfile',
   flow(
-    fold(
+    match(
       (err) => `Error: ${err.message}`,
       (data) => `Data: ${data.trim()}`
     ),
@@ -3296,9 +3296,12 @@ export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
 Esempio di utilizzo
 
 ```ts
+import * as IO from 'fp-ts/IO'
 import { randomInt } from 'fp-ts/Random'
-import { Monoid, fold } from 'fp-ts/Monoid'
+import { Monoid, concatAll } from 'fp-ts/Monoid'
 import { replicate } from 'fp-ts/ReadonlyArray'
+import { pipe } from 'fp-ts/function'
+import { log } from 'fp-ts/Console'
 
 const fib = (n: number): number => (n <= 1 ? 1 : fib(n - 1) + fib(n - 2))
 
@@ -3316,7 +3319,7 @@ const monoidIO: Monoid<IO.IO<void>> = {
 }
 
 const replicateIO = (n: number, mv: IO.IO<void>): IO.IO<void> =>
-  fold(monoidIO)(replicate(n, mv))
+  concatAll(monoidIO)(replicate(n, mv))
 
 time(replicateIO(3, printFib))()
 /*

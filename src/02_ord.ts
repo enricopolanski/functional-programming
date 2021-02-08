@@ -8,7 +8,7 @@
 import { pipe } from 'fp-ts/function'
 import * as O from 'fp-ts/Ord'
 import { sort } from 'fp-ts/ReadonlyArray'
-import { fold, Semigroup } from 'fp-ts/Semigroup'
+import { concatAll, Semigroup } from 'fp-ts/Semigroup'
 import * as S from 'fp-ts/string'
 import * as N from 'fp-ts/number'
 import * as B from 'fp-ts/boolean'
@@ -67,7 +67,10 @@ const users: ReadonlyArray<User> = [
 // un ordinamento classico:
 // prima per nome, poi per età, poi per `rememberMe`
 
-const byNameAgeRememberMe = fold(SemigroupUser)(byName)([byAge, byRememberMe])
+const byNameAgeRememberMe = concatAll(SemigroupUser)(byName)([
+  byAge,
+  byRememberMe
+])
 console.log(sort(byNameAgeRememberMe)(users))
 /*
 [ { id: 3, name: 'Giulio', age: 44, rememberMe: false },
@@ -79,7 +82,7 @@ console.log(sort(byNameAgeRememberMe)(users))
 // adesso invece voglio tutti gli utenti con
 // `rememberMe = true` per primi
 
-const byRememberMeNameAge = fold(SemigroupUser)(O.reverse(byRememberMe))([
+const byRememberMeNameAge = concatAll(SemigroupUser)(O.reverse(byRememberMe))([
   byName,
   byAge
 ])

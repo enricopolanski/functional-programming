@@ -9,7 +9,7 @@ import { URI } from 'fp-ts/TaskEither'
 const Monad: Monad2<URI> = {
   map: (f) => T.map(E.map(f)),
   of: (a) => T.of(E.of(a)),
-  chain: (f) => (ma) => pipe(ma, T.chain(E.fold((e) => T.of(E.left(e)), f)))
+  chain: (f) => (ma) => pipe(ma, T.chain(E.match((e) => T.of(E.left(e)), f)))
 }
 
 // ------------------------------------

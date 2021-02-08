@@ -3,7 +3,7 @@
  */
 import { Semigroup } from 'fp-ts/Semigroup'
 import * as O from 'fp-ts/Option'
-import { Monoid, fold } from 'fp-ts/Monoid'
+import { Monoid, concatAll } from 'fp-ts/Monoid'
 import * as N from 'fp-ts/number'
 
 declare const getMonoid: <A>(S: Semigroup<A>) => Monoid<O.Option<A>>
@@ -25,6 +25,6 @@ assert.deepStrictEqual(pipe(O.some(1), M.concat(M.empty)), O.some(1))
 assert.deepStrictEqual(pipe(M.empty, M.concat(O.some(2))), O.some(2))
 
 assert.deepStrictEqual(
-  fold(M)([O.some(1), O.some(2), O.none, O.some(3)]),
+  concatAll(M)([O.some(1), O.some(2), O.none, O.some(3)]),
   O.some(6)
 )

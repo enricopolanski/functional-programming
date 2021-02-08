@@ -79,7 +79,7 @@ const win = (player: Player): ((game: Game) => Game) =>
     (A, B) =>
       pipe(
         next(player === 'A' ? A : B),
-        O.fold(
+        O.match(
           (): Game => (A === B ? advantage(player) : game(player)),
           (next) => (player === 'A' ? score(next, B) : score(A, next))
         )

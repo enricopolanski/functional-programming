@@ -58,7 +58,7 @@ const getGuess: T.Task<string> = pipe(
   T.chain(
     flow(
       parseGuess,
-      O.fold(() => getGuess, T.of)
+      O.match(() => getGuess, T.of)
     )
   )
 )
