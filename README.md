@@ -708,7 +708,9 @@ const v2: Vector = { x: 1, y: 2 }
 console.log(pipe(v1, SemigroupVector.concat(v2))) // => { x: 2, y: 3 }
 ```
 
-![semigroupVector](images/semigroupVector.png)
+<center>
+<img src="images/semigroupVector.png" width="300" alt="SemigroupVector" />
+</center>
 
 Troppo boilerplate? La buona notizia è che **la teoria matematica** che sta dietro al concetto di semigruppo ci dice che possiamo costruire una istanza di semigruppo per una struct come `Vector` se siamo in grado di fornire una istanza di semigruppo per ogni suo campo.
 
