@@ -279,6 +279,16 @@ Lo scopo di un combinatore è quello di creare nuove "cose" da "cose" definite p
 
 Notate che il risultato del combinatore può essere nuovamente passato come input, si ottiene perciò una esplosione combinatoria di possibilità, il che rende questo pattern molto potente.
 
+**Esempio**
+
+```ts
+import { pipe } from 'fp-ts/function'
+
+const double = (n: number): number => n * 2
+
+console.log(pipe(2, double, double, double)) // => 16
+```
+
 Perciò il design generale che potete spesso trovare in un modulo funzionale è questo:
 
 - un modello per `T`
