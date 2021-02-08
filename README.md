@@ -273,6 +273,8 @@ Il concetto di combinatore è piuttosto sfumato e si può presentare in diverse 
 combinator: Thing -> Thing
 ```
 
+**Esempio**. Possiamo pensare alla funzione `double` come ad un combinatore di numeri.
+
 Lo scopo di un combinatore è quello di creare nuove "cose" da "cose" definite precedentemente.
 
 Notate che il risultato del combinatore può essere nuovamente passato come input, si ottiene perciò una esplosione combinatoria di possibilità, il che rende questo pattern molto potente.
