@@ -1425,7 +1425,7 @@ Si noti che l'insieme `f` deve essere descritto _staticamente_ in fase di defini
 (ovvero gli elementi di quell'insieme non possono variare nel tempo e per nessuna condizione interna o esterna).
 
 Quella dell'esempio viene detta definizione _estensionale_ di una funzione, ovvero si enumerano uno per uno gli elementi del dominio.
-Naturalmente quando l'insieme è infinito come in questo caso, la definizione può risultare un po' scomoda.
+Naturalmente quando l'insieme è infinito come in questo caso, la definizione può risultare un po' "scomoda".
 
 Si può ovviare a questo problema introducendo quella che viene detta definizione _intensionale_,
 ovvero si esprime una condizione che deve valere per tutte le coppie `(x, y) ∈ f` ovvero `y = x * 2`. Questa è la familiare forma con cui scriviamo la funzione `double` e come la definiamo in TypeScript:
@@ -1442,6 +1442,21 @@ Che una funzione sia pura non implica necessariamente che sia bandita la mutabil
 se non esce dai confini della implementazione.
 
 ![mutable / immutable](images/mutable-immutable.jpg)
+
+**Esempio** (Implementazione della funzione `fold` dei monoidi)
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { Monoid } from 'fp-ts/Monoid'
+
+const fold = <A>(M: Monoid<A>) => (as: ReadonlyArray<A>): A => {
+  let out: A = M.empty // <= mutabilità locale
+  for (let i = 0; i < as.length; i++) {
+    out = pipe(out, M.concat(as[i]))
+  }
+  return out
+}
+```
 
 L'obbiettivo è garantire la proprietà fondamentale di **trasparenza referenziale**.
 
@@ -1479,8 +1494,7 @@ declare const head: <A>(as: ReadonlyArray<A>) => A
 
 **Quiz**. La funzione `JSON.parse` è totale?
 
-Fortunatamente una funzione parziale `f: X ⟶ Y` può essere sempre ricondotta ad una funzione totale aggiungendo un valore speciale,
-chiamiamolo `None`, al codominio e associandolo ad ogni valore di `X` per cui `f` non è definita
+Fortunatamente una funzione parziale `f: X ⟶ Y` può essere sempre ricondotta ad una funzione totale aggiungendo al codominio un valore speciale non appartenente a `Y`, chiamiamolo `None`, e associandolo ad ogni valore di `X` per cui `f` non è definita
 
 ```
 f': X ⟶ Y ∪ None
@@ -1494,7 +1508,7 @@ f': X ⟶ Option(Y)
 
 In ambito funzionale si tende a definire solo funzioni pure e totali.
 
-E' possibile definire `Option(Y)` in TypeScript?
+E' possibile definire `Option(Y)` in TypeScript? Nei prossimi due capitoli vedremo come poterlo fare.
 
 # Algebraic Data Types
 
