@@ -60,6 +60,14 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+**Setup**
+
+```sh
+git clone https://github.com/gcanti/functional-programming.git
+cd functional-programming
+npm i
+```
+
 # Che cos'è la programmazione funzionale
 
 > Functional Programming is programming with pure functions. Mathematical functions.
