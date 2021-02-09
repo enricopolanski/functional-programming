@@ -229,7 +229,7 @@ Perché è così importante la trasparenza referenziale? Perché permette di:
 
 ```ts
 // In TypeScript `declare` permette di introdurre una definizione senza specificarne l'implementazione.
-declare function question(message: string): Promise<string>
+declare const question: (message: string) => Promise<string>
 
 const x = await question('What is your name?')
 const y = await question('What is your name?')
