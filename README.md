@@ -122,7 +122,7 @@ const xs: Array<number> = [1, 2, 3]
 // trasformazione
 const double = (n: number): number => n * 2
 
-// risultato
+// come risultato voglio un array con tutti gli elementi di `xs` raddoppiati
 const ys: Array<number> = []
 for (let i = 0; i < xs.length; i++) {
   ys.push(double(xs[i]))
