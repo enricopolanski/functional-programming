@@ -122,7 +122,7 @@ const xs: Array<number> = [1, 2, 3]
 // trasformazione
 const double = (n: number): number => n * 2
 
-// come risultato voglio un array con tutti gli elementi di `xs` raddoppiati
+// risultato: voglio un array con tutti gli elementi di `xs` raddoppiati
 const ys: Array<number> = []
 for (let i = 0; i < xs.length; i++) {
   ys.push(double(xs[i]))
@@ -142,7 +142,7 @@ Ma ciò vuol dire anche che ci sono più possibilità di introdurre **errori** e
 Vediamo ora come si utilizza `map`
 
 ```ts
-// risultato
+// risultato: voglio un array con tutti gli elementi di `xs` raddoppiati
 const ys = xs.map(double)
 ```
 
