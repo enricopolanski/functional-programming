@@ -36,8 +36,8 @@ export const MagmaSub: Magma<number> = {
 }
 
 // prova che MagmaSub non è un semigruppo
-// fc.assert(properties.semigroup.associativity(MagmaSub, fc.integer()))
+fc.assert(properties.semigroup.associativity(MagmaSub, fc.integer()))
 
 // prova che `last` e `first` producono dei semigruppi
-fc.assert(properties.semigroup.associativity(Se.first<number>(), fc.integer()))
-fc.assert(properties.semigroup.associativity(Se.last<number>(), fc.integer()))
+// fc.assert(properties.semigroup.associativity(Se.first<number>(), fc.integer()))
+// fc.assert(properties.semigroup.associativity(Se.last<number>(), fc.integer()))
