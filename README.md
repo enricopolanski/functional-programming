@@ -853,6 +853,7 @@ import * as E from 'fp-ts/Eq'
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 
+// restituisce `true` se l'elemento `a` compare nella lista `as`
 const elem = <A>(E: E.Eq<A>) => (a: A) => (as: ReadonlyArray<A>): boolean =>
   as.some(E.equals(a))
 
@@ -915,20 +916,61 @@ import * as RA from 'fp-ts/ReadonlyArray'
 const EqPoints: E.Eq<ReadonlyArray<Point>> = RA.getEq(EqPoint)
 ```
 
-Un altro utile combinatore per costruire nuove istanze di `Eq` è il combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
+Come succede con i semigrouppi, potete definire più di una istanza di `Eq` per lo stesso tipo. Supponiamo di aver modellato un utente con il seguente tipo
+
+```ts
+type User = {
+  readonly id: number
+  readonly name: string
+}
+```
+
+possiamo definire una istanza di `Eq` "standard" usando il combinatore `struct`:
 
 ```ts
 import * as E from 'fp-ts/Eq'
-import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
+import * as S from 'fp-ts/string'
 
 type User = {
   readonly id: number
   readonly name: string
 }
 
+const EqStandard: E.Eq<User> = E.struct({
+  id: N.Eq,
+  name: S.Eq
+})
+```
+
+Ma potremmo avere delle situazioni particolari in cui ci può interessare avere un tipo di uguaglianza tra utenti differente, per esempio potremmo considerare due utenti uguali se hanno il campo `id` uguale
+
+```ts
 /** due utenti sono uguali se sono uguali il loro campi `id` */
-const EqUser: E.Eq<User> = pipe(
+const EqID: E.Eq<User> = {
+  equals: (second) => (first) => N.Eq.equals(second.id)(first.id)
+}
+```
+
+Invece di definire `EqId` "a mano", possiamo utilizzare l'utile combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
+
+```ts
+import * as E from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import * as S from 'fp-ts/string'
+
+type User = {
+  readonly id: number
+  readonly name: string
+}
+
+const EqStandard: E.Eq<User> = E.struct({
+  id: N.Eq,
+  name: S.Eq
+})
+
+const EqID: E.Eq<User> = pipe(
   N.Eq,
   E.contramap((_: User) => _.id)
 )
@@ -936,12 +978,16 @@ const EqUser: E.Eq<User> = pipe(
 console.log(
   pipe(
     { id: 1, name: 'Giulio' },
-    EqUser.equals({ id: 1, name: 'Giulio Canti' })
+    EqStandard.equals({ id: 1, name: 'Giulio Canti' })
   )
+) // => false (le proprietà `name` sono diverse)
+
+console.log(
+  pipe({ id: 1, name: 'Giulio' }, EqID.equals({ id: 1, name: 'Giulio Canti' }))
 ) // => true (nonostante le proprietà `name` siano diverse)
 
 console.log(
-  pipe({ id: 1, name: 'Giulio' }, EqUser.equals({ id: 2, name: 'Giulio' }))
+  pipe({ id: 1, name: 'Giulio' }, EqID.equals({ id: 2, name: 'Giulio' }))
 ) // => false (nonostante le proprietà `name` siano uguali)
 ```
 
@@ -961,9 +1007,11 @@ console.log(users)
 // => Set { { id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio' } }
 ```
 
-Dato che `Set` utilizza `===` come concetto di uguaglianza fisso, `users` ora contiene **due copie identiche** di `user`, un risultato certo non voluto. Conviene perciò definire una nuova API che sfrutti l'astrazione `Eq`.
+Dato che `Set` utilizza `===` ("strict equality") come concetto di uguaglianza (fisso), `users` ora contiene **due copie identiche** di `user`, un risultato certo non voluto. Conviene perciò definire una nuova API che sfrutti l'astrazione `Eq`.
 
 **Quiz**. Che firma potrebbe avere questa nuova API?
+
+**Quiz**. Dato un tipo `A`, è possibile definire una istanza di semigruppo per `Eq<A>`? Cosa potrebbe rappresentare?
 
 # Modellare l'ordinamento con `Ord`
 
