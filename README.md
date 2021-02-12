@@ -778,11 +778,11 @@ export const intercalate = <A>(middle: A) => (
   concat: (second) => (first) => pipe(first, S.concat(middle), S.concat(second))
 })
 
-const SemigroupIntercalate = pipe(S.Semigroup, intercalate(' + '))
+const SemigroupIntercalate = pipe(S.Semigroup, intercalate('|'))
 
 console.log(
   pipe('a', SemigroupIntercalate.concat('b'), SemigroupIntercalate.concat('c'))
-) // => 'a + b + c'
+) // => 'a|b|c'
 ```
 
 ## Semigruppi derivabili da un ordinamento
@@ -943,7 +943,14 @@ const EqStandard: E.Eq<User> = E.struct({
 })
 ```
 
-Ma potremmo avere delle situazioni particolari in cui ci può interessare avere un tipo di uguaglianza tra utenti differente, per esempio potremmo considerare due utenti uguali se hanno il campo `id` uguale
+**Nota**. In un linguaggio come Haskell l'istanza di `Eq` standard per una struct come `User` può essere prodotta automaticamente dal compilatore.
+
+```haskell
+data User = User Int String
+     deriving (Eq)
+```
+
+Potremmo però avere delle situazioni particolari in cui ci può interessare avere un tipo di uguaglianza tra utenti differente, per esempio potremmo considerare due utenti uguali se hanno il campo `id` uguale
 
 ```ts
 /** due utenti sono uguali se sono uguali il loro campi `id` */
@@ -952,7 +959,9 @@ const EqID: E.Eq<User> = {
 }
 ```
 
-Invece di definire `EqId` "a mano", possiamo utilizzare l'utile combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
+Avendo "reificato" l'azione di confrontare due valori, cioè l'abbiamo resa concreta rappresentandola come una struttura dati, possiamo **manipolare programmaticamente** le istanze di `Eq` come facciamo per altre strutture dati, vediamo un esempio.
+
+**+*Esempio**. Invece di definire `EqId` "a mano", possiamo utilizzare l'utile combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
 
 ```ts
 import * as E from 'fp-ts/Eq'
@@ -1361,9 +1370,10 @@ import { pipe } from 'fp-ts/function'
 import * as Se from 'fp-ts/Semigroup'
 import * as S from 'fp-ts/string'
 
-const SemigroupIntercalate = pipe(S.Semigroup, Se.intercalate(' + '))
+const SemigroupIntercalate = pipe(S.Semigroup, Se.intercalate('|'))
 
-console.log(pipe('a', SemigroupIntercalate.concat('b'))) // => 'a + b'
+console.log(pipe('a', S.Semigroup.concat('b'))) // => 'ab'
+console.log(pipe('a', SemigroupIntercalate.concat('b'))) // => 'a|b'
 ```
 
 Notate come non sia possibile trovare un valore `empty` di tipo `string` tale che `a |> concat(empty) = a`.
