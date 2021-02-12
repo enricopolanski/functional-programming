@@ -861,7 +861,14 @@ console.log(pipe([1, 2, 3], elem(N.Eq)(2))) // => true
 console.log(pipe([1, 2, 3], elem(N.Eq)(4))) // => false
 ```
 
-Proviamo a definire una istanza per un tipo più complesso:
+Ma perché non usare il metodo nativo `includes` degli array?
+
+```ts
+console.log([1, 2, 3].includes(2)) // => true
+console.log([1, 2, 3].includes(4)) // => false
+```
+
+Per avere una risposta proviamo a definire una istanza per un tipo più complesso:
 
 ```ts
 import * as E from 'fp-ts/Eq'
@@ -880,7 +887,42 @@ console.log(pipe({ x: 1, y: 2 }, EqPoint.equals({ x: 1, y: 2 }))) // => true
 console.log(pipe({ x: 1, y: 2 }, EqPoint.equals({ x: 1, y: -2 }))) // => false
 ```
 
-Troppo boilerplate? La buona notizia è che la teoria ci dice che possiamo costruire una istanza di `Eq` per una struct come `Point` se siamo in grado di fornire una istanza di `Eq` per ogni suo campo.
+e utilizzare fianco a fianco `elem` e `includes`
+
+```ts
+const points = [
+  { x: 0, y: 0 },
+  { x: 1, y: 1 },
+  { x: 2, y: 2 }
+]
+
+console.log(points.includes({ x: 1, y: 1 })) // => false :(
+console.log(pipe(points, elem(EqPoint)({ x: 1, y: 1 }))) // => true :)
+```
+
+**Quiz** (JavaScript). Come mai usando `includes` ottengo `false`?
+
+Aver catturato il concetto di uguaglianza è fondamentale, soprattutto in un linguaggio come JavaScript in cui alcune strutture dati possiedono delle API poco usabili rispetto ad un concetto di uguaglianza custom. E' anche il caso di `Set` per esempio:
+
+```ts
+type Point = {
+  readonly x: number
+  readonly y: number
+}
+
+const points: Set<Point> = new Set([{ x: 0, y: 0 }])
+
+points.add({ x: 0, y: 0 })
+
+console.log(points)
+// => Set { { x: 0, y: 0 }, { x: 0, y: 0 } }
+```
+
+Dato che `Set` utilizza `===` ("strict equality") come concetto di uguaglianza (fisso), `points` ora contiene **due copie identiche** di `{ x: 0, y: 0 }`, un risultato certo non voluto. Conviene perciò definire una nuova API che sfrutti l'astrazione `Eq`.
+
+**Quiz**. Che firma potrebbe avere questa nuova API?
+
+Per definire `EqPoint` occorre troppo boilerplate? La buona notizia è che la teoria ci dice che possiamo costruire una istanza di `Eq` per una struct come `Point` se siamo in grado di fornire una istanza di `Eq` per ogni suo campo.
 
 Convenientemente il modulo `fp-ts/Eq` esporta un combinatore `struct`:
 
@@ -961,7 +1003,7 @@ const EqID: E.Eq<User> = {
 
 Avendo "reificato" l'azione di confrontare due valori, cioè l'abbiamo resa concreta rappresentandola come una struttura dati, possiamo **manipolare programmaticamente** le istanze di `Eq` come facciamo per altre strutture dati, vediamo un esempio.
 
-**+*Esempio**. Invece di definire `EqId` "a mano", possiamo utilizzare l'utile combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
+**Esempio**. Invece di definire `EqId` "a mano", possiamo utilizzare l'utile combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
 
 ```ts
 import * as E from 'fp-ts/Eq'
@@ -999,26 +1041,6 @@ console.log(
   pipe({ id: 1, name: 'Giulio' }, EqID.equals({ id: 2, name: 'Giulio' }))
 ) // => false (nonostante le proprietà `name` siano uguali)
 ```
-
-Aver catturato il concetto di uguaglianza è fondamentale, soprattutto in un linguaggio come JavaScript in cui alcune strutture dati possiedono delle API poco usabili rispetto ad un concetto di uguaglianza custom. E' il caso di `Set` per esempio:
-
-```ts
-type User = {
-  readonly id: number
-  readonly name: string
-}
-
-const users: Set<User> = new Set([{ id: 1, name: 'Giulio' }])
-
-users.add({ id: 1, name: 'Giulio' })
-
-console.log(users)
-// => Set { { id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio' } }
-```
-
-Dato che `Set` utilizza `===` ("strict equality") come concetto di uguaglianza (fisso), `users` ora contiene **due copie identiche** di `user`, un risultato certo non voluto. Conviene perciò definire una nuova API che sfrutti l'astrazione `Eq`.
-
-**Quiz**. Che firma potrebbe avere questa nuova API?
 
 **Quiz**. Dato un tipo `A`, è possibile definire una istanza di semigruppo per `Eq<A>`? Cosa potrebbe rappresentare?
 
