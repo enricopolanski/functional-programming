@@ -1368,7 +1368,7 @@ interface Monoid<A> extends Se.Semigroup<A> {
 }
 ```
 
-Molti dei semigruppi che abbiamo visto nelle sezioni precedenti sono in realtà dei monoidi:
+Molti dei semigruppi che abbiamo visto nelle sezioni precedenti possono essere arricchiti e diventare istanze di `Monoid`:
 
 ```ts
 import * as Mo from 'fp-ts/Monoid'
@@ -1521,7 +1521,7 @@ type Vector = readonly [number, number]
 const Monoid: Mo.Monoid<Vector> = Mo.tuple(N.MonoidSum, N.MonoidSum)
 ```
 
-**Demo**
+**Demo** (implementare un sistema per disegnare forme geometriche sulla console)
 
 [`03_shapes.ts`](src/03_shapes.ts)
 

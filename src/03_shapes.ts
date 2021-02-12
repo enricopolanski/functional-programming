@@ -9,6 +9,24 @@
 export type Shape<S> = (point: S) => boolean
 
 /*
+
+  FFFFFFFFFFFFFFFFFFFFFF
+  FFFFFFFFFFFFFFFFFFFFFF
+  FFFFFFFTTTTTTTTFFFFFFF
+  FFFFFFFTTTTTTTTFFFFFFF
+  FFFFFFFTTTTTTTTFFFFFFF
+  FFFFFFFTTTTTTTTFFFFFFF
+  FFFFFFFFFFFFFFFFFFFFFF
+  FFFFFFFFFFFFFFFFFFFFFF
+
+       ▧▧▧▧▧▧▧▧
+       ▧▧▧▧▧▧▧▧
+       ▧▧▧▧▧▧▧▧
+       ▧▧▧▧▧▧▧▧
+
+*/
+
+/*
   Definiamo uno spazio bidimensionale
 */
 export interface Point2D {
