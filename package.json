@@ -7,6 +7,7 @@
     "lint": "tslint -p .",
     "build": "tsc -p ./tsconfig.json",
     "doctoc": "doctoc README.md",
+    "shapes": "npx parcel src/shapes.html",
     "parcel": "npx parcel src/index.html"
   },
   "repository": {

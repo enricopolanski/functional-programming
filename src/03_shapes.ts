@@ -1,129 +1,143 @@
 /*
   PROBLEMA: implementare un sistema per disegnare forme geometriche sulla console.
 */
+import { pipe, getMonoid } from 'fp-ts/function'
+import * as Mo from 'fp-ts/Monoid'
+import * as B from 'fp-ts/boolean'
 
-/*
-  Una forma nello spazio `S` è una funzione che dato un punto di `S`
-  restituisce `true` se il punto appartiene alla forma e `false` altrimenti
-*/
-export type Shape<S> = (point: S) => boolean
+// -------------------------------------------------------------------------------------
+// model
+// -------------------------------------------------------------------------------------
 
-/*
-
-  FFFFFFFFFFFFFFFFFFFFFF
-  FFFFFFFFFFFFFFFFFFFFFF
-  FFFFFFFTTTTTTTTFFFFFFF
-  FFFFFFFTTTTTTTTFFFFFFF
-  FFFFFFFTTTTTTTTFFFFFFF
-  FFFFFFFTTTTTTTTFFFFFFF
-  FFFFFFFFFFFFFFFFFFFFFF
-  FFFFFFFFFFFFFFFFFFFFFF
-
-       ▧▧▧▧▧▧▧▧
-       ▧▧▧▧▧▧▧▧
-       ▧▧▧▧▧▧▧▧
-       ▧▧▧▧▧▧▧▧
-
-*/
-
-/*
-  Definiamo uno spazio bidimensionale
-*/
-export interface Point2D {
+export interface Point {
   readonly x: number
   readonly y: number
 }
 
-export type Shape2D = Shape<Point2D>
+/**
+ * Una forma è una funzione che dato un punto
+ * restituisce `true` se il punto appartiene alla forma e `false` altrimenti
+ */
+export type Shape = (point: Point) => boolean
 
 /*
-  Possiamo definire un primo combinatore che data una forma
-  restituisce la sua forma complementare (il negativo)
-*/
-export const outside2D = (s: Shape2D): Shape2D => (point) => !s(point)
 
-/*
-  Notate che non stiamo usando in nessun modo il fatto
-  che stiamo lavorando in due dimensioni. Generalizziamo!
-*/
-export const outside = <S>(s: Shape<S>): Shape<S> => (point) => !s(point)
+  FFFFFFFFFFFFFFFFFFFFFF
+  FFFFFFFFFFFFFFFFFFFFFF
+  FFFFFFFTTTTTTTTFFFFFFF
+  FFFFFFFTTTTTTTTFFFFFFF
+  FFFFFFFTTTTTTTTFFFFFFF
+  FFFFFFFTTTTTTTTFFFFFFF
+  FFFFFFFFFFFFFFFFFFFFFF
+  FFFFFFFFFFFFFFFFFFFFFF
 
-/*
-  Per testare outside definiamo un costruttore per la forma disco...
+       ▧▧▧▧▧▧▧▧
+       ▧▧▧▧▧▧▧▧
+       ▧▧▧▧▧▧▧▧
+       ▧▧▧▧▧▧▧▧
+
 */
-export const disk = (center: Point2D, radius: number): Shape2D => (point) =>
+
+// -------------------------------------------------------------------------------------
+// primitives
+// -------------------------------------------------------------------------------------
+
+/**
+ * Crea una forma che rappresenta un cerchio
+ */
+export const disk = (center: Point, radius: number): Shape => (point) =>
   distance(point, center) <= radius
 
 // distanza euclidea
-const distance = (p1: Point2D, p2: Point2D) =>
+const distance = (p1: Point, p2: Point) =>
   Math.sqrt(
     Math.pow(Math.abs(p1.x - p2.x), 2) + Math.pow(Math.abs(p1.y - p2.y), 2)
   )
 
-/*
-  ...e un modo per visualizzare una forma nella console
-*/
-import { Show } from 'fp-ts/Show'
+// draw(disk({ x: 200, y: 200 }, 100))
 
-export const showShape2D: Show<Shape2D> = {
-  show: (s) => {
-    let r = ''
-    for (let j = 20; j >= -20; j--) {
-      for (let i = -20; i <= 20; i++) {
-        r += s({ x: i, y: j }) ? '▧' : ' '
-      }
-      r += '\n'
-    }
-    return r
-  }
-}
+// -------------------------------------------------------------------------------------
+// combinators
+// -------------------------------------------------------------------------------------
 
-import { pipe, getMonoid } from 'fp-ts/function'
+/**
+ * Possiamo definire un primo combinatore che data una forma
+ * restituisce la sua forma complementare (il negativo)
+ */
+export const outside = (s: Shape): Shape => (point) => !s(point)
 
-const origin: Point2D = { x: 0, y: 0 }
+// draw(pipe(disk({ x: 200, y: 200 }, 100), outside))
 
-// console.log(pipe(disk(origin, 10), showShape2D.show))
-// console.log(pipe(disk(origin, 10), outside, showShape2D.show))
+// -------------------------------------------------------------------------------------
+// instances
+// -------------------------------------------------------------------------------------
 
-/*
-  Definiamo ora l'union e l'intersezione di due forme.
-  Per farlo possiamo sfruttare il risultato che il tipo
-  di una funzione ammette una istanza di monoide se il tipo
-  del codominio ammette una istanza di monoide
-*/
-import * as Mo from 'fp-ts/Monoid'
-import * as B from 'fp-ts/boolean'
+/**
+ * Un monoide in cui `concat` rappresenta l'unione di due forme
+ */
+export const MonoidUnion: Mo.Monoid<Shape> = getMonoid(B.MonoidAny)()
 
-export const MonoidUnion: Mo.Monoid<Shape2D> = getMonoid(B.MonoidAny)()
+// draw(
+//   pipe(
+//     disk({ x: 150, y: 200 }, 100),
+//     MonoidUnion.concat(disk({ x: 250, y: 200 }, 100))
+//   )
+// )
 
-// export const disk1 = disk({ x: -8, y: 0 }, 10)
-// export const disk2 = disk({ x: 8, y: 0 }, 10)
-// console.log(pipe(disk1, MonoidUnion.concat(disk2), showShape2D.show))
+/**
+ * Un monoide in cui `concat` rappresenta l'intersezione di due forme
+ */
+const MonoidIntersection: Mo.Monoid<Shape> = getMonoid(B.MonoidAll)()
 
-const MonoidIntersection: Mo.Monoid<Shape2D> = getMonoid(B.MonoidAll)()
+// draw(
+//   pipe(
+//     disk({ x: 150, y: 200 }, 100),
+//     MonoidIntersection.concat(disk({ x: 250, y: 200 }, 100))
+//   )
+// )
 
-// console.log(pipe(disk1, MonoidIntersection.concat(disk2), showShape2D.show))
-
-/*
-  Un costruttore per la forma anello
-*/
+/**
+ * Usando il combinatore `outside` e `MonoidIntersection` possiamo
+ * creare una forma che rappresenta un anello
+ */
 export const ring = (
-  point: Point2D,
+  point: Point,
   bigRadius: number,
   smallRadius: number
-): Shape2D =>
+): Shape =>
   pipe(
     disk(point, bigRadius),
     MonoidIntersection.concat(outside(disk(point, smallRadius)))
   )
 
-// console.log(pipe(ring(origin, 10, 6), showShape2D.show))
+// draw(ring({ x: 200, y: 200 }, 100, 50))
 
-export const shapes: ReadonlyArray<Shape2D> = [
-  disk(origin, 10),
-  disk({ x: -10, y: 7 }, 6),
-  disk({ x: 10, y: 7 }, 6)
+export const mickeymouse: ReadonlyArray<Shape> = [
+  disk({ x: 200, y: 200 }, 100),
+  disk({ x: 130, y: 100 }, 60),
+  disk({ x: 280, y: 100 }, 60)
 ]
 
-// mickey mouse
-// console.log(pipe(M.fold(MonoidUnion)(shapes), showShape2D.show))
+// draw(Mo.concatAll(MonoidUnion)(mickeymouse))
+
+export function draw(shape: Shape) {
+  const canvas: HTMLCanvasElement = document.getElementById('canvas') as any
+  const ctx: CanvasRenderingContext2D = canvas.getContext('2d') as any
+  const width = canvas.width
+  const height = canvas.height
+  const imagedata = ctx.createImageData(width, height)
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+      const point: Point = { x, y }
+      const b = shape(point)
+      if (b) {
+        const pixelindex = (point.y * width + point.x) * 4
+        imagedata.data[pixelindex] = 0
+        imagedata.data[pixelindex + 1] = 0
+        imagedata.data[pixelindex + 2] = 0
+        imagedata.data[pixelindex + 3] = 255
+      }
+    }
+  }
+  ctx.putImageData(imagedata, 0, 0)
+}
