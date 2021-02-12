@@ -1403,6 +1403,19 @@ const MonoidAny: Mo.Monoid<boolean> = {
 }
 ```
 
+**Quiz**. Nella sezione sui semigruppi abbiamo visto che `ReadonlyArray<string>` ammette una istanza di `Semigroup`:
+
+```ts
+import * as Se from 'fp-ts/Semigroup'
+
+const Semigroup: Se.Semigroup<ReadonlyArray<string>> = {
+  concat: (second) => (first) => first.concat(second)
+}
+```
+
+esiste anche l'unità? E' possibile generalizzare il risultato per `ReadonlyArray<A>` per qualsiasi tipo `A`?
+
+
 **Quiz** (difficile). Dato un monoide, è possibile che esista più di un elemento neutro?
 
 Ogni monoide è un semigruppo, ma non ogni semigruppo è un monoide.
