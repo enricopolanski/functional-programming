@@ -1,9 +1,9 @@
 /**
- * Implementare la funzione `fromArray`
+ * Implementare la funzione `fromReadonlyArray`
  */
 import { Magma } from 'fp-ts/Magma'
 
-const fromArray = <A>(M: Magma<A>) => (
+const fromReadonlyArray = <A>(M: Magma<A>) => (
   as: ReadonlyArray<readonly [string, A]>
 ): Readonly<Record<string, A>> => {
   const out: Record<string, A> = {}
@@ -43,6 +43,6 @@ const input: ReadonlyArray<readonly [string, number]> = [
   ['a', 3]
 ]
 
-assert.deepStrictEqual(fromArray(magmaSum)(input), { a: 4, b: 2 })
-assert.deepStrictEqual(fromArray(lastMagma)(input), { a: 3, b: 2 })
-assert.deepStrictEqual(fromArray(firstMagma)(input), { a: 1, b: 2 })
+assert.deepStrictEqual(fromReadonlyArray(magmaSum)(input), { a: 4, b: 2 })
+assert.deepStrictEqual(fromReadonlyArray(lastMagma)(input), { a: 3, b: 2 })
+assert.deepStrictEqual(fromReadonlyArray(firstMagma)(input), { a: 1, b: 2 })
