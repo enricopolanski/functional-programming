@@ -1344,6 +1344,8 @@ console.log(
 
 **Quiz**. Dato un tipo `A` è possibile definire una istanza di semigruppo per `Ord<A>`? Cosa potrebbe rappresentare?
 
+**Demo**
+
 [`02_ord.ts`](src/02_ord.ts)
 
 # Modellare la composizione con i monoidi
