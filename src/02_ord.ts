@@ -23,7 +23,7 @@ const getSemigroup = <A = never>(): Semigroup<O.Ord<A>> => ({
   concat: (second) => (first) =>
     O.fromCompare((a2) => (a1) => {
       const ordering = pipe(a1, first.compare(a2))
-      return ordering !== 0 ? ordering : pipe(a1, second.compare(a2))
+      return ordering === 0 ? pipe(a1, second.compare(a2)) : ordering
     })
 })
 
@@ -42,17 +42,17 @@ interface User {
 
 const byName = pipe(
   S.Ord,
-  O.contramap((p: User) => p.name)
+  O.contramap((_: User) => _.name)
 )
 
 const byAge = pipe(
   N.Ord,
-  O.contramap((p: User) => p.age)
+  O.contramap((_: User) => _.age)
 )
 
 const byRememberMe = pipe(
   B.Ord,
-  O.contramap((p: User) => p.rememberMe)
+  O.contramap((_: User) => _.rememberMe)
 )
 
 const SemigroupUser = getSemigroup<User>()

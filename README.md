@@ -1066,8 +1066,6 @@ Intuitivamente:
 - `x = y` se e solo se `x |> compare(y) = 0`
 - `x > y` se e solo se `x |> compare(y) = 1`
 
-Di conseguenza possiamo dire che `x <= y` se e solo se `x |> compare(y) <= 0`
-
 **Esempio**
 
 Proviamo a definire una istanza di `Ord` per il tipo `number`:
@@ -1109,7 +1107,23 @@ const OrdNumber: O.Ord<number> = O.fromCompare((second) => (first) =>
 
 **Quiz**. E' possibile definire un ordinamento per il gioco Sasso-Carta-Forbice compatibile con le mosse vincenti (ovvero `move1 <= move2` se `move2` batte `move1`)?
 
-Come primo esempio di utilizzo definiamo una funzione `min` che restituisce il minimo fra due valori:
+Come primo esempio di utilizzo definiamo una funzione `sort` che ordina gli elementi di un `ReadonlyArray`
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import * as O from 'fp-ts/Ord'
+
+export const sort = <A>(OA: O.Ord<A>) => (
+  as: ReadonlyArray<A>
+): ReadonlyArray<A> => as.slice().sort((a, b) => pipe(a, OA.compare(b)))
+
+console.log(pipe([1, 2, 3], sort(N.Ord))) // => [1, 2, 3]
+```
+
+**Quiz** (JavaScript). Perché nell'implementazione viene chiamato il metodo `slice`?
+
+Come altro esempio di utilizzo definiamo una funzione `min` che restituisce il minimo fra due valori:
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -1192,7 +1206,19 @@ declare const keys: <K>(O: Ord<K>) => <A>(m: ReadonlyMap<K, A>) => ReadonlyArray
 
 per quale motivo questa API richiede un `Ord<K>`?
 
-Torniamo finalmente al quesito iniziale: definire i due semigruppi `SemigroupMin` e `SemigroupMax` anche per altri tipi oltre a `number`.
+Torniamo finalmente al quesito iniziale: definire i due semigruppi `SemigroupMin` e `SemigroupMax` anche per altri tipi oltre a `number`:
+
+```ts
+import * as Se from 'fp-ts/Semigroup'
+
+const SemigroupMin: Se.Semigroup<number> = {
+  concat: (second) => (first) => Math.min(first, second)
+}
+
+const SemigroupMax: Se.Semigroup<number> = {
+  concat: (second) => (first) => Math.max(first, second)
+}
+```
 
 Ora che abbiamo a disposizione l'astrazione `Ord` possiamo farlo:
 
