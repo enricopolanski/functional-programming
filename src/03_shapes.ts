@@ -1,9 +1,8 @@
 /*
   PROBLEMA: implementare un sistema per disegnare forme geometriche sulla console.
 */
-import { pipe, getMonoid } from 'fp-ts/function'
+import { pipe } from 'fp-ts/function'
 import * as Mo from 'fp-ts/Monoid'
-import * as B from 'fp-ts/boolean'
 
 // -------------------------------------------------------------------------------------
 // model
@@ -75,7 +74,10 @@ export const outside = (s: Shape): Shape => (point) => !s(point)
 /**
  * Un monoide in cui `concat` rappresenta l'unione di due forme
  */
-export const MonoidUnion: Mo.Monoid<Shape> = getMonoid(B.MonoidAny)()
+export const MonoidUnion: Mo.Monoid<Shape> = {
+  concat: (second) => (first) => (point) => first(point) || second(point),
+  empty: () => false
+}
 
 // draw(
 //   pipe(
@@ -87,7 +89,10 @@ export const MonoidUnion: Mo.Monoid<Shape> = getMonoid(B.MonoidAny)()
 /**
  * Un monoide in cui `concat` rappresenta l'intersezione di due forme
  */
-const MonoidIntersection: Mo.Monoid<Shape> = getMonoid(B.MonoidAll)()
+const MonoidIntersection: Mo.Monoid<Shape> = {
+  concat: (second) => (first) => (point) => first(point) && second(point),
+  empty: () => true
+}
 
 // draw(
 //   pipe(
@@ -120,6 +125,10 @@ export const mickeymouse: ReadonlyArray<Shape> = [
 
 // draw(Mo.concatAll(MonoidUnion)(mickeymouse))
 
+// -------------------------------------------------------------------------------------
+// utils
+// -------------------------------------------------------------------------------------
+
 export function draw(shape: Shape) {
   const canvas: HTMLCanvasElement = document.getElementById('canvas') as any
   const ctx: CanvasRenderingContext2D = canvas.getContext('2d') as any
@@ -129,13 +138,12 @@ export function draw(shape: Shape) {
   for (let x = 0; x < width; x++) {
     for (let y = 0; y < height; y++) {
       const point: Point = { x, y }
-      const b = shape(point)
-      if (b) {
-        const pixelindex = (point.y * width + point.x) * 4
-        imagedata.data[pixelindex] = 0
-        imagedata.data[pixelindex + 1] = 0
-        imagedata.data[pixelindex + 2] = 0
-        imagedata.data[pixelindex + 3] = 255
+      if (shape(point)) {
+        const pixelIndex = (point.y * width + point.x) * 4
+        imagedata.data[pixelIndex] = 0
+        imagedata.data[pixelIndex + 1] = 0
+        imagedata.data[pixelIndex + 2] = 0
+        imagedata.data[pixelIndex + 3] = 255
       }
     }
   }
