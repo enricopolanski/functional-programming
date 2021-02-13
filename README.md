@@ -1646,9 +1646,17 @@ const concatAll = <A>(M: Monoid<A>) => (as: ReadonlyArray<A>): A => {
 }
 ```
 
-L'obbiettivo è garantire la proprietà fondamentale di **trasparenza referenziale**.
+L'obbiettivo vero è sempre quello di garantire la proprietà fondamentale di **trasparenza referenziale**.
 
-Dunque come si definisce un "side effect"?
+Il contratto che stipuliamo con l'utente della nostra API è definito dalla sua firma:
+
+```ts
+declare const concatAll: <A>(M: Monoid<A>) => (as: ReadonlyArray<A>) => A
+```
+
+e dalla promessa di rispettare la trasparenza referenziale, i dettagli tecnici di come la funzione è concretamente implementata non interessano e non sono sotto esame, c'è quindi la massima libertà.
+
+Dunque come si definisce un "side effect"? Semplicemente negando la trasparenza referenziale:
 
 > Una espressione contiene un "side effect" se non gode della trasparenza referenziale.
 
