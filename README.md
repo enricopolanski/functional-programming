@@ -1521,7 +1521,7 @@ type Vector = readonly [number, number]
 const Monoid: Mo.Monoid<Vector> = Mo.tuple(N.MonoidSum, N.MonoidSum)
 ```
 
-**Demo** (implementare un sistema per disegnare forme geometriche sulla console)
+**Demo** (implementare un sistema per disegnare forme geometriche su un canvas)
 
 [`03_shapes.ts`](src/03_shapes.ts)
 
