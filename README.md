@@ -1527,15 +1527,13 @@ const Monoid: Mo.Monoid<Vector> = Mo.tuple(N.MonoidSum, N.MonoidSum)
 
 # Funzioni pure e funzioni parziali
 
+Nel primo capitolo del corso abbiamo visto una definizione informale di funzione pura:
+
 > Una funzione pura è una procedura che dato lo stesso input restituisce sempre lo stesso output e non ha alcun side effect osservabile.
 
-Un tale enunciato informale può lasciare spazio a qualche dubbio
+Un tale enunciato informale può lasciare spazio a qualche dubbio (per esempio, che cos'è un "side effect"?)
 
-- che cos'è un "side effect"?
-- cosa vuol dire "osservabile"?
-- cosa si intende con "stesso"?
-
-Vediamo una definizione formale del concetto di funzione.
+Vediamo perciò una definizione formale:
 
 **Nota**. Ricordiamo che se `X` e `Y` sono due insiemi, allora con `X × Y` si indica il loro _prodotto cartesiano_, ovvero l'insieme
 
@@ -1579,6 +1577,54 @@ const double = (x: number): number => x * 2
 La definizione di funzione come sottoinsieme di un prodotto cartesiano mostra come in matematica tutte le funzioni siano pure:
 non c'è azione, modifica di stato o modifica degli elementi (che sono considerati immutabili) degli insiemi coinvolti.
 Nella programmazione funzionale l'implementazione delle funzioni deve tendere a questo modello ideale.
+
+**Quiz**. Quali delle seguenti procedure sono funzioni pure?
+
+```ts
+const coefficient1 = 2
+export const f1 = (n: number) => n * coefficient1
+
+// ------------------------------------------------------
+
+let coefficient2 = 2
+export const f2 = (n: number) => n * coefficient2++
+
+// ------------------------------------------------------
+
+let coefficient3 = 2
+export const f3 = (n: number) => n * coefficient3
+
+// ------------------------------------------------------
+
+export const f4 = (n: number) => {
+  const out = n * 2
+  console.log(out)
+  return out
+}
+
+// ------------------------------------------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+export declare const f5: (id: number) => Promise<User>
+
+// ------------------------------------------------------
+
+import * as fs from 'fs'
+
+export const f6 = (path: string): string =>
+  fs.readFileSync(path, { encoding: 'utf8' })
+
+// ------------------------------------------------------
+
+export const f7 = (
+  path: string,
+  callback: (err: Error | null, data: string) => void
+): void => fs.readFile(path, { encoding: 'utf8' }, callback)
+```
 
 Che una funzione sia pura non implica necessariamente che sia bandita la mutabilità, localmente è ammissibile
 se non esce dai confini della implementazione.
