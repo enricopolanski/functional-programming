@@ -16,6 +16,7 @@
   - [Semigruppi derivabili da un ordinamento](#semigruppi-derivabili-da-un-ordinamento)
 - [Modellare l'uguaglianza con `Eq`](#modellare-luguaglianza-con-eq)
 - [Modellare l'ordinamento con `Ord`](#modellare-lordinamento-con-ord)
+  - [L'ordinamento duale](#lordinamento-duale)
 - [Modellare la composizione con i monoidi](#modellare-la-composizione-con-i-monoidi)
   - [La funzione `concatAll`](#la-funzione-concatall-1)
   - [Monoide prodotto](#monoide-prodotto)
@@ -1134,6 +1135,33 @@ const min = <A>(O: O.Ord<A>) => (second: A) => (first: A): A =>
   pipe(first, O.compare(second)) === 1 ? second : first
 
 console.log(pipe(2, min(N.Ord)(1))) // => 1
+```
+
+## L'ordinamento duale
+
+Così come possiamo invertire l'operazione `concat` per ottenere il semigruppo duale (con il combinatore [`reverse`](#il-semigruppo-duale)), così anche l'operazione `compare` può essere invertita per ottenere l'ordinamento duale.
+
+Definiamo perciò il combinatore `reverse` per `Ord`:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as Or from 'fp-ts/Ord'
+
+export const reverse = <A>(O: Or.Ord<A>): Or.Ord<A> =>
+  Or.fromCompare((second) => (first) => pipe(second, O.compare(first)))
+```
+
+Come esempio di utilizzo di `reverse` possiamo ricavare la funzione `max` dalla funzione `min`:
+
+```ts
+import { flow, pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import * as Or from 'fp-ts/Ord'
+
+// const max: <A>(O: Or.Ord<A>) => (second: A) => (first: A) => A
+const max = flow(Or.reverse, Or.min)
+
+console.log(pipe(2, max(N.Ord)(1))) // => 2
 ```
 
 La **totalità** dell'ordinamento (ovvero dati due qualsiasi `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) può sembrare ovvia quando parliamo di numeri, ma non è sempre così. Consideriamo un caso più complesso
