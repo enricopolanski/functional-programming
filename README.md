@@ -1639,8 +1639,8 @@ import { Monoid } from 'fp-ts/Monoid'
 
 const concatAll = <A>(M: Monoid<A>) => (as: ReadonlyArray<A>): A => {
   let out: A = M.empty // <= mutabilità locale
-  for (let i = 0; i < as.length; i++) {
-    out = pipe(out, M.concat(as[i]))
+  for (const a of as) {
+    out = pipe(out, M.concat(a))
   }
   return out
 }
