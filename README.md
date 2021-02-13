@@ -1690,7 +1690,11 @@ declare const head: <A>(as: ReadonlyArray<A>) => A
 
 **Quiz**. La funzione `JSON.parse` è totale?
 
-Fortunatamente una funzione parziale `f: X ⟶ Y` può essere sempre ricondotta ad una funzione totale aggiungendo al codominio un valore speciale non appartenente a `Y`, chiamiamolo `None`, e associandolo ad ogni valore di `X` per cui `f` non è definita
+**Quiz**. La funzione `JSON.stringify` è totale?
+
+In ambito funzionale si tende a definire solo **funzioni pure e totali**, quindi come ci si deve comportare se si ha a che fare con una funzione parziale?
+
+Fortunatamente una funzione parziale `f: X ⟶ Y` può essere sempre ricondotta ad una funzione totale aggiungendo al codominio un valore speciale **non appartenente** a `Y`, chiamiamolo `None`, e associandolo ad ogni valore di `X` per cui `f` non è definita
 
 ```
 f': X ⟶ Y ∪ None
@@ -1701,8 +1705,6 @@ Chiamiamo `Option(Y) = Y ∪ None`.
 ```
 f': X ⟶ Option(Y)
 ```
-
-In ambito funzionale si tende a definire solo funzioni pure e totali.
 
 E' possibile definire `Option(Y)` in TypeScript? Nei prossimi due capitoli vedremo come poterlo fare.
 
