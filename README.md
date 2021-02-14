@@ -1802,6 +1802,10 @@ C([A, B]) = C(A) * C(B)
 
 **Esempio**
 
+Il tipo `boolean` ha cardinalità `2` perchè ha due abitanti: `true` e `false`.
+
+**Esempio**
+
 ```ts
 type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 type Period = 'AM' | 'PM'
