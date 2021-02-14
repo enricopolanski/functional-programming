@@ -2167,15 +2167,15 @@ class Textbox extends React.Component<Props> {
 ```ts
 declare function readFile(
   path: string,
-  //         ↓ -------------------------- ↓ CallbackArgs
-  callback: (err?: NodeJS.ErrnoException, data?: string) => void
+  //         ↓ ---------- ↓ CallbackArgs
+  callback: (err?: Error, data?: string) => void
 ): void
 ```
 
-Il risultato è modellato con un prodotto:
+Il risultato dell'operazione `readFile` è modellato con un product type (più precisamente una tupla) che viene passato come input alla funzione `callback`:
 
 ```ts
-type CallbackArgs = [NodeJS.ErrnoException | undefined, string | undefined]
+type CallbackArgs = [Error | undefined, string | undefined]
 ```
 
 tuttavia le sue componenti sono **dipendenti**: si riceve un errore **oppure** una stringa:
