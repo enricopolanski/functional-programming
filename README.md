@@ -1862,7 +1862,7 @@ Un sum type è una struttura dati che contiene un valore che può assumere diver
 
 Nella documentazione ufficiale di TypeScript sono indicati col nome [discriminated union](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html).
 
-E' importante sottolineare che i membri dell'unione che forma un sum type devono essere **disgiunti**, ovvero non devono esistere valori che appartengono a più di un membero.
+E' importante sottolineare che i membri dell'unione che forma un sum type devono essere **disgiunti**, ovvero non devono esistere valori che appartengono a più di un membro.
 
 **Esempio**
 
