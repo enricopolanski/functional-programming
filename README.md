@@ -1790,6 +1790,18 @@ type Name = Person['name'] // string
 type Age = Person['age'] // number
 ```
 
+I product type possono essere **polimorfici**.
+
+**Esempio**
+
+```ts
+//                ↓ type parameter
+type HttpResponse<A> = {
+  readonly code: number
+  readonly body: A
+}
+```
+
 ### Da dove viene il nome "product types"?
 
 Se indichiamo con `C(A)` il numero di abitanti del tipo `A` (ovvero la sua **cardinalità**) allora vale la seguente uguaglianza:
@@ -1902,6 +1914,26 @@ Ora che abbiamo visto un po' di esempi possiamo specificare meglio che cos'è un
 
 > In general, an algebraic data type specifies a sum of one or more alternatives, where each alternative is a product of zero or more fields.
 
+**Quiz**. Delle seguenti strutture dati dire se sono dei product type o dei sum type
+
+- `ReadonlyArray<A>`
+- `Record<string, A>`
+- `Record<'k1' | 'k2', A>`
+- `ReadonlyMap<string, A>`
+- `ReadonlyMap<'k1' | 'k2', A>`
+
+I sum type possono essere **polimorfici** e **ricorsivi**.
+
+**Esempio** (linked lists)
+
+```ts
+//        ↓ type parameter
+type List<A> =
+  | { readonly _tag: 'Nil' }
+  | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
+//                                                              ↑ recursion
+```
+
 ### Costruttori
 
 Un sum type con `n` membri necessita di (almeno) `n` **costruttori**, uno per ogni membro:
@@ -1924,26 +1956,6 @@ const del = (id: number): Action => ({
   id
 })
 ```
-
-I sum type possono essere **polimorfici** e **ricorsivi**.
-
-**Esempio** (linked lists)
-
-```ts
-//        ↓ type parameter
-type List<A> =
-  | { readonly _tag: 'Nil' }
-  | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
-//                                                              ↑ recursion
-```
-
-**Quiz**. Delle seguenti strutture dati dire se sono dei product type o dei sum type
-
-- `ReadonlyArray<A>`
-- `Record<string, A>`
-- `Record<'k1' | 'k2', A>`
-- `ReadonlyMap<string, A>`
-- `ReadonlyMap<'k1' | 'k2', A>`
 
 ### Pattern matching
 
