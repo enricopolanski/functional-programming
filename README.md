@@ -1898,6 +1898,10 @@ Il campo `type` fa da tag e assicura che i suoi membri siano disgiunti.
 
 **Nota**. Il nome del campo che fa da tag è a discrezione dello sviluppatore, non deve essere necessariamente "type".
 
+Ora che abbiamo visto un po' di esempi possiamo specificare meglio che cos'è un algebraic data type:
+
+> In general, an algebraic data type specifies a sum of one or more alternatives, where each alternative is a product of zero or more fields.
+
 ### Costruttori
 
 Un sum type con `n` membri necessita di (almeno) `n` **costruttori**, uno per ogni membro:
