@@ -1889,20 +1889,20 @@ Fortunatamente in TypeScript c'è un modo sicuro per garantire che una unione si
 **Esempio** (redux actions)
 
 ```ts
-type Action =
+export type Action =
   | {
-      type: 'ADD_TODO'
-      text: string
+      readonly type: 'ADD_TODO'
+      readonly text: string
     }
   | {
-      type: 'UPDATE_TODO'
-      id: number
-      text: string
-      completed: boolean
+      readonly type: 'UPDATE_TODO'
+      readonly id: number
+      readonly text: string
+      readonly completed: boolean
     }
   | {
-      type: 'DELETE_TODO'
-      id: number
+      readonly type: 'DELETE_TODO'
+      readonly id: number
     }
 ```
 
@@ -1927,8 +1927,8 @@ I sum type possono essere **polimorfici** e **ricorsivi**.
 **Esempio** (linked lists)
 
 ```ts
-//        ↓ type parameter
-type List<A> =
+//               ↓ type parameter
+export type List<A> =
   | { readonly _tag: 'Nil' }
   | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
 //                                                              ↑ recursion
@@ -1936,33 +1936,112 @@ type List<A> =
 
 ### Costruttori
 
-Un sum type con `n` membri necessita di (almeno) `n` **costruttori**, uno per ogni membro:
+Un sum type con `n` membri necessita di (almeno) `n` **costruttori**, uno per ogni membro.
+
+**Esempio** (redux action creators)
 
 ```ts
-const add = (text: string): Action => ({
+export type Action =
+  | {
+      readonly type: 'ADD_TODO'
+      readonly text: string
+    }
+  | {
+      readonly type: 'UPDATE_TODO'
+      readonly id: number
+      readonly text: string
+      readonly completed: boolean
+    }
+  | {
+      readonly type: 'DELETE_TODO'
+      readonly id: number
+    }
+
+export const add = (text: string): Action => ({
   type: 'ADD_TODO',
   text
 })
 
-const update = (id: number, text: string, completed: boolean): Action => ({
+export const update = (id: number, text: string, completed: boolean): Action => ({
   type: 'UPDATE_TODO',
   id,
   text,
   completed
 })
 
-const del = (id: number): Action => ({
+export const del = (id: number): Action => ({
   type: 'DELETE_TODO',
   id
 })
 ```
 
-### Pattern matching
-
-JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo tramite una funzione `match`:
+**Esempio** (linked lists)
 
 ```ts
-const match = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
+export type List<A> =
+  | { readonly _tag: 'Nil' }
+  | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
+
+// a nullary constructor can be implemented as a constant
+export const nil: List<never> = { _tag: 'Nil' }
+
+export const cons = <A>(head: A, tail: List<A>): List<A> => ({
+  _tag: 'Cons',
+  head,
+  tail
+})
+
+// equivalente ad un array [1, 2, 3]
+const myList = cons(1, cons(2, cons(3, nil)))
+```
+
+### Pattern matching
+
+JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo tramite una funzione `match`.
+
+**Esempio** (usando ancora `Action`)
+
+```ts
+export type Action =
+  | {
+      readonly type: 'ADD_TODO'
+      readonly text: string
+    }
+  | {
+      readonly type: 'UPDATE_TODO'
+      readonly id: number
+      readonly text: string
+      readonly completed: boolean
+    }
+  | {
+      readonly type: 'DELETE_TODO'
+      readonly id: number
+    }
+
+export const match = <R>(
+  onAdd: (text: string) => R,
+  onUpdate: (id: number, text: string, completed: boolean) => R,
+  onDelete: (id: number) => R
+) => (fa: Action): R => {
+  switch (fa.type) {
+    case 'ADD_TODO':
+      return onAdd(fa.text)
+    case 'UPDATE_TODO':
+      return onUpdate(fa.id, fa.text, fa.completed)
+    case 'DELETE_TODO':
+      return onDelete(fa.id)
+  }
+}
+```
+
+**Esempio** (linked lists)
+
+```ts
+export type List<A> =
+  | { readonly _tag: 'Nil' }
+  | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
+
+export const match = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
   fa: List<A>
 ): R => {
   switch (fa._tag) {
@@ -1972,18 +2051,15 @@ const match = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
       return onCons(fa.head, fa.tail)
   }
 }
-```
 
-**Nota**. TypeScript offre una ottima feature legata ai sum type: **exhaustive check**. Ovvero il type checker è in grado di determinare se tutti i casi sono stati gestiti nello `switch`.
-
-**Esempio** (calcolare la lunghezza di una `List` ricorsivamente)
-
-```ts
-const length: <A>(fa: List<A>) => number = match(
+// calcolare la lunghezza di una `List` ricorsivamente
+export const length: <A>(fa: List<A>) => number = match(
   () => 0,
   (_, tail) => 1 + length(tail)
 )
 ```
+
+**Nota**. TypeScript offre una ottima feature legata ai sum type: **exhaustive check**. Ovvero il type checker è in grado di determinare se tutti i casi sono stati gestiti nello `switch`.
 
 ### Da dove viene il nome "sum types"?
 
