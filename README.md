@@ -1850,6 +1850,24 @@ Un sum type è una struttura dati che contiene un valore che può assumere diver
 
 Nella documentazione ufficiale di TypeScript sono indicati col nome [discriminated union](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html).
 
+E' importante sottolineare che i membri dell'unione che forma un sum type devono essere **disgiunti**, ovvero non devono esistere valori che appartengono a più di un membero.
+
+**Esempio**
+
+Il tipo `type StringsOrNumbers = ReadonlyArray<string> | ReadonlyArray<number>` non è una unione disgiunta per il valore `[]` (array vuoto) appartiene ad ambedue i membri dell'unione.
+
+**Quiz**. La seguente unione è disgiunta?
+
+```ts
+type Member1 = { readonly a: string }
+type Member2 = { readonly b: number }
+type MyUnion = Member1 | Member2
+```
+
+In programmazione funzionale si tende ad usare sempre unioni disgiunte.
+
+Fortunatamente in TypeScript c'è un modo sicuro per garantire che una unione sia disgiunta: aggiungere un apposito campo che fa da **tag**.
+
 **Esempio** (redux actions)
 
 ```ts
