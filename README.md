@@ -2180,12 +2180,12 @@ type CallbackArgs = [Error | undefined, string | undefined]
 
 tuttavia le sue componenti sono **dipendenti**: si riceve un errore **oppure** una stringa:
 
-| err         | data        | legal? |
-| ----------- | ----------- | ------ |
-| `Error`     | `undefined` | ✓      |
-| `undefined` | `string`    | ✓      |
-| `Error`     | `string`    | ✘      |
-| `undefined` | `undefined` | ✘      |
+| err         | data        | legale? |
+| ----------- | ----------- | ------- |
+| `Error`     | `undefined` | ✓       |
+| `undefined` | `string`    | ✓       |
+| `Error`     | `string`    | ✘       |
+| `undefined` | `undefined` | ✘       |
 
 Un sum type sarebbe una scelta migliore, ma quale? Vediamo come si gestiscono gli errori in modo funzionale.
 
