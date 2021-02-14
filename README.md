@@ -2049,9 +2049,10 @@ export type List<A> =
   | { readonly _tag: 'Nil' }
   | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
 
-export const match = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
-  fa: List<A>
-): R => {
+export const match = <R, A>(
+  onNil: () => R,
+  onCons: (head: A, tail: List<A>) => R
+) => (fa: List<A>): R => {
   switch (fa._tag) {
     case 'Nil':
       return onNil()
@@ -2060,7 +2061,19 @@ export const match = <R, A>(onNil: () => R, onCons: (head: A, tail: List<A>) => 
   }
 }
 
-// calcolare la lunghezza di una `List` ricorsivamente
+// restituisce `true` se la lista è vuota
+export const isEmpty = match(
+  () => true,
+  () => false
+)
+
+// restituisce il primo elemento della lista oppure `undefined`
+export const head = match(
+  () => undefined,
+  (head, _tail) => head
+)
+
+// calcola la lunghezza di una lista (ricorsivamente)
 export const length: <A>(fa: List<A>) => number = match(
   () => 0,
   (_, tail) => 1 + length(tail)
