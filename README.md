@@ -1728,7 +1728,7 @@ parse: (text: string, reviver?: (this: any, key: string, value: any) => any) => 
 stringify: (value: any, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => string
 ```
 
-In ambito funzionale si tende a definire solo **funzioni pure e totali**, quindi come ci si deve comportare se si ha a che fare con una funzione parziale?
+In ambito funzionale si tende a definire solo **funzioni pure e totali** (d'ora in poi userò il termine "funzione" come sinonimo di "funzione pura e totale"), quindi come ci si deve comportare se si ha a che fare con una funzione parziale?
 
 Fortunatamente una funzione parziale `f: X ⟶ Y` può essere sempre ricondotta ad una funzione totale aggiungendo al codominio un valore speciale **non appartenente** a `Y`, chiamiamolo `None`, e associandolo ad ogni valore di `X` per cui `f` non è definita
 
@@ -1750,12 +1750,13 @@ Un buon primo passo quando si sta construendo una nuova applicazione è quello d
 
 ## Che cos'è un algebraic Data Types?
 
-> In computer programming, especially functional programming and type theory, an algebraic data type is a kind of composite type, i.e., **a type formed by combining other types**.
+> In computer programming, especially functional programming and type theory, an algebraic data type is a kind of composite type, i.e., a type formed by combining other types.
 
-Due famiglie comuni di algebraic data types sono:
+Due famiglie comuni di algebraic data types sono: **product types** e **sum types**.
 
-- i **product types**
-- i **sum types**
+<center>
+<img src="images/adt.png" width="400" alt="ADT" />
+</center>
 
 Cominciamo da quelli più familiari: i product type.
 
