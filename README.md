@@ -33,6 +33,8 @@
     - [Quando dovrei usare un sum type?](#quando-dovrei-usare-un-sum-type)
 - [Functional error handling](#functional-error-handling)
   - [Il tipo `Option`](#il-tipo-option)
+    - [Una istanza per `Eq`](#una-istanza-per-eq)
+    - [Una istanza per `Semigroup`](#una-istanza-per-semigroup)
   - [Il tipo `Either`](#il-tipo-either)
 - [Teoria delle categorie](#teoria-delle-categorie)
   - [Definizione](#definizione)
@@ -2305,6 +2307,115 @@ pipe(result, match(
   (n) => ...go on with my business logic...
 ))
 ```
+
+E' possibile definire delle istanze per le astrazioni che abbiamo visto nei capitoli precedenti? Cominciamo da `Eq`.
+
+### Una istanza per `Eq`
+
+Supponiamo di avere due valori di tipo `Option<string>` e volerli confrontare per capire se sono uguali:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { match, Option } from 'fp-ts/Option'
+
+declare const o1: Option<string>
+declare const o2: Option<string>
+
+const result: boolean = pipe(
+  o1,
+  match(
+    () =>
+      pipe(
+        o2,
+        match(
+          () => true,
+          () => false
+        )
+      ),
+    (s1) =>
+      pipe(
+        o2,
+        match(
+          () => false,
+          (s2) => s1 === s2 // <= qui uso l'uguaglianza tra stringhe
+        )
+      )
+  )
+)
+```
+
+E se avessimo due `Option<number>`? Il codice sarebbe pressoché uguale tranne alla fine quando confronto i valori contenuti nelle due `Option`, per i quali userò l'uguaglianza tra numeri.
+
+Ma allora possiamo generalizzare il codice richiedendo all'utente una istanza di `Eq` per `A` e quindi derivare una istanza di `Eq` per `Option<A>`.
+
+In altre parole possiamo definire un **combinatore** `getEq`: dato un `Eq<A>` il combinatore restituisce un `Eq<Option<A>>`:
+
+```ts
+import { Eq } from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
+import { match, Option, none, some } from 'fp-ts/Option'
+
+export const getEq = <A>(E: Eq<A>): Eq<Option<A>> => ({
+  equals: (second) => (first) =>
+    pipe(
+      first,
+      match(
+        () =>
+          pipe(
+            second,
+            match(
+              () => true,
+              () => false
+            )
+          ),
+        (a1) =>
+          pipe(
+            second,
+            match(
+              () => false,
+              (a2) => pipe(a1, E.equals(a2)) // <= qui uso l'uguaglianza tra `A`
+            )
+          )
+      )
+    )
+})
+
+import * as S from 'fp-ts/string'
+
+const EqOptionString = getEq(S.Eq)
+
+console.log(pipe(none, EqOptionString.equals(none))) // => true
+console.log(pipe(none, EqOptionString.equals(some('b')))) // => false
+console.log(pipe(some('a'), EqOptionString.equals(none))) // => false
+console.log(pipe(some('a'), EqOptionString.equals(some('b')))) // => false
+console.log(pipe(some('a'), EqOptionString.equals(some('a')))) // => true
+```
+
+Naturalmente possiamo usare tutti i combinatori già visti per `Eq`, ad esempio ecco come definire una istanza di `Eq` per `Option<readonly [string, number]>`:
+
+```ts
+import { tuple } from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import { getEq, Option, some } from 'fp-ts/Option'
+import * as S from 'fp-ts/string'
+
+type MyTuple = readonly [string, number]
+
+const EqMyTuple = tuple<MyTuple>(S.Eq, N.Eq)
+
+const EqOptionMyTuple = getEq(EqMyTuple)
+
+const o1: Option<MyTuple> = some(['a', 1])
+const o2: Option<MyTuple> = some(['a', 2])
+const o3: Option<MyTuple> = some(['b', 1])
+
+console.log(pipe(o1, EqOptionMyTuple.equals(o1))) // => true
+console.log(pipe(o1, EqOptionMyTuple.equals(o2))) // => false
+console.log(pipe(o1, EqOptionMyTuple.equals(o3))) // => false
+```
+
+### Una istanza per `Semigroup`
 
 Ora supponiamo di voler fare un "merge" di due `Option<A>`, ci sono quattro casi:
 
