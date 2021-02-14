@@ -2032,6 +2032,14 @@ export const match = <R>(
       return onDelete(fa.id)
   }
 }
+
+type State = { ... }
+
+const reducer = (action: Action, state: State): State => pipe(action, match(
+  onAdd: (text) => ...,
+  onUpdate: (id, text, completed) => ...,
+  onDelete: (id) => ...
+))
 ```
 
 **Esempio** (linked lists)
