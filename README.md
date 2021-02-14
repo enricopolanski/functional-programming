@@ -2080,7 +2080,9 @@ export const length: <A>(fa: List<A>) => number = match(
 )
 ```
 
-**Nota**. TypeScript offre una ottima feature legata ai sum type: **exhaustive check**. Ovvero il type checker è in grado di determinare se tutti i casi sono stati gestiti nello `switch`.
+**Quiz**. Perchè l'API `head` è sub ottimale?
+
+**Nota**. TypeScript offre una ottima feature legata ai sum type: **exhaustive check**. Ovvero il type checker è in grado di determinare se tutti i casi sono stati gestiti nello `switch` definito nel body della funzione `match`.
 
 ### Da dove viene il nome "sum types"?
 
