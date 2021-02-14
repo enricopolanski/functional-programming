@@ -1854,7 +1854,13 @@ E' importante sottolineare che i membri dell'unione che forma un sum type devono
 
 **Esempio**
 
-Il tipo `type StringsOrNumbers = ReadonlyArray<string> | ReadonlyArray<number>` non è una unione disgiunta per il valore `[]` (array vuoto) appartiene ad ambedue i membri dell'unione.
+Il tipo
+
+```ts
+type StringsOrNumbers = ReadonlyArray<string> | ReadonlyArray<number>
+```
+
+non è una unione disgiunta per il valore `[]` (array vuoto) appartiene ad ambedue i membri dell'unione.
 
 **Quiz**. La seguente unione è disgiunta?
 
