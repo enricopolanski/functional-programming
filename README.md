@@ -2415,6 +2415,30 @@ console.log(pipe(o1, EqOptionMyTuple.equals(o2))) // => false
 console.log(pipe(o1, EqOptionMyTuple.equals(o3))) // => false
 ```
 
+Se modifichiamo di poco gli import dello snippet precedente possiamo ottenere un risultato analogo per `Ord`:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import { getOrd, Option, some } from 'fp-ts/Option'
+import { tuple } from 'fp-ts/Ord'
+import * as S from 'fp-ts/string'
+
+type MyTuple = readonly [string, number]
+
+const OrdMyTuple = tuple<MyTuple>(S.Ord, N.Ord)
+
+const OrdOptionMyTuple = getOrd(OrdMyTuple)
+
+const o1: Option<MyTuple> = some(['a', 1])
+const o2: Option<MyTuple> = some(['a', 2])
+const o3: Option<MyTuple> = some(['b', 1])
+
+console.log(pipe(o1, OrdOptionMyTuple.compare(o1))) // => 0
+console.log(pipe(o1, OrdOptionMyTuple.compare(o2))) // => -1
+console.log(pipe(o1, OrdOptionMyTuple.compare(o3))) // => -1
+```
+
 ### Una istanza per `Semigroup`
 
 Ora supponiamo di voler fare un "merge" di due `Option<A>`, ci sono quattro casi:
