@@ -2097,15 +2097,23 @@ C(A | B) = C(A) + C(B)
 **Esempio** (the `Option` type)
 
 ```ts
-type Option<A> =
-  | { readonly _tag: 'None' }
-  | {
-      readonly _tag: 'Some'
-      readonly value: A
-    }
+type None = {
+  readonly _tag: 'None'
+}
+
+type Some<A> = {
+  readonly _tag: 'Some'
+  readonly value: A
+}
+
+type Option<A> = None | Some<A>
 ```
 
-Dalla formula generale `C(Option<A>) = 1 + C(A)` possiamo derivare per esempio la cardinalità di `Option<boolean>`: `1 + 2 = 3` abitanti.
+Dalla formula generale ottengo `C(Option<A>) = C(None) + C(Some<A>) = 1 + C(A)`, da cui possiamo derivare per esempio la cardinalità di `Option<boolean>`, ovvero `1 + 2 = 3` abitanti:
+
+- `{ _tag: 'None' }`
+- `{ _tag: 'Some', value: true }`
+- `{ _tag: 'Some', value: false }`
 
 ### Quando dovrei usare un sum type?
 
