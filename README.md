@@ -1860,7 +1860,7 @@ Il tipo
 type StringsOrNumbers = ReadonlyArray<string> | ReadonlyArray<number>
 ```
 
-non è una unione disgiunta per il valore `[]` (array vuoto) appartiene ad ambedue i membri dell'unione.
+non è una unione disgiunta perché il valore `[]` (array vuoto) appartiene ad ambedue i membri dell'unione.
 
 **Quiz**. La seguente unione è disgiunta?
 
