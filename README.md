@@ -1839,7 +1839,7 @@ type Clock = {
 Ogniqualvolta le sue conponenti sono **indipendenti**.
 
 ```ts
-type Clock = [Hour, Period]
+type Clock = readonly [Hour, Period]
 ```
 
 Qui `Hour` e `Period` sono indipendenti, ovvero il valore di `Hour` non influisce sul valore di `Period` e viceversa, tutte le coppie sono legali e hanno senso.
@@ -1848,7 +1848,7 @@ Qui `Hour` e `Period` sono indipendenti, ovvero il valore di `Hour` non influisc
 
 Un sum type è una struttura dati che contiene un valore che può assumere diversi tipi (ma fissi). Solo uno dei tipi può essere in uso in un dato momento, e un campo che fa da "tag" indica quale di questi è in uso.
 
-Nella documentazione ufficiale di TypeScript sono denominati _tagged union types_.
+Nella documentazione ufficiale di TypeScript sono indicati col nome [discriminated union](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html).
 
 **Esempio** (redux actions)
 
