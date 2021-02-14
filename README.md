@@ -1914,7 +1914,7 @@ Ora che abbiamo visto un po' di esempi possiamo specificare meglio che cos'è un
 
 > In general, an algebraic data type specifies a sum of one or more alternatives, where each alternative is a product of zero or more fields.
 
-**Quiz**. Delle seguenti strutture dati dire se sono dei product type o dei sum type
+**Quiz** (TypeScript). Delle seguenti strutture dati dire se sono dei product type o dei sum type
 
 - `ReadonlyArray<A>`
 - `Record<string, A>`
