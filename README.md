@@ -1802,6 +1802,10 @@ C([A, B]) = C(A) * C(B)
 
 **Esempio**
 
+Il tipo `null` ha cardinalità `1` perchè ha un solo abitante: `null`.
+
+**Esempio**
+
 Il tipo `boolean` ha cardinalità `2` perchè ha due abitanti: `true` e `false`.
 
 **Esempio**
@@ -1809,10 +1813,26 @@ Il tipo `boolean` ha cardinalità `2` perchè ha due abitanti: `true` e `false`.
 ```ts
 type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 type Period = 'AM' | 'PM'
-type Clock = [Hour, Period]
+type Clock = readonly [Hour, Period]
 ```
 
+Il tipo `Hour` ha `12` abitanti.
+Il tipo `Period` ha `2` abitanti.
 Il tipo `Clock` ha `12 * 2 = 24` abitanti.
+
+**Quiz**. Quanti abitanti ha il seguente tipo `Clock`?
+
+```ts
+// same as before
+type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
+// same as before
+type Period = 'AM' | 'PM'
+
+type Clock = {
+  readonly hour: Hour
+  readonly period: Period
+}
+```
 
 ### Quando posso usare un product type?
 
