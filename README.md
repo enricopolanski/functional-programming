@@ -2269,19 +2269,42 @@ try {
 in cui il type system è all'oscuro di un possibile fallimento, a:
 
 ```ts
-//                              ↓ the type system "knows" that this computation may fail
-const head = <A>(as: Array<A>): Option<A> =>
-  as.length === 0 ? none : some(as[0])
-
 import { pipe } from 'fp-ts/function'
 
-const s = pipe(
-  head([]),
-  match(() => 'Empty array', a => String(a))
+//                                      ↓ the type system "knows" that this computation may fail
+const head = <A>(as: ReadonlyArray<A>): Option<A> =>
+  as.length === 0 ? none : some(as[0])
+
+declare const numbers: ReadonlyArray<number>
+
+const result = pipe(
+  head(numbers),
+  match(
+    () => 'Empty array',
+    (n) => String(n)
+  )
 )
 ```
 
 ove la possibilità di errore è codificata nel type system.
+
+Infatti se proviamo ad accedere alla proprietà `value` di una `Option` senza controllare in quale dei due casi siamo, il type system ci avverte del possibile errore:
+
+```ts
+declare const numbers: ReadonlyArray<number>
+
+const result = head(numbers)
+result.value // type checker error: Property 'value' does not exist on type 'Option<number>'
+```
+
+L'unico modo per accedere al valore contenuto in una `Option` è gestire anche il caso di fallimento utilizzando la funzione `match`
+
+```ts
+pipe(result, match(
+  () => ...handle error...
+  (n) => ...go on with my business logic...
+))
+```
 
 Ora supponiamo di voler fare un "merge" di due `Option<A>`, ci sono quattro casi:
 
