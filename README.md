@@ -1559,11 +1559,11 @@ Nel primo capitolo del corso abbiamo visto una definizione informale di funzione
 
 > Una funzione pura è una procedura che dato lo stesso input restituisce sempre lo stesso output e non ha alcun side effect osservabile.
 
-Un tale enunciato informale può lasciare spazio a qualche dubbio (per esempio, che cos'è un "side effect"?)
+Un tale enunciato può lasciare spazio a qualche dubbio (per esempio, che cos'è un "side effect"?)
 
 Vediamo perciò una definizione formale:
 
-**Nota**. Ricordiamo che se `X` e `Y` sono due insiemi, allora con `X × Y` si indica il loro _prodotto cartesiano_, ovvero l'insieme
+Ricordiamo che se `X` e `Y` sono due insiemi, allora con `X × Y` si indica il loro _prodotto cartesiano_, ovvero l'insieme
 
 ```
 X × Y = { (x, y) | x ∈ X, y ∈ Y }
@@ -1574,14 +1574,17 @@ per ogni `x ∈ X` esiste esattamente un `y ∈ Y` tale che la coppia `(x, y) �
 
 L'insieme `X` si dice il _dominio_ di `f`, `Y` il suo _codominio_.
 
+Si noti che l'insieme `f` deve essere descritto _staticamente_ in fase di definizione della funzione
+(ovvero gli elementi di quell'insieme non possono variare nel tempo e per nessuna condizione interna o esterna).
+
 **Esempio**
 
-La funzione `double: Nat ⟶ Nat` è il sottoinsieme del prodotto cartesiano `Nat × Nat` dato da `{ (1, 2), (2, 4), (3, 6), ...}`.
+La funzione `double: Nat ⟶ Nat`, ove `Nat` è l'insieme dei numeri naturali, è il sottoinsieme del prodotto cartesiano `Nat × Nat` dato dalle coppie `{ (1, 2), (2, 4), (3, 6), ...}`.
 
-In TypeScript
+In TypeScript `f` potrebbe essere definita così:
 
 ```ts
-const f: { [key: number]: number } = {
+const f: Record<number, number> = {
   1: 2,
   2: 4,
   3: 6
@@ -1589,14 +1592,11 @@ const f: { [key: number]: number } = {
 }
 ```
 
-Si noti che l'insieme `f` deve essere descritto _staticamente_ in fase di definizione della funzione
-(ovvero gli elementi di quell'insieme non possono variare nel tempo e per nessuna condizione interna o esterna).
-
-Quella dell'esempio viene detta definizione _estensionale_ di una funzione, ovvero si enumerano uno per uno gli elementi del dominio.
-Naturalmente quando l'insieme è infinito come in questo caso, la definizione può risultare un po' "scomoda".
+Quella dell'esempio viene detta definizione _estensionale_ di una funzione, ovvero si enumerano uno per uno gli elementi del dominio e per ciascuno di essi si indica il corrispondente elemento del codominio.
+Naturalmente quando l'insieme è infinito, come in questo caso, la definizione può risultare un po' "scomoda".
 
 Si può ovviare a questo problema introducendo quella che viene detta definizione _intensionale_,
-ovvero si esprime una condizione che deve valere per tutte le coppie `(x, y) ∈ f` ovvero `y = x * 2`. Questa è la familiare forma con cui scriviamo la funzione `double` e come la definiamo in TypeScript:
+ovvero si esprime una condizione che deve valere per tutte le coppie `(x, y)` appartenenti all'insieme `f`, ovvero `y = x * 2`. Questa è la forma familiare con cui scriviamo la funzione `double` e come la definiamo in TypeScript:
 
 ```ts
 const double = (x: number): number => x * 2
@@ -1718,7 +1718,15 @@ declare const head: <A>(as: ReadonlyArray<A>) => A
 
 **Quiz**. La funzione `JSON.parse` è totale?
 
+```ts
+parse: (text: string, reviver?: (this: any, key: string, value: any) => any) => any
+```
+
 **Quiz**. La funzione `JSON.stringify` è totale?
+
+```ts
+stringify: (value: any, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => string
+```
 
 In ambito funzionale si tende a definire solo **funzioni pure e totali**, quindi come ci si deve comportare se si ha a che fare con una funzione parziale?
 
