@@ -2201,29 +2201,53 @@ potete indicare un contro di questa seconda soluzione quando si utilizza un ling
 
 Vediamo come gestire gli errori in modo funzionale.
 
-## Il tipo `Option`
+Nel capitolo [Funzioni pure e funzioni parziali](#funzioni-pure-e-funzioni-parziali) abbiamo visto che ogni funzione parziale `f` può essere sempre ricondotta ad una funzione totale `f'`
 
-Il tipo `Option` rappresenta l'effetto di una computazione che può fallire oppure restituire un valore di tipo `A`:
-
-```ts
-type Option<A> =
-  | { readonly _tag: 'None' } // represents a failure
-  | { readonly _tag: 'Some'; readonly value: A } // represents a success
+```
+f': X ⟶ Option(Y)
 ```
 
-Costruttori e pattern matching:
+Ora che sappiamo qualcosa di più sui sum type in TypeScript possiamo definire `Option` senza ulteriore indugio.
+
+## Il tipo `Option`
+
+Il tipo `Option<A>` rappresenta l'effetto di una computazione che può fallire (caso `None`) oppure restituire un valore di tipo `A` (caso `Some`):
 
 ```ts
-// a nullary constructor can be implemented as a constant
+// represents a failure
+type None = {
+  readonly _tag: 'None'
+}
+
+// represents a success
+type Some<A> = {
+  readonly _tag: 'Some'
+  readonly value: A
+}
+
+type Option<A> = None | Some<A>
+```
+
+Vediamone anche i costruttori e la sua funzione `match` di "pattern matching":
+
+```ts
 const none: Option<never> = { _tag: 'None' }
 
 const some = <A>(value: A): Option<A> => ({ _tag: 'Some', value })
 
-const match = <R, A>(onNone: () => R, onSome: (a: A) => R) => (fa: Option<A>): R =>
-  fa._tag === 'None' ? onNone() : onSome(fa.value)
+const match = <R, A>(onNone: () => R, onSome: (a: A) => R) => (
+  fa: Option<A>
+): R => {
+  switch (fa._tag) {
+    case 'None':
+      return onNone()
+    case 'Some':
+      return onSome(fa.value)
+  }
+}
 ```
 
-Il tipo `Option` può essere usato per evitare di lanciare eccezioni e/o rappresentare i valori opzionali, così possiamo passare da...
+Il tipo `Option` può essere usato per evitare di lanciare eccezioni e/o rappresentare i valori opzionali, così possiamo passare da:
 
 ```ts
 //                        this is a lie ↓
@@ -2242,7 +2266,7 @@ try {
 }
 ```
 
-...in cui il type system è all'oscuro di un possibile fallimento, a...
+in cui il type system è all'oscuro di un possibile fallimento, a:
 
 ```ts
 //                              ↓ the type system "knows" that this computation may fail
@@ -2257,7 +2281,7 @@ const s = pipe(
 )
 ```
 
-...ove la possibilità di errore è codificata nel type system.
+ove la possibilità di errore è codificata nel type system.
 
 Ora supponiamo di voler fare un "merge" di due `Option<A>`, ci sono quattro casi:
 
