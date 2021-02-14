@@ -2564,9 +2564,19 @@ Un uso comune di `Either` è come alternativa ad `Option` per gestire l'effetto 
 In questo uso, `None` è sostituito da `Left` che contiene informazione utile relativa all'errore. `Right` invece sostituisce `Some`.
 
 ```ts
-type Either<E, A> =
-  | { readonly _tag: 'Left'; readonly left: E } // represents a failure
-  | { readonly _tag: 'Right'; readonly right: A } // represents a success
+// represents a failure
+type Left<E> = {
+  readonly _tag: 'Left'
+  readonly left: E
+}
+
+// represents a success
+type Right<A> = {
+  readonly _tag: 'Right'
+  readonly right: A
+}
+
+type Either<E, A> = Left<E> | Right<A>
 ```
 
 Costruttori e pattern matching:
@@ -2578,7 +2588,14 @@ const right = <A, E>(right: A): Either<E, A> => ({ _tag: 'Right', right })
 
 const match = <E, R, A>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
   fa: Either<E, A>
-): R => (fa._tag === 'Left' ? onLeft(fa.left) : onRight(fa.right))
+): R => {
+  switch (fa._tag) {
+    case 'Left':
+      return onLeft(fa.left)
+    case 'Right':
+      return onRight(fa.right)
+  }
+}
 ```
 
 Tornando all'esempio con la callback:
