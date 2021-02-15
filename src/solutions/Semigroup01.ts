@@ -7,7 +7,7 @@ import * as N from 'fp-ts/number'
 
 const concatAll = <A>(S: Semigroup<A>) => (startWith: A) => (
   as: ReadonlyArray<A>
-): A => as.reduce((a, acc) => pipe(acc, S.concat(a)), startWith)
+): A => as.reduce((acc, a) => pipe(acc, S.concat(a)), startWith)
 
 // ------------------------------------
 // tests
