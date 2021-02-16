@@ -55,8 +55,9 @@ const byRememberMe = pipe(
   O.contramap((_: User) => _.rememberMe)
 )
 
-const SemigroupUser = getSemigroup<User>()
+const SemigroupOrdUser = getSemigroup<User>()
 
+// rappresenta una tabella da ordinare
 const users: ReadonlyArray<User> = [
   { id: 1, name: 'Guido', age: 47, rememberMe: false },
   { id: 2, name: 'Guido', age: 46, rememberMe: true },
@@ -67,7 +68,7 @@ const users: ReadonlyArray<User> = [
 // un ordinamento classico:
 // prima per nome, poi per età, poi per `rememberMe`
 
-const byNameAgeRememberMe = concatAll(SemigroupUser)(byName)([
+const byNameAgeRememberMe = concatAll(SemigroupOrdUser)(byName)([
   byAge,
   byRememberMe
 ])
@@ -82,10 +83,9 @@ console.log(sort(byNameAgeRememberMe)(users))
 // adesso invece voglio tutti gli utenti con
 // `rememberMe = true` per primi
 
-const byRememberMeNameAge = concatAll(SemigroupUser)(O.reverse(byRememberMe))([
-  byName,
-  byAge
-])
+const byRememberMeNameAge = concatAll(SemigroupOrdUser)(
+  O.reverse(byRememberMe)
+)([byName, byAge])
 console.log(sort(byRememberMeNameAge)(users))
 /*
 [ { id: 4, name: 'Giulio', age: 44, rememberMe: true },
