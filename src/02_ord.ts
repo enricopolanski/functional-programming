@@ -21,10 +21,9 @@ import * as B from 'fp-ts/boolean'
 
 const getSemigroup = <A = never>(): Semigroup<O.Ord<A>> => ({
   concat: (second) => (first) =>
-    O.fromCompare((a2) => (a1) => {
-      const ordering = pipe(a1, first.compare(a2))
-      return ordering === 0 ? pipe(a1, second.compare(a2)) : ordering
-    })
+    O.fromCompare((a2) => (a1) =>
+      pipe(a1, first.compare(a2)) === 0 ? pipe(a1, second.compare(a2)) : 0
+    )
 })
 
 /*
