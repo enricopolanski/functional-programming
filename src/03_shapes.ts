@@ -1,5 +1,5 @@
 /*
-  PROBLEMA: implementare un sistema per disegnare forme geometriche sulla console.
+  PROBLEMA: implementare un sistema per disegnare forme geometriche sul canvas.
 */
 import { pipe } from 'fp-ts/function'
 import * as Mo from 'fp-ts/Monoid'
