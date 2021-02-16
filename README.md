@@ -847,6 +847,10 @@ Devono valere le seguenti leggi:
 2. **Symmetry**: `a |> equals(b) === b |> equals(a)`, per ogni `a`, `b` in `A`
 3. **Transitivity**: se `a |> equals(b) === true` e `b |> equals(c) === true`, allora `a |> equals(c) === true`, per ogni `a`, `b`, `c` in `A`
 
+**Quiz**. Ha senso un combinatore `reverse: <A>(E: Eq<A>) => Eq<A>`?
+
+**Quiz**. Ha senso un combinatore `not: <A>(E: Eq<A>) => Eq<A>`?
+
 **Esempio**
 
 Come primo esempio di utilizzo dell'astrazione `Eq` definiamo una funzione `elem` che indica se un dato valore è un elemento di un `ReadonlyArray`:
