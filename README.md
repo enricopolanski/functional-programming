@@ -1446,7 +1446,9 @@ const Semigroup: Se.Semigroup<ReadonlyArray<string>> = {
 esiste anche l'unità? E' possibile generalizzare il risultato per `ReadonlyArray<A>` per qualsiasi tipo `A`?
 
 
-**Quiz** (difficile). Dato un monoide, è possibile che esista più di un elemento neutro?
+**Quiz** (difficile). Dimostrare che, dato un monoide, l'elemento neutro è unico.
+
+La conseguenza pratica è che se avete trovato una unità smettete di cercare!
 
 Ogni monoide è un semigruppo, ma non ogni semigruppo è un monoide.
 
