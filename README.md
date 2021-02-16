@@ -2189,6 +2189,10 @@ tuttavia le sue componenti sono **dipendenti**: si riceve un errore **oppure** u
 | `Error`     | `string`    | ✘       |
 | `undefined` | `undefined` | ✘       |
 
+Questa API non è modellata seguendo questo adagio:
+
+> Make impossible state unrepresentable
+
 Un sum type sarebbe una scelta migliore, ma quale? Vediamo come si gestiscono gli errori in modo funzionale.
 
 **Quiz**. Recentemente alle API a callback si preferiscono le API che restituiscono una `Promise`
