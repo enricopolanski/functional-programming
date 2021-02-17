@@ -2667,7 +2667,51 @@ Ma cosa significa esattamente? Quando possiamo dire che due cose *compongono*? E
 
 > Entities are composable if we can easily and generally combine their behaviors in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for acheiving reuse, and for achieving a combinatorial expansion of what is succinctly expressible in a programming model. - Paul Chiusano
 
-Occorre poter fare riferimento ad una **teoria rigorosa** che possa fornire risposte a domande così fondamentali.
+Nel primo capitolo abbiamo appreso che un programma in stile funzionale tende ad essere scritto come una pipeline:
+
+```ts
+const program = pipe(
+  input,
+  f1, // funzione pura
+  f2, // funzione pura
+  f3, // funzione pura
+  ...
+)
+```
+
+Ma quanto è facile attenersi a questo stile? E' davvero fattibile questa cosa? Proviamoci:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as RA from 'fp-ts/ReadonlyArray'
+
+const double = (n: number): number => n * 2
+
+/**
+ * Dato un ReadonlyArray<number> il programma restituisce il primo elemento raddoppiato
+ */
+const program = (input: ReadonlyArray<number>): number =>
+  pipe(
+    input,
+    RA.head, // errore di compilazione! Type 'Option<number>' is not assignable to type 'number'
+    double
+  )
+```
+
+Perché ottengo un errore di compilazione?
+
+Il fatto è che `head` e `double` non compongono!
+
+```ts
+head: (as: ReadonlyArray<number>) => Option<number>
+double: (n: number) => number
+```
+
+il codominio di `head` non coincide con il dominio di `double`.
+
+Che fare allora? Rinunciare?
+
+Occorrerebbe poter fare riferimento ad una **teoria rigorosa** che possa fornire risposte a domande così fondamentali.
 Ci occorre una **definizione formale** del concetto di composizione.
 
 Fortunatamente da più di 70 anni un vasto gruppo di studiosi appartenenti al più longevo e mastodontico progetto open source nella storia
@@ -2682,6 +2726,11 @@ dell'umanità (la matematica) si occupa di sviluppare una teoria specificatament
 
 (Samuel Eilenberg)
 </center>
+
+Vedremo nei prossimi capitoli come una categoria possa costituire:
+
+- un modello di un generico **linguaggio di programmazione**
+- un modello per il concetto di **composizione**
 
 ## Definizione
 
