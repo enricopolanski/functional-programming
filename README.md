@@ -2826,7 +2826,7 @@ const gf = (s: string): boolean => g(f(s))
 
 Possiamo definire una categoria, chiamiamola *TS*, come modello semplificato del linguaggio TypeScript, ove:
 
-- gli **oggetti** sono tutti i tipi di TypeScript: `string`, `number`, `Array<string>`, ecc...
+- gli **oggetti** sono tutti i tipi di TypeScript: `string`, `number`, `ReadonlyArray<string>`, ecc...
 - i **morfismi** sono tutte le funzioni di TypeScript: `(a: A) => B`, `(b: B) => C`, ecc... ove `A`, `B`, `C`, ... sono tipi di TypeScript
 - i **morfismi identità** sono tutti codificati da una singola funzione polimorfica `const identity = <A>(a: A): A => a`
 - la **composizione di morfismi** è l'usuale composizione di funzione (che è associativa)
@@ -2837,15 +2837,21 @@ Ora che abbiamo un semplice modello per il nostro linguaggio di programmazione, 
 
 ## Il problema centrale della composizione di funzioni
 
-In _TS_ possiamo comporre due funzioni generiche `f: (a: A) => B` and `g: (c: C) => D` fintanto che `C = B`
+In _TS_ possiamo comporre due funzioni generiche `f: (a: A) => B` and `g: (c: C) => D` fintanto che `C = B`.
+
+Se sussiste questa condizione possiamo utilizzare le funzioni `flow` (o `pipe`):
 
 ```ts
 function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
   return (a) => g(f(a))
 }
+
+function pipe<A, B, C>(a: A, f: (a: A) => B, g: (b: B) => C): C {
+  return flow(f, g)(a)
+}
 ```
 
-Ma che succede se `B != C`? Come possiamo comporre due tali funzioni? Dobbiamo lasciar perdere?
+Ma che succede se `B != C`? Come possiamo comporre due funzioni con queste caratteristiche?
 
 Nei prossimi capitoli vedremo sotto quali condizioni una tale composizione è possibile.
 
@@ -2853,10 +2859,10 @@ Nei prossimi capitoli vedremo sotto quali condizioni una tale composizione è po
 
 - per comporre `f: (a: A) => B` con `g: (b: B) => C` abbiamo solo bisogno della usuale composizione di funzioni
 - per comporre `f: (a: A) => F<B>` con `g: (b: B) => C` abbiamo bisogno di una istanza di **funtore** per `F`
-- per comporre `f: (a: A) => F<B>` con `g: (b: B) => (c: C) => D` abbiamo bisogno di una istanza di **funtore applicativo** per `F`
+- per comporre `f: (a: A) => F<B>` con `g: (b: B, c: C) => D` abbiamo bisogno di una istanza di **funtore applicativo** per `F`
 - per comporre `f: (a: A) => F<B>` con `g: (b: B) => F<C>` abbiamo bisogno di una istanza di **monade** per `F`
 
-Cominciamo con i **funtori**.
+<img src="images/spoiler.png" width="900" alt="Le quattro ricette per la composizione" />
 
 # Funtori
 
@@ -3237,7 +3243,7 @@ Tuttavia `g` deve essere unaria, ovvero deve accettare un solo parametro in inpu
 Prima di tutto dobbiamo modellare una funzione che accetta due parametri, diciamo di tipo `B` e `C` (possiamo usare una tupla per questo) e restituisce un valore di tipo `D`:
 
 ```ts
-g: (bc: [B, C]) => D
+g: (b: B, c: C) => D
 ```
 
 Possiamo riscrivere `g` usando una tecnica chiamata **currying**.
