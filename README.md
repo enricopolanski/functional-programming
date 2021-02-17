@@ -965,7 +965,7 @@ import * as RA from 'fp-ts/ReadonlyArray'
 const EqPoints: E.Eq<ReadonlyArray<Point>> = RA.getEq(EqPoint)
 ```
 
-Come succede con i semigrouppi, potete definire più di una istanza di `Eq` per lo stesso tipo. Supponiamo di aver modellato un utente con il seguente tipo
+Come succede con i semigruppi, potete definire più di una istanza di `Eq` per lo stesso tipo. Supponiamo di aver modellato un utente con il seguente tipo
 
 ```ts
 type User = {
