@@ -2919,14 +2919,13 @@ const log = (message: string): DSL => {
 
 **Quiz**. La funzione `log` appena definita è davvero pura? Eppure `log('foo') !== log('foo')`!
 
-Questa prima tecnica presuppone un modo per combinare gli effetti e la definizione di un interprete in grado di eseguire concretamente gli effetti quando si vuole eseguire il codice risultante.
+Questa prima tecnica presuppone un modo per combinare gli effetti e la definizione di un interprete in grado di eseguire concretamente gli effetti quando si vuole lanciare il programma finale.
 
-Una seconda tecnica, più semplice, è racchiudere la computazione in un thunk:
+Una seconda tecnica, più semplice e possibile in TypeScript, è racchiudere la computazione in un *thunk*:
 
 ```ts
-interface IO<A> {
-  (): A
-}
+// un thunk che rappresenta un side effect sincrono
+type IO<A> = () => A
 
 const log = (message: string): IO<void> => {
   return () => console.log(message) // restituisce un thunk
@@ -2935,18 +2934,25 @@ const log = (message: string): IO<void> => {
 
 Il programma `log`, quando viene eseguito, non provoca immediatamente il side effect ma restituisce **un valore che rappresenta la computazione**.
 
-Vediamo un altro esempio che usa i thunk, leggere e scrivere sul `localStorage`:
-
 ```ts
-const read = (name: string): IO<string | null> => () =>
-  localStorage.getItem(name)
+import { IO } from 'fp-ts/IO'
 
-const write = (name: string, value: string): IO<void> => () =>
-  localStorage.setItem(name, value)
+export const log = (message: string): IO<void> => {
+  return () => console.log(message) // restituisce un thunk
+}
+
+export const main = log('hello!')
+// a questo punto non vedo nulla sulla console
+// perchè `main` è solo un valore inerte
+// che rappresenta la computazione
+
+main()
+// solo dopo aver lanciato esplicitamente il programma
+// vedo il risultato sulla console
 ```
 
 Nella programmazione funzionale si tende a spingere i side effect (sottoforma di effetti) ai confini del sistema (ovvero la funzione `main`)
-ove vengono eseguiti, si ottiene perciò il seguente pattern:
+ove vengono eseguiti, si ottiene perciò il seguente schema:
 
 > system = pure core + imperative shell
 
@@ -2954,7 +2960,7 @@ Nei linguaggi *puramente funzionali* (come Haskell, PureScript o Elm) questa div
 
 Anche con questa seconda tecnica (quella usata da `fp-ts`) occorre un modo per combinare gli effetti, il che ci riporta alla nostra volontà di comporre i programmi in modo generico, vediamo come fare.
 
-Innanzi tutto un po' di terminologia: chiamiamo **programma puro** una funzione con la seguente firma:
+Innanzi tutto un po' di terminologia (informale): chiamiamo **programma puro** una funzione con la seguente firma:
 
 ```ts
 (a: A) => B
@@ -2989,7 +2995,7 @@ Il programma `head`
 ```ts
 import { Option, some, none } from 'fp-ts/Option'
 
-const head = (as: ReadonlyArray<string>): Option<string> =>
+const head = <A>(as: ReadonlyArray<A>): Option<A> =>
   as.length === 0 ? none : some(as[0])
 ```
 
@@ -3007,9 +3013,8 @@ Quando parliamo di effetti siamo interessati a type constructor `n`-ari con `n >
 ove
 
 ```ts
-interface Task<A> {
-  (): Promise<A>
-}
+// un thunk che restituisce una `Promise`
+type Task<A> = () => Promise<A>
 ```
 
 Torniamo ora al nostro problema principale:
@@ -3046,17 +3051,31 @@ Vediamo qualche esempio pratico:
 **Esempio** (`F = ReadonlyArray`)
 
 ```ts
-import { flow } from 'fp-ts/function'
+import { flow, pipe } from 'fp-ts/function'
 
+// trasforma funzioni `B -> C` in funzioni `ReadonlyArray<B> -> ReadonlyArray<C>`
 const map = <B, C>(
   g: (b: B) => C
 ): ((fb: ReadonlyArray<B>) => ReadonlyArray<C>) => (fb) => fb.map(g)
 
-declare const f: (a: string) => ReadonlyArray<number>
-declare const g: (b: number) => boolean
+// -------------------
+// esempio di utilizzo
+// -------------------
 
-// h: string => ReadonlyArray<string>
-const h = flow(f, map(g))
+interface User {
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
+}
+
+const getFollowers = (user: User): ReadonlyArray<User> => user.followers
+const getName = (user: User): string => user.name
+
+// getFollowersNames: User -> ReadonlyArray<string>
+const getFollowersNames = flow(getFollowers, map(getName))
+
+// o se preferite usare `pipe` al posto di `flow`...
+const getFollowersNames2 = (user: User) =>
+  pipe(user, getFollowers, map(getName))
 ```
 
 **Esempio** (`F = Option`)
@@ -3065,14 +3084,50 @@ const h = flow(f, map(g))
 import { flow } from 'fp-ts/function'
 import { isNone, none, Option, some } from 'fp-ts/Option'
 
+// trasforma funzioni `B -> C` in funzioni `Option<B> -> Option<C>`
 const map = <B, C>(g: (b: B) => C): ((fb: Option<B>) => Option<C>) => (fb) =>
   isNone(fb) ? none : some(g(fb.value))
 
-declare const f: (a: string) => Option<number>
-declare const g: (b: number) => boolean
+// -------------------
+// esempio di utilizzo
+// -------------------
 
-// h: string => Option<string>
-const h = flow(f, map(g))
+import * as RA from 'fp-ts/ReadonlyArray'
+
+const head: (input: ReadonlyArray<number>) => Option<number> = RA.head
+const double = (n: number): number => n * 2
+
+// getDoubleHead: ReadonlyArray<number> -> Option<number>
+const getDoubleHead = flow(head, map(double))
+```
+
+**Esempio** (`F = IO`)
+
+```ts
+import { flow } from 'fp-ts/function'
+import { IO } from 'fp-ts/IO'
+
+// trasforma funzioni `B -> C` in funzioni `IO<B> -> IO<C>`
+const map = <B, C>(g: (b: B) => C): ((fb: IO<B>) => IO<C>) => (fb) => () =>
+  g(fb())
+
+// -------------------
+// esempio di utilizzo
+// -------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+// a dummy in memory database
+const database: Record<number, User> = {}
+
+const getUser = (id: number): IO<User> => () => database[id]
+const getName = (user: User): string => user.name
+
+// getUserName: number -> IO<string>
+const getUserName = flow(getUser, map(getName))
 ```
 
 **Esempio** (`F = Task`)
@@ -3081,14 +3136,24 @@ const h = flow(f, map(g))
 import { flow } from 'fp-ts/function'
 import { Task } from 'fp-ts/Task'
 
+// trasforma funzioni `B -> C` in funzioni `Task<B> -> Task<C>`
 const map = <B, C>(g: (b: B) => C): ((fb: Task<B>) => Task<C>) => (fb) => () =>
   fb().then(g)
 
-declare const f: (a: string) => Task<number>
-declare const g: (b: number) => boolean
+// -------------------
+// esempio di utilizzo
+// -------------------
 
-// h: string => Task<string>
-const h = flow(f, map(g))
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+declare const getUser: (id: number) => Task<User>
+const getName = (user: User): string => user.name
+
+// getUserName: number -> Task<string>
+const getUserName = flow(getUser, map(getName))
 ```
 
 Più in generale, quando un certo type constructor `F` ammette una `map` che agisce in questo modo, diciamo che ammette una **istanza di funtore**.
@@ -3097,7 +3162,7 @@ Dal punto di vista matematico, i funtori sono delle **mappe tra categorie** che 
 
 Dato che le categorie sono costituite da due cose (gli oggetti e i morfismi) anche un funtore è costituito da due cose:
 
-- una **mappa tra oggetti** che associa ad ogni oggetto in `X` in _C_ un oggetto `F<X>` in _D_
+- una **mappa tra oggetti** che associa ad ogni oggetto `X` in _C_ un oggetto `F<X>` in _D_
 - una **mappa tra morfismi** che associa ad ogni morfismo `f` in _C_ un morfismo `map(f)` in _D_
 
 ove _C_ e _D_ sono due categorie (aka due linguaggi di programmazione).
