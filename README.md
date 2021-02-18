@@ -3008,14 +3008,21 @@ Quando parliamo di effetti siamo interessati a type constructor `n`-ari con `n >
 | ------------------ | ------------------------------------------- |
 | `ReadonlyArray<A>` | a non deterministic computation             |
 | `Option<A>`        | a computation that may fail                 |
-| `IO<A>`            | a synchronous computation with side effects |
-| `Task<A>`          | an asynchronous computation                 |
+| `IO<A>`            | a synchronous computation that never fails  |
+| `Task<A>`          | an asynchronous computation never fails     |
+| `Reader<R, A>`     | reading from an environment                 |
 
 ove
 
 ```ts
 // un thunk che restituisce una `Promise`
 type Task<A> = () => Promise<A>
+```
+
+```ts
+// `R` represents an "environment" needed for the computation
+// (we can "read" from it) and `A` is the result
+type Reader<R, A> = (r: R) => A
 ```
 
 Torniamo ora al nostro problema principale:
@@ -3075,8 +3082,18 @@ const getName = (user: User): string => user.name
 const getFollowersNames = flow(getFollowers, map(getName))
 
 // o se preferite usare `pipe` al posto di `flow`...
-const getFollowersNames2 = (user: User) =>
+export const getFollowersNames2 = (user: User) =>
   pipe(user, getFollowers, map(getName))
+
+const user: User = {
+  name: 'Ruth R. Gonzalez',
+  followers: [
+    { name: 'Terry R. Emerson', followers: [] },
+    { name: 'Marsha J. Joslyn', followers: [] }
+  ]
+}
+
+console.log(getFollowersNames(user)) // => [ 'Terry R. Emerson', 'Marsha J. Joslyn' ]
 ```
 
 **Esempio** (`F = Option`)
@@ -3103,6 +3120,9 @@ const double = (n: number): number => n * 2
 
 // getDoubleHead: ReadonlyArray<number> -> Option<number>
 const getDoubleHead = flow(head, map(double))
+
+console.log(getDoubleHead([1, 2, 3])) // => some(2)
+console.log(getDoubleHead([])) // => none
 ```
 
 **Esempio** (`F = IO`)
@@ -3125,13 +3145,19 @@ interface User {
 }
 
 // a dummy in memory database
-const database: Record<number, User> = {}
+const database: Record<number, User> = {
+  1: { id: 1, name: 'Ruth R. Gonzalez' },
+  2: { id: 2, name: 'Terry R. Emerson' },
+  3: { id: 3, name: 'Marsha J. Joslyn' }
+}
 
 const getUser = (id: number): IO<User> => () => database[id]
 const getName = (user: User): string => user.name
 
 // getUserName: number -> IO<string>
 const getUserName = flow(getUser, map(getName))
+
+console.log(getUserName(1)()) // => Ruth R. Gonzalez
 ```
 
 **Esempio** (`F = Task`)
@@ -3153,11 +3179,62 @@ interface User {
   readonly name: string
 }
 
-declare const getUser: (id: number) => Task<User>
+// a dummy remote database
+const database: Record<number, User> = {
+  1: { id: 1, name: 'Ruth R. Gonzalez' },
+  2: { id: 2, name: 'Terry R. Emerson' },
+  3: { id: 3, name: 'Marsha J. Joslyn' }
+}
+
+const getUser = (id: number): Task<User> => () => Promise.resolve(database[id])
 const getName = (user: User): string => user.name
 
 // getUserName: number -> Task<string>
 const getUserName = flow(getUser, map(getName))
+
+getUserName(1)().then(console.log) // => Ruth R. Gonzalez
+```
+
+**Esempio** (`F = Reader`)
+
+```ts
+import { flow } from 'fp-ts/function'
+import { Reader } from 'fp-ts/Reader'
+
+// trasforma funzioni `B -> C` in funzioni `Reader<R, B> -> Reader<R, C>`
+const map = <B, C>(g: (b: B) => C): (<R>(fb: Reader<R, B>) => Reader<R, C>) => (
+  fb
+) => flow(fb, g)
+
+// -------------------
+// esempio di utilizzo
+// -------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+interface Env {
+  // a dummy in memory database
+  readonly database: Record<string, User>
+}
+
+const getUser = (id: number): Reader<Env, User> => (env) => env.database[id]
+const getName = (user: User): string => user.name
+
+// getUserName: number -> Reader<Env, string>
+const getUserName = flow(getUser, map(getName))
+
+console.log(
+  getUserName(1)({
+    database: {
+      1: { id: 1, name: 'Ruth R. Gonzalez' },
+      2: { id: 2, name: 'Terry R. Emerson' },
+      3: { id: 3, name: 'Marsha J. Joslyn' }
+    }
+  })
+) // => Ruth R. Gonzalez
 ```
 
 Più in generale, quando un certo type constructor `F` ammette una `map` che agisce in questo modo, diciamo che ammette una **istanza di funtore**.
@@ -3190,22 +3267,38 @@ map: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
 
 che mappa ciascuna funzione `f: (a: A) => B` in una funzione `map(f): (fa: F<A>) => F<B>` (**mappa tra morfismi**)
 
-Devono valere le seguenti proprietà:
+Devono valere le seguenti leggi:
 
 - `map(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**le identità vanno in identità**)
 - `map(g ∘ f) = map(g) ∘ map(f)` (**l'immagine di una composizione è la composizione delle immagini**)
+
+La seconda legge vi permette di rifattorizzare ottimizzando la computazione:
+
+```ts
+import { flow, increment, pipe } from 'fp-ts/function'
+import { map } from 'fp-ts/ReadonlyArray'
+
+const double = (n: number): number => n * 2
+
+// cicla due volte
+console.log(pipe([1, 2, 3], map(double), map(increment))) // => [ 3, 5, 7 ]
+
+// cicla una volta sola
+console.log(pipe([1, 2, 3], map(flow(double, increment)))) // => [ 3, 5, 7 ]
+```
 
 ## Funtori e gestione degli errori funzionale
 
 I funtori hanno un impatto positivo sulla gestione degli errori funzionale, vediamo un esempio pratico:
 
 ```ts
-import { increment } from 'fp-ts/function'
+declare const doSomethingWithIndex: (index: number) => string
 
-export const program = (ns: ReadonlyArray<number>): number => {
+export const program = (ns: ReadonlyArray<number>): string => {
+  // un risultato di -1 indica che nessun elemento è stato trovato
   const i = ns.findIndex((n) => n > 0)
   if (i !== -1) {
-    return increment(i)
+    return doSomethingWithIndex(i)
   }
   throw new Error('cannot find a positive number')
 }
@@ -3214,40 +3307,69 @@ export const program = (ns: ReadonlyArray<number>): number => {
 Usando l'API nativa `findIndex` per procedere con il flusso del programma occorre testare il risultato parziale con un `if`, vediamo invece come si può ottenere più facilmente un risultato analago usando `Option` e la sua istanza di funtore:
 
 ```ts
-import { increment, pipe } from 'fp-ts/function'
+import { pipe } from 'fp-ts/function'
 import { map, Option } from 'fp-ts/Option'
 import { findIndex } from 'fp-ts/ReadonlyArray'
 
-export const program = (ns: ReadonlyArray<number>): Option<number> =>
+declare const doSomethingWithIndex: (index: number) => string
+
+export const program = (ns: ReadonlyArray<number>): Option<string> =>
   pipe(
     ns,
     findIndex((n) => n > 0),
-    map(increment)
+    map(doSomethingWithIndex)
   )
 ```
 
 In pratica, utilizzando `Option`, abbiamo sempre di fronte l'*happy path*, la gestione dell'errore avviene dietro le quinte grazie alla sua istanza di funtore.
 
-**Demo**
+**Demo** (opzionale)
 
 [`04_functor.ts`](src/04_functor.ts)
 
+**Quiz**. `Task<A>` rappresenta una computazione asincrona che non può fallire, come possiamo modellare invece una computazione asincrona che può fallire?
+
 ## I funtori compongono
 
-I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione `F<G<A>>` è ancora un funtore e la `map` della composizione è la composizione delle `map`
+I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione `F<G<A>>` è ancora un funtore e la `map` della composizione è la composizione delle `map`.
 
 **Esempio**
 
 ```ts
 import { flow } from 'fp-ts/function'
 import * as O from 'fp-ts/Option'
-import * as A from 'fp-ts/ReadonlyArray'
+import * as T from 'fp-ts/Task'
 
-export interface ReadonlyArrayOption<A> extends ReadonlyArray<O.Option<A>> {}
+type TaskOption<A> = T.Task<O.Option<A>>
 
 export const map: <A, B>(
   f: (a: A) => B
-) => (fa: ReadonlyArrayOption<A>) => ReadonlyArrayOption<B> = flow(O.map, A.map)
+) => (fa: TaskOption<A>) => TaskOption<B> = flow(O.map, T.map)
+
+// -------------------
+// esempio di utilizzo
+// -------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+// a dummy remote database
+const database: Record<number, User> = {
+  1: { id: 1, name: 'Ruth R. Gonzalez' },
+  2: { id: 2, name: 'Terry R. Emerson' },
+  3: { id: 3, name: 'Marsha J. Joslyn' }
+}
+
+const getUser = (id: number): TaskOption<User> => () =>
+  Promise.resolve(O.fromNullable(database[id]))
+const getName = (user: User): string => user.name
+
+// getUserName: number -> TaskOption<string>
+const getUserName = flow(getUser, map(getName))
+
+getUserName(1)().then(console.log) // => some('Ruth R. Gonzalez')
 ```
 
 ## Funtori controvarianti
@@ -3258,23 +3380,41 @@ Ad essere pignoli infatti quelli che abbiamo chiamato semplicemente "funtori" do
 
 La definizione di funtore controvariante è del tutto analoga a quella di funtore covariante, eccetto per la firma della sua operazione fondamentale (che viene chiamata `contramap` invece di `map`)
 
+<img src="images/contramap.png" width="300" alt="contramap" />
+
+**Esempio**
+
 ```ts
-import { HKT } from 'fp-ts/HKT'
+import { map } from 'fp-ts/Option'
+import { contramap } from 'fp-ts/Eq'
 
-// funtore covariante
-export interface Functor<F> {
-  readonly map: <A, B>(f: (a: A) => B) => (fa: HKT<F, A>) => HKT<F, B>
+type User = {
+  readonly id: number
+  readonly name: string
 }
 
-// funtore controvariante
-export interface Contravariant<F> {
-  readonly contramap: <B, A>(f: (b: B) => A) => (fa: HKT<F, A>) => HKT<F, B>
-}
+const getId = (_: User) => _.id
+
+// const getIdOption: (fa: Option<User>) => Option<number>
+const getIdOption = map(getId)
+
+// const getIdEq: (fa: Eq<number>) => Eq<User>
+const getIdEq = contramap(getId)
+
+import * as N from 'fp-ts/number'
+
+const EqID = getIdEq(N.Eq)
+
+/*
+
+Nel capitolo su `Eq` avevamo fatto:
+
+const EqID: Eq<User> = pipe(
+  N.Eq,
+  contramap((_: User) => _.id)
+)
+*/
 ```
-
-**Nota**: il tipo `HKT` è il modo in cui `fp-ts` rappresenta un generico type constructor (una tecnica proposta nel paper [Lightweight higher-kinded polymorphism](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf)) perciò quando vedete `HKT<F, X>` potete pensarlo come al type constructor `F` applicato al tipo `X` (ovvero `F<X>`).
-
-Vi ricordo che abbiamo già visto due tipi notevoli che ammettono una istanza di funtore controvariante: `Eq` e `Ord`.
 
 ## Funtori in `fp-ts`
 

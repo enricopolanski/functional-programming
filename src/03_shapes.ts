@@ -1,3 +1,4 @@
+// run `npm run shapes` to execute
 /*
   PROBLEMA: implementare un sistema per disegnare forme geometriche sul canvas.
 */

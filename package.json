@@ -8,7 +8,7 @@
     "build": "tsc -p ./tsconfig.json",
     "doctoc": "doctoc README.md",
     "shapes": "npx parcel src/shapes.html",
-    "parcel": "npx parcel src/index.html"
+    "functor": "npx parcel src/functor.html"
   },
   "repository": {
     "type": "git",

@@ -1,13 +1,29 @@
 // Adapted from https://adrian-salajan.github.io/blog/2021/01/25/images-functor
-// run `npm run parcel` to execute
+// run `npm run functor` to execute
 
 import { Endomorphism } from 'fp-ts/function'
+import * as R from 'fp-ts/Reader'
 
-interface Color {
+// -------------------------------------------------------------------------------------
+// model
+// -------------------------------------------------------------------------------------
+
+type Color = {
   readonly red: number
   readonly green: number
   readonly blue: number
 }
+
+type Point = {
+  readonly x: number
+  readonly y: number
+}
+
+type Image<A> = R.Reader<Point, A>
+
+// -------------------------------------------------------------------------------------
+// constructors
+// -------------------------------------------------------------------------------------
 
 const color = (red: number, green: number, blue: number): Color => ({
   red,
@@ -19,41 +35,45 @@ const BLACK: Color = color(0, 0, 0)
 
 const WHITE: Color = color(255, 255, 255)
 
-interface Loc {
-  readonly x: number
-  readonly y: number
-}
+// -------------------------------------------------------------------------------------
+// combinators
+// -------------------------------------------------------------------------------------
 
-interface Image<A> {
-  (loc: Loc): A
-}
+const brightness = (color: Color): number =>
+  (color.red + color.green + color.blue) / 3
 
-const map = <A, B>(f: (a: A) => B) => (fa: Image<A>): Image<B> => (loc) =>
-  f(fa(loc))
-
-const brightness = (c: Color): number => (c.red + c.green + c.blue) / 3
-
-export const identity: Endomorphism<Color> = (c) => c
-
-// grayscale colors
-export const grayscale: Endomorphism<Color> = (c) => {
+export const grayscale = (c: Color): Color => {
   const n = brightness(c)
   return color(n, n, n)
 }
 
-// invert colors
-export const invert: Endomorphism<Color> = (c) =>
+export const invert = (c: Color): Color =>
   color(255 - c.red, 255 - c.green, 255 - c.red)
 
 // if brightness over some value V then put White else put Black
-export const threshold: Endomorphism<Color> = (c) =>
+export const threshold = (c: Color): Color =>
   brightness(c) < 100 ? BLACK : WHITE
+
+// -------------------------------------------------------------------------------------
+// main
+// -------------------------------------------------------------------------------------
+
+// `main` deve essere chiamata passando una funzione di trasformazione, cioè un `Endomorphism<Image<RGB>>`
+main(R.map((c: Color) => c))
+// main(R.map(grayscale))
+// main(R.map(invert))
+// main(R.map(threshold))
+
+// -------------------------------------------------------------------------------------
+// utils
+// -------------------------------------------------------------------------------------
 
 function main(f: Endomorphism<Image<Color>>) {
   const canvas: HTMLCanvasElement = document.getElementById('canvas') as any
   const ctx: CanvasRenderingContext2D = canvas.getContext('2d') as any
   const bird: HTMLImageElement = document.getElementById('bird') as any
   bird.onload = function () {
+    console.log('hello')
     function getImage(imageData: ImageData): Image<Color> {
       const data = imageData.data
       return (loc) => {
@@ -81,5 +101,3 @@ function main(f: Endomorphism<Image<Color>>) {
     setImage(imageData, f(getImage(imageData)))
   }
 }
-
-main(map(identity))
