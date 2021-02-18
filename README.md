@@ -44,6 +44,7 @@
 - [Funtori](#funtori)
   - [Funzioni come programmi](#funzioni-come-programmi)
   - [Un vincolo che conduce ai funtori](#un-vincolo-che-conduce-ai-funtori)
+  - [Funtori e gestione degli errori funzionale](#funtori-e-gestione-degli-errori-funzionale)
   - [I funtori compongono](#i-funtori-compongono)
   - [Funtori controvarianti](#funtori-controvarianti)
   - [Funtori in `fp-ts`](#funtori-in-fp-ts)
@@ -3190,6 +3191,39 @@ Devono valere le seguenti proprietà:
 
 - `map(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**le identità vanno in identità**)
 - `map(g ∘ f) = map(g) ∘ map(f)` (**l'immagine di una composizione è la composizione delle immagini**)
+
+## Funtori e gestione degli errori funzionale
+
+I funtori hanno un impatto positivo sulla gestione degli errori funzionale, vediamo un esempio pratico:
+
+```ts
+import { increment } from 'fp-ts/function'
+
+export const program = (ns: ReadonlyArray<number>): number => {
+  const i = ns.findIndex((n) => n > 0)
+  if (i !== -1) {
+    return increment(i)
+  }
+  throw new Error('cannot find a positive number')
+}
+```
+
+Usando l'API nativa `findIndex` per procedere con il flusso del programma occorre testare il risultato parziale con un `if`, vediamo invece come si può ottenere più facilmente un risultato analago usando `Option` e la sua istanza di funtore:
+
+```ts
+import { increment, pipe } from 'fp-ts/function'
+import { map, Option } from 'fp-ts/Option'
+import { findIndex } from 'fp-ts/ReadonlyArray'
+
+export const program = (ns: ReadonlyArray<number>): Option<number> =>
+  pipe(
+    ns,
+    findIndex((n) => n > 0),
+    map(increment)
+  )
+```
+
+In pratica, utilizzando `Option`, abbiamo sempre di fronte l'*happy path*, la gestione dell'errore avviene dietro le quinte grazie alla sua istanza di funtore.
 
 **Demo**
 
