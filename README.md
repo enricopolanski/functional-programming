@@ -2864,6 +2864,15 @@ Nei prossimi capitoli vedremo sotto quali condizioni una tale composizione è po
 
 <img src="images/spoiler.png" width="900" alt="Le quattro ricette per la composizione" />
 
+Il problema da cui siamo partiti all'inizio del capitolo corrisponde alla situazione ②, quando al posto del generico `F` mettiamo `Option`:
+
+```
+head: (as: ReadonlyArray<number>) => Option<number>
+double: (n: number) => number
+```
+
+Per risolverlo il prossimo capitolo parlerà di funtori.
+
 # Funtori
 
 Nell'ultimo capitolo ho presentato la categoria *TS* (la categoria di TypeScript) e il problema centrale con la composizione di funzioni:
