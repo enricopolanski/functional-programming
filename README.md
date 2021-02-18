@@ -3083,11 +3083,14 @@ const getFollowersNames2 = (user: User) =>
 
 ```ts
 import { flow } from 'fp-ts/function'
-import { isNone, none, Option, some } from 'fp-ts/Option'
+import { none, Option, match, some } from 'fp-ts/Option'
 
 // trasforma funzioni `B -> C` in funzioni `Option<B> -> Option<C>`
-const map = <B, C>(g: (b: B) => C): ((fb: Option<B>) => Option<C>) => (fb) =>
-  isNone(fb) ? none : some(g(fb.value))
+const map = <B, C>(g: (b: B) => C): ((fb: Option<B>) => Option<C>) =>
+  match(
+    () => none,
+    (b) => some(g(b))
+  )
 
 // -------------------
 // esempio di utilizzo
