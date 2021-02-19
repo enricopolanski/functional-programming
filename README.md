@@ -3911,11 +3911,11 @@ Qual'è la composizione di `f` e `g`?
 
 ## Il problema dei contesti innestati
 
-Per mostrare meglio perché abbiamo bisogno di qualcosa in più, vediamo qualche esempio pratico.
+Per mostrare meglio perché abbiamo bisogno di qualcosa in più, vediamo qualche esempio.
 
 **Esempio** (`M = Array`)
 
-Supponiamo di voler ricavare i follower dei follower di un utente Twitter:
+Supponiamo di voler ricavare i follower dei follower:
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -3931,18 +3931,15 @@ const getFollowers = (user: User): ReadonlyArray<User> => user.followers
 
 declare const user: User
 
-const followersOfFollowers: ReadonlyArray<ReadonlyArray<User>> = pipe(
-  user,
-  getFollowers,
-  A.map(getFollowers)
-)
+// followersOfFollowers: ReadonlyArray<ReadonlyArray<User>>
+const followersOfFollowers = pipe(user, getFollowers, A.map(getFollowers))
 ```
 
 C'è qualcosa che non va, `followersOfFollowers` ha tipo `ReadonlyArray<ReadonlyArray<User>>` ma noi vorremmo `ReadonlyArray<User>`.
 
 Abbiamo bisogno di appiattire (**flatten**) gli array innestati.
 
-La funzione `flatten: <A>(mma: ReadonlyArray<ReadonlyArray<A>>) => ReadonlyArray<A>` esportata da `fp-ts` fa al caso nostro:
+La funzione `flatten: <A>(mma: ReadonlyArray<ReadonlyArray<A>>) => ReadonlyArray<A>` esportata dal modulo `fp-ts/ReadonlyArray` fa al caso nostro:
 
 ```ts
 const followersOfFollowers: ReadonlyArray<User> = pipe(
@@ -3953,7 +3950,7 @@ const followersOfFollowers: ReadonlyArray<User> = pipe(
 )
 ```
 
-Bene! Vediamo con un'altra struttura dati:
+Bene! Vediamo con un'altra struttura dati.
 
 **Esempio** (`M = Option`)
 
@@ -3967,18 +3964,15 @@ import * as A from 'fp-ts/ReadonlyArray'
 const inverse = (n: number): O.Option<number> =>
   n === 0 ? O.none : O.some(1 / n)
 
-const inverseHead: O.Option<O.Option<number>> = pipe(
-  [1, 2, 3],
-  A.head,
-  O.map(inverse)
-)
+// inverseHead: O.Option<O.Option<number>>
+const inverseHead = pipe([1, 2, 3], A.head, O.map(inverse))
 ```
 
 Opss, è successo di nuovo, `inverseHead` ha tipo `Option<Option<number>>` ma noi vogliamo `Option<number>`.
 
 Abbiamo bisogno di appiattire le `Option` innestate.
 
-La funzione `flatten: <A>(mma: Option<Option<A>>) => Option<A>` esportata da `fp-ts` fa al caso nostro:
+La funzione `flatten: <A>(mma: Option<Option<A>>) => Option<A>` esportata dal modulo `fp-ts/Option` fa al caso nostro:
 
 ```ts
 const inverseHead: O.Option<number> = pipe(
@@ -4006,16 +4000,14 @@ Ecco come spesso sono presentate...
 (2) una funzione `of` con la seguente firma:
 
 ```ts
-of: <A>(a: A) => HKT<M, A>
+of: <A>(a: A) => M<A>
 ```
 
 (3) una funzione `chain` (possibile sinonimo **flatMap**) con la seguente firma:
 
 ```ts
-chain: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
+chain: <A, B>(f: (a: A) => M<B>) => (ma: M<A>) => M<B>
 ```
-
-**Nota**: ricordiamo che il tipo `HKT` è il modo in cui `fp-ts` rappresenta un generico type constructor, perciò quando vedete`HKT<M, X>` potete pensare al type constructor `M` applicato al tipo `X` (ovvero `M<X>`).
 
 Le funzioni `of` e `chain` devono obbedire a tre leggi:
 
@@ -4122,10 +4114,9 @@ Ora possiamo aggiornare la nostra "tabella di composizione"
 | Program f | Program g     | Composition      |
 | --------- | ------------- | ---------------- |
 | pure      | pure          | `g ∘ f`          |
+| effectful | pure (unary)  | `map(g) ∘ f`     |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f`  |
-| effectful | effectful     | `chain(g) ∘ f` |
-
-ove `liftA1 = map`
+| effectful | effectful     | `chain(g) ∘ f`   |
 
 E per quanto riguarda l'operazione `of`? Ebbene, `of` proviene dai morfismi identità in *K*: per ogni morfismo identità 1<sub>A</sub> in _K_ deve esserci una corrispondente funzione da `A` a `M<A>` (ovvero `of: <A>(a: A) => M<A>`).
 
@@ -4142,8 +4133,6 @@ Ultima domanda: da dove nascono le leggi? Esse non sono altro che le leggi categ
 | Left identity  | 1<sub>B</sub> ∘ `f'` = `f'`       | `chain(of) ∘ f = f`                                     |
 | Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `chain(f) ∘ of = f`                                     |
 | Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` |
-
-TODO qualche esempio di istanze di `Monad`...
 
 Se adesso torniamo agli esempi che mostravano il problema con i contesti innestati possiamo risolverli usando `chain`:
 
@@ -4178,7 +4167,7 @@ const inverseHead: O.Option<number> = pipe([1, 2, 3], A.head, O.chain(inverse))
 
 Vediamo ora come, grazie alla trasparenza referenziale e al concetto di monade, possiamo manipolare i programmi programmaticamente.
 
-Ecco un piccolo programma che legge / scrive su un file
+Ecco un piccolo programma che legge / scrive su un file:
 
 ```ts
 import { log } from 'fp-ts/Console'
@@ -4186,9 +4175,9 @@ import { IO, chain } from 'fp-ts/IO'
 import { pipe } from 'fp-ts/function'
 import * as fs from 'fs'
 
-//
+// -----------------------------------------
 // funzioni di libreria
-//
+// -----------------------------------------
 
 const readFile = (filename: string): IO<string> => () =>
   fs.readFileSync(filename, 'utf-8')
@@ -4196,14 +4185,21 @@ const readFile = (filename: string): IO<string> => () =>
 const writeFile = (filename: string, data: string): IO<void> => () =>
   fs.writeFileSync(filename, data, { encoding: 'utf-8' })
 
-//
+// API derivata dalle precedenti
+const modifyFile = (filename: string, f: (s: string) => string): IO<void> =>
+  pipe(
+    readFile(filename),
+    chain((s) => writeFile(filename, f(s)))
+  )
+
+// -----------------------------------------
 // programma
-//
+// -----------------------------------------
 
 const program1 = pipe(
   readFile('file.txt'),
   chain(log),
-  chain(() => writeFile('file.txt', 'hello')),
+  chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
   chain(() => readFile('file.txt')),
   chain(log)
 )
@@ -4218,14 +4214,15 @@ pipe(
 )
 ```
 
-è ripetuta due volte nel programma, ma dato che vale la trasparenza referenziale possiamo mettere a fattor comune l'azione assegnandone l'espressione ad una costante.
+è ripetuta due volte nel programma, ma dato che vale la trasparenza referenziale possiamo mettere a fattor comune l'azione assegnandola ad una costante:
 
 ```ts
 const read = pipe(readFile('file.txt'), chain(log))
+const modify = modifyFile('file.txt', (s) => s + '\n// eof')
 
 const program2 = pipe(
   read,
-  chain(() => writeFile('file.txt', 'hello')),
+  chain(() => modify),
   chain(() => read)
 )
 ```
@@ -4233,14 +4230,14 @@ const program2 = pipe(
 Possiamo persino definire un combinatore e sfruttarlo per rendere più compatto il codice:
 
 ```ts
-const interleave = <A, B>(a: IO<A>, b: IO<B>): IO<A> =>
+const interleave = <A, B>(action: IO<A>, middle: IO<B>): IO<A> =>
   pipe(
-    a,
-    chain(() => b),
-    chain(() => a)
+    action,
+    chain(() => middle),
+    chain(() => action)
   )
 
-const program3 = interleave(read, writeFile('file.txt', 'foo'))
+const program3 = interleave(read, modify)
 ```
 
 Un altro esempio: implementare una funzione simile a `time` di Unix (la parte relativa al tempo di esecuzione reale) per `IO`.
@@ -4276,21 +4273,18 @@ export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
 Esempio di utilizzo
 
 ```ts
-import * as IO from 'fp-ts/IO'
 import { randomInt } from 'fp-ts/Random'
 import { Monoid, concatAll } from 'fp-ts/Monoid'
 import { replicate } from 'fp-ts/ReadonlyArray'
-import { pipe } from 'fp-ts/function'
-import { log } from 'fp-ts/Console'
 
 const fib = (n: number): number => (n <= 1 ? 1 : fib(n - 1) + fib(n - 2))
 
-const printFib: IO.IO<void> = pipe(
+const randomFib: IO.IO<void> = pipe(
   randomInt(30, 35),
   IO.chain((n) => log([n, fib(n)]))
 )
 
-const monoidIO: Monoid<IO.IO<void>> = {
+const MonoidIO: Monoid<IO.IO<void>> = {
   concat: (second) => (first) => () => {
     first()
     second()
@@ -4299,9 +4293,9 @@ const monoidIO: Monoid<IO.IO<void>> = {
 }
 
 const replicateIO = (n: number, mv: IO.IO<void>): IO.IO<void> =>
-  concatAll(monoidIO)(replicate(n, mv))
+  concatAll(MonoidIO)(replicate(n, mv))
 
-time(replicateIO(3, printFib))()
+time(replicateIO(3, randomFib))()
 /*
 [ 31, 2178309 ]
 [ 33, 5702887 ]
@@ -4313,7 +4307,7 @@ Elapsed: 89
 Stampando anche i parziali
 
 ```ts
-time(replicateIO(3, time(printFib)))()
+time(replicateIO(3, time(randomFib)))()
 /*
 [ 33, 5702887 ]
 Elapsed: 54
@@ -4324,6 +4318,192 @@ Elapsed: 39
 Elapsed: 106
 */
 ```
+
+Una cosa interessante di lavorare con l'interfaccia monadica (`map`, `of`, `chain`) è la possibilità di poter inniettare le dipendenze di cui ha bisogno il programma, ivi compreso il modo per concatenare diverse computazioni.
+
+Per vederlo riprendiamo il piccolo programma che legge e scrive su file e operiamo il seguente refactoring:
+
+```ts
+import { IO } from 'fp-ts/IO'
+import { pipe } from 'fp-ts/function'
+
+// -----------------------------------------
+// dipendenze (una "port" nella nomenclatura della Hexagonal Architecture)
+// -----------------------------------------
+
+interface Deps {
+  readonly readFile: (filename: string) => IO<string>
+  readonly writeFile: (filename: string, data: string) => IO<void>
+  readonly log: <A>(a: A) => IO<void>
+  readonly chain: <A, B>(f: (a: A) => IO<B>) => (ma: IO<A>) => IO<B>
+}
+
+// -----------------------------------------
+// programma
+// -----------------------------------------
+
+const program4 = (D: Deps) => {
+  const modifyFile = (filename: string, f: (s: string) => string) =>
+    pipe(
+      D.readFile(filename),
+      D.chain((s) => D.writeFile(filename, f(s)))
+    )
+
+  return pipe(
+    D.readFile('file.txt'),
+    D.chain(D.log),
+    D.chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
+    D.chain(() => D.readFile('file.txt')),
+    D.chain(D.log)
+  )
+}
+
+// -----------------------------------------
+// istanza per `Deps` (un "adapter" nella nomenclatura della Hexagonal Architecture)
+// -----------------------------------------
+
+import * as fs from 'fs'
+import { log } from 'fp-ts/Console'
+import { chain } from 'fp-ts/IO'
+
+const DepsSync: Deps = {
+  readFile: (filename) => () => fs.readFileSync(filename, 'utf-8'),
+  writeFile: (filename: string, data: string) => () =>
+    fs.writeFileSync(filename, data, { encoding: 'utf-8' }),
+  log,
+  chain
+}
+
+// dependency injection
+program4(DepsSync)()
+```
+
+Ma c'è di più, possiamo persino astrarre l'effetto in cui gira il programma. Definiamo un nostro effetto `FileSystem` (l'effetto di leggere / scrivere sul file system):
+
+```ts
+import { IO } from 'fp-ts/IO'
+import { pipe } from 'fp-ts/function'
+
+// -----------------------------------------
+// effetto del nostro programma
+// -----------------------------------------
+
+interface FileSystem<A> extends IO<A> {}
+
+// -----------------------------------------
+// dipendenze
+// -----------------------------------------
+
+interface Deps {
+  readonly readFile: (filename: string) => FileSystem<string>
+  readonly writeFile: (filename: string, data: string) => FileSystem<void>
+  readonly log: <A>(a: A) => FileSystem<void>
+  readonly chain: <A, B>(
+    f: (a: A) => FileSystem<B>
+  ) => (ma: FileSystem<A>) => FileSystem<B>
+}
+
+// -----------------------------------------
+// programma
+// -----------------------------------------
+
+const program4 = (D: Deps) => {
+  const modifyFile = (filename: string, f: (s: string) => string) =>
+    pipe(
+      D.readFile(filename),
+      D.chain((s) => D.writeFile(filename, f(s)))
+    )
+
+  return pipe(
+    D.readFile('file.txt'),
+    D.chain(D.log),
+    D.chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
+    D.chain(() => D.readFile('file.txt')),
+    D.chain(D.log)
+  )
+}
+```
+
+Ora, con un semplice cambiamento nella definizione dell'effetto `FileSystem`, possiamo modificare il programma in modo che possa girare in un contesto asincrono:
+
+```diff
+// -----------------------------------------
+// effetto del nostro programma
+// -----------------------------------------
+
+-interface FileSystem<A> extends IO<A> {}
++interface FileSystem<A> extends Task<A> {}
+```
+
+dopodichè non ci resta che modificare l'istanza per `Deps` per adattarsi alla nuova definizione:
+
+```ts
+import { Task } from 'fp-ts/Task'
+import { pipe } from 'fp-ts/function'
+
+// -----------------------------------------
+// effetto del nostro programma
+// -----------------------------------------
+
+interface FileSystem<A> extends Task<A> {}
+
+// -----------------------------------------
+// dipendenze
+// -----------------------------------------
+
+interface Deps {
+  readonly readFile: (filename: string) => FileSystem<string>
+  readonly writeFile: (filename: string, data: string) => FileSystem<void>
+  readonly log: <A>(a: A) => FileSystem<void>
+  readonly chain: <A, B>(
+    f: (a: A) => FileSystem<B>
+  ) => (ma: FileSystem<A>) => FileSystem<B>
+}
+
+// -----------------------------------------
+// programma
+// -----------------------------------------
+
+const program5 = (D: Deps) => {
+  const modifyFile = (filename: string, f: (s: string) => string) =>
+    pipe(
+      D.readFile(filename),
+      D.chain((s) => D.writeFile(filename, f(s)))
+    )
+
+  return pipe(
+    D.readFile('file.txt'),
+    D.chain(D.log),
+    D.chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
+    D.chain(() => D.readFile('file.txt')),
+    D.chain(D.log)
+  )
+}
+
+// -----------------------------------------
+// istanza per `Deps`
+// -----------------------------------------
+
+import * as fs from 'fs'
+import { log } from 'fp-ts/Console'
+import { chain, fromIO } from 'fp-ts/Task'
+
+const DepsAsync: Deps = {
+  readFile: (filename) => () =>
+    new Promise((resolve) =>
+      fs.readFile(filename, { encoding: 'utf-8' }, (_, s) => resolve(s))
+    ),
+  writeFile: (filename: string, data: string) => () =>
+    new Promise((resolve) => fs.writeFile(filename, data, () => resolve())),
+  log: (a) => fromIO(log(a)),
+  chain
+}
+
+// dependency injection
+program5(DepsAsync)()
+```
+
+**Quiz**. Gli esempi precedenti non tengono conto (volontariamente) di possibili errori (per esempio il fatto che non esista il file da cui leggiamo), come si potrebbe modificare l'effetto `FileSystem` per tenerne conto?
 
 **Demo**
 
