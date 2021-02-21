@@ -2,13 +2,13 @@
 // GUESS THE NUMBER
 // ====================
 
-import * as T from 'fp-ts/Task'
-import * as O from 'fp-ts/Option'
-import { getLine, putStrLn } from './Console'
-import { randomInt } from 'fp-ts/Random'
-import { between } from 'fp-ts/Ord'
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
+import * as O from 'fp-ts/Option'
+import { between } from 'fp-ts/Ord'
+import { randomInt } from 'fp-ts/Random'
+import * as T from 'fp-ts/Task'
+import { getLine, putStrLn } from './Console'
 
 // il numero da indovinare
 export const secret: T.Task<number> = T.fromIO(randomInt(1, 100))
@@ -21,10 +21,10 @@ const withMessage = <A>(message: string, next: T.Task<A>): T.Task<A> =>
   )
 
 // l'input è una stringa perciò dobbiamo validarlo
-const isValidInteger = between(N.Ord)(1, 100)
+const isValidGuess = between(N.Ord)(1, 100)
 const parseGuess = (s: string): O.Option<number> => {
   const n = parseInt(s, 10)
-  return isNaN(n) || !isValidInteger(n) ? O.none : O.some(n)
+  return isNaN(n) || !isValidGuess(n) ? O.none : O.some(n)
 }
 
 const question: T.Task<string> = withMessage('Indovina il numero', getLine)
@@ -33,7 +33,8 @@ const answer: T.Task<number> = pipe(
   question,
   T.chain((s) =>
     pipe(
-      parseGuess(s),
+      s,
+      parseGuess,
       O.match(
         () => withMessage('Devi inserire un intero da 1 a 100', answer),
         (a) => T.of(a)
