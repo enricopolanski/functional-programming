@@ -1472,6 +1472,7 @@ const SemigroupIntercalate = pipe(S.Semigroup, Se.intercalate('|'))
 
 console.log(pipe('a', S.Semigroup.concat('b'))) // => 'ab'
 console.log(pipe('a', SemigroupIntercalate.concat('b'))) // => 'a|b'
+console.log(pipe('a', SemigroupIntercalate.concat(''))) // => 'a|'
 ```
 
 Notate come non sia possibile trovare un valore `empty` di tipo `string` tale che `a |> concat(empty) = a`.
