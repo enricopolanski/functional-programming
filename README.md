@@ -3313,7 +3313,7 @@ export const program = (ns: ReadonlyArray<number>): string => {
 }
 ```
 
-Usando l'API nativa `findIndex` per procedere con il flusso del programma occorre testare il risultato parziale con un `if`, vediamo invece come si può ottenere più facilmente un risultato analago usando `Option` e la sua istanza di funtore:
+Usando l'API nativa `findIndex` per procedere con il flusso del programma occorre testare il risultato parziale con un `if`, vediamo invece come si può ottenere più facilmente un risultato analogo usando `Option` e la sua istanza di funtore:
 
 ```ts
 import { pipe } from 'fp-ts/function'
