@@ -1812,7 +1812,7 @@ type HttpResponse<A> = {
 
 ### Da dove viene il nome "product types"?
 
-Se indichiamo con `C(A)` il numero di abitanti del tipo `A` (ovvero la sua **cardinalità**) allora vale la seguente uguaglianza:
+Se indichiamo con `C(A)` il numero di abitanti del tipo `A`, chiamata **cardinalità**, allora vale la seguente uguaglianza:
 
 ```ts
 C([A, B]) = C(A) * C(B)
