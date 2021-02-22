@@ -2573,6 +2573,8 @@ console.log(pipe(workspaceSettings, monoidSettings.concat(userSettings)))
 */
 ```
 
+**Quiz**. Supponiamo che VSCode non possa gestire delle colonne più larghe di `80`, come potremmo modificare la definizione di `monoidSettings` per tenerne conto?
+
 ## Il tipo `Either`
 
 Un uso comune di `Either` è come alternativa ad `Option` per gestire l'effetto di una computazione che può fallire, potendo però specificare il motivo del fallimento.
