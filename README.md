@@ -1856,7 +1856,7 @@ type Clock = {
 
 ### Quando posso usare un product type?
 
-Ogniqualvolta le sue conponenti sono **indipendenti**.
+Ogniqualvolta le sue componenti sono **indipendenti**.
 
 ```ts
 type Clock = readonly [Hour, Period]
