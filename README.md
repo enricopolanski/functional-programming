@@ -2334,19 +2334,25 @@ declare const o2: Option<string>
 const result: boolean = pipe(
   o1,
   match(
+    // onNone o1
     () =>
       pipe(
         o2,
         match(
+          // onNone o2
           () => true,
+          // onSome o2
           () => false
         )
       ),
+    // onSome o1
     (s1) =>
       pipe(
         o2,
         match(
+          // onNone o2
           () => false,
+          // onSome o2
           (s2) => s1 === s2 // <= qui uso l'uguaglianza tra stringhe
         )
       )
