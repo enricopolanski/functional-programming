@@ -3015,6 +3015,7 @@ Quando parliamo di effetti siamo interessati a type constructor `n`-ari con `n >
 | ------------------ | ------------------------------------------- |
 | `ReadonlyArray<A>` | a non deterministic computation             |
 | `Option<A>`        | a computation that may fail                 |
+| `Either<E, A>`     | a computation that may fail                 |
 | `IO<A>`            | a synchronous computation that never fails  |
 | `Task<A>`          | an asynchronous computation never fails     |
 | `Reader<R, A>`     | reading from an environment                 |
