@@ -3013,14 +3013,14 @@ const head = <A>(as: ReadonlyArray<A>): Option<A> =>
 
 Quando parliamo di effetti siamo interessati a type constructor `n`-ari con `n >= 1`, per esempio:
 
-| Type constructor   | Effect (interpretation)                     |
-| ------------------ | ------------------------------------------- |
-| `ReadonlyArray<A>` | a non deterministic computation             |
-| `Option<A>`        | a computation that may fail                 |
-| `Either<E, A>`     | a computation that may fail                 |
-| `IO<A>`            | a synchronous computation that never fails  |
-| `Task<A>`          | an asynchronous computation never fails     |
-| `Reader<R, A>`     | reading from an environment                 |
+| Type constructor   | Effect (interpretation)                        |
+| ------------------ | ---------------------------------------------- |
+| `ReadonlyArray<A>` | a non deterministic computation                |
+| `Option<A>`        | a computation that may fail                    |
+| `Either<E, A>`     | a computation that may fail                    |
+| `IO<A>`            | a synchronous computation that **never fails** |
+| `Task<A>`          | an asynchronous computation **never fails**    |
+| `Reader<R, A>`     | reading from an environment                    |
 
 ove
 
@@ -3873,7 +3873,7 @@ Ma che succede se invece di un valore di tipo `F<B>` per il secondo parametro `f
 
 Sarebbe utile un'operazione che sia in grado di trasformare un valore di tipo `B` in un valore di tipo `F<B>`, in modo che si possa poi usare `h`.
 
-Introduciamo perciò una tale operazione (chiamata `of`):
+Introduciamo perciò una tale operazione, chiamata `of` (possibili sinonimi **pure**, **return**):
 
 ```ts
 declare const of: <B>(b: B) => F<B>
@@ -3897,20 +3897,20 @@ import * as O from 'fp-ts/Option'
 const of = <A>(a: A): O.Option<A> => O.some(a)
 ```
 
-**Esempio** (`F = Task`)
-
-```ts
-import { Task } from 'fp-ts/Task'
-
-const of = <A>(a: A): Task<A> => () => Promise.resolve(a)
-```
-
 **Esempio** (`F = IO`)
 
 ```ts
 import { IO } from 'fp-ts/IO'
 
 const of = <A>(a: A): IO<A> => () => a
+```
+
+**Esempio** (`F = Task`)
+
+```ts
+import { Task } from 'fp-ts/Task'
+
+const of = <A>(a: A): Task<A> => () => Promise.resolve(a)
 ```
 
 **Esempio** (`F = Reader`)
@@ -3973,7 +3973,7 @@ Ancora una volta abbiamo bisogno di qualche cosa in più, nel capitolo seguente 
 (Philip Lee Wadler is an American computer scientist known for his contributions to programming language design and type theory)
 </center>
 
-Nell'ultimo capitolo abbiamo visto che possiamo comporre un programma con effetti `f: (a: A) => M<B>` con un programma `n`-ario puro `g`, ammesso che `M` ammetta una istanza di funtore applicativo:
+Nell'ultimo capitolo abbiamo visto che possiamo comporre un programma con effetti `f: (a: A) => F<B>` con un programma `n`-ario puro `g`, ammesso che `F` ammetta una istanza di funtore applicativo:
 
 | Program f | Program g     | Composition     |
 | --------- | ------------- | --------------- |
@@ -3981,7 +3981,7 @@ Nell'ultimo capitolo abbiamo visto che possiamo comporre un programma con effett
 | effectful | pure (unary)  | `map(g) ∘ f`    |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 
-Tuttavia dobbiamo risolvere un ultimo (e frequente) caso: quando **entrambi** i programmi sono con effetto.
+Tuttavia dobbiamo risolvere un ultimo (e frequente) caso: quando **entrambi** i programmi sono con effetto:
 
 ```ts
 f: (a: A) => F<B>
@@ -3994,7 +3994,7 @@ Qual'è la composizione di `f` e `g`?
 
 Per mostrare meglio perché abbiamo bisogno di qualcosa in più, vediamo qualche esempio.
 
-**Esempio** (`M = Array`)
+**Esempio** (`F = Array`)
 
 Supponiamo di voler ricavare i follower dei follower:
 
@@ -4023,7 +4023,8 @@ Abbiamo bisogno di appiattire (**flatten**) gli array innestati.
 La funzione `flatten: <A>(mma: ReadonlyArray<ReadonlyArray<A>>) => ReadonlyArray<A>` esportata dal modulo `fp-ts/ReadonlyArray` fa al caso nostro:
 
 ```ts
-const followersOfFollowers: ReadonlyArray<User> = pipe(
+// followersOfFollowers: ReadonlyArray<User>
+const followersOfFollowers = pipe(
   user,
   getFollowers,
   A.map(getFollowers),
@@ -4033,7 +4034,7 @@ const followersOfFollowers: ReadonlyArray<User> = pipe(
 
 Bene! Vediamo con un'altra struttura dati.
 
-**Esempio** (`M = Option`)
+**Esempio** (`F = Option`)
 
 Supponiamo di voler calcolare il reciproco del primo elemento di un array numerico:
 
@@ -4056,17 +4057,15 @@ Abbiamo bisogno di appiattire le `Option` innestate.
 La funzione `flatten: <A>(mma: Option<Option<A>>) => Option<A>` esportata dal modulo `fp-ts/Option` fa al caso nostro:
 
 ```ts
-const inverseHead: O.Option<number> = pipe(
-  [1, 2, 3],
-  A.head,
-  O.map(inverse),
-  O.flatten
-)
+// inverseHead: O.Option<number>
+const inverseHead = pipe([1, 2, 3], A.head, O.map(inverse), O.flatten)
 ```
 
 Tutte quelle funzioni `flatten`... Non sono una coincidenza, c'è un pattern funzionale dietro le quinte: ambedue i type constructor `ReadonlyArray` e `Option` (e molti altri) ammettono una **istanza di monade** e
 
 > `flatten` is the most peculiar operation of monads
+
+**Nota**. Un possibile sinonimo di `flatten` è **join**.
 
 Dunque cos'è una monade?
 
@@ -4078,13 +4077,13 @@ Ecco come spesso sono presentate...
 
 (1) un type constructor `M` che ammette una istanza di funtore
 
-(2) una funzione `of` con la seguente firma:
+(2) una funzione `of` (possibili sinonimi **pure**, **return**) con la seguente firma:
 
 ```ts
 of: <A>(a: A) => M<A>
 ```
 
-(3) una funzione `chain` (possibile sinonimo **flatMap**) con la seguente firma:
+(3) una funzione `chain` (possibili sinonimi **flatMap**, **bind**) con la seguente firma:
 
 ```ts
 chain: <A, B>(f: (a: A) => M<B>) => (ma: M<A>) => M<B>
@@ -4098,14 +4097,12 @@ Le funzioni `of` e `chain` devono obbedire a tre leggi:
 
 ove `f`, `g`, `h` sono tutte funzioni con effetto e `∘` è l'usuale composizione di funzioni.
 
-Quando vidi per la prima volta questa definizione la mia prima reazione fu di sconcerto.
+Dopo aver visto per la prima volta questa definizione avevo in testa molte domande:
 
-Avevo in testa molte domande:
-
-- perché proprio quelle due operazioni e perché hanno quella firma?
-- come mai il nome "flatMap"?
+- perché proprio quelle due operazioni `of` e `chain`? e perché hanno quella firma?
+- come mai i sinonimi "pure" e "flatMap"?
 - perché devono valere quelle leggi? Che cosa significano?
-- ma soprattutto, dov'è la mia `flatten`?
+- come mai se `flatten` è così importante per le monadi non compare nella sua definizione?
 
 Questo capitolo cercherà di rispondere a tutte queste domande.
 
@@ -4207,6 +4204,14 @@ E per quanto riguarda l'operazione `of`? Ebbene, `of` proviene dai morfismi iden
 (come ottenere `of`)
 </center>
 
+Il fatto che la `of` sia l'elemento neutro rispetto alla `chain` permette questo tipo di controllo di flusso (piuttosto comune):
+
+```ts
+pipe(mb, M.chain(b => predicate(b) ? M.of(b) : g(b)))
+```
+
+ove `predicate: (b: B) => boolean`, `mb: M<B>` e `g: (b: B) => M<B>`.
+
 Ultima domanda: da dove nascono le leggi? Esse non sono altro che le leggi categoriali in *K* tradotte in *TS*:
 
 | Law            | _K_                               | _TS_                                                    |
@@ -4242,6 +4247,64 @@ const inverse = (n: number): O.Option<number> =>
   n === 0 ? O.none : O.some(1 / n)
 
 const inverseHead: O.Option<number> = pipe([1, 2, 3], A.head, O.chain(inverse))
+```
+
+Vediamo come è definita l'opererazione `chain` per alcuni type constructor noti:
+
+**Esempio** (`F = ReadonlyArray`)
+
+```ts
+// trasforma funzioni `B -> ReadonlyArray<C>` in funzioni `ReadonlyArray<B> -> ReadonlyArray<C>`
+const chain = <B, C>(g: (b: B) => ReadonlyArray<C>) => (
+  mb: ReadonlyArray<B>
+): ReadonlyArray<C> => {
+  const out: Array<C> = []
+  for (const b of mb) {
+    out.push(...g(b))
+  }
+  return out
+}
+```
+
+**Esempio** (`F = Option`)
+
+```ts
+import { match, none, Option } from 'fp-ts/Option'
+
+// trasforma funzioni `B -> Option<C>` in funzioni `Option<B> -> Option<C>`
+const chain = <B, C>(g: (b: B) => Option<C>): ((mb: Option<B>) => Option<C>) =>
+  match(() => none, g)
+```
+
+**Esempio** (`F = IO`)
+
+```ts
+import { IO } from 'fp-ts/IO'
+
+// trasforma funzioni `B -> IO<C>` in funzioni `IO<B> -> IO<C>`
+const chain = <B, C>(g: (b: B) => IO<C>) => (mb: IO<B>): IO<C> => () =>
+  g(mb())()
+```
+
+**Esempio** (`F = Task`)
+
+```ts
+import { Task } from 'fp-ts/Task'
+
+// trasforma funzioni `B -> Task<C>` in funzioni `Task<B> -> Task<C>`
+const chain = <B, C>(g: (b: B) => Task<C>) => (mb: Task<B>): Task<C> => () =>
+  mb().then((b) => g(b)())
+```
+
+**Esempio** (`F = Reader`)
+
+```ts
+import { Reader } from 'fp-ts/Reader'
+
+// trasforma funzioni `B -> Reader<R, C>` in funzioni `Reader<R, B> -> Reader<R, C>`
+const chain = <B, R, C>(g: (b: B) => Reader<R, C>) => (
+  mb: Reader<R, B>
+): Reader<R, C> => (r) => g(mb(r))(r)
 ```
 
 ## Manipolazione di programmi
@@ -4329,18 +4392,19 @@ import { now } from 'fp-ts/Date'
 import { log } from 'fp-ts/Console'
 import { pipe } from 'fp-ts/function'
 
+// logga la durata in millisecondi della computazione
 export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
   pipe(
     now,
-    IO.chain((start) =>
+    IO.chain((startMillis) =>
       pipe(
         ma,
         IO.chain((a) =>
           pipe(
             now,
-            IO.chain((end) =>
+            IO.chain((endMillis) =>
               pipe(
-                log(`Elapsed: ${end - start}`),
+                log(`Elapsed: ${endMillis - startMillis}`),
                 IO.map(() => a)
               )
             )
@@ -4360,11 +4424,14 @@ import { replicate } from 'fp-ts/ReadonlyArray'
 
 const fib = (n: number): number => (n <= 1 ? 1 : fib(n - 1) + fib(n - 2))
 
+// lancia `fib` con un intero causuale tra 30 e 35
+// e logga sia l'input che l'output
 const randomFib: IO.IO<void> = pipe(
   randomInt(30, 35),
   IO.chain((n) => log([n, fib(n)]))
 )
 
+// una istanza di monoide per `IO<void>`
 const MonoidIO: Monoid<IO.IO<void>> = {
   concat: (second) => (first) => () => {
     first()
@@ -4373,8 +4440,13 @@ const MonoidIO: Monoid<IO.IO<void>> = {
   empty: IO.of(undefined)
 }
 
+// esegue `n` volte la computazione `mv`
 const replicateIO = (n: number, mv: IO.IO<void>): IO.IO<void> =>
   concatAll(MonoidIO)(replicate(n, mv))
+
+// -------------------
+// esempio di utilizzo
+// -------------------
 
 time(replicateIO(3, randomFib))()
 /*
@@ -4400,7 +4472,7 @@ Elapsed: 106
 */
 ```
 
-Una cosa interessante di lavorare con l'interfaccia monadica (`map`, `of`, `chain`) è la possibilità di poter inniettare le dipendenze di cui ha bisogno il programma, ivi compreso il modo per concatenare diverse computazioni.
+Una cosa interessante di lavorare con l'interfaccia monadica (`map`, `of`, `chain`) è la possibilità di poter iniettare le dipendenze di cui ha bisogno il programma, ivi compreso **il modo per concatenare le diverse computazioni**.
 
 Per vederlo riprendiamo il piccolo programma che legge e scrive su file e operiamo il seguente refactoring:
 
@@ -4523,13 +4595,13 @@ import { Task } from 'fp-ts/Task'
 import { pipe } from 'fp-ts/function'
 
 // -----------------------------------------
-// effetto del nostro programma
+// effetto del nostro programma (modificato)
 // -----------------------------------------
 
 interface FileSystem<A> extends Task<A> {}
 
 // -----------------------------------------
-// dipendenze
+// dipendenze (NON modificato)
 // -----------------------------------------
 
 interface Deps {
@@ -4542,7 +4614,7 @@ interface Deps {
 }
 
 // -----------------------------------------
-// programma
+// programma (NON modificato)
 // -----------------------------------------
 
 const program5 = (D: Deps) => {
@@ -4562,7 +4634,7 @@ const program5 = (D: Deps) => {
 }
 
 // -----------------------------------------
-// istanza per `Deps`
+// istanza per `Deps` (modificato)
 // -----------------------------------------
 
 import * as fs from 'fs'
@@ -4585,6 +4657,87 @@ program5(DepsAsync)()
 ```
 
 **Quiz**. Gli esempi precedenti non tengono conto (volontariamente) di possibili errori (per esempio il fatto che non esista il file da cui leggiamo), come si potrebbe modificare l'effetto `FileSystem` per tenerne conto?
+
+```ts
+import { Task } from 'fp-ts/Task'
+import { pipe } from 'fp-ts/function'
+import * as E from 'fp-ts/Either'
+
+// -----------------------------------------
+// effetto del nostro programma (modificato)
+// -----------------------------------------
+
+interface FileSystem<A> extends Task<E.Either<Error, A>> {}
+
+// -----------------------------------------
+// dipendenze (NON modificato)
+// -----------------------------------------
+
+interface Deps {
+  readonly readFile: (filename: string) => FileSystem<string>
+  readonly writeFile: (filename: string, data: string) => FileSystem<void>
+  readonly log: <A>(a: A) => FileSystem<void>
+  readonly chain: <A, B>(
+    f: (a: A) => FileSystem<B>
+  ) => (ma: FileSystem<A>) => FileSystem<B>
+}
+
+// -----------------------------------------
+// programma (NON modificato)
+// -----------------------------------------
+
+const program5 = (D: Deps) => {
+  const modifyFile = (filename: string, f: (s: string) => string) =>
+    pipe(
+      D.readFile(filename),
+      D.chain((s) => D.writeFile(filename, f(s)))
+    )
+
+  return pipe(
+    D.readFile('-.txt'),
+    D.chain(D.log),
+    D.chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
+    D.chain(() => D.readFile('file.txt')),
+    D.chain(D.log)
+  )
+}
+
+// -----------------------------------------
+// istanza per `Deps` (modificato)
+// -----------------------------------------
+
+import * as fs from 'fs'
+import { log } from 'fp-ts/Console'
+import { chain, fromIO } from 'fp-ts/TaskEither'
+
+const DepsAsync: Deps = {
+  readFile: (filename) => () =>
+    new Promise((resolve) =>
+      fs.readFile(filename, { encoding: 'utf-8' }, (err, s) => {
+        if (err !== null) {
+          resolve(E.left(err))
+        } else {
+          resolve(E.right(s))
+        }
+      })
+    ),
+  writeFile: (filename: string, data: string) => () =>
+    new Promise((resolve) =>
+      fs.writeFile(filename, data, (err) => {
+        if (err !== null) {
+          resolve(E.left(err))
+        } else {
+          resolve(E.right(undefined))
+        }
+      })
+    ),
+  log: (a) => fromIO(log(a)),
+  chain
+}
+
+// dependency injection
+program5(DepsAsync)().then(console.log)
+```
 
 **Demo**
 
