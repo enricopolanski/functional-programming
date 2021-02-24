@@ -51,6 +51,8 @@
   - [I funtori risolvono il problema centrale?](#i-funtori-risolvono-il-problema-centrale)
 - [Funtori applicativi](#funtori-applicativi)
   - [Currying](#currying)
+  - [L'operazione `ap`](#loperazione-ap)
+  - [L'operazione `of`](#loperazione-of)
   - [I funtori applicativi compongono](#i-funtori-applicativi-compongono)
   - [I funtori applicativi risolvono il problema centrale?](#i-funtori-applicativi-risolvono-il-problema-centrale)
 - [Monadi](#monadi)
@@ -3355,7 +3357,7 @@ In pratica, utilizzando `Option`, abbiamo sempre di fronte l'*happy path*, la ge
 
 I funtori compongono, ovvero dati due funtori `F` e `G`, allora la composizione `F<G<A>>` è ancora un funtore e la `map` della composizione è la composizione delle `map`.
 
-**Esempio**
+**Esempio** (`F = Task`, `G = Option`)
 
 ```ts
 import { flow } from 'fp-ts/function'
@@ -3577,6 +3579,8 @@ console.log(addFollower(follower)(user))
 */
 ```
 
+## L'operazione `ap`
+
 Ora supponiamo:
 
 - di non avere a disposizione `follower` ma solo il suo `id`
@@ -3584,7 +3588,7 @@ Ora supponiamo:
 - di avere a disposizione una API `fetchUser` che, dato un `id`, contatta un endpoint che restituisce lo `User` corrispondente
 
 ```ts
-import { Task } from 'fp-ts/Task'
+import * as T from 'fp-ts/Task'
 
 interface User {
   readonly id: number
@@ -3597,16 +3601,22 @@ const addFollower = (follower: User) => (user: User): User => ({
   followers: [...user.followers, follower]
 })
 
-declare const fetchUser: (id: number) => Task<User>
+declare const fetchUser: (id: number) => T.Task<User>
 
 const userId = 1
 const followerId = 3
+
+const result = addFollower(fetchUser(followerId))(fetchUser(userId)) // non compila!
 ```
+
+Non posso più usare `addFollower`! Come possiamo procedere?
 
 Se avessimo a disposizione una funzione con la seguente firma:
 
 ```ts
-declare const addFollowerAsync: (follower: Task<User>) => (user: Task<User>) => Task<User>
+declare const addFollowerAsync: (
+  follower: T.Task<User>
+) => (user: T.Task<User>) => T.Task<User>
 ```
 
 potremmo procedere comodamente:
@@ -3621,8 +3631,8 @@ declare const addFollowerAsync: (
 const userId = 1
 const followerId = 3
 
-// const result: Task<User>
-const result = addFollowerAsync(fetchUser(followerId))(fetchUser(userId))
+// const result: T.Task<User>
+const result = addFollowerAsync(fetchUser(followerId))(fetchUser(userId)) // ora compila
 ```
 
 Possiamo naturalmente provare ad implementare manualmente `addFollowerAsync`, ma è possibile invece trovare una trasformazione che partendo da una funzione come `addFollower: (follower: User) => (user: User): User` restituisca una funzione come `addFollowerAsync: (follower: Task<User>) => (user: Task<User>) => Task<User>`?
@@ -3660,18 +3670,18 @@ declare const ap: <A>(
 declare const apply: <A>(a: A      ) => <B>(f:      (a: A) => B ) => B
 
 declare const ap:    <A>(a: Task<A>) => <B>(f: Task<(a: A) => B>) => Task<B>
-// `ap` applica una funzione racchiusa in un contesto ad un valore racchiuso in un contesto
+// `ap` applica una funzione racchiusa in un effetto ad un valore racchiuso in un effetto
 ```
 
 Ora, data l'operazione `ap` possiamo definire `liftA2`:
 
 ```ts
-import { flow, pipe } from 'fp-ts/function'
+import { pipe } from 'fp-ts/function'
 import * as T from 'fp-ts/Task'
 
-const liftA2 = <B, C, D>(f: (b: B) => (c: C) => D) => (fb: T.Task<B>) => (
+const liftA2 = <B, C, D>(g: (b: B) => (c: C) => D) => (fb: T.Task<B>) => (
   fc: T.Task<C>
-): T.Task<D> => pipe(fb, T.map(f), T.ap(fc))
+): T.Task<D> => pipe(fb, T.map(g), T.ap(fc))
 
 interface User {
   readonly id: number
@@ -3688,19 +3698,47 @@ const addFollower = (follower: User) => (user: User): User => ({
 const addFollowerAsync = liftA2(addFollower)
 ```
 
-e infine comporre `fetchUser` con il risultato precedente:
+e infine, comporre `fetchUser` con il risultato precedente:
 
 ```ts
-// const program: (id: number) => (c: T.Task<User>) => T.Task<User>
+import { flow, pipe } from 'fp-ts/function'
+import * as T from 'fp-ts/Task'
+
+const liftA2 = <B, C, D>(g: (b: B) => (c: C) => D) => (fb: T.Task<B>) => (
+  fc: T.Task<C>
+): T.Task<D> => pipe(fb, T.map(g), T.ap(fc))
+
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
+}
+
+const addFollower = (follower: User) => (user: User): User => ({
+  ...user,
+  followers: [...user.followers, follower]
+})
+
+declare const fetchUser: (id: number) => T.Task<User>
+
+// const program: (id: number) => (fc: T.Task<User>) => T.Task<User>
 const program = flow(fetchUser, liftA2(addFollower))
 
 const userId = 1
 const followerId = 3
 
-program(followerId)(fetchUser(userId))
+// const result: T.Task<User>
+const result = program(followerId)(fetchUser(userId))
 ```
 
-Vediamo come è definita l'opererazione `ap` per altri type constructor noti:
+Abbiamo trovato una procedura standard per comporre due funzioni `f: (a: A) => F<B>`, `g: (b: B, c: C) => D`:
+
+1. si trasforma `g` tramite currying in una funzione `g: (b: B) => (c: C) => D`
+2. si definisce la funzione `ap` per l'effetto `F` (funzione di libreria)
+3. si definisce la funzione di utility `liftA2` per l'effetto `F` (funzione di libreria)
+4. si ottiene la composizione con `flow(f, liftA2(g))`
+
+Vediamo come è definita l'opererazione `ap` per alcuni type constructor già noti:
 
 **Esempio** (`F = ReadonlyArray`)
 
@@ -3753,6 +3791,7 @@ const double = (n: number): number => n * 2
 console.log(pipe(O.some(double), ap(O.some(1)))) // => some(2)
 console.log(pipe(O.some(double), ap(O.none))) // => none
 console.log(pipe(O.none, ap(O.some(1)))) // => none
+console.log(pipe(O.none, ap(O.none))) // => none
 ```
 
 **Esempio** (`F = IO`)
@@ -3765,6 +3804,15 @@ const ap = <A>(fa: IO<A>) => <B>(fab: IO<(a: A) => B>): IO<B> => () => {
   const a = fa()
   return f(a)
 }
+```
+
+**Esempio** (`F = Task`)
+
+```ts
+import { Task } from 'fp-ts/Task'
+
+const ap = <A>(fa: Task<A>) => <B>(fab: Task<(a: A) => B>): Task<B> => () =>
+  Promise.all([fab(), fa()]).then(([f, a]) => f(a))
 ```
 
 **Esempio** (`F = Reader`)
@@ -3811,19 +3859,29 @@ Ora possiamo aggiornare la nostra "tabella di composizione":
 | effectful | pure (unary)  | `map(g) ∘ f`    |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 
-Ora sappiamo che se possediamo un valore di tipo `F<(a: A) => B>` e un valore di tipo `F<A>` possiamo ottenere un valore di tipo `F<B>`. Ma che succede se invece di un valore di tipo `F<A>` abbiamo un valore di tipo `A`?
+## L'operazione `of`
 
-Sarebbe utile un'operazione che sia in grado di trasformare un valore di tipo `A` in un valore di tipo `F<A>`, in modo che si possa poi usare `ap`.
+Ora sappiamo che se abbiamo due funzioni `f: (a: A) => F<B>`, `g: (b: B, c: C) => D` possiamo ottenerne la composizione `h`:
+
+```ts
+h: (a: A) => (fb: F<B>) => F<D>
+```
+
+Per eseguire `h` abbiamo perciò bisogno di un valore di tipo `A` e di un valore di tipo `F<B>`.
+
+Ma che succede se invece di un valore di tipo `F<B>` per il secondo parametro `fb` abbiamo a disposizione solo un valore di tipo `B`?
+
+Sarebbe utile un'operazione che sia in grado di trasformare un valore di tipo `B` in un valore di tipo `F<B>`, in modo che si possa poi usare `h`.
 
 Introduciamo perciò una tale operazione (chiamata `of`):
 
 ```ts
-declare const of: <A>(a: A) => Task<A>
+declare const of: <B>(b: B) => F<B>
 ```
 
-In letteratura si parla di **funtori applicativi** per i type constructor che ammettono le operazioni `ap` e `of`.
+In letteratura si parla di **funtori applicativi** per i type constructor che ammettono ambedue le operazioni `ap` e `of`.
 
-Vediamo come è definita l'opererazione `of` per altri type constructor noti:
+Vediamo come è definita l'opererazione `of` per alcuni type constructor noti:
 
 **Esempio** (`F = ReadonlyArray`)
 
@@ -3871,7 +3929,7 @@ const of = <R, A>(a: A): Reader<R, A> => () => a
 
 I funtori applicativi compongono, ovvero dati due funtori applicativi `F` e `G`, la loro composizione `F<G<A>>` è ancora un funtore applicativo.
 
-**Esempio**
+**Esempio** (`F = Task`, `G = Option`)
 
 La `of` della composizione è la composizione delle `of`:
 

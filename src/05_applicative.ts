@@ -30,12 +30,13 @@ export const modifier = (n: number) => (die: Die): Die =>
     IO.map((m) => m + n)
   )
 
-export const add = (second: Die) => (first: Die): Die =>
-  pipe(
-    first,
-    IO.map((a: number) => (b: number) => a + b),
-    IO.ap(second)
-  )
+const liftA2 = <A, B, C>(f: (a: A) => (b: B) => C) => (fa: IO.IO<A>) => (
+  fb: IO.IO<B>
+): IO.IO<C> => pipe(fa, IO.map(f), IO.ap(fb))
+
+export const add: (
+  second: Die
+) => (first: Die) => Die = liftA2((a: number) => (b: number) => a + b)
 
 export const multiply = (n: number) => (die: Die): Die =>
   pipe(
