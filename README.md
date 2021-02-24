@@ -3415,7 +3415,7 @@ type User = {
   readonly name: string
 }
 
-const getId = (_: User) => _.id
+const getId = (_: User): number => _.id
 
 // const getIdOption: (fa: Option<User>) => Option<number>
 const getIdOption = map(getId)
