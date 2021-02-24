@@ -3070,9 +3070,9 @@ Vediamo qualche esempio pratico:
 import { flow, pipe } from 'fp-ts/function'
 
 // trasforma funzioni `B -> C` in funzioni `ReadonlyArray<B> -> ReadonlyArray<C>`
-const map = <B, C>(
-  g: (b: B) => C
-): ((fb: ReadonlyArray<B>) => ReadonlyArray<C>) => (fb) => fb.map(g)
+const map = <B, C>(g: (b: B) => C) => (
+  fb: ReadonlyArray<B>
+): ReadonlyArray<C> => fb.map(g)
 
 // -------------------
 // esempio di utilizzo
@@ -3095,10 +3095,11 @@ export const getFollowersNames2 = (user: User) =>
   pipe(user, getFollowers, map(getName))
 
 const user: User = {
+  id: 1,
   name: 'Ruth R. Gonzalez',
   followers: [
-    { name: 'Terry R. Emerson', followers: [] },
-    { name: 'Marsha J. Joslyn', followers: [] }
+    { id: 2, name: 'Terry R. Emerson', followers: [] },
+    { id: 3, name: 'Marsha J. Joslyn', followers: [] }
   ]
 }
 
@@ -3115,7 +3116,10 @@ import { none, Option, match, some } from 'fp-ts/Option'
 const map = <B, C>(g: (b: B) => C): ((fb: Option<B>) => Option<C>) =>
   match(
     () => none,
-    (b) => some(g(b))
+    (b) => {
+      const c = g(b)
+      return some(c)
+    }
   )
 
 // -------------------
@@ -3141,8 +3145,10 @@ import { flow } from 'fp-ts/function'
 import { IO } from 'fp-ts/IO'
 
 // trasforma funzioni `B -> C` in funzioni `IO<B> -> IO<C>`
-const map = <B, C>(g: (b: B) => C): ((fb: IO<B>) => IO<C>) => (fb) => () =>
-  g(fb())
+const map = <B, C>(g: (b: B) => C) => (fb: IO<B>): IO<C> => () => {
+  const b = fb()
+  return g(b)
+}
 
 // -------------------
 // esempio di utilizzo
@@ -3176,8 +3182,10 @@ import { flow } from 'fp-ts/function'
 import { Task } from 'fp-ts/Task'
 
 // trasforma funzioni `B -> C` in funzioni `Task<B> -> Task<C>`
-const map = <B, C>(g: (b: B) => C): ((fb: Task<B>) => Task<C>) => (fb) => () =>
-  fb().then(g)
+const map = <B, C>(g: (b: B) => C) => (fb: Task<B>): Task<C> => () => {
+  const promise = fb()
+  return promise.then(g)
+}
 
 // -------------------
 // esempio di utilizzo
@@ -3211,9 +3219,12 @@ import { flow } from 'fp-ts/function'
 import { Reader } from 'fp-ts/Reader'
 
 // trasforma funzioni `B -> C` in funzioni `Reader<R, B> -> Reader<R, C>`
-const map = <B, C>(g: (b: B) => C): (<R>(fb: Reader<R, B>) => Reader<R, C>) => (
-  fb
-) => flow(fb, g)
+const map = <B, C>(g: (b: B) => C) => <R>(fb: Reader<R, B>): Reader<R, C> => (
+  r
+) => {
+  const b = fb(r)
+  return g(b)
+}
 
 // -------------------
 // esempio di utilizzo
@@ -3313,7 +3324,9 @@ export const program = (ns: ReadonlyArray<number>): string => {
 }
 ```
 
-Usando l'API nativa `findIndex` per procedere con il flusso del programma occorre testare il risultato parziale con un `if`, vediamo invece come si può ottenere più facilmente un risultato analogo usando `Option` e la sua istanza di funtore:
+Usando l'API nativa `findIndex` per procedere con il flusso del programma occorre testare il risultato parziale con un `if` (sempre che ce ne ricordiamo! Il risultato di `findIndex` può essere tranquillamente passato come input a `doSomethingWithIndex`).
+
+Vediamo invece come si può ottenere più facilmente un risultato analogo usando `Option` e la sua istanza di funtore:
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -3330,7 +3343,7 @@ export const program = (ns: ReadonlyArray<number>): Option<string> =>
   )
 ```
 
-In pratica, utilizzando `Option`, abbiamo sempre di fronte l'*happy path*, la gestione dell'errore avviene dietro le quinte grazie alla sua istanza di funtore.
+In pratica, utilizzando `Option`, abbiamo sempre di fronte l'*happy path*, la gestione dell'errore avviene dietro le quinte grazie alla sua `map`.
 
 **Demo** (opzionale)
 
