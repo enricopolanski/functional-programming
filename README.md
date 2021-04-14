@@ -271,7 +271,7 @@ Possiamo usare una `interface` di TypeScript per modellare un magma:
 
 ```ts
 interface Magma<A> {
-  readonly concat: (y: A) => (x: A) => A
+  readonly concat: (first: A, second: A) => A
 }
 ```
 
@@ -287,22 +287,21 @@ Per avere una istanza concreta di magma per un determinato tipo occorre perciò 
 import { Magma } from 'fp-ts/Magma'
 
 const MagmaSub: Magma<number> = {
-  concat: (y) => (x) => x - y
+  concat: (first, second) => first - second
 }
+
+// helper
+const getPipeableConcat = <A>(M: Magma<A>) => (second: A) => (first: A): A =>
+  M.concat(first, second)
+
+const concat = getPipeableConcat(MagmaSub)
 
 // esempio di utilizzo
 
 import { pipe } from 'fp-ts/function'
 
-console.log(
-  pipe(
-    10,
-    MagmaSub.concat(2),
-    MagmaSub.concat(3),
-    MagmaSub.concat(1),
-    MagmaSub.concat(2)
-  )
-) // => 2
+pipe(10, concat(2), concat(3), concat(1), concat(2), console.log)
+// => 2
 ```
 
 Notate che la definizione di `concat` è stata concepita per agevolarne l'uso con `pipe`.
@@ -310,6 +309,7 @@ Notate che la definizione di `concat` è stata concepita per agevolarne l'uso co
 **Quiz**. Consideriamo la seguente funzione che trasforma una lista in un dizionario, perché si richiede un `Magma` come parametro?
 
 ```ts
+import { pipe } from 'fp-ts/function'
 import { Magma } from 'fp-ts/Magma'
 
 declare const fromReadonlyArray: <A>(
@@ -319,21 +319,25 @@ declare const fromReadonlyArray: <A>(
 // esempio di utilizzo
 
 const MagmaSub: Magma<number> = {
-  concat: (y) => (x) => x - y
+  concat: (first, second) => first - second
 }
 
-console.log(
-  fromReadonlyArray(MagmaSub)([
+pipe(
+  [
     ['a', 1],
     ['b', 2]
-  ])
+  ],
+  fromReadonlyArray(MagmaSub),
+  console.log
 ) // => { a: 1, b: 2 }
-console.log(
-  fromReadonlyArray(MagmaSub)([
+pipe(
+  [
     ['a', 1],
     ['b', 2],
     ['a', 3]
-  ])
+  ],
+  fromReadonlyArray(MagmaSub),
+  console.log
 ) // => { a: -2, b: 2 }
 ```
 
