@@ -7,8 +7,10 @@ import { Monad2 } from 'fp-ts/Monad'
 import { URI } from 'fp-ts/TaskEither'
 
 const Monad: Monad2<URI> = {
+  URI: URI,
   map: null as any,
   of: null as any,
+  ap: null as any,
   chain: null as any
 }
 
@@ -17,31 +19,21 @@ const Monad: Monad2<URI> = {
 // ------------------------------------
 
 import * as assert from 'assert'
-import { pipe } from 'fp-ts/function'
 
 async function test() {
   assert.deepStrictEqual(
-    await pipe(
-      Monad.of(1),
-      Monad.map((n: number) => n * 2)
+    await Monad.map(Monad.of(1), (n: number) => n * 2)(),
+    E.right(2)
+  )
+  assert.deepStrictEqual(
+    await Monad.chain(Monad.of(1), (n: number) =>
+      n > 0 ? Monad.of(n * 2) : T.of(E.left('error'))
     )(),
     E.right(2)
   )
   assert.deepStrictEqual(
-    await pipe(
-      Monad.of(1),
-      Monad.chain((n: number) =>
-        n > 0 ? Monad.of(n * 2) : T.of(E.left('error'))
-      )
-    )(),
-    E.right(2)
-  )
-  assert.deepStrictEqual(
-    await pipe(
-      Monad.of(-1),
-      Monad.chain((n: number) =>
-        n > 0 ? Monad.of(n * 2) : T.of(E.left('error'))
-      )
+    await Monad.chain(Monad.of(-1), (n: number) =>
+      n > 0 ? Monad.of(n * 2) : T.of(E.left('error'))
     )(),
     E.left('error')
   )

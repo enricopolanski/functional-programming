@@ -86,7 +86,7 @@ const sendGreetings = (M: MonadApp) => (
   return pipe(
     M.read(fileName),
     IO.map((input) => getGreetings(today, parse(input))),
-    IO.chain(IO.traverseReadonlyArray(M.sendMessage)),
+    IO.chain(IO.traverseArray(M.sendMessage)),
     IO.map(() => undefined)
   )
 }

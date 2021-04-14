@@ -31,6 +31,7 @@ export const getByUsername: (
   queryByUsername,
   match(
     () => ({ code: 404, body: 'User not found.' }),
+    // @ts-ignore
     (user) => ({ code: 200, body: user }) // Error: Type 'User' is not assignable to type 'string'
   )
 )

@@ -5,9 +5,12 @@ import { Monad2 } from 'fp-ts/Monad'
 import * as E from 'fp-ts/Either'
 
 const Monad: Monad2<E.URI> = {
-  map: (f) => (fa) => (E.isLeft(fa) ? fa : E.right(f(fa.right))),
+  URI: E.URI,
+  map: (fa, f) => (E.isLeft(fa) ? fa : E.right(f(fa.right))),
   of: E.right,
-  chain: (f) => (ma) => (E.isLeft(ma) ? ma : f(ma.right))
+  ap: (fab, fa) =>
+    E.isLeft(fab) ? fab : E.isLeft(fa) ? fa : E.right(fab.right(fa.right)),
+  chain: (ma, f) => (E.isLeft(ma) ? ma : f(ma.right))
 }
 
 // ------------------------------------
@@ -15,26 +18,20 @@ const Monad: Monad2<E.URI> = {
 // ------------------------------------
 
 import * as assert from 'assert'
-import { pipe } from 'fp-ts/function'
 
 assert.deepStrictEqual(
-  pipe(
-    Monad.of(1),
-    Monad.map((n: number) => n * 2)
+  Monad.map(Monad.of(1), (n: number) => n * 2),
+  E.right(2)
+)
+assert.deepStrictEqual(
+  Monad.chain(Monad.of(1), (n: number) =>
+    n > 0 ? Monad.of(n * 2) : E.left('error')
   ),
   E.right(2)
 )
 assert.deepStrictEqual(
-  pipe(
-    Monad.of(1),
-    Monad.chain((n: number) => (n > 0 ? Monad.of(n * 2) : E.left('error')))
-  ),
-  E.right(2)
-)
-assert.deepStrictEqual(
-  pipe(
-    Monad.of(-1),
-    Monad.chain((n: number) => (n > 0 ? Monad.of(n * 2) : E.left('error')))
+  Monad.chain(Monad.of(-1), (n: number) =>
+    n > 0 ? Monad.of(n * 2) : E.left('error')
   ),
   E.left('error')
 )

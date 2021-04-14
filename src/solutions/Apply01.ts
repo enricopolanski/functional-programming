@@ -3,13 +3,14 @@
  */
 import { Semigroup } from 'fp-ts/Semigroup'
 import * as O from 'fp-ts/Option'
-import * as Str from 'fp-ts/string'
+import * as S from 'fp-ts/string'
+import { pipe } from 'fp-ts/function'
 
 const getSemigroup = <A>(S: Semigroup<A>): Semigroup<O.Option<A>> => ({
-  concat: (second) => (first) =>
+  concat: (first, second) =>
     pipe(
       first,
-      O.map((a: A) => (b: A) => S.concat(b)(a)),
+      O.map((a: A) => (b: A) => S.concat(a, b)),
       O.ap(second)
     )
 })
@@ -19,11 +20,10 @@ const getSemigroup = <A>(S: Semigroup<A>): Semigroup<O.Option<A>> => ({
 // ------------------------------------
 
 import * as assert from 'assert'
-import { pipe } from 'fp-ts/function'
 
-const S = getSemigroup(Str.Semigroup)
+const SO = getSemigroup(S.Semigroup)
 
-assert.deepStrictEqual(pipe(O.none, S.concat(O.none)), O.none)
-assert.deepStrictEqual(pipe(O.some('a'), S.concat(O.none)), O.none)
-assert.deepStrictEqual(pipe(O.none, S.concat(O.some('a'))), O.none)
-assert.deepStrictEqual(pipe(O.some('a'), S.concat(O.some('b'))), O.some('ab'))
+assert.deepStrictEqual(SO.concat(O.none, O.none), O.none)
+assert.deepStrictEqual(SO.concat(O.some('a'), O.none), O.none)
+assert.deepStrictEqual(SO.concat(O.none, O.some('a')), O.none)
+assert.deepStrictEqual(SO.concat(O.some('a'), O.some('b')), O.some('ab'))

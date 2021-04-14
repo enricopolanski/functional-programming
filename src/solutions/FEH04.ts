@@ -4,20 +4,20 @@
 import { Semigroup } from 'fp-ts/Semigroup'
 import * as N from 'fp-ts/number'
 import { Either, right, left, isLeft } from 'fp-ts/Either'
-import * as Str from 'fp-ts/string'
+import * as S from 'fp-ts/string'
 
 const getSemigroup = <E, A>(
   SE: Semigroup<E>,
   SA: Semigroup<A>
 ): Semigroup<Either<E, A>> => ({
-  concat: (second) => (first) =>
+  concat: (first, second) =>
     isLeft(first)
       ? isLeft(second)
-        ? left(pipe(first.left, SE.concat(second.left)))
+        ? left(SE.concat(first.left, second.left))
         : first
       : isLeft(second)
       ? second
-      : right(pipe(first.right, SA.concat(second.right)))
+      : right(SA.concat(first.right, second.right))
 })
 
 // ------------------------------------
@@ -25,11 +25,10 @@ const getSemigroup = <E, A>(
 // ------------------------------------
 
 import * as assert from 'assert'
-import { pipe } from 'fp-ts/function'
 
-const S = getSemigroup(N.SemigroupSum, Str.Semigroup)
+const SE = getSemigroup(N.SemigroupSum, S.Semigroup)
 
-assert.deepStrictEqual(pipe(left(1), S.concat(left(2))), left(3))
-assert.deepStrictEqual(pipe(right('a'), S.concat(left(2))), left(2))
-assert.deepStrictEqual(pipe(left(1), S.concat(right('b'))), left(1))
-assert.deepStrictEqual(pipe(right('a'), S.concat(right('b'))), right('ab'))
+assert.deepStrictEqual(SE.concat(left(1), left(2)), left(3))
+assert.deepStrictEqual(SE.concat(right('a'), left(2)), left(2))
+assert.deepStrictEqual(SE.concat(left(1), right('b')), left(1))
+assert.deepStrictEqual(SE.concat(right('a'), right('b')), right('ab'))

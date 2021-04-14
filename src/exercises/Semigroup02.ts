@@ -1,7 +1,7 @@
 /**
  * Definire un semigruppo per i predicati su `Point`
  */
-import { pipe, Predicate } from 'fp-ts/function'
+import { Predicate } from 'fp-ts/function'
 import { Semigroup } from 'fp-ts/Semigroup'
 
 type Point = {
@@ -21,7 +21,7 @@ declare const S: Semigroup<Predicate<Point>>
 import * as assert from 'assert'
 
 // restituisce `true` se il punto appartiene al primo quadrante, ovvero se ambedue le sue `x` e `y` sono positive
-const isPositiveXY = pipe(isPositiveX, S.concat(isPositiveY))
+const isPositiveXY = S.concat(isPositiveX, isPositiveY)
 
 assert.deepStrictEqual(isPositiveXY({ x: 1, y: 1 }), true)
 assert.deepStrictEqual(isPositiveXY({ x: 1, y: -1 }), false)

@@ -18,13 +18,12 @@ declare const fromHourMin: (h: number, m: number) => Clock
 // ------------------------------------
 
 import * as assert from 'assert'
-import { pipe } from 'fp-ts/function'
 
 assert.deepStrictEqual(
-  pipe(fromHourMin(0, 0), eqClock.equals(fromHourMin(24, 0))),
+  eqClock.equals(fromHourMin(0, 0), fromHourMin(24, 0)),
   true
 )
 assert.deepStrictEqual(
-  pipe(fromHourMin(12, 30), eqClock.equals(fromHourMin(36, 30))),
+  eqClock.equals(fromHourMin(12, 30), fromHourMin(36, 30)),
   true
 )

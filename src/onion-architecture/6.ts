@@ -89,11 +89,12 @@ const sendGreetings = <M extends URIS>(M: MonadApp<M>) => (
   fileName: string,
   today: Date
 ): Kind<M, void> => {
-  return pipe(
-    M.read(fileName),
-    M.map((input) => getGreetings(today, parse(input))),
-    M.chain(RA.traverse(M)(M.sendMessage)),
-    M.map(constVoid)
+  return M.map(
+    M.chain(
+      M.map(M.read(fileName), (input) => getGreetings(today, parse(input))),
+      RA.traverse(M)(M.sendMessage)
+    ),
+    constVoid
   )
 }
 

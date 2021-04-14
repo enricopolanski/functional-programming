@@ -27,7 +27,7 @@ const newState = (name: string, word: string): State => ({
 
 const addGuess = (state: State, guess: string): State => ({
   ...state,
-  guesses: pipe(state.guesses, RA.snoc(guess))
+  guesses: pipe(state.guesses, RA.append(guess))
 })
 
 const difference = RA.difference(S.Eq)

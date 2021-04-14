@@ -9,7 +9,7 @@ const fromReadonlyArray = <A>(M: Magma<A>) => (
   const out: Record<string, A> = {}
   for (const [k, a] of as) {
     if (out.hasOwnProperty(k)) {
-      out[k] = M.concat(a)(out[k])
+      out[k] = M.concat(out[k], a)
     } else {
       out[k] = a
     }
@@ -24,17 +24,17 @@ const fromReadonlyArray = <A>(M: Magma<A>) => (
 import * as assert from 'assert'
 
 const magmaSum: Magma<number> = {
-  concat: (second) => (first) => first + second
+  concat: (first, second) => first + second
 }
 
 // una istanza di Magma che semplicemente ignora il primo argomento
 const lastMagma: Magma<number> = {
-  concat: (second) => (_first) => second
+  concat: (_first, second) => second
 }
 
 // una istanza di Magma che semplicemente ignora il secondo argomento
 const firstMagma: Magma<number> = {
-  concat: (_second) => (first) => first
+  concat: (first, _second) => first
 }
 
 const input: ReadonlyArray<readonly [string, number]> = [

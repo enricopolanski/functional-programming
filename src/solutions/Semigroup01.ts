@@ -1,14 +1,13 @@
 /**
  * Implementare la funzione `concatAll`
  */
-import { pipe } from 'fp-ts/function'
 import { Semigroup } from 'fp-ts/Semigroup'
 import * as N from 'fp-ts/number'
 import * as S from 'fp-ts/string'
 
 const concatAll = <A>(S: Semigroup<A>) => (startWith: A) => (
   as: ReadonlyArray<A>
-): A => as.reduce((acc, a) => pipe(acc, S.concat(a)), startWith)
+): A => as.reduce(S.concat, startWith)
 
 // ------------------------------------
 // tests

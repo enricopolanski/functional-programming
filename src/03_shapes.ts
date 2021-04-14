@@ -76,7 +76,7 @@ export const outside = (s: Shape): Shape => (point) => !s(point)
  * Un monoide in cui `concat` rappresenta l'unione di due forme
  */
 export const MonoidUnion: Mo.Monoid<Shape> = {
-  concat: (second) => (first) => (point) => first(point) || second(point),
+  concat: (first, second) => (point) => first(point) || second(point),
   empty: () => false
 }
 
@@ -91,7 +91,7 @@ export const MonoidUnion: Mo.Monoid<Shape> = {
  * Un monoide in cui `concat` rappresenta l'intersezione di due forme
  */
 const MonoidIntersection: Mo.Monoid<Shape> = {
-  concat: (second) => (first) => (point) => first(point) && second(point),
+  concat: (first, second) => (point) => first(point) && second(point),
   empty: () => true
 }
 
@@ -111,9 +111,9 @@ export const ring = (
   bigRadius: number,
   smallRadius: number
 ): Shape =>
-  pipe(
+  MonoidIntersection.concat(
     disk(point, bigRadius),
-    MonoidIntersection.concat(outside(disk(point, smallRadius)))
+    outside(disk(point, smallRadius))
   )
 
 // draw(ring({ x: 200, y: 200 }, 100, 50))

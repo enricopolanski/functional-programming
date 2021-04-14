@@ -9,8 +9,7 @@ import * as fc from 'fast-check'
 export const laws = {
   semigroup: {
     associativity: <A>(S: Se.Semigroup<A>) => (a: A, b: A, c: A): boolean =>
-      pipe(a, S.concat(b), S.concat(c)) ===
-      pipe(a, S.concat(pipe(b, S.concat(c))))
+      S.concat(S.concat(a, b), c) === S.concat(a, S.concat(b, c))
   }
 }
 
@@ -32,7 +31,7 @@ export const properties = {
 import { Magma } from 'fp-ts/Magma'
 
 export const MagmaSub: Magma<number> = {
-  concat: (y) => (x) => x - y
+  concat: (x, y) => x - y
 }
 
 // prova che MagmaSub non è un semigruppo

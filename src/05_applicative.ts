@@ -49,7 +49,7 @@ export const multiply = (n: number) => (die: Die): Die =>
 // ------------------------------------
 
 export const monoidDie: Monoid<Die> = {
-  concat: add,
+  concat: (first, second) => pipe(first, add(second)),
   empty: () => 0 // <= un dado con zero facce
 }
 

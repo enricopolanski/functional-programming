@@ -1,7 +1,8 @@
 /**
  * Convertire la funzione `parseJSON` in stile funzionale usando l'implementazione di `Either` in `fp-ts`
  */
-import { Json, right, left } from 'fp-ts/Either'
+import { right, left } from 'fp-ts/Either'
+import { Json } from 'fp-ts/Json'
 
 // may throw a SyntaxError
 export const parseJSON = (input: string): Json => JSON.parse(input)

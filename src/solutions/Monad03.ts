@@ -9,9 +9,9 @@ function getUsersByPage(page: number): Promise<Array<User>> {
 }
 
 const getUsers = (page: number): TE.TaskEither<Error, ReadonlyArray<User>> =>
-  pipe(
-    TE.tryCatch(() => getUsersByPage(page)),
-    TE.mapLeft(() => new Error(`Error while fetching page: ${page}`))
+  TE.tryCatch(
+    () => getUsersByPage(page),
+    () => new Error(`Error while fetching page: ${page}`)
   )
 
 const step = (

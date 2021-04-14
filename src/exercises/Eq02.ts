@@ -18,7 +18,6 @@ declare const getEq: <A>(E: Eq<A>) => Eq<Tree<A>>
 // ------------------------------------
 
 import * as assert from 'assert'
-import { pipe } from 'fp-ts/function'
 
 const make = <A>(value: A, forest: Forest<A> = []): Tree<A> => ({
   value,
@@ -29,17 +28,11 @@ const E = getEq(S.Eq)
 
 const t = make('a', [make('b'), make('c')])
 
-assert.deepStrictEqual(pipe(t, E.equals(make('a'))), false)
-assert.deepStrictEqual(pipe(t, E.equals(make('a', [make('b')]))), false)
+assert.deepStrictEqual(E.equals(t, make('a')), false)
+assert.deepStrictEqual(E.equals(t, make('a', [make('b')])), false)
+assert.deepStrictEqual(E.equals(t, make('a', [make('b'), make('d')])), false)
 assert.deepStrictEqual(
-  pipe(t, E.equals(make('a', [make('b'), make('d')]))),
+  E.equals(t, make('a', [make('b'), make('c'), make('d')])),
   false
 )
-assert.deepStrictEqual(
-  pipe(t, E.equals(make('a', [make('b'), make('c'), make('d')]))),
-  false
-)
-assert.deepStrictEqual(
-  pipe(t, E.equals(make('a', [make('b'), make('c')]))),
-  true
-)
+assert.deepStrictEqual(E.equals(t, make('a', [make('b'), make('c')])), true)

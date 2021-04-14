@@ -13,9 +13,10 @@ interface Tree<A> {
 }
 
 const getEq = <A>(E: Eq<A>): Eq<Tree<A>> => {
-  const R: Eq<Tree<A>> = fromEquals((second) => (first) =>
-    E.equals(second.value)(first.value) &&
-    SA.equals(second.forest)(first.forest)
+  const R: Eq<Tree<A>> = fromEquals(
+    (first, second) =>
+      E.equals(first.value, second.value) &&
+      SA.equals(first.forest, second.forest)
   )
   const SA = A.getEq(R)
   return R
@@ -26,7 +27,6 @@ const getEq = <A>(E: Eq<A>): Eq<Tree<A>> => {
 // ------------------------------------
 
 import * as assert from 'assert'
-import { pipe } from 'fp-ts/function'
 
 const make = <A>(value: A, forest: Forest<A> = []): Tree<A> => ({
   value,
@@ -37,17 +37,11 @@ const E = getEq(S.Eq)
 
 const t = make('a', [make('b'), make('c')])
 
-assert.deepStrictEqual(pipe(t, E.equals(make('a'))), false)
-assert.deepStrictEqual(pipe(t, E.equals(make('a', [make('b')]))), false)
+assert.deepStrictEqual(E.equals(t, make('a')), false)
+assert.deepStrictEqual(E.equals(t, make('a', [make('b')])), false)
+assert.deepStrictEqual(E.equals(t, make('a', [make('b'), make('d')])), false)
 assert.deepStrictEqual(
-  pipe(t, E.equals(make('a', [make('b'), make('d')]))),
+  E.equals(t, make('a', [make('b'), make('c'), make('d')])),
   false
 )
-assert.deepStrictEqual(
-  pipe(t, E.equals(make('a', [make('b'), make('c'), make('d')]))),
-  false
-)
-assert.deepStrictEqual(
-  pipe(t, E.equals(make('a', [make('b'), make('c')]))),
-  true
-)
+assert.deepStrictEqual(E.equals(t, make('a', [make('b'), make('c')])), true)

@@ -5,7 +5,8 @@ import { URI, right, left, isLeft } from 'fp-ts/Either'
 import { Functor2 } from 'fp-ts/Functor'
 
 const Functor: Functor2<URI> = {
-  map: (f) => (fa) => (isLeft(fa) ? fa : right(f(fa.right)))
+  URI,
+  map: (fa, f) => (isLeft(fa) ? fa : right(f(fa.right)))
 }
 
 // ------------------------------------
@@ -13,9 +14,8 @@ const Functor: Functor2<URI> = {
 // ------------------------------------
 
 import * as assert from 'assert'
-import { pipe } from 'fp-ts/function'
 
 const double = (n: number): number => n * 2
 
-assert.deepStrictEqual(pipe(right(1), Functor.map(double)), right(2))
-assert.deepStrictEqual(pipe(left('a'), Functor.map(double)), left('a'))
+assert.deepStrictEqual(Functor.map(right(1), double), right(2))
+assert.deepStrictEqual(Functor.map(left('a'), double), left('a'))
