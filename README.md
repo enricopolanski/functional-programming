@@ -386,14 +386,11 @@ import { pipe } from 'fp-ts/function'
 import { Magma } from 'fp-ts/Magma'
 
 const MagmaSub: Magma<number> = {
-  concat: (second) => (first) => first - second
+  concat: (first, second) => first - second
 }
 
-const lhs = pipe(1, MagmaSub.concat(2), MagmaSub.concat(3))
-const rhs = pipe(1, MagmaSub.concat(pipe(2, MagmaSub.concat(3))))
-
-console.log(lhs) // => -4
-console.log(rhs) // => 2
+pipe(MagmaSub.concat(MagmaSub.concat(1, 2), 3), console.log) // => -4
+pipe(MagmaSub.concat(1, MagmaSub.concat(2, 3)), console.log) // => 2
 ```
 
 I semigruppi catturano l'essenza delle operazioni parallelizzabili.
@@ -410,16 +407,16 @@ Come già successo per `Magma`, i semigruppi possono essere modellati con una `i
 
 ```ts
 interface Semigroup<A> {
-  readonly concat: (second: A) => (first: A) => A
+  readonly concat: (first: A, second: A) => A
 }
 ```
 
 Come vedete la definizione è identica a quella di `Magma` ma c'è una differenza importante, deve valere la seguente legge (che purtroppo non può essere codificata nel type system di TypeScript):
 
-**Associativity**
+**Associativity**. Se `S` è un semigruppo deve valere:
 
 ```ts
-(x |> concat(y)) |> concat(z) = x |> concat(y |> concat(z))
+S.concat(S.concat(x, y), z) = S.concat(x, S.concat(y, z))
 ```
 
 per ogni `x`, `y`, `z` in `A`
@@ -432,7 +429,7 @@ Implementiamo un semigruppo per `ReadonlyArray<string>`
 import * as Se from 'fp-ts/Semigroup'
 
 const Semigroup: Se.Semigroup<ReadonlyArray<string>> = {
-  concat: (second) => (first) => first.concat(second)
+  concat: (first, second) => first.concat(second)
 }
 ```
 
@@ -453,11 +450,11 @@ e altri ancora.
 Ecco come implementare il semigruppo `(number, +)` dove `+` è l'usuale addizione di numeri:
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
 /** number `Semigroup` under addition */
-const SemigroupSum: Se.Semigroup<number> = {
-  concat: (second) => (first) => first + second
+const SemigroupSum: Semigroup<number> = {
+  concat: (first, second) => first + second
 }
 ```
 
@@ -468,35 +465,35 @@ Si noti che, fissato un tipo, si possono definire **molteplici istanze** dell'in
 Per esempio, considerando ancora il tipo `number`, possiamo definire il semigruppo `(number, *)` dove `*` è l'usuale moltiplicazione di numeri:
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
 /** number `Semigroup` under multiplication */
-const SemigroupProduct: Se.Semigroup<number> = {
-  concat: (second) => (first) => first * second
+const SemigroupProduct: Semigroup<number> = {
+  concat: (first, second) => first * second
 }
 ```
 
 Un'altro esempio, con le stringhe questa volta:
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
-const SemigroupString: Se.Semigroup<string> = {
-  concat: (second) => (first) => first + second
+const SemigroupString: Semigroup<string> = {
+  concat: (first, second) => first + second
 }
 ```
 
 E ancora altri due esempi, con `boolean`:
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
-const SemigroupAll: Se.Semigroup<boolean> = {
-  concat: (second) => (first) => first && second
+const SemigroupAll: Semigroup<boolean> = {
+  concat: (first, second) => first && second
 }
 
-const SemigroupAny: Se.Semigroup<boolean> = {
-  concat: (second) => (first) => first || second
+const SemigroupAny: Semigroup<boolean> = {
+  concat: (first, second) => first || second
 }
 ```
 
@@ -507,14 +504,14 @@ Per definizione `concat` combina solo due elementi di `A` alla volta, è possibi
 La funzione `concatAll` prende in input una istanza di semigruppo, un valore iniziale e un array di elementi da combinare:
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/Semigroup'
 import * as N from 'fp-ts/number'
 
-const sum = Se.concatAll(N.SemigroupSum)(2)
+const sum = S.concatAll(N.SemigroupSum)(2)
 
 console.log(sum([1, 2, 3, 4])) // => 12
 
-const product = Se.concatAll(N.SemigroupProduct)(3)
+const product = S.concatAll(N.SemigroupProduct)(3)
 
 console.log(product([1, 2, 3, 4])) // => 72
 ```
@@ -527,40 +524,41 @@ Come altri esempi di applicazione di `concatAll`, possiamo reimplementare alcune
 
 ```ts
 import * as B from 'fp-ts/boolean'
-import * as Se from 'fp-ts/Semigroup'
+import { concatAll } from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/struct'
 
 const every = <A>(predicate: (a: A) => boolean) => (
   as: ReadonlyArray<A>
-): boolean => Se.concatAll(B.SemigroupAll)(true)(as.map(predicate))
+): boolean => concatAll(B.SemigroupAll)(true)(as.map(predicate))
 
 const some = <A>(predicate: (a: A) => boolean) => (
   as: ReadonlyArray<A>
-): boolean => Se.concatAll(B.SemigroupAny)(false)(as.map(predicate))
+): boolean => concatAll(B.SemigroupAny)(false)(as.map(predicate))
 
-const assign: (as: ReadonlyArray<object>) => object = Se.concatAll(
-  Se.object<object>()
+const assign: (as: ReadonlyArray<object>) => object = concatAll(
+  S.getAssignSemigroup<object>()
 )({})
 ```
 
 **Quiz**. La seguente istanza è "legale" (ovvero rispetta le leggi dei semigruppi)?
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
 /** Always return the first argument */
-const first = <A>(): Se.Semigroup<A> => ({
-  concat: () => (a) => a
+const first = <A>(): Semigroup<A> => ({
+  concat: (first, _second) => first
 })
 ```
 
 **Quiz**. La seguente istanza è legale?
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
 /** Always return the second argument */
-const last = <A>(): Se.Semigroup<A> => ({
-  concat: (a) => () => a
+const last = <A>(): Semigroup<A> => ({
+  concat: (_first, second) => second
 })
 ```
 
@@ -570,19 +568,19 @@ Data una istanza di semigruppo, è possibile ricavarne un'altra semplicemente sc
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 import * as S from 'fp-ts/string'
 
 // questo è un combinatore di semigruppi...
-const reverse = <A>(S: Se.Semigroup<A>): Se.Semigroup<A> => ({
-  concat: (second) => (first) => pipe(second, S.concat(first))
+const reverse = <A>(S: Semigroup<A>): Semigroup<A> => ({
+  concat: (first, second) => S.concat(second, first)
 })
 
-console.log(pipe('a', S.Semigroup.concat('b'))) // => 'ab'
-console.log(pipe('a', reverse(S.Semigroup).concat('b'))) // => 'ba'
+pipe(S.Semigroup.concat('a', 'b'), console.log) // => 'ab'
+pipe(reverse(S.Semigroup).concat('a', 'b'), console.log) // => 'ba'
 ```
 
-**Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero non è detto che valga sempre `x |> concat(y) = y |> concat(x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
+**Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero non è detto che valga sempre `concat(x, y) = concat(y, x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
 
 ## Non riesco a trovare una istanza!
 
@@ -591,14 +589,14 @@ Cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operaz
 Potete **sempre** definire una istanza di semigruppo per un **qualsiasi** tipo costruendo una istanza di semigruppo non per `A` ma per `ReadonlyNonEmptyArray<A>` chiamata il **semigruppo libero** di `A`
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
 type ReadonlyNonEmptyArray<A> = ReadonlyArray<A> & {
   readonly 0: A
 }
 
-const getSemigroup = <A>(): Se.Semigroup<ReadonlyNonEmptyArray<A>> => ({
-  concat: (second) => (first) => [first[0], ...first.slice(1), ...second]
+const getSemigroup = <A>(): Semigroup<ReadonlyNonEmptyArray<A>> => ({
+  concat: (first, second) => [first[0], ...first.slice(1), ...second]
 })
 ```
 
@@ -618,16 +616,16 @@ Il semigruppo libero di `A` può essere visto come un modo *lazy* di concatenare
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 import { ReadonlyNonEmptyArray } from 'fp-ts/ReadonlyNonEmptyArray'
-import * as Se from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/Semigroup'
 
 // eseguo subito la concatenazione di 1, 2, 3
-console.log(pipe(1, N.SemigroupSum.concat(2), N.SemigroupSum.concat(3))) // => 6
+pipe(N.SemigroupSum.concat(1, N.SemigroupSum.concat(2, 3)), console.log) // => 6
 
 // impacchetto 1, 2, 3 in un ReadonlyNonEmptyArray...
 const as: ReadonlyNonEmptyArray<number> = [1, 2, 3]
 
 // ...ed eseguo la concatenazione solo in un secondo momento
-console.log(Se.concatAll(N.SemigroupSum)(0)(as)) // => 6
+pipe(as, S.concatAll(N.SemigroupSum)(0), console.log) // => 6
 ```
 
 Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di usare ugualmente il suo semigruppo libero perché:
@@ -641,9 +639,8 @@ Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di
 Proviamo a definire delle istanze di semigruppo per tipi più complessi:
 
 ```ts
-import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
 // modella un vettore che parte dall'origine
 type Vector = {
@@ -652,10 +649,10 @@ type Vector = {
 }
 
 // modella la somma di due vettori
-const SemigroupVector: Se.Semigroup<Vector> = {
-  concat: (second) => (first) => ({
-    x: pipe(first.x, N.SemigroupSum.concat(second.x)),
-    y: pipe(first.y, N.SemigroupSum.concat(second.y))
+const SemigroupVector: Semigroup<Vector> = {
+  concat: (first, second) => ({
+    x: N.SemigroupSum.concat(first.x, second.x),
+    y: N.SemigroupSum.concat(first.y, second.y)
   })
 }
 ```
@@ -666,7 +663,7 @@ const SemigroupVector: Se.Semigroup<Vector> = {
 const v1: Vector = { x: 1, y: 1 }
 const v2: Vector = { x: 1, y: 2 }
 
-console.log(pipe(v1, SemigroupVector.concat(v2))) // => { x: 2, y: 3 }
+console.log(SemigroupVector.concat(v1, v2)) // => { x: 2, y: 3 }
 ```
 
 <center>
@@ -678,8 +675,10 @@ Troppo boilerplate? La buona notizia è che **la teoria matematica** che sta die
 Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `struct`:
 
 ```ts
+import { struct } from 'fp-ts/Semigroup'
+
 // modella la somma di due vettori
-const SemigroupVector: Se.Semigroup<Vector> = Se.struct({
+const SemigroupVector: Semigroup<Vector> = struct({
   x: N.SemigroupSum,
   y: N.SemigroupSum
 })
@@ -688,42 +687,39 @@ const SemigroupVector: Se.Semigroup<Vector> = Se.struct({
 **Nota**. Esiste un combinatore simile a `struct` ma che lavora con le tuple: `tuple`
 
 ```ts
-import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup, tuple } from 'fp-ts/Semigroup'
 
 // modella un vettore che parte dall'origine
 type Vector = readonly [number, number]
 
 // modella la somma di due vettori
-const SemigroupVector: Se.Semigroup<Vector> = Se.tuple(
-  N.SemigroupSum,
-  N.SemigroupSum
-)
+const SemigroupVector: Semigroup<Vector> = tuple(N.SemigroupSum, N.SemigroupSum)
 
 const v1: Vector = [1, 1]
 const v2: Vector = [1, 2]
 
-console.log(pipe(v1, SemigroupVector.concat(v2))) // => [2, 3]
+console.log(SemigroupVector.concat(v1, v2)) // => [2, 3]
 ```
 
 **Quiz**. E' vero che dato un semigruppo per `A` e scelto un qualsiasi elemento `middle` di `A`, se lo infilo tra i due parametri di `concat`, ottengo ancora un semigruppo?
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 import * as S from 'fp-ts/string'
 
 export const intercalate = <A>(middle: A) => (
-  S: Se.Semigroup<A>
-): Se.Semigroup<A> => ({
-  concat: (second) => (first) => pipe(first, S.concat(middle), S.concat(second))
+  S: Semigroup<A>
+): Semigroup<A> => ({
+  concat: (first, second) => S.concat(S.concat(first, middle), second)
 })
 
 const SemigroupIntercalate = pipe(S.Semigroup, intercalate('|'))
 
-console.log(
-  pipe('a', SemigroupIntercalate.concat('b'), SemigroupIntercalate.concat('c'))
+pipe(
+  SemigroupIntercalate.concat('a', SemigroupIntercalate.concat('b', 'c')),
+  console.log
 ) // => 'a|b|c'
 ```
 
@@ -732,14 +728,14 @@ console.log(
 Dato che `number` è **totalmente ordinabile** (ovvero dati due qualsiasi numeri `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) possiamo definire due sue ulteriori istanze di semigruppo usando `min` e `max` come operazioni:
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
-const SemigroupMin: Se.Semigroup<number> = {
-  concat: (second) => (first) => Math.min(first, second)
+const SemigroupMin: Semigroup<number> = {
+  concat: (first, second) => Math.min(first, second)
 }
 
-const SemigroupMax: Se.Semigroup<number> = {
-  concat: (second) => (first) => Math.max(first, second)
+const SemigroupMax: Semigroup<number> = {
+  concat: (first, second) => Math.max(first, second)
 }
 ```
 
