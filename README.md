@@ -1001,56 +1001,56 @@ Ora che abbiamo modellato il concetto di uguaglianza, vediamo in questo capitolo
 Una relazione d'ordine totale può essere modellata in TypeScript con i seguenti tipi:
 
 ```ts
-import * as E from 'fp-ts/Eq'
+import { Eq } from 'fp-ts/Eq'
 
 type Ordering = -1 | 0 | 1
 
-interface Ord<A> extends E.Eq<A> {
-  readonly compare: (second: A) => (first: A) => Ordering
+interface Ord<A> extends Eq<A> {
+  readonly compare: (first: A, second: A) => Ordering
 }
 ```
 
 Intuitivamente:
 
-- `x < y` se e solo se `x |> compare(y) = -1`
-- `x = y` se e solo se `x |> compare(y) = 0`
-- `x > y` se e solo se `x |> compare(y) = 1`
+- `x < y` se e solo se `compare(x, y) = -1`
+- `x = y` se e solo se `compare(x, y) = 0`
+- `x > y` se e solo se `compare(x, y) = 1`
 
 **Esempio**
 
 Proviamo a definire una istanza di `Ord` per il tipo `number`:
 
 ```ts
-import * as O from 'fp-ts/Ord'
+import { Ord } from 'fp-ts/Ord'
 
-const OrdNumber: O.Ord<number> = {
-  equals: (second) => (first) => first === second,
-  compare: (second) => (first) => (first < second ? -1 : first > second ? 1 : 0)
+const OrdNumber: Ord<number> = {
+  equals: (first, second) => first === second,
+  compare: (first, second) => (first < second ? -1 : first > second ? 1 : 0)
 }
 ```
 
 Devono valere le seguenti leggi:
 
-1. **Reflexivity**: `x |> compare(x) <= 0`, per ogni `x` in `A`
-2. **Antisymmetry**: se `x |> compare(y) <= 0` e `compare(y, x) <= 0` allora `x = y`, per ogni `x`, `y` in `A`
-3. **Transitivity**: se `x |> compare(y) <= 0` e `compare(y, z) <= 0` allora `compare(x, z) <= 0`, per ogni `x`, `y`, `z` in `A`
+1. **Reflexivity**: `compare(x, x) <= 0`, per ogni `x` in `A`
+2. **Antisymmetry**: se `compare(x, y) <= 0` e `compare(y, x) <= 0` allora `x = y`, per ogni `x`, `y` in `A`
+3. **Transitivity**: se `compare(x, y) <= 0` e `compare(y, z) <= 0` allora `compare(x, z) <= 0`, per ogni `x`, `y`, `z` in `A`
 
 In più `compare` deve essere compatibile con l'operazione `equals` di `Eq`:
 
-`x |> compare(y) === 0` se e solo se `x |> equals(y) === true`, per ogni `x`, `y` in `A`
+`compare(x, y) === 0` se e solo se `equals(x, y) === true`, per ogni `x`, `y` in `A`
 
 **Nota**. `equals` può essere derivato da `compare` nel modo seguente
 
 ```ts
-equals: (second) => (first) => pipe(first, compare(second)) === 0
+equals: (first, second) => compare(first, second) === 0
 ```
 
 Perciò il modulo `fp-ts/Ord` esporta un comodo helper `fromCompare` che permette di definire una istanza di `Ord` semplicemente specificando la funzione `compare`:
 
 ```ts
-import * as O from 'fp-ts/Ord'
+import { Ord, fromCompare } from 'fp-ts/Ord'
 
-const OrdNumber: O.Ord<number> = O.fromCompare((second) => (first) =>
+const OrdNumber: Ord<number> = fromCompare((first, second) =>
   first < second ? -1 : first > second ? 1 : 0
 )
 ```
@@ -1062,13 +1062,13 @@ Come primo esempio di utilizzo definiamo una funzione `sort` che ordina gli elem
 ```ts
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
-import * as O from 'fp-ts/Ord'
+import { Ord } from 'fp-ts/Ord'
 
-export const sort = <A>(OA: O.Ord<A>) => (
+export const sort = <A>(O: Ord<A>) => (
   as: ReadonlyArray<A>
-): ReadonlyArray<A> => as.slice().sort((a, b) => pipe(a, OA.compare(b)))
+): ReadonlyArray<A> => as.slice().sort(O.compare)
 
-console.log(pipe([1, 2, 3], sort(N.Ord))) // => [1, 2, 3]
+pipe([3, 1, 2], sort(N.Ord), console.log) // => [1, 2, 3]
 ```
 
 **Quiz** (JavaScript). Perché nell'implementazione viene chiamato il metodo `slice`?
@@ -1078,12 +1078,12 @@ Come altro esempio di utilizzo definiamo una funzione `min` che restituisce il m
 ```ts
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
-import * as O from 'fp-ts/Ord'
+import { Ord } from 'fp-ts/Ord'
 
-const min = <A>(O: O.Ord<A>) => (second: A) => (first: A): A =>
-  pipe(first, O.compare(second)) === 1 ? second : first
+const min = <A>(O: Ord<A>) => (second: A) => (first: A): A =>
+  O.compare(first, second) === 1 ? second : first
 
-console.log(pipe(2, min(N.Ord)(1))) // => 1
+pipe(2, min(N.Ord)(1), console.log) // => 1
 ```
 
 ## L'ordinamento duale
@@ -1094,10 +1094,11 @@ Definiamo perciò il combinatore `reverse` per `Ord`:
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import * as Or from 'fp-ts/Ord'
+import * as N from 'fp-ts/number'
+import { fromCompare, Ord } from 'fp-ts/Ord'
 
-export const reverse = <A>(O: Or.Ord<A>): Or.Ord<A> =>
-  Or.fromCompare((second) => (first) => pipe(second, O.compare(first)))
+export const reverse = <A>(O: Ord<A>): Ord<A> =>
+  fromCompare((first, second) => O.compare(second, first))
 ```
 
 Come esempio di utilizzo di `reverse` possiamo ricavare la funzione `max` dalla funzione `min`:
@@ -1105,12 +1106,15 @@ Come esempio di utilizzo di `reverse` possiamo ricavare la funzione `max` dalla 
 ```ts
 import { flow, pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
-import * as Or from 'fp-ts/Ord'
+import { Ord, reverse } from 'fp-ts/Ord'
 
-// const max: <A>(O: Or.Ord<A>) => (second: A) => (first: A) => A
-const max = flow(Or.reverse, Or.min)
+const min = <A>(O: Ord<A>) => (second: A) => (first: A): A =>
+  O.compare(first, second) === 1 ? second : first
 
-console.log(pipe(2, max(N.Ord)(1))) // => 2
+// const max: <A>(O: Ord<A>) => (second: A) => (first: A) => A
+const max = flow(reverse, min)
+
+pipe(2, max(N.Ord)(1), console.log) // => 2
 ```
 
 La **totalità** dell'ordinamento (ovvero dati due qualsiasi `x` e `y`, una tra le seguenti condizioni vale: `x <= y` oppure `y <= x`) può sembrare ovvia quando parliamo di numeri, ma non è sempre così. Consideriamo un caso più complesso
@@ -1129,17 +1133,16 @@ Come possiamo definire un `Ord<User>`?
 Dipende davvero dal contesto, ma una possibile scelta potrebbe essere quella per esempio di ordinare gli utenti a seconda della loro età:
 
 ```ts
-import { pipe } from 'fp-ts/function'
-import * as O from 'fp-ts/Ord'
 import * as N from 'fp-ts/number'
+import { fromCompare, Ord } from 'fp-ts/Ord'
 
 type User = {
   readonly name: string
   readonly age: number
 }
 
-const byAge: O.Ord<User> = O.fromCompare((second) => (first) =>
-  pipe(first.age, N.Ord.compare(second.age))
+const byAge: Ord<User> = fromCompare((first, second) =>
+  N.Ord.compare(first.age, second.age)
 )
 ```
 
@@ -1148,16 +1151,16 @@ Possiamo eliminare un po' di boilerplate usando il combinatore `contramap`: data
 ```ts
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
-import * as O from 'fp-ts/Ord'
+import { contramap, Ord } from 'fp-ts/Ord'
 
 type User = {
   readonly name: string
   readonly age: number
 }
 
-const byAge: O.Ord<User> = pipe(
+const byAge: Ord<User> = pipe(
   N.Ord,
-  O.contramap((_: User) => _.age)
+  contramap((_: User) => _.age)
 )
 ```
 
@@ -1167,9 +1170,11 @@ Ora possiamo ottenere il più giovane di due utenti usando la funzione `min` che
 // const getYounger: (second: User) => (first: User) => User
 const getYounger = min(byAge)
 
-console.log(
-  pipe({ name: 'Guido', age: 50 }, getYounger({ name: 'Giulio', age: 47 }))
-) // { name: 'Giulio', age: 47 }
+pipe(
+  { name: 'Guido', age: 50 },
+  getYounger({ name: 'Giulio', age: 47 }),
+  console.log
+) // => { name: 'Giulio', age: 47 }
 ```
 
 **Quiz**. Nel modulo `fp-ts/ReadonlyMap` è contenuta la seguente API
@@ -1186,14 +1191,14 @@ per quale motivo questa API richiede un `Ord<K>`?
 Torniamo finalmente al quesito iniziale: definire i due semigruppi `SemigroupMin` e `SemigroupMax` anche per altri tipi oltre a `number`:
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
-const SemigroupMin: Se.Semigroup<number> = {
-  concat: (second) => (first) => Math.min(first, second)
+const SemigroupMin: Semigroup<number> = {
+  concat: (first, second) => Math.min(first, second)
 }
 
-const SemigroupMax: Se.Semigroup<number> = {
-  concat: (second) => (first) => Math.max(first, second)
+const SemigroupMax: Semigroup<number> = {
+  concat: (first, second) => Math.max(first, second)
 }
 ```
 
@@ -1202,15 +1207,15 @@ Ora che abbiamo a disposizione l'astrazione `Ord` possiamo farlo:
 ```ts
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
-import * as O from 'fp-ts/Ord'
+import { Ord, contramap } from 'fp-ts/Ord'
 import { Semigroup } from 'fp-ts/Semigroup'
 
-export const min = <A>(OA: O.Ord<A>): Semigroup<A> => ({
-  concat: O.min(OA)
+export const min = <A>(O: Ord<A>): Semigroup<A> => ({
+  concat: (first, second) => (O.compare(first, second) === 1 ? second : first)
 })
 
-export const max = <A>(OA: O.Ord<A>): Semigroup<A> => ({
-  concat: O.max(OA)
+export const max = <A>(O: Ord<A>): Semigroup<A> => ({
+  concat: (first, second) => (O.compare(first, second) === 1 ? first : second)
 })
 
 type User = {
@@ -1218,22 +1223,16 @@ type User = {
   readonly age: number
 }
 
-const byAge: O.Ord<User> = pipe(
+const byAge: Ord<User> = pipe(
   N.Ord,
-  O.contramap((_: User) => _.age)
+  contramap((_: User) => _.age)
 )
 
 console.log(
-  pipe(
-    { name: 'Guido', age: 50 },
-    min(byAge).concat({ name: 'Giulio', age: 47 })
-  )
+  min(byAge).concat({ name: 'Guido', age: 50 }, { name: 'Giulio', age: 47 })
 ) // => { name: 'Giulio', age: 47 }
 console.log(
-  pipe(
-    { name: 'Guido', age: 50 },
-    max(byAge).concat({ name: 'Giulio', age: 47 })
-  )
+  max(byAge).concat({ name: 'Guido', age: 50 }, { name: 'Giulio', age: 47 })
 ) // => { name: 'Guido', age: 50 }
 ```
 
@@ -1261,9 +1260,9 @@ Abbiamo bisogno di una strategia di merging. Ma questo è proprio quello di cui 
 import * as B from 'fp-ts/boolean'
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
-import * as O from 'fp-ts/Ord'
+import { contramap } from 'fp-ts/Ord'
 import * as RA from 'fp-ts/ReadonlyArray'
-import * as Se from 'fp-ts/Semigroup'
+import { max, min, Semigroup, struct } from 'fp-ts/Semigroup'
 
 interface Customer {
   readonly name: string
@@ -1273,26 +1272,26 @@ interface Customer {
   readonly hasMadePurchase: boolean
 }
 
-const SemigroupCustomer: Se.Semigroup<Customer> = Se.struct({
+const SemigroupCustomer: Semigroup<Customer> = struct({
   // keep the longer name
-  name: Se.max(
+  name: max(
     pipe(
       N.Ord,
-      O.contramap((s: string) => s.length)
+      contramap((s: string) => s.length)
     )
   ),
   // accumulate things
   favouriteThings: RA.getSemigroup<string>(),
   // keep the least recent date
-  registeredAt: Se.min(N.Ord),
+  registeredAt: min(N.Ord),
   // keep the most recent date
-  lastUpdatedAt: Se.max(N.Ord),
+  lastUpdatedAt: max(N.Ord),
   // boolean semigroup under disjunction
   hasMadePurchase: B.SemigroupAny
 })
 
 console.log(
-  pipe(
+  SemigroupCustomer.concat(
     {
       name: 'Giulio',
       favouriteThings: ['math', 'climbing'],
@@ -1300,13 +1299,13 @@ console.log(
       lastUpdatedAt: new Date(2018, 2, 18).getTime(),
       hasMadePurchase: false
     },
-    SemigroupCustomer.concat({
+    {
       name: 'Giulio Canti',
       favouriteThings: ['functional programming'],
       registeredAt: new Date(2018, 1, 22).getTime(),
       lastUpdatedAt: new Date(2018, 2, 9).getTime(),
       hasMadePurchase: true
-    })
+    }
   )
 )
 /*
