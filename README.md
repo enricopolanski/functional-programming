@@ -751,36 +751,36 @@ Ancora una volta possiamo modellare la nozione di uguaglianza tramite una `inter
 
 ```ts
 interface Eq<A> {
-  readonly equals: (second: A) => (first: A) => boolean
+  readonly equals: (first: A, second: A) => boolean
 }
 ```
 
 Intuitivamente:
 
-- se `x |> equals(y)` è uguale a `true` allora diciamo che `x` e `y` sono uguali
-- se `x |> equals(y)` è uguale a `false` allora diciamo che `x` e `y` sono diversi
+- se `equals(x, y)` è uguale a `true` allora diciamo che `x` e `y` sono uguali
+- se `equals(x, y)` è uguale a `false` allora diciamo che `x` e `y` sono diversi
 
 **Esempio**
 
 Proviamo a definire una istanza di `Eq` per il tipo `number`:
 
 ```ts
-import * as E from 'fp-ts/Eq'
+import { Eq } from 'fp-ts/Eq'
 import { pipe } from 'fp-ts/function'
 
-const EqNumber: E.Eq<number> = {
-  equals: (second) => (first) => first === second
+const EqNumber: Eq<number> = {
+  equals: (first, second) => first === second
 }
 
-console.log(pipe(1, EqNumber.equals(1))) // => true
-console.log(pipe(1, EqNumber.equals(2))) // => false
+pipe(EqNumber.equals(1, 1), console.log) // => true
+pipe(EqNumber.equals(1, 2), console.log) // => false
 ```
 
 Devono valere le seguenti leggi:
 
-1. **Reflexivity**: `a |> equals(a) === true`, per ogni `a` in `A`
-2. **Symmetry**: `a |> equals(b) === b |> equals(a)`, per ogni `a`, `b` in `A`
-3. **Transitivity**: se `a |> equals(b) === true` e `b |> equals(c) === true`, allora `a |> equals(c) === true`, per ogni `a`, `b`, `c` in `A`
+1. **Reflexivity**: `equals(a, a) === true`, per ogni `a` in `A`
+2. **Symmetry**: `equals(a, b) === equals(b, a)`, per ogni `a`, `b` in `A`
+3. **Transitivity**: se `equals(a, b) === true` e `equals(b, c) === true`, allora `equals(a, c) === true`, per ogni `a`, `b`, `c` in `A`
 
 **Quiz**. Ha senso un combinatore `reverse: <A>(E: Eq<A>) => Eq<A>`?
 
@@ -791,16 +791,16 @@ Devono valere le seguenti leggi:
 Come primo esempio di utilizzo dell'astrazione `Eq` definiamo una funzione `elem` che indica se un dato valore è un elemento di un `ReadonlyArray`:
 
 ```ts
-import * as E from 'fp-ts/Eq'
+import { Eq } from 'fp-ts/Eq'
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 
 // restituisce `true` se l'elemento `a` compare nella lista `as`
-const elem = <A>(E: E.Eq<A>) => (a: A) => (as: ReadonlyArray<A>): boolean =>
-  as.some(E.equals(a))
+const elem = <A>(E: Eq<A>) => (a: A) => (as: ReadonlyArray<A>): boolean =>
+  as.some((e) => E.equals(a, e))
 
-console.log(pipe([1, 2, 3], elem(N.Eq)(2))) // => true
-console.log(pipe([1, 2, 3], elem(N.Eq)(4))) // => false
+pipe([1, 2, 3], elem(N.Eq)(2), console.log) // => true
+pipe([1, 2, 3], elem(N.Eq)(4), console.log) // => false
 ```
 
 Ma perché non usare il metodo nativo `includes` degli array?
@@ -813,33 +813,34 @@ console.log([1, 2, 3].includes(4)) // => false
 Per avere una risposta proviamo a definire una istanza per un tipo più complesso:
 
 ```ts
-import * as E from 'fp-ts/Eq'
-import { pipe } from 'fp-ts/function'
+import { Eq } from 'fp-ts/Eq'
 
 type Point = {
   readonly x: number
   readonly y: number
 }
 
-const EqPoint: E.Eq<Point> = {
-  equals: (second) => (first) => first.x === second.x && first.y === second.y
+const EqPoint: Eq<Point> = {
+  equals: (first, second) => first.x === second.x && first.y === second.y
 }
 
-console.log(pipe({ x: 1, y: 2 }, EqPoint.equals({ x: 1, y: 2 }))) // => true
-console.log(pipe({ x: 1, y: 2 }, EqPoint.equals({ x: 1, y: -2 }))) // => false
+console.log(EqPoint.equals({ x: 1, y: 2 }, { x: 1, y: 2 })) // => true
+console.log(EqPoint.equals({ x: 1, y: 2 }, { x: 1, y: -2 })) // => false
 ```
 
 e utilizzare fianco a fianco `elem` e `includes`
 
 ```ts
-const points = [
+const points: ReadonlyArray<Point> = [
   { x: 0, y: 0 },
   { x: 1, y: 1 },
   { x: 2, y: 2 }
 ]
 
-console.log(points.includes({ x: 1, y: 1 })) // => false :(
-console.log(pipe(points, elem(EqPoint)({ x: 1, y: 1 }))) // => true :)
+const search: Point = { x: 1, y: 1 }
+
+console.log(points.includes(search)) // => false :(
+console.log(pipe(points, elem(EqPoint)(search))) // => true :)
 ```
 
 **Quiz** (JavaScript). Come mai usando `includes` ottengo `false`?
@@ -869,9 +870,15 @@ Per definire `EqPoint` occorre troppo boilerplate? La buona notizia è che la te
 Convenientemente il modulo `fp-ts/Eq` esporta un combinatore `struct`:
 
 ```ts
+import { Eq, struct } from 'fp-ts/Eq'
 import * as N from 'fp-ts/number'
 
-const EqPoint: E.Eq<Point> = E.struct({
+type Point = {
+  readonly x: number
+  readonly y: number
+}
+
+const EqPoint: Eq<Point> = struct({
   x: N.Eq,
   y: N.Eq
 })
@@ -880,24 +887,29 @@ const EqPoint: E.Eq<Point> = E.struct({
 **Nota**. Esiste un combinatore simile a `struct` ma che lavora con le tuple: `tuple`
 
 ```ts
-import * as E from 'fp-ts/Eq'
-import { pipe } from 'fp-ts/function'
+import { Eq, tuple } from 'fp-ts/Eq'
 import * as N from 'fp-ts/number'
 
 type Point = readonly [number, number]
 
-const EqPoint: E.Eq<Point> = E.tuple(N.Eq, N.Eq)
+const EqPoint: Eq<Point> = tuple(N.Eq, N.Eq)
 
-console.log(pipe([1, 2], EqPoint.equals([1, 2]))) // => true
-console.log(pipe([1, 2], EqPoint.equals([1, -2]))) // => false
+console.log(EqPoint.equals([1, 2], [1, 2])) // => true
+console.log(EqPoint.equals([1, 2], [1, -2])) // => false
 ```
 
 Ci sono altri combinatori messi a disposizione da `fp-ts`, ecco un combinatore che permette di derivare una istanza di `Eq` per i `ReadonlyArray`:
 
 ```ts
+import { Eq, tuple } from 'fp-ts/Eq'
+import * as N from 'fp-ts/number'
 import * as RA from 'fp-ts/ReadonlyArray'
 
-const EqPoints: E.Eq<ReadonlyArray<Point>> = RA.getEq(EqPoint)
+type Point = readonly [number, number]
+
+const EqPoint: Eq<Point> = tuple(N.Eq, N.Eq)
+
+const EqPoints: Eq<ReadonlyArray<Point>> = RA.getEq(EqPoint)
 ```
 
 Come succede con i semigruppi, potete definire più di una istanza di `Eq` per lo stesso tipo. Supponiamo di aver modellato un utente con il seguente tipo
@@ -912,7 +924,7 @@ type User = {
 possiamo definire una istanza di `Eq` "standard" usando il combinatore `struct`:
 
 ```ts
-import * as E from 'fp-ts/Eq'
+import { Eq, struct } from 'fp-ts/Eq'
 import * as N from 'fp-ts/number'
 import * as S from 'fp-ts/string'
 
@@ -921,7 +933,7 @@ type User = {
   readonly name: string
 }
 
-const EqStandard: E.Eq<User> = E.struct({
+const EqStandard: Eq<User> = struct({
   id: N.Eq,
   name: S.Eq
 })
@@ -938,8 +950,8 @@ Potremmo però avere delle situazioni particolari in cui ci può interessare ave
 
 ```ts
 /** due utenti sono uguali se sono uguali il loro campi `id` */
-const EqID: E.Eq<User> = {
-  equals: (second) => (first) => N.Eq.equals(second.id)(first.id)
+const EqID: Eq<User> = {
+  equals: (first, second) => N.Eq.equals(first.id, second.id)
 }
 ```
 
@@ -948,7 +960,7 @@ Avendo "reificato" l'azione di confrontare due valori, cioè l'abbiamo resa conc
 **Esempio**. Invece di definire `EqId` "a mano", possiamo utilizzare l'utile combinatore `contramap`: data una istanza di `Eq` per `A` e una funzione da `B` ad `A`, possiamo derivare una istanza di `Eq` per `B`
 
 ```ts
-import * as E from 'fp-ts/Eq'
+import { Eq, struct, contramap } from 'fp-ts/Eq'
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 import * as S from 'fp-ts/string'
@@ -958,30 +970,26 @@ type User = {
   readonly name: string
 }
 
-const EqStandard: E.Eq<User> = E.struct({
+const EqStandard: Eq<User> = struct({
   id: N.Eq,
   name: S.Eq
 })
 
-const EqID: E.Eq<User> = pipe(
+const EqID: Eq<User> = pipe(
   N.Eq,
-  E.contramap((_: User) => _.id)
+  contramap((_: User) => _.id)
 )
 
 console.log(
-  pipe(
-    { id: 1, name: 'Giulio' },
-    EqStandard.equals({ id: 1, name: 'Giulio Canti' })
-  )
+  EqStandard.equals({ id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio Canti' })
 ) // => false (le proprietà `name` sono diverse)
 
 console.log(
-  pipe({ id: 1, name: 'Giulio' }, EqID.equals({ id: 1, name: 'Giulio Canti' }))
+  EqID.equals({ id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio Canti' })
 ) // => true (nonostante le proprietà `name` siano diverse)
 
-console.log(
-  pipe({ id: 1, name: 'Giulio' }, EqID.equals({ id: 2, name: 'Giulio' }))
-) // => false (nonostante le proprietà `name` siano uguali)
+console.log(EqID.equals({ id: 1, name: 'Giulio' }, { id: 2, name: 'Giulio' }))
+// => false (nonostante le proprietà `name` siano uguali)
 ```
 
 **Quiz**. Dato un tipo `A`, è possibile definire una istanza di semigruppo per `Eq<A>`? Cosa potrebbe rappresentare?
