@@ -4388,7 +4388,7 @@ const randomFib: IO.IO<void> = pipe(
 
 // una istanza di monoide per `IO<void>`
 const MonoidIO: Monoid<IO.IO<void>> = {
-  concat: (second) => (first) => () => {
+  concat: (first, second) => () => {
     first()
     second()
   },
