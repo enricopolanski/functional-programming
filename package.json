@@ -22,7 +22,7 @@
   "homepage": "https://github.com/gcanti/functional-programming",
   "dependencies": {
     "fast-check": "^2.12.1",
-    "fp-ts": "^2.10.1"
+    "fp-ts": "^2.10.2"
   },
   "devDependencies": {
     "doctoc": "^1.4.0",

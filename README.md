@@ -1329,17 +1329,17 @@ console.log(
 Se aggiungiamo una condizione in più alla definizione di un semigruppo, ovvero che esista un elemento `empty` in `A`
 tale che per ogni elemento `a` in `A` vale
 
-- **Right identity**: `a |> concat(empty) = a`
-- **Left identity**: `empty |> concat(a) = a`
+- **Right identity**: `concat(a, empty) = a`
+- **Left identity**: `concat(empty, a) = a`
 
 allora parliamo di monoide e l'elemento `empty` viene detto **unità** (o "elemento neutro").
 
 Come già successo per `Magma` e `Semigroup`, i monoidi possono essere modellati con una `interface` di TypeScript:
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
-interface Monoid<A> extends Se.Semigroup<A> {
+interface Monoid<A> extends Semigroup<A> {
   readonly empty: A
 }
 ```
@@ -1347,34 +1347,34 @@ interface Monoid<A> extends Se.Semigroup<A> {
 Molti dei semigruppi che abbiamo visto nelle sezioni precedenti possono essere arricchiti e diventare istanze di `Monoid`:
 
 ```ts
-import * as Mo from 'fp-ts/Monoid'
+import { Monoid } from 'fp-ts/Monoid'
 
 /** number `Monoid` under addition */
-const MonoidSum: Mo.Monoid<number> = {
-  concat: (second) => (first) => first + second,
+const MonoidSum: Monoid<number> = {
+  concat: (first, second) => first + second,
   empty: 0
 }
 
 /** number `Monoid` under multiplication */
-const MonoidProduct: Mo.Monoid<number> = {
-  concat: (second) => (first) => first * second,
+const MonoidProduct: Monoid<number> = {
+  concat: (first, second) => first * second,
   empty: 1
 }
 
-const MonoidString: Mo.Monoid<string> = {
-  concat: (second) => (first) => first + second,
+const MonoidString: Monoid<string> = {
+  concat: (first, second) => first + second,
   empty: ''
 }
 
 /** boolean monoid under conjunction */
-const MonoidAll: Mo.Monoid<boolean> = {
-  concat: (second) => (first) => first && second,
+const MonoidAll: Monoid<boolean> = {
+  concat: (first, second) => first && second,
   empty: true
 }
 
 /** boolean monoid under disjunction */
-const MonoidAny: Mo.Monoid<boolean> = {
-  concat: (second) => (first) => first || second,
+const MonoidAny: Monoid<boolean> = {
+  concat: (first, second) => first || second,
   empty: false
 }
 ```
@@ -1382,10 +1382,10 @@ const MonoidAny: Mo.Monoid<boolean> = {
 **Quiz**. Nella sezione sui semigruppi abbiamo visto che `ReadonlyArray<string>` ammette una istanza di `Semigroup`:
 
 ```ts
-import * as Se from 'fp-ts/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
-const Semigroup: Se.Semigroup<ReadonlyArray<string>> = {
-  concat: (second) => (first) => first.concat(second)
+const Semigroup: Semigroup<ReadonlyArray<string>> = {
+  concat: (first, second) => first.concat(second)
 }
 ```
 
@@ -1404,21 +1404,21 @@ Ogni monoide è un semigruppo, ma non ogni semigruppo è un monoide.
 
 **Esempio**
 
-Si consideri il seguente semigruppo:
+Si consideri il seguente esempio:
 
 ```ts
 import { pipe } from 'fp-ts/function'
-import * as Se from 'fp-ts/Semigroup'
+import { intercalate } from 'fp-ts/Semigroup'
 import * as S from 'fp-ts/string'
 
-const SemigroupIntercalate = pipe(S.Semigroup, Se.intercalate('|'))
+const SemigroupIntercalate = pipe(S.Semigroup, intercalate('|'))
 
-console.log(pipe('a', S.Semigroup.concat('b'))) // => 'ab'
-console.log(pipe('a', SemigroupIntercalate.concat('b'))) // => 'a|b'
-console.log(pipe('a', SemigroupIntercalate.concat(''))) // => 'a|'
+console.log(S.Semigroup.concat('a', 'b')) // => 'ab'
+console.log(SemigroupIntercalate.concat('a', 'b')) // => 'a|b'
+console.log(SemigroupIntercalate.concat('a', '')) // => 'a|'
 ```
 
-Notate come non sia possibile trovare un valore `empty` di tipo `string` tale che `a |> concat(empty) = a`.
+Notate come non sia possibile trovare un valore `empty` di tipo `string` tale che `concat(a, empty) = a`.
 
 Infine un esempio più "esotico", sulle funzioni:
 
@@ -1436,15 +1436,11 @@ Dato un tipo `A`, gli endomorfismi su `A` sono un monoide, tale che:
 - l'unità è la funzione identità
 
 ```ts
-import { flow, identity } from 'fp-ts/function'
-import * as Mo from 'fp-ts/Monoid'
+import { Endomorphism, flow, identity } from 'fp-ts/function'
+import { Monoid } from 'fp-ts/Monoid'
 
-type Endomorphism<A> = (a: A) => A
-
-export const getEndomorphismMonoid = <A>(): Mo.Monoid<
-  Endomorphism<A>
-> => ({
-  concat: (second) => (first) => flow(first, second),
+export const getEndomorphismMonoid = <A>(): Monoid<Endomorphism<A>> => ({
+  concat: flow,
   empty: identity
 })
 ```
@@ -1456,16 +1452,16 @@ Quando usiamo un monoide invece di un semigruppo, la concatenazione di più elem
 **Quiz**. Perché non è necessario fornire un valore iniziale?
 
 ```ts
-import * as Mo from 'fp-ts/Monoid'
+import { concatAll } from 'fp-ts/Monoid'
 import * as S from 'fp-ts/string'
 import * as N from 'fp-ts/number'
 import * as B from 'fp-ts/boolean'
 
-console.log(Mo.concatAll(N.MonoidSum)([1, 2, 3, 4])) // => 10
-console.log(Mo.concatAll(N.MonoidProduct)([1, 2, 3, 4])) // => 24
-console.log(Mo.concatAll(S.Monoid)(['a', 'b', 'c'])) // => 'abc'
-console.log(Mo.concatAll(B.MonoidAll)([true, false, true])) // => false
-console.log(Mo.concatAll(B.MonoidAny)([true, false, true])) // => true
+console.log(concatAll(N.MonoidSum)([1, 2, 3, 4])) // => 10
+console.log(concatAll(N.MonoidProduct)([1, 2, 3, 4])) // => 24
+console.log(concatAll(S.Monoid)(['a', 'b', 'c'])) // => 'abc'
+console.log(concatAll(B.MonoidAll)([true, false, true])) // => false
+console.log(concatAll(B.MonoidAny)([true, false, true])) // => true
 ```
 
 ## Monoide prodotto
@@ -1475,15 +1471,15 @@ Come abbiamo già visto per i semigruppi, è possibile costruire una istanza di 
 **Esempio**
 
 ```ts
-import * as Mo from 'fp-ts/Monoid'
+import { Monoid, struct } from 'fp-ts/Monoid'
 import * as N from 'fp-ts/number'
 
-type Vector = {
+type Point = {
   readonly x: number
   readonly y: number
 }
 
-const Monoid: Mo.Monoid<Vector> = Mo.struct({
+const Monoid: Monoid<Point> = struct({
   x: N.MonoidSum,
   y: N.MonoidSum
 })
@@ -1492,12 +1488,12 @@ const Monoid: Mo.Monoid<Vector> = Mo.struct({
 **Nota**. Esiste un combinatore simile a `struct` ma che lavora con le tuple: `tuple`.
 
 ```ts
-import * as Mo from 'fp-ts/Monoid'
+import { Monoid, tuple } from 'fp-ts/Monoid'
 import * as N from 'fp-ts/number'
 
-type Vector = readonly [number, number]
+type Point = readonly [number, number]
 
-const Monoid: Mo.Monoid<Vector> = Mo.tuple(N.MonoidSum, N.MonoidSum)
+const Monoid: Monoid<Point> = tuple(N.MonoidSum, N.MonoidSum)
 ```
 
 **Demo** (implementare un sistema per disegnare forme geometriche su un canvas)
