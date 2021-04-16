@@ -1991,9 +1991,17 @@ const reducer = (action: Action, state: State): State => pipe(action, match(
 **Esempio** (linked lists)
 
 ```ts
-export type List<A> =
-  | { readonly _tag: 'Nil' }
-  | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
+interface Nil {
+  readonly _tag: 'Nil'
+}
+
+interface Cons<A> {
+  readonly _tag: 'Cons'
+  readonly head: A
+  readonly tail: List<A>
+}
+
+export type List<A> = Nil | Cons<A>
 
 export const match = <R, A>(
   onNil: () => R,
@@ -2043,11 +2051,11 @@ C(A | B) = C(A) + C(B)
 **Esempio** (the `Option` type)
 
 ```ts
-type None = {
+interface None {
   readonly _tag: 'None'
 }
 
-type Some<A> = {
+interface Some<A> {
   readonly _tag: 'Some'
   readonly value: A
 }
@@ -2068,6 +2076,8 @@ Quando le sue componenti sarebbero **dipendenti** se implementate con un product
 **Esempio** (`React` props)
 
 ```ts
+import * as React from 'react'
+
 interface Props {
   readonly editable: boolean
   readonly onChange?: (text: string) => void
@@ -2077,8 +2087,9 @@ class Textbox extends React.Component<Props> {
   render() {
     if (this.props.editable) {
       // error: Cannot invoke an object which is possibly 'undefined' :(
-      this.props.onChange(...)
+      this.props.onChange('a')
     }
+    return <div />
   }
 }
 ```
@@ -2088,6 +2099,8 @@ Il problema qui è che `Props` è modellato come un prodotto ma `onChange` **dip
 Un sum type è una scelta migliore:
 
 ```ts
+import * as React from 'react'
+
 type Props =
   | {
       readonly type: 'READONLY'
@@ -2100,10 +2113,10 @@ type Props =
 class Textbox extends React.Component<Props> {
   render() {
     switch (this.props.type) {
-      case 'EDITABLE' :
-        this.props.onChange(...) // :)
-      ...
+      case 'EDITABLE':
+        this.props.onChange('a') // :)
     }
+    return <div />
   }
 }
 ```

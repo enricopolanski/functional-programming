@@ -21,8 +21,10 @@
   },
   "homepage": "https://github.com/gcanti/functional-programming",
   "dependencies": {
+    "@types/react": "^17.0.3",
     "fast-check": "^2.12.1",
-    "fp-ts": "^2.10.2"
+    "fp-ts": "^2.10.2",
+    "react": "^17.0.2"
   },
   "devDependencies": {
     "doctoc": "^1.4.0",
