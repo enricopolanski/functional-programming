@@ -3569,11 +3569,19 @@ declare const addFollowerAsync: (
 potremmo procedere comodamente:
 
 ```ts
+import * as T from 'fp-ts/Task'
+
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
+}
+
 declare const fetchUser: (id: number) => T.Task<User>
 
 declare const addFollowerAsync: (
-  follower: Task<User>
-) => (user: Task<User>) => T.Task<User>
+  follower: T.Task<User>
+) => (user: T.Task<User>) => T.Task<User>
 
 const userId = 1
 const followerId = 3
@@ -3706,7 +3714,7 @@ const ap = <A>(fa: ReadonlyArray<A>) => <B>(
 
 const double = (n: number): number => n * 2
 
-console.log(pipe([double, increment], ap([1, 2, 3]))) // => [ 2, 4, 6, 2, 3, 4 ]
+pipe([double, increment], ap([1, 2, 3]), console.log) // => [ 2, 4, 6, 2, 3, 4 ]
 ```
 
 **Esempio** (`F = Option`)
@@ -3735,10 +3743,10 @@ const ap = <A>(fa: O.Option<A>) => <B>(
 
 const double = (n: number): number => n * 2
 
-console.log(pipe(O.some(double), ap(O.some(1)))) // => some(2)
-console.log(pipe(O.some(double), ap(O.none))) // => none
-console.log(pipe(O.none, ap(O.some(1)))) // => none
-console.log(pipe(O.none, ap(O.none))) // => none
+pipe(O.some(double), ap(O.some(1)), console.log) // => some(2)
+pipe(O.some(double), ap(O.none), console.log) // => none
+pipe(O.none, ap(O.some(1)), console.log) // => none
+pipe(O.none, ap(O.none), console.log) // => none
 ```
 
 **Esempio** (`F = IO`)
