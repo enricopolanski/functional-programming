@@ -4370,7 +4370,51 @@ export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
   )
 ```
 
-Esempio di utilizzo
+**Excursus**. Come potete osservare, usare `chain` quando occorre mantenere uno scope porta a scrivere codice verboso.
+Nei linguaggi che supportano nativamente lo stile monadico esistono solitamente dei costrutti sintattici che
+vanno sotto il nome di "do notation" e che agevolano questo tipo di situazione.
+
+Vediamo un esempio in Haskell
+
+```haskell
+now :: IO Int
+now = undefined
+
+log :: String -> IO ()
+log = undefined
+
+time :: IO a -> IO a
+time ma = do
+  startMillis <- now
+  a <- ma
+  endMillis <- now
+  log ("Elapsed:" ++ show (endMillis - startMillis))
+  return a
+```
+
+In TypeScript non abbiamo alcun costrutto del genere, ma si può simulare qualcosa di simile:
+
+```ts
+import { log } from 'fp-ts/Console'
+import { now } from 'fp-ts/Date'
+import { pipe } from 'fp-ts/function'
+import * as IO from 'fp-ts/IO'
+
+// logga la durata in millisecondi della computazione
+export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
+  pipe(
+    IO.Do,
+    IO.bind('startMillis', () => now),
+    IO.bind('a', () => ma),
+    IO.bind('endMillis', () => now),
+    IO.chainFirst(({ endMillis, startMillis }) =>
+      log(`Elapsed: ${endMillis - startMillis}`)
+    ),
+    IO.map(({ a }) => a)
+  )
+```
+
+Ora vediamo un esempio di utilizzo del combinatore `time`:
 
 ```ts
 import { randomInt } from 'fp-ts/Random'
