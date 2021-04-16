@@ -2178,12 +2178,12 @@ Il tipo `Option<A>` rappresenta l'effetto di una computazione che può fallire (
 
 ```ts
 // represents a failure
-type None = {
+interface None {
   readonly _tag: 'None'
 }
 
 // represents a success
-type Some<A> = {
+interface Some<A> {
   readonly _tag: 'Some'
   readonly value: A
 }
@@ -2323,7 +2323,7 @@ import { pipe } from 'fp-ts/function'
 import { match, Option, none, some } from 'fp-ts/Option'
 
 export const getEq = <A>(E: Eq<A>): Eq<Option<A>> => ({
-  equals: (second) => (first) =>
+  equals: (first, second) =>
     pipe(
       first,
       match(
@@ -2340,7 +2340,7 @@ export const getEq = <A>(E: Eq<A>): Eq<Option<A>> => ({
             second,
             match(
               () => false,
-              (a2) => pipe(a1, E.equals(a2)) // <= qui uso l'uguaglianza tra `A`
+              (a2) => E.equals(a1, a2) // <= qui uso l'uguaglianza tra `A`
             )
           )
       )
@@ -2351,18 +2351,17 @@ import * as S from 'fp-ts/string'
 
 const EqOptionString = getEq(S.Eq)
 
-console.log(pipe(none, EqOptionString.equals(none))) // => true
-console.log(pipe(none, EqOptionString.equals(some('b')))) // => false
-console.log(pipe(some('a'), EqOptionString.equals(none))) // => false
-console.log(pipe(some('a'), EqOptionString.equals(some('b')))) // => false
-console.log(pipe(some('a'), EqOptionString.equals(some('a')))) // => true
+console.log(EqOptionString.equals(none, none)) // => true
+console.log(EqOptionString.equals(none, some('b'))) // => false
+console.log(EqOptionString.equals(some('a'), none)) // => false
+console.log(EqOptionString.equals(some('a'), some('b'))) // => false
+console.log(EqOptionString.equals(some('a'), some('a'))) // => true
 ```
 
 Naturalmente possiamo usare tutti i combinatori già visti per `Eq`, ad esempio ecco come definire una istanza di `Eq` per `Option<readonly [string, number]>`:
 
 ```ts
 import { tuple } from 'fp-ts/Eq'
-import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 import { getEq, Option, some } from 'fp-ts/Option'
 import * as S from 'fp-ts/string'
@@ -2377,15 +2376,14 @@ const o1: Option<MyTuple> = some(['a', 1])
 const o2: Option<MyTuple> = some(['a', 2])
 const o3: Option<MyTuple> = some(['b', 1])
 
-console.log(pipe(o1, EqOptionMyTuple.equals(o1))) // => true
-console.log(pipe(o1, EqOptionMyTuple.equals(o2))) // => false
-console.log(pipe(o1, EqOptionMyTuple.equals(o3))) // => false
+console.log(EqOptionMyTuple.equals(o1, o1)) // => true
+console.log(EqOptionMyTuple.equals(o1, o2)) // => false
+console.log(EqOptionMyTuple.equals(o1, o3)) // => false
 ```
 
 Se modifichiamo di poco gli import dello snippet precedente possiamo ottenere un risultato analogo per `Ord`:
 
 ```ts
-import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 import { getOrd, Option, some } from 'fp-ts/Option'
 import { tuple } from 'fp-ts/Ord'
@@ -2401,29 +2399,29 @@ const o1: Option<MyTuple> = some(['a', 1])
 const o2: Option<MyTuple> = some(['a', 2])
 const o3: Option<MyTuple> = some(['b', 1])
 
-console.log(pipe(o1, OrdOptionMyTuple.compare(o1))) // => 0
-console.log(pipe(o1, OrdOptionMyTuple.compare(o2))) // => -1
-console.log(pipe(o1, OrdOptionMyTuple.compare(o3))) // => -1
+console.log(OrdOptionMyTuple.compare(o1, o1)) // => 0
+console.log(OrdOptionMyTuple.compare(o1, o2)) // => -1
+console.log(OrdOptionMyTuple.compare(o1, o3)) // => -1
 ```
 
 ### Una istanza per `Semigroup`
 
 Ora supponiamo di voler fare un "merge" di due `Option<A>`, ci sono quattro casi:
 
-| x        | y        | x \|> concat(y) |
-| -------- | -------- | --------------- |
-| none     | none     | none            |
-| some(a1) | none     | none            |
-| none     | some(a2) | none            |
-| some(a1) | some(a2) | ?               |
+| x        | y        | concat(x, y) |
+| -------- | -------- | ------------ |
+| none     | none     | none         |
+| some(a1) | none     | none         |
+| none     | some(a2) | none         |
+| some(a1) | some(a2) | ?            |
 
 C'è un problema nell'ultimo caso, ci occorre un modo per fare un "merge" di due `A`.
 
 Ma questo è proprio il lavoro di `Semigroup`!
 
-| x        | y        | x \|> concat(y)                          |
-| -------- | -------- | ---------------------------------------- |
-| some(a1) | some(a2) | some(pipe(a1.value, S.concat(a2.value))) |
+| x        | y        | concat(x, y)                       |
+| -------- | -------- | ---------------------------------- |
+| some(a1) | some(a2) | some(S.concat(a1.value, a2.value)) |
 
 Possiamo richiedere una istanza di semigruppo per `A` e quindi derivare una istanza di semigruppo per `Option<A>`
 
@@ -2440,12 +2438,12 @@ Possiamo derivare altri due monoidi per `Option<A>` (per ogni `A`)
 
 Monoid returning the left-most non-`None` value:
 
-| x        | y        | x \|> concat(y) |
-| -------- | -------- | --------------- |
-| none     | none     | none            |
-| some(a1) | none     | some(a1)        |
-| none     | some(a2) | some(a2)        |
-| some(a1) | some(a2) | some(a1)        |
+| x        | y        | concat(x, y) |
+| -------- | -------- | ------------ |
+| none     | none     | none         |
+| some(a1) | none     | some(a1)     |
+| none     | some(a2) | some(a2)     |
+| some(a1) | some(a2) | some(a1)     |
 
 ```ts
 import { getFirstMonoid, some, none } from 'fp-ts/Option'
@@ -2461,12 +2459,12 @@ console.log(pipe(some(1), M.concat(some(2)))) // => some(1)
 
 Monoid returning the right-most non-`None` value:
 
-| x        | y        | x \|> concat(y) |
-| -------- | -------- | --------------- |
-| none     | none     | none            |
-| some(a1) | none     | some(a1)        |
-| none     | some(a2) | some(a2)        |
-| some(a1) | some(a2) | some(a2)        |
+| x        | y        | concat(x, y) |
+| -------- | -------- | ------------ |
+| none     | none     | none         |
+| some(a1) | none     | some(a1)     |
+| none     | some(a2) | some(a2)     |
+| some(a1) | some(a2) | some(a2)     |
 
 ```ts
 import { getLastMonoid, some, none } from 'fp-ts/Option'
@@ -2516,7 +2514,7 @@ const userSettings: Settings = {
 }
 
 /** userSettings overrides workspaceSettings */
-console.log(pipe(workspaceSettings, monoidSettings.concat(userSettings)))
+console.log(monoidSettings.concat(workspaceSettings, userSettings))
 /*
 { fontFamily: some("Fira Code"),
   fontSize: some(12),
@@ -2534,13 +2532,13 @@ In questo uso, `None` è sostituito da `Left` che contiene informazione utile re
 
 ```ts
 // represents a failure
-type Left<E> = {
+interface Left<E> {
   readonly _tag: 'Left'
   readonly left: E
 }
 
 // represents a success
-type Right<A> = {
+interface Right<A> {
   readonly _tag: 'Right'
   readonly right: A
 }
@@ -2601,11 +2599,9 @@ declare function readFile(
 e consumare l'API in questo modo:
 
 ```ts
-import { flow } from 'fp-ts/function'
-
-readFile(
-  './myfile',
-  flow(
+readFile('./myfile', (e) =>
+  pipe(
+    e,
     match(
       (err) => `Error: ${err.message}`,
       (data) => `Data: ${data.trim()}`
