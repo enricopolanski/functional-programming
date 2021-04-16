@@ -3407,9 +3407,8 @@ Per poter definire una istanza di funtore per `Response` dobbiamo definire una f
 ```ts
 // `Response.ts` module
 
+import { pipe } from 'fp-ts/function'
 import { Functor1 } from 'fp-ts/Functor'
-
-export type URI = 'Response'
 
 declare module 'fp-ts/HKT' {
   interface URItoKind<A> {
@@ -3424,14 +3423,17 @@ export interface Response<A> {
   readonly body: A
 }
 
-export const map = <A, B>(f: (a: A) => B) => (fa: Response<A>): Response<B> => ({
+export const map = <A, B>(f: (a: A) => B) => (
+  fa: Response<A>
+): Response<B> => ({
   ...fa,
   body: f(fa.body)
 })
 
 // functor instance for `Response<A>`
-export const Functor: Functor1<URI> = {
-  map
+export const Functor: Functor1<'Response'> = {
+  URI: 'Response',
+  map: (fa, f) => pipe(fa, map(f))
 }
 ```
 
