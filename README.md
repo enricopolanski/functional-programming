@@ -1816,6 +1816,10 @@ Il tipo
 
 ```ts
 type StringsOrNumbers = ReadonlyArray<string> | ReadonlyArray<number>
+
+declare const sn: StringsOrNumbers
+
+sn.map() // error: This expression is not callable.
 ```
 
 non è una unione disgiunta perché il valore `[]` (array vuoto) appartiene ad ambedue i membri dell'unione.
@@ -1921,7 +1925,7 @@ export const del = (id: number): Action => ({
 })
 ```
 
-**Esempio** (linked lists)
+**Esempio** (TypeScript, linked lists)
 
 ```ts
 export type List<A> =
@@ -1941,54 +1945,34 @@ export const cons = <A>(head: A, tail: List<A>): List<A> => ({
 const myList = cons(1, cons(2, cons(3, nil)))
 ```
 
-### Pattern matching
+**Esempio** (Haskell, linked lists)
 
-JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript) tuttavia possiamo simularlo tramite una funzione `match`.
+```haskell
+data List a = Nil | Cons a (List a)
 
-**Esempio** (usando ancora `Action`)
-
-```ts
-export type Action =
-  | {
-      readonly type: 'ADD_TODO'
-      readonly text: string
-    }
-  | {
-      readonly type: 'UPDATE_TODO'
-      readonly id: number
-      readonly text: string
-      readonly completed: boolean
-    }
-  | {
-      readonly type: 'DELETE_TODO'
-      readonly id: number
-    }
-
-export const match = <R>(
-  onAdd: (text: string) => R,
-  onUpdate: (id: number, text: string, completed: boolean) => R,
-  onDelete: (id: number) => R
-) => (fa: Action): R => {
-  switch (fa.type) {
-    case 'ADD_TODO':
-      return onAdd(fa.text)
-    case 'UPDATE_TODO':
-      return onUpdate(fa.id, fa.text, fa.completed)
-    case 'DELETE_TODO':
-      return onDelete(fa.id)
-  }
-}
-
-type State = { ... }
-
-const reducer = (action: Action, state: State): State => pipe(action, match(
-  onAdd: (text) => ...,
-  onUpdate: (id, text, completed) => ...,
-  onDelete: (id) => ...
-))
+myList :: List Int
+myList = Cons 1 (Cons 2 (Cons 3 Nil))
 ```
 
-**Esempio** (linked lists)
+
+### Pattern matching
+
+JavaScript non ha il [pattern matching](https://github.com/tc39/proposal-pattern-matching) (e quindi neanche TypeScript).
+
+**Esempio** (Haskell, linked lists)
+
+```haskell
+data List a = Nil | Cons a (List a)
+
+-- restituisce `True` se la lista è vuota
+isEmpty :: List a -> Bool
+isEmpty Nil = True
+isEmpty (Cons _ _) = False
+```
+
+Tuttavia possiamo simulare il pattern matching tramite una funzione `match`.
+
+**Esempio** (TypeScript, linked lists)
 
 ```ts
 interface Nil {
