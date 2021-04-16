@@ -1609,13 +1609,12 @@ se non esce dai confini della implementazione.
 **Esempio** (Implementazione della funzione `concatAll` dei monoidi)
 
 ```ts
-import { pipe } from 'fp-ts/function'
 import { Monoid } from 'fp-ts/Monoid'
 
 const concatAll = <A>(M: Monoid<A>) => (as: ReadonlyArray<A>): A => {
   let out: A = M.empty // <= mutabilità locale
   for (const a of as) {
-    out = pipe(out, M.concat(a))
+    out = M.concat(out, a)
   }
   return out
 }
