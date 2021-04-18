@@ -142,7 +142,7 @@ const x = inverse(0) + 1
 
 Non posso sostituire l'espressione `inverse(0)` con il suo valore, perciò l'espressione non gode della proprietà di trasparenza referenziale.
 
-**Esempio** (la trasparenza referenziale implica l'utilizzo di strutture dati immutabili)
+**Esempio** (la trasparenza referenziale può implicare l'utilizzo di strutture dati immutabili)
 
 ```ts
 const xs = [1, 2, 3]
