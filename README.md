@@ -96,7 +96,7 @@ Pensate per esempio a quanto sia più facile la review di una PR che coinvolga u
 
 # I due pilastri della programmazione funzionale
 
-La programmazione funzionale si appoggia a questi due pilastri:
+La programmazione funzionale si appoggia su questi due pilastri:
 
 - trasparenza referenziale
 - composizione come design pattern universale
