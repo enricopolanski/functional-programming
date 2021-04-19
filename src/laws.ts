@@ -1,4 +1,3 @@
-import { pipe } from 'fp-ts/function'
 import * as Se from 'fp-ts/Semigroup'
 import * as fc from 'fast-check'
 
