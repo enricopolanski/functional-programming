@@ -584,17 +584,61 @@ pipe(reverse(S.Semigroup).concat('a', 'b'), console.log) // => 'ba'
 
 ## Non riesco a trovare una istanza!
 
-Cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operazione associativa su `A`?
+L'associatività è una proprietà molto forte, cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operazione associativa su `A`?
 
-Potete **sempre** definire una istanza di semigruppo per un **qualsiasi** tipo costruendo una istanza di semigruppo non per `A` ma per `ReadonlyNonEmptyArray<A>` chiamata il **semigruppo libero** di `A`
+Supponiamo di avere un tipo `User` definito come:
+
+```ts
+type User = {
+  readonly id: number
+  readonly name: string
+}
+```
+
+e che nel mio database ci siano molte copie dello stesso `User` (per esempio potrebbero essere la storia della sue modifiche)
+
+```ts
+// API interne
+declare const getCurrent: (id: number) => User
+declare const getHistory: (id: number) => ReadonlyArray<User>
+```
+
+e di dover disegnare una API pubblica
+
+```ts
+export declare const getUser: (id: number) => User
+```
+
+che tiene conto di tutte le copie in base a qualche criterio, per esempio il criterio potrebbe essere restituire la copia più recente, oppure quella meno recente, oppure sempre la copia corrente, ecc...
+
+Naturalmente possiamo definire delle API specifiche per ogni criterio, dunque:
+
+```ts
+export declare const getMostRecentUser: (id: number) => User
+export declare const getLeastRecentUser: (id: number) => User
+export declare const getCurrentUser: (id: number) => User
+// ecc...
+```
+
+In questa sede però vorrei parlare del problema di design dal punto di vista più generale possibile.
+
+Dunque per restituire un valore di tipo `User` devo considerare tutte le copie a farne un "merge" (o una "selezione").
+
+In altre parole possiamo modellare il criterio con un semigruppo!
+
+Tuttavia non è evidente cosa voglia dire "fare merge di due utenti", né come questa operazione di merge possa essere associativa.
+
+Potete **sempre** definire una istanza di semigruppo per un **qualsiasi** tipo costruendo una istanza di semigruppo non per `A` ma per `ReadonlyNonEmptyArray<A>` (array non vuoto di `A`) chiamata il **semigruppo libero** di `A`.
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
+// modella un array non vuoto, ovvero con almeno un elemento
 type ReadonlyNonEmptyArray<A> = ReadonlyArray<A> & {
   readonly 0: A
 }
 
+// la concatenazione di due array non vuoti è ancora un array non vuoto
 const getSemigroup = <A>(): Semigroup<ReadonlyNonEmptyArray<A>> => ({
   concat: (first, second) => [first[0], ...first.slice(1), ...second]
 })
@@ -603,36 +647,91 @@ const getSemigroup = <A>(): Semigroup<ReadonlyNonEmptyArray<A>> => ({
 e poi mappare gli elementi di `A` ai "singoletti" di `ReadonlyNonEmptyArray<A>`, ovvero un array con un solo elemento:
 
 ```ts
+// inserisce un valore in un array non vuoto
 const of = <A>(a: A): ReadonlyNonEmptyArray<A> => [a]
+```
+
+Applichiamo questa tecnica al tipo `User`:
+
+```ts
+import {
+  getSemigroup,
+  of,
+  ReadonlyNonEmptyArray
+} from 'fp-ts/ReadonlyNonEmptyArray'
+import { Semigroup } from 'fp-ts/Semigroup'
+
+type User = {
+  readonly id: number
+  readonly name: string
+}
+
+// questo è un semigruppo non per `User` ma per `ReadonlyNonEmptyArray<User>`
+const S: Semigroup<ReadonlyNonEmptyArray<User>> = getSemigroup<User>()
+
+declare const user1: User
+declare const user2: User
+declare const user3: User
+
+// const merge: ReadonlyNonEmptyArray<User>
+const merge = S.concat(S.concat(of(user1), of(user2)), of(user3))
+
+// ottengo lo stesso risultato "impacchettando a mano" gli utenti
+const merge2: ReadonlyNonEmptyArray<User> = [user1, user2, user3]
 ```
 
 Il semigruppo libero di `A` quindi non è altro che il semigruppo in cui gli elementi sono tutte le possibili sequenze finite e non vuote di elementi di `A`.
 
 Il semigruppo libero di `A` può essere visto come un modo *lazy* di concatenare elementi di `A`, mantenendo in tal modo tutto il contenuto informativo.
 
-**Esempio**
+Infatti il valore `merge`, che contiene `[user1, user2, user3]`, mi dice ancora quali sono gli elementi da concatenare e in che ordine.
+
+Ora ho tre opzioni possibili in fase di design della API `getUser`:
+
+1) sono in grado di definire un `Semigroup<User>` e voglio procedere subito al merging
 
 ```ts
-import { pipe } from 'fp-ts/function'
-import * as N from 'fp-ts/number'
-import { ReadonlyNonEmptyArray } from 'fp-ts/ReadonlyNonEmptyArray'
-import * as S from 'fp-ts/Semigroup'
+declare const SemigroupUser: Semigroup<User>
 
-// eseguo subito la concatenazione di 1, 2, 3
-pipe(N.SemigroupSum.concat(1, N.SemigroupSum.concat(2, 3)), console.log) // => 6
-
-// impacchetto 1, 2, 3 in un ReadonlyNonEmptyArray...
-const as: ReadonlyNonEmptyArray<number> = [1, 2, 3]
-
-// ...ed eseguo la concatenazione solo in un secondo momento
-pipe(as, S.concatAll(N.SemigroupSum)(0), console.log) // => 6
+export const getUser = (id: number): User => {
+  const current = getCurrent(id)
+  const history = getHistory(id)
+  // procedo subito al merging
+  return concatAll(SemigroupUser)(current)(history)
+}
 ```
 
-Anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere di usare ugualmente il suo semigruppo libero perché:
+2) non sono in grado di definire un `Semigroup<User>` oppure voglio lasciare come configurabile la strategia di merging, perciò la chiedo al consumer della mia API
 
-- evita di eseguire computazioni possibilmente inutili
+```ts
+export const getUser = (SemigroupUser: Semigroup<User>) => (
+  id: number
+): User => {
+  const current = getCurrent(id)
+  const history = getHistory(id)
+  // procedo subito al merging
+  return concatAll(SemigroupUser)(current)(history)
+}
+```
+
+3) non sono in grado di definire un `Semigroup<User>` e non voglio chiederlo al consumer della mia API
+
+Questo è il caso in cui il semigruppo libero di `User` ci può venire in aiuto.
+
+```ts
+export const getUser = (id: number): ReadonlyNonEmptyArray<User> => {
+  const current = getCurrent(id)
+  const history = getHistory(id)
+  // decido di NON procedere al merging e restituisco il semigruppo libero di `User`
+  return [current, ...history]
+}
+```
+
+Inoltre, anche se ho a disposizione una istanza di semigruppo per `A`, potrei decidere ugualmente di usare il suo semigruppo libero per i seguenti motivi:
+
+- evita di eseguire computazioni possibilmente inutili (supponete che il merging sia costoso)
 - evita di passare in giro l'istanza di semigruppo
-- permette al consumer delle mie API di stabilire la strategia di merging
+- permette ancora al consumer delle mie API di stabilire la strategia di merging (usando `concatAll`)
 
 ## Semigruppo prodotto
 
