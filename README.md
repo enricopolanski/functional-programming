@@ -12,7 +12,7 @@ npm i
 
 Una rapida ricerca su internet vi può portare alla seguente definizione:
 
-> Una funzione pura è una procedura che dato lo stesso input restituisce sempre lo stesso output e non ha alcun side effect osservabile.
+> Una funzione (pura) è una procedura che dato lo stesso input restituisce sempre lo stesso output e non ha alcun side effect osservabile.
 
 Il termine "side effect" non ha ancora un significato preciso (vedremo in seguito come darne una definizione formale), ciò che conta per ora è averne una qualche intuizione, pensate per esempio ad aprire un file per leggerne il contenuto, oppure scrivere su un database.
 
