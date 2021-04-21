@@ -16,6 +16,8 @@ Una rapida ricerca su internet vi può portare alla seguente definizione:
 
 Il termine "side effect" non ha ancora un significato preciso (vedremo in seguito come darne una definizione formale), ciò che conta per ora è averne una qualche intuizione, pensate per esempio ad aprire un file per leggerne il contenuto, oppure scrivere su un database.
 
+Per ora possiamo limitarci a dire che un side effect è qualsiasi cosa fa una funzione oltre a restituire un valore.
+
 Ma com'è strutturato un programma che usa solo funzioni pure?
 
 Un programma in stile funzionale tende ad essere scritto come una **pipeline**:
