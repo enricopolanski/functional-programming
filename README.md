@@ -1943,6 +1943,8 @@ Fortunatamente in TypeScript c'è un modo sicuro per garantire che una unione si
 
 **Esempio** (redux actions)
 
+Il sum type `Action` modella una porzione delle operazioni che si possono compiere in una [todo app](https://todomvc.com/).
+
 ```ts
 export type Action =
   | {
