@@ -861,7 +861,7 @@ function min<A>(O: Ord<A>): (x: A, y: A) => A {
 min(ordNumber)(2, 1) // 1
 ```
 
-The order's **totality** (thus given any `x` e `y`, one of the following conditions holds true: `x <= y` oppure `y <= x`) may look obvious when speaking about numbers, but that's not always the case. Let's consider a more complex case:
+The order's **totality** (thus given any `x` and `y`, one of the following conditions holds true: `x <= y` or `y <= x`) may look obvious when speaking about numbers, but that's not always the case. Let's consider a more complex case:
 
 ```ts
 type User = {
@@ -1225,7 +1225,7 @@ Such an informal statement could leave space for some doubts
 
 Let's see a formal definition of the concept of a function.
 
-**Note**. If `X` e `Y` are sets, then with `X × Y` we indicate their _cartesian product_, meaning the set
+**Note**. If `X` and `Y` are sets, then with `X × Y` we indicate their _cartesian product_, meaning the set
 
 ```
 X × Y = { (x, y) | x ∈ X, y ∈ Y }
@@ -1236,7 +1236,7 @@ The following [definition](https://en.wikipedia.org/wiki/History_of_the_function
 **Definition**. A \_function: `f: X ⟶ Y` is a subset of `X × Y` such as
 for every `x ∈ X` there's exactly one `y ∈ Y` such that `(x, y) ∈ f`.
 
-The set `X` is called _domain_ of `f`, `Y` it's his _codomain_.
+The set `X` is called the _domain_ of `f`, `Y` is it's _codomain_.
 
 **Example**
 
@@ -1278,7 +1278,7 @@ The fact that a function is pure does not imply automatically a ban on local mut
 
 The ultimate goal is to guarantee: **referential transparency**.
 
-> An expression contains "side effects" if it doesn't benefits from referential transparency
+> An expression contains "side effects" if it doesn't benefit from referential transparency
 
 Functions compose:
 
@@ -2021,13 +2021,13 @@ In the next section we'll see under which conditions such a composition is possi
 
 In the last section we've spoken about the _TS_ category (the TypeScript category) and composition's core problem with functions:
 
-> How can we compose two generic functions `f: (a: A) => B` e `g: (c: C) => D`?
+> How can we compose two generic functions `f: (a: A) => B` and `g: (c: C) => D`?
 
 Why is finding solutions to these problem so important?
 
 Because, if it is true that categories can be used to model programming languages, morphisms (functions in the _TS_ category) can be used to model **programs**.
 
-Thus, solving this abstract problem means finding a concrete way of **composing programs in a generic way**. And _that_ now is really interesting for us developers, isn't it?
+Thus, solving this abstract problem means finding a concrete way of **composing programs in a generic way**. And _that_ is really interesting for us developers, isn't it?
 
 ## Functions as programs
 
@@ -2224,7 +2224,7 @@ function lift<B, C>(
 }
 ```
 
-All of these `lift` functions look pretty much similar. That's no coincidence, there's a very important pattern behind the scenes: every of these type constructors (and many others) admit an **functor instance**.
+All of these `lift` functions look pretty much similar. That's no coincidence, there's a very important pattern behind the scenes: each of these type constructors (and many others) admit a **functor instance**.
 
 Functors are **maps between categories** that preserve the structure of the category, meaning they preserve the identity morphisms and the composition operation.
 
@@ -2329,7 +2329,7 @@ export const functorResponse: Functor1<URI> = {
 
 ## Functor composition
 
-Functor compose, given two functors `F` e `G`, then the composition `F<G<A>>` is still a functor and its `map` is the combination of `F`'s an `G`'s `map`, thus the composition
+Functor compose, given two functors `F` and `G`, then the composition `F<G<A>>` is still a functor and its `map` is the combination of `F`'s and `G`'s `map`, thus the composition
 
 **Example**
 
@@ -2414,7 +2414,7 @@ But `g` has to be unary, it can only accept a single argument as input. What hap
 
 ## Currying
 
-First of all we need to model a function that accepts two arguments of type `B` e `C` (we can use a tuple for this) and returns a value of type `D`:
+First of all we need to model a function that accepts two arguments of type `B` and `C` (we can use a tuple for this) and returns a value of type `D`:
 
 ```ts
 g: (args: [B, C]) => D
@@ -2470,7 +2470,7 @@ thus `ap` can be derived from `unpack` (and vice versa).
 
 ## Applicative
 
-It would be handy if there was another operation able to **to life a value** of type `A` in a value of type `F<A>`.
+It would be handy if there was another operation able to **to lift a value** of type `A` into a value of type `F<A>`.
 
 We introduce the `Applicative` abstraction that enriches `Apply` and contains such an operation (called `of`):
 
@@ -2669,7 +2669,7 @@ In the previous chapter we've seen that we can compose an effectful program `f: 
 | pure      | pure          | `g ∘ f`         |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 
-ove `liftA1 = lift`
+where `liftA1 = lift`
 
 But we have yet to solve one last, and common, case: when **both** programs are effectful.
 
@@ -2766,7 +2766,7 @@ const inverseHead: Option<number> = flatten(
 )
 ```
 
-All of these `flatten` functions...are not a coincidence. There is a functional pattern behind the scenes: all of those type constructors (and many others) admitca **monad instance** and
+All of these `flatten` functions...are not a coincidence. There is a functional pattern behind the scenes: all of those type constructors (and many others) admit **monad instance** and
 
 > `flatten` is the most peculiar operation of monads
 
@@ -2792,7 +2792,7 @@ of: <A>(a: A) => HKT<M, A>
 flatMap: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
 ```
 
-**Note**: remember that the `HKT` type is how `fp-ts` represents a generic type constructor, thus when we see `HKT<M, X>` we can think about the type constructor `M` applied on the type `X` (ovvero `M<X>`).
+**Note**: remember that the `HKT` type is how `fp-ts` represents a generic type constructor, thus when we see `HKT<M, X>` we can think about the type constructor `M` applied on the type `X` (or `M<X>`).
 
 The functions `of` and `flatMap` have to obey these three laws:
 
