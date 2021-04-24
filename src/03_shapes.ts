@@ -3,7 +3,7 @@
   PROBLEMA: implementare un sistema per disegnare forme geometriche sul canvas.
 */
 import { pipe } from 'fp-ts/function'
-import * as Mo from 'fp-ts/Monoid'
+import { Monoid } from 'fp-ts/Monoid'
 
 // -------------------------------------------------------------------------------------
 // model
@@ -54,7 +54,7 @@ const distance = (p1: Point, p2: Point) =>
     Math.pow(Math.abs(p1.x - p2.x), 2) + Math.pow(Math.abs(p1.y - p2.y), 2)
   )
 
-// draw(disk({ x: 200, y: 200 }, 100))
+// pipe(disk({ x: 200, y: 200 }, 100), draw)
 
 // -------------------------------------------------------------------------------------
 // combinators
@@ -66,7 +66,7 @@ const distance = (p1: Point, p2: Point) =>
  */
 export const outside = (s: Shape): Shape => (point) => !s(point)
 
-// draw(pipe(disk({ x: 200, y: 200 }, 100), outside))
+// pipe(disk({ x: 200, y: 200 }, 100), outside, draw)
 
 // -------------------------------------------------------------------------------------
 // instances
@@ -75,31 +75,33 @@ export const outside = (s: Shape): Shape => (point) => !s(point)
 /**
  * Un monoide in cui `concat` rappresenta l'unione di due forme
  */
-export const MonoidUnion: Mo.Monoid<Shape> = {
+export const MonoidUnion: Monoid<Shape> = {
   concat: (first, second) => (point) => first(point) || second(point),
   empty: () => false
 }
 
-// draw(
-//   pipe(
+// pipe(
+//   MonoidUnion.concat(
 //     disk({ x: 150, y: 200 }, 100),
-//     MonoidUnion.concat(disk({ x: 250, y: 200 }, 100))
-//   )
+//     disk({ x: 250, y: 200 }, 100)
+//   ),
+//   draw
 // )
 
 /**
  * Un monoide in cui `concat` rappresenta l'intersezione di due forme
  */
-const MonoidIntersection: Mo.Monoid<Shape> = {
+const MonoidIntersection: Monoid<Shape> = {
   concat: (first, second) => (point) => first(point) && second(point),
   empty: () => true
 }
 
-// draw(
-//   pipe(
+// pipe(
+//   MonoidIntersection.concat(
 //     disk({ x: 150, y: 200 }, 100),
-//     MonoidIntersection.concat(disk({ x: 250, y: 200 }, 100))
-//   )
+//     disk({ x: 250, y: 200 }, 100)
+//   ),
+//   draw
 // )
 
 /**
@@ -116,7 +118,7 @@ export const ring = (
     outside(disk(point, smallRadius))
   )
 
-// draw(ring({ x: 200, y: 200 }, 100, 50))
+// pipe(ring({ x: 200, y: 200 }, 100, 50), draw)
 
 export const mickeymouse: ReadonlyArray<Shape> = [
   disk({ x: 200, y: 200 }, 100),
@@ -124,13 +126,13 @@ export const mickeymouse: ReadonlyArray<Shape> = [
   disk({ x: 280, y: 100 }, 60)
 ]
 
-// draw(Mo.concatAll(MonoidUnion)(mickeymouse))
+// pipe(Mo.concatAll(MonoidUnion)(mickeymouse), draw)
 
 // -------------------------------------------------------------------------------------
 // utils
 // -------------------------------------------------------------------------------------
 
-export function draw(shape: Shape) {
+export function draw(shape: Shape): void {
   const canvas: HTMLCanvasElement = document.getElementById('canvas') as any
   const ctx: CanvasRenderingContext2D = canvas.getContext('2d') as any
   const width = canvas.width
