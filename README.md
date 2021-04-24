@@ -887,6 +887,14 @@ Devono valere le seguenti leggi:
 
 **Quiz**. Ha senso un combinatore `not: <A>(E: Eq<A>) => Eq<A>`?
 
+```ts
+import { Eq } from 'fp-ts/Eq'
+
+export const not = <A>(E: Eq<A>): Eq<A> => ({
+  equals: (first, second) => !E.equals(first, second)
+})
+```
+
 **Esempio**
 
 Come primo esempio di utilizzo dell'astrazione `Eq` definiamo una funzione `elem` che indica se un dato valore è un elemento di un `ReadonlyArray`:
