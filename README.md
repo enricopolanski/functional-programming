@@ -970,7 +970,7 @@ console.log(points)
 // => Set { { x: 0, y: 0 }, { x: 0, y: 0 } }
 ```
 
-Dato che `Set` utilizza `===` ("strict equality") come concetto di uguaglianza (fisso), `points` ora contiene **due copie identiche** di `{ x: 0, y: 0 }`, un risultato certo non voluto. Conviene perciò definire una nuova API che sfrutti l'astrazione `Eq`.
+Dato che `Set` utilizza `===` ("strict equality") come concetto di uguaglianza (fisso), `points` ora contiene **due copie identiche** di `{ x: 0, y: 0 }`, un risultato certo non voluto. Conviene perciò definire una nuova API per aggiungere un elemento ad un `Set` che sfrutti l'astrazione `Eq`.
 
 **Quiz**. Che firma potrebbe avere questa nuova API?
 
