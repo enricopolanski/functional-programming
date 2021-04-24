@@ -21,9 +21,10 @@ import * as B from 'fp-ts/boolean'
 
 const getSemigroup = <A = never>(): Semigroup<O.Ord<A>> => ({
   concat: (first, second) =>
-    O.fromCompare((a1, a2) =>
-      first.compare(a1, a2) === 0 ? second.compare(a1, a2) : 0
-    )
+    O.fromCompare((a1, a2) => {
+      const ordering = first.compare(a1, a2)
+      return ordering !== 0 ? ordering : second.compare(a1, a2)
+    })
 })
 
 /*
@@ -71,7 +72,7 @@ const byNameAgeRememberMe = concatAll(SemigroupOrdUser)(byName)([
   byAge,
   byRememberMe
 ])
-console.log(sort(byNameAgeRememberMe)(users))
+pipe(users, sort(byNameAgeRememberMe), console.log)
 /*
 [ { id: 3, name: 'Giulio', age: 44, rememberMe: false },
   { id: 4, name: 'Giulio', age: 44, rememberMe: true },
@@ -85,7 +86,7 @@ console.log(sort(byNameAgeRememberMe)(users))
 const byRememberMeNameAge = concatAll(SemigroupOrdUser)(
   O.reverse(byRememberMe)
 )([byName, byAge])
-console.log(sort(byRememberMeNameAge)(users))
+pipe(users, sort(byRememberMeNameAge), console.log)
 /*
 [ { id: 4, name: 'Giulio', age: 44, rememberMe: true },
   { id: 2, name: 'Guido', age: 46, rememberMe: true },
