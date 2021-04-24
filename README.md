@@ -1372,6 +1372,7 @@ import * as N from 'fp-ts/number'
 import { contramap } from 'fp-ts/Ord'
 import * as RA from 'fp-ts/ReadonlyArray'
 import { max, min, Semigroup, struct } from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/string'
 
 interface Customer {
   readonly name: string
@@ -1383,12 +1384,7 @@ interface Customer {
 
 const SemigroupCustomer: Semigroup<Customer> = struct({
   // keep the longer name
-  name: max(
-    pipe(
-      N.Ord,
-      contramap((s: string) => s.length)
-    )
-  ),
+  name: max(pipe(N.Ord, contramap(S.size))),
   // accumulate things
   favouriteThings: RA.getSemigroup<string>(),
   // keep the least recent date
