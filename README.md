@@ -2495,7 +2495,7 @@ console.log(OrdOptionMyTuple.compare(o1, o2)) // => -1
 console.log(OrdOptionMyTuple.compare(o1, o3)) // => -1
 ```
 
-### Una istanza per `Semigroup`
+### Istanze per `Semigroup` e `Monoid`
 
 Ora supponiamo di voler fare un "merge" di due `Option<A>`, ci sono quattro casi:
 
@@ -2510,24 +2510,38 @@ C'è un problema nell'ultimo caso, ci occorre un modo per fare un "merge" di due
 
 Ma questo è proprio il lavoro di `Semigroup`!
 
-| x        | y        | concat(x, y)                       |
-| -------- | -------- | ---------------------------------- |
-| some(a1) | some(a2) | some(S.concat(a1.value, a2.value)) |
+| x        | y        | concat(x, y)           |
+| -------- | -------- | ---------------------- |
+| some(a1) | some(a2) | some(S.concat(a1, a2)) |
 
 Possiamo richiedere una istanza di semigruppo per `A` e quindi derivare una istanza di semigruppo per `Option<A>`
 
 ```ts
 // l'implementazione è lasciata come esercizio
-declare const getSemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>
+declare const getApplySemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>
 ```
 
-**Quiz**. E' possibile definire una istanza di monoide per `Option<A>` che si comporta come il semigruppo precedente?
+**Quiz**. E' possibile aggiungere un elemento neutro al semigruppo precedente rendendolo un monoide?
 
-Possiamo derivare altri due monoidi per `Option<A>` (per ogni `A`)
+E' possibile definire una istanza di monoide per `Option<A>` che si comporta nel modo seguente:
 
-1. `getFirstMonoid`...
+| x        | y        | concat(x, y)           |
+| -------- | -------- | ---------------------- |
+| none     | none     | none                   |
+| some(a1) | none     | some(a1)               |
+| none     | some(a2) | some(a2)               |
+| some(a1) | some(a2) | some(S.concat(a1, a2)) |
 
-Monoid returning the left-most non-`None` value:
+```ts
+// l'implementazione è lasciata come esercizio
+declare const getMonoid: <A>(S: Semigroup<A>) => Monoid<Option<A>>
+```
+
+**Esempio**
+
+Usando `getMonoid` possiamo derivare altri due utili monoidi:
+
+(Monoid returning the left-most non-`None` value)
 
 | x        | y        | concat(x, y) |
 | -------- | -------- | ------------ |
@@ -2537,18 +2551,17 @@ Monoid returning the left-most non-`None` value:
 | some(a1) | some(a2) | some(a1)     |
 
 ```ts
-import { getFirstMonoid, some, none } from 'fp-ts/Option'
-import { pipe } from 'fp-ts/function'
+import { Monoid } from 'fp-ts/Monoid'
+import { getMonoid, Option } from 'fp-ts/Option'
+import { first } from 'fp-ts/Semigroup'
 
-const M = getFirstMonoid<number>()
-
-console.log(pipe(some(1), M.concat(none))) // => some(1)
-console.log(pipe(some(1), M.concat(some(2)))) // => some(1)
+export const getFirstMonoid = <A = never>(): Monoid<Option<A>> =>
+  getMonoid(first())
 ```
 
-2. ...e il suo **duale**: `getLastMonoid`
+e il suo duale:
 
-Monoid returning the right-most non-`None` value:
+(Monoid returning the right-most non-`None` value)
 
 | x        | y        | concat(x, y) |
 | -------- | -------- | ------------ |
@@ -2558,23 +2571,22 @@ Monoid returning the right-most non-`None` value:
 | some(a1) | some(a2) | some(a2)     |
 
 ```ts
-import { getLastMonoid, some, none } from 'fp-ts/Option'
-import { pipe } from 'fp-ts/function'
+import { Monoid } from 'fp-ts/Monoid'
+import { getMonoid, Option } from 'fp-ts/Option'
+import { last } from 'fp-ts/Semigroup'
 
-const M = getLastMonoid<number>()
-
-console.log(pipe(some(1), M.concat(none))) // => some(1)
-console.log(pipe(some(1), M.concat(some(2)))) // => some(2)
+export const getLastMonoid = <A = never>(): Monoid<Option<A>> =>
+  getMonoid(last())
 ```
 
 **Esempio**
 
-`getLastMonoid` può essere utile per gestire valori opzionali:
+In particolare `getLastMonoid` può essere utile per gestire valori opzionali:
 
 ```ts
 import { Monoid, struct } from 'fp-ts/Monoid'
-import { Option, some, none, getLastMonoid } from 'fp-ts/Option'
-import { pipe } from 'fp-ts/function'
+import { getMonoid, none, Option, some } from 'fp-ts/Option'
+import { last } from 'fp-ts/Semigroup'
 
 /** VSCode settings */
 interface Settings {
@@ -2587,9 +2599,9 @@ interface Settings {
 }
 
 const monoidSettings: Monoid<Settings> = struct({
-  fontFamily: getLastMonoid<string>(),
-  fontSize: getLastMonoid<number>(),
-  maxColumn: getLastMonoid<number>()
+  fontFamily: getMonoid(last()),
+  fontSize: getMonoid(last()),
+  maxColumn: getMonoid(last())
 })
 
 const workspaceSettings: Settings = {
