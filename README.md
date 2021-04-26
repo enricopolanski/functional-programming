@@ -2924,7 +2924,8 @@ Nei prossimi capitoli vedremo sotto quali condizioni una tale composizione è po
 
 Il problema da cui siamo partiti all'inizio del capitolo corrisponde alla situazione ②, quando al posto del generico `F` mettiamo `Option`:
 
-```
+```ts
+// A = ReadonlyArray<number>, B = number, F = Option
 head: (as: ReadonlyArray<number>) => Option<number>
 double: (n: number) => number
 ```
@@ -2975,7 +2976,7 @@ const log = (message: string): DSL => {
 }
 ```
 
-**Quiz**. La funzione `log` appena definita è davvero pura? Eppure `log('foo') !== log('foo')`!
+**Quiz** (JavaScript). La funzione `log` appena definita è davvero pura? Eppure `log('foo') !== log('foo')`!
 
 Questa prima tecnica presuppone un modo per combinare gli effetti e la definizione di un interprete in grado di eseguire concretamente gli effetti quando si vuole lanciare il programma finale.
 
