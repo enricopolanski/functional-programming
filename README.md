@@ -2870,7 +2870,7 @@ const idA = (s: string): string => s
 
 const idB = (n: number): string => n
 
-const idC = (b: boolean): boolean => B
+const idC = (b: boolean): boolean => b
 
 const f = (s: string): number => s.length
 
