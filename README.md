@@ -584,6 +584,95 @@ pipe(reverse(S.Semigroup).concat('a', 'b'), console.log) // => 'ba'
 
 **Quiz**. Questo combinatore ha senso perché in generale l'operazione `concat` non è **commutativa**, ovvero non è detto che valga sempre `concat(x, y) = concat(y, x)`, potete portare un esempio in cui `concat` non è commutativa? E uno in cui è commutativa?
 
+## Semigruppo prodotto
+
+Proviamo a definire delle istanze di semigruppo per tipi più complessi:
+
+```ts
+import * as N from 'fp-ts/number'
+import { Semigroup } from 'fp-ts/Semigroup'
+
+// modella un vettore che parte dall'origine
+type Vector = {
+  readonly x: number
+  readonly y: number
+}
+
+// modella la somma di due vettori
+const SemigroupVector: Semigroup<Vector> = {
+  concat: (first, second) => ({
+    x: N.SemigroupSum.concat(first.x, second.x),
+    y: N.SemigroupSum.concat(first.y, second.y)
+  })
+}
+```
+
+**Esempio**
+
+```ts
+const v1: Vector = { x: 1, y: 1 }
+const v2: Vector = { x: 1, y: 2 }
+
+console.log(SemigroupVector.concat(v1, v2)) // => { x: 2, y: 3 }
+```
+
+<center>
+<img src="images/semigroupVector.png" width="300" alt="SemigroupVector" />
+</center>
+
+Troppo boilerplate? La buona notizia è che **la teoria matematica** che sta dietro al concetto di semigruppo ci dice che possiamo costruire una istanza di semigruppo per una struct come `Vector` se siamo in grado di fornire una istanza di semigruppo per ogni suo campo.
+
+Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `struct`:
+
+```ts
+import { struct } from 'fp-ts/Semigroup'
+
+// modella la somma di due vettori
+const SemigroupVector: Semigroup<Vector> = struct({
+  x: N.SemigroupSum,
+  y: N.SemigroupSum
+})
+```
+
+**Nota**. Esiste un combinatore simile a `struct` ma che lavora con le tuple: `tuple`
+
+```ts
+import * as N from 'fp-ts/number'
+import { Semigroup, tuple } from 'fp-ts/Semigroup'
+
+// modella un vettore che parte dall'origine
+type Vector = readonly [number, number]
+
+// modella la somma di due vettori
+const SemigroupVector: Semigroup<Vector> = tuple(N.SemigroupSum, N.SemigroupSum)
+
+const v1: Vector = [1, 1]
+const v2: Vector = [1, 2]
+
+console.log(SemigroupVector.concat(v1, v2)) // => [2, 3]
+```
+
+**Quiz**. E' vero che dato un semigruppo per `A` e scelto un qualsiasi elemento `middle` di `A`, se lo infilo tra i due parametri di `concat`, ottengo ancora un semigruppo?
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { Semigroup } from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/string'
+
+export const intercalate = <A>(middle: A) => (
+  S: Semigroup<A>
+): Semigroup<A> => ({
+  concat: (first, second) => S.concat(S.concat(first, middle), second)
+})
+
+const SemigroupIntercalate = pipe(S.Semigroup, intercalate('|'))
+
+pipe(
+  SemigroupIntercalate.concat('a', SemigroupIntercalate.concat('b', 'c')),
+  console.log
+) // => 'a|b|c'
+```
+
 ## Non riesco a trovare una istanza!
 
 L'associatività è una proprietà molto forte, cosa accade se, dato un particolare tipo `A`, non si riesce a trovare una operazione associativa su `A`?
@@ -734,95 +823,6 @@ Inoltre, anche se ho a disposizione una istanza di semigruppo per `A`, potrei de
 - evita di eseguire computazioni possibilmente inutili (supponete che il merging sia costoso)
 - evita di passare in giro l'istanza di semigruppo
 - permette ancora al consumer delle mie API di stabilire la strategia di merging (usando `concatAll`)
-
-## Semigruppo prodotto
-
-Proviamo a definire delle istanze di semigruppo per tipi più complessi:
-
-```ts
-import * as N from 'fp-ts/number'
-import { Semigroup } from 'fp-ts/Semigroup'
-
-// modella un vettore che parte dall'origine
-type Vector = {
-  readonly x: number
-  readonly y: number
-}
-
-// modella la somma di due vettori
-const SemigroupVector: Semigroup<Vector> = {
-  concat: (first, second) => ({
-    x: N.SemigroupSum.concat(first.x, second.x),
-    y: N.SemigroupSum.concat(first.y, second.y)
-  })
-}
-```
-
-**Esempio**
-
-```ts
-const v1: Vector = { x: 1, y: 1 }
-const v2: Vector = { x: 1, y: 2 }
-
-console.log(SemigroupVector.concat(v1, v2)) // => { x: 2, y: 3 }
-```
-
-<center>
-<img src="images/semigroupVector.png" width="300" alt="SemigroupVector" />
-</center>
-
-Troppo boilerplate? La buona notizia è che **la teoria matematica** che sta dietro al concetto di semigruppo ci dice che possiamo costruire una istanza di semigruppo per una struct come `Vector` se siamo in grado di fornire una istanza di semigruppo per ogni suo campo.
-
-Convenientemente il modulo `fp-ts/Semigroup` esporta una combinatore `struct`:
-
-```ts
-import { struct } from 'fp-ts/Semigroup'
-
-// modella la somma di due vettori
-const SemigroupVector: Semigroup<Vector> = struct({
-  x: N.SemigroupSum,
-  y: N.SemigroupSum
-})
-```
-
-**Nota**. Esiste un combinatore simile a `struct` ma che lavora con le tuple: `tuple`
-
-```ts
-import * as N from 'fp-ts/number'
-import { Semigroup, tuple } from 'fp-ts/Semigroup'
-
-// modella un vettore che parte dall'origine
-type Vector = readonly [number, number]
-
-// modella la somma di due vettori
-const SemigroupVector: Semigroup<Vector> = tuple(N.SemigroupSum, N.SemigroupSum)
-
-const v1: Vector = [1, 1]
-const v2: Vector = [1, 2]
-
-console.log(SemigroupVector.concat(v1, v2)) // => [2, 3]
-```
-
-**Quiz**. E' vero che dato un semigruppo per `A` e scelto un qualsiasi elemento `middle` di `A`, se lo infilo tra i due parametri di `concat`, ottengo ancora un semigruppo?
-
-```ts
-import { pipe } from 'fp-ts/function'
-import { Semigroup } from 'fp-ts/Semigroup'
-import * as S from 'fp-ts/string'
-
-export const intercalate = <A>(middle: A) => (
-  S: Semigroup<A>
-): Semigroup<A> => ({
-  concat: (first, second) => S.concat(S.concat(first, middle), second)
-})
-
-const SemigroupIntercalate = pipe(S.Semigroup, intercalate('|'))
-
-pipe(
-  SemigroupIntercalate.concat('a', SemigroupIntercalate.concat('b', 'c')),
-  console.log
-) // => 'a|b|c'
-```
 
 ## Semigruppi derivabili da un ordinamento
 
