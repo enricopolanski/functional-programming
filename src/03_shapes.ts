@@ -3,7 +3,7 @@
   PROBLEMA: implementare un sistema per disegnare forme geometriche sul canvas.
 */
 import { pipe } from 'fp-ts/function'
-import { Monoid } from 'fp-ts/Monoid'
+import { Monoid, concatAll } from 'fp-ts/Monoid'
 
 // -------------------------------------------------------------------------------------
 // model
@@ -126,7 +126,7 @@ export const mickeymouse: ReadonlyArray<Shape> = [
   disk({ x: 280, y: 100 }, 60)
 ]
 
-// pipe(Mo.concatAll(MonoidUnion)(mickeymouse), draw)
+// pipe(concatAll(MonoidUnion)(mickeymouse), draw)
 
 // -------------------------------------------------------------------------------------
 // utils
