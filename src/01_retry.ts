@@ -1,5 +1,7 @@
 /*
 
+  Abstraction for a mechanism to perform actions repetitively until successful.
+
   This module is split in 3 parts:
 
   - the model
@@ -8,16 +10,21 @@
 
 */
 
-//
+// -------------------------------------------------------------------------------------
 // model
-//
+// -------------------------------------------------------------------------------------
 
 export interface RetryStatus {
   /** Iteration number, where `0` is the first try */
-  iterNumber: number
+  readonly iterNumber: number
 
   /** Latest attempt's delay. Will always be `undefined` on first run. */
-  previousDelay: number | undefined
+  readonly previousDelay: number | undefined
+}
+
+export const startStatus: RetryStatus = {
+  iterNumber: 0,
+  previousDelay: undefined
 }
 
 /**
@@ -30,135 +37,107 @@ export interface RetryPolicy {
   (status: RetryStatus): number | undefined
 }
 
-//
+// -------------------------------------------------------------------------------------
 // primitives
-//
+// -------------------------------------------------------------------------------------
 
 /**
- * Constant delay with unlimited retries
+ * Constant delay with unlimited retries.
  */
-export function constantDelay(delay: number): RetryPolicy {
-  return () => delay
-}
+export const constantDelay = (delay: number): RetryPolicy => () => delay
 
 /**
  * Retry immediately, but only up to `i` times.
  */
-export function limitRetries(i: number): RetryPolicy {
-  return status => (status.iterNumber >= i ? undefined : 0)
-}
+export const limitRetries = (i: number): RetryPolicy => (status) =>
+  status.iterNumber >= i ? undefined : 0
 
 /**
  * Grow delay exponentially each iteration.
  * Each delay will increase by a factor of two.
  */
-export function exponentialBackoff(
-  delay: number
-): RetryPolicy {
-  return status => delay * Math.pow(2, status.iterNumber)
-}
+export const exponentialBackoff = (delay: number): RetryPolicy => (status) =>
+  delay * Math.pow(2, status.iterNumber)
 
-//
+// -------------------------------------------------------------------------------------
 // combinators
-//
+// -------------------------------------------------------------------------------------
 
 /**
  * Set a time-upperbound for any delays that may be directed by the
  * given policy.
  */
-export function capDelay(
-  maxDelay: number,
+export const capDelay = (maxDelay: number) => (
   policy: RetryPolicy
-): RetryPolicy {
-  return status => {
-    const delay = policy(status)
-    return delay === undefined
-      ? undefined
-      : Math.min(maxDelay, delay)
-  }
+): RetryPolicy => (status) => {
+  const delay = policy(status)
+  return delay === undefined ? undefined : Math.min(maxDelay, delay)
 }
 
 /**
- * Merges two policies.
+ * Merges two policies. **Quiz**: cosa vuol dire fare merge di due policy?
  */
-export function concat(
-  policy1: RetryPolicy,
-  policy2: RetryPolicy
-): RetryPolicy {
-  return status => {
-    const delay1 = policy1(status)
-    const delay2 = policy2(status)
-    if (delay1 !== undefined && delay2 !== undefined) {
-      return Math.max(delay1, delay2)
-    }
+export const concat = (second: RetryPolicy) => (
+  first: RetryPolicy
+): RetryPolicy => (status) => {
+  const delay1 = first(status)
+  const delay2 = second(status)
+  if (delay1 !== undefined && delay2 !== undefined) {
+    return Math.max(delay1, delay2)
   }
+  return undefined
 }
 
-//
-// test
-//
-
-export const myPolicy = capDelay(
-  2000,
-  concat(exponentialBackoff(200), limitRetries(5))
-)
+// -------------------------------------------------------------------------------------
+// tests
+// -------------------------------------------------------------------------------------
 
 /**
  * Apply policy on status to see what the decision would be.
  */
-export function applyPolicy(
-  policy: RetryPolicy,
+export const applyPolicy = (policy: RetryPolicy) => (
   status: RetryStatus
-): RetryStatus {
-  const previousDelay = policy(status)
-  return {
-    iterNumber: status.iterNumber + 1,
-    previousDelay
-  }
-}
+): RetryStatus => ({
+  iterNumber: status.iterNumber + 1,
+  previousDelay: policy(status)
+})
 
 /**
- * Initial, default retry status. Exported mostly to allow user code
- * to test their handlers and retry policies.
+ * Apply a policy keeping all intermediate results.
  */
-export const defaultRetryStatus: RetryStatus = {
-  iterNumber: 0,
-  previousDelay: 0
-}
-
-export function run(policy: RetryPolicy): RetryStatus {
-  let status = defaultRetryStatus
+export const dryRun = (policy: RetryPolicy): ReadonlyArray<RetryStatus> => {
+  const apply = applyPolicy(policy)
+  let status: RetryStatus = apply(startStatus)
+  const out: Array<RetryStatus> = [status]
   while (status.previousDelay !== undefined) {
-    status = applyPolicy(policy, status)
+    out.push((status = apply(out[out.length - 1])))
   }
-  return status
+  return out
 }
 
-// console.log(run(myPolicy))
+import { pipe } from 'fp-ts/function'
 
-export function withLogging(
-  policy: RetryPolicy
-): RetryPolicy {
-  return status => {
-    const delay = policy(status)
-    console.log(
-      delay === undefined
-        ? 'Done.'
-        : status.iterNumber === 0
-        ? 'first attempt...'
-        : `retrying in ${delay} milliseconds...`
-    )
-    return delay
-  }
-}
-
-// console.log(run(withLogging(myPolicy)))
 /*
-first attempt...                 <= exponentialBackoff
-retrying in 400 milliseconds...  <= exponentialBackoff
-retrying in 800 milliseconds...  <= exponentialBackoff
-retrying in 1600 milliseconds... <= exponentialBackoff
-retrying in 2000 milliseconds... <= exponentialBackoff + capDelay
-Done.                            <= limitRetries
-{ iterNumber: 6, previousDelay: undefined }
+  constantDelay(300)
+    |> concat(exponentialBackoff(200))
+    |> concat(limitRetries(5))
+    |> capDelay(2000)
+*/
+const myPolicy = pipe(
+  constantDelay(300),
+  concat(exponentialBackoff(200)),
+  concat(limitRetries(5)),
+  capDelay(2000)
+)
+
+console.log(dryRun(myPolicy))
+/*
+[
+  { iterNumber: 1, previousDelay: 300 },      <= constantDelay
+  { iterNumber: 2, previousDelay: 400 },      <= exponentialBackoff
+  { iterNumber: 3, previousDelay: 800 },      <= exponentialBackoff
+  { iterNumber: 4, previousDelay: 1600 },     <= exponentialBackoff
+  { iterNumber: 5, previousDelay: 2000 },     <= capDelay
+  { iterNumber: 6, previousDelay: undefined } <= limitRetries
+]
 */

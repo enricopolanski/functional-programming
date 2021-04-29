@@ -5,10 +5,8 @@
 */
 
 import * as fs from 'fs'
-import { Task, task, map, chain } from 'fp-ts/lib/Task'
-import { pipe } from 'fp-ts/lib/pipeable'
-import { traverse_ } from 'fp-ts/lib/Foldable'
-import * as A from 'fp-ts/lib/Array'
+import * as T from 'fp-ts/Task'
+import { pipe } from 'fp-ts/function'
 
 class Employee {
   constructor(
@@ -39,11 +37,11 @@ class Email {
 //
 
 interface MonadEmail {
-  sendMessage: (email: Email) => Task<void>
+  readonly sendMessage: (email: Email) => T.Task<void>
 }
 
 interface MonadFileSystem {
-  read: (fileName: string) => Task<string>
+  readonly read: (fileName: string) => T.Task<string>
 }
 
 interface MonadApp extends MonadEmail, MonadFileSystem {}
@@ -53,28 +51,21 @@ const toEmail = (employee: Employee): Email => {
   const recipient = employee.email
   const body = `Happy Birthday, dear ${employee.firstName}!`
   const subject = 'Happy Birthday!'
-  return new Email(
-    'sender@here.com',
-    subject,
-    body,
-    recipient
-  )
+  return new Email('sender@here.com', subject, body, recipient)
 }
 
 // pure
 const getGreetings = (
   today: Date,
-  employees: Array<Employee>
-): Array<Email> => {
-  return employees
-    .filter(e => e.isBirthday(today))
-    .map(toEmail)
+  employees: ReadonlyArray<Employee>
+): ReadonlyArray<Email> => {
+  return employees.filter((e) => e.isBirthday(today)).map(toEmail)
 }
 
 // pure
-const parse = (input: string): Array<Employee> => {
+const parse = (input: string): ReadonlyArray<Employee> => {
   const lines = input.split('\n').slice(1) // skip header
-  return lines.map(line => {
+  return lines.map((line) => {
     const employeeData = line.split(', ')
     return new Employee(
       employeeData[0],
@@ -89,13 +80,12 @@ const parse = (input: string): Array<Employee> => {
 const sendGreetings = (M: MonadApp) => (
   fileName: string,
   today: Date
-): Task<void> => {
+): T.Task<void> => {
   return pipe(
     M.read(fileName),
-    map(input => getGreetings(today, parse(input))),
-    chain(emails =>
-      traverse_(task, A.array)(emails, M.sendMessage)
-    )
+    T.map((input) => getGreetings(today, parse(input))),
+    T.chain(T.traverseArray(M.sendMessage)),
+    T.map(() => undefined)
   )
 }
 
@@ -103,29 +93,20 @@ const sendGreetings = (M: MonadApp) => (
 // instances
 //
 
-const getMonadApp = (
-  smtpHost: string,
-  smtpPort: number
-): MonadApp => {
+const getMonadApp = (smtpHost: string, smtpPort: number): MonadApp => {
   return {
-    sendMessage: email => () =>
-      new Promise(resolve => {
+    sendMessage: (email) => () =>
+      new Promise((resolve) => {
         console.log('sending email...')
-        setTimeout(
-          () =>
-            resolve(console.log(smtpHost, smtpPort, email)),
-          1000
-        )
+        setTimeout(() => resolve(console.log(smtpHost, smtpPort, email)), 1000)
       }),
-    read: fileName => () =>
-      new Promise(resolve => {
+    read: (fileName) => () =>
+      new Promise((resolve) => {
         console.log('reading file...')
         setTimeout(
           () =>
-            fs.readFile(
-              fileName,
-              { encoding: 'utf8' },
-              (_, data) => resolve(data)
+            fs.readFile(fileName, { encoding: 'utf8' }, (_, data) =>
+              resolve(data)
             ),
           1000
         )
@@ -134,10 +115,7 @@ const getMonadApp = (
 }
 
 const program = sendGreetings(getMonadApp('localhost', 80))
-program(
-  'src/onion-architecture/employee_data.txt',
-  new Date(2008, 9, 8)
-)()
+program('src/onion-architecture/employee_data.txt', new Date(2008, 9, 8))()
 /*
 reading file...
 sending email...

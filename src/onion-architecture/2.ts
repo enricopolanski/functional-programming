@@ -35,28 +35,21 @@ const toEmail = (employee: Employee): Email => {
   const recipient = employee.email
   const body = `Happy Birthday, dear ${employee.firstName}!`
   const subject = 'Happy Birthday!'
-  return new Email(
-    'sender@here.com',
-    subject,
-    body,
-    recipient
-  )
+  return new Email('sender@here.com', subject, body, recipient)
 }
 
 // pure
 const getGreetings = (
   today: Date,
-  employees: Array<Employee>
-): Array<Email> => {
-  return employees
-    .filter(e => e.isBirthday(today))
-    .map(toEmail)
+  employees: ReadonlyArray<Employee>
+): ReadonlyArray<Email> => {
+  return employees.filter((e) => e.isBirthday(today)).map(toEmail)
 }
 
 // pure
-const parse = (input: string): Array<Employee> => {
+const parse = (input: string): ReadonlyArray<Employee> => {
   const lines = input.split('\n').slice(1) // skip header
-  return lines.map(line => {
+  return lines.map((line) => {
     const employeeData = line.split(', ')
     return new Employee(
       employeeData[0],
@@ -91,9 +84,7 @@ const sendGreetings = (
   const input = read(fileName)
   const employees = parse(input)
   const emails = getGreetings(today, employees)
-  emails.forEach(email =>
-    sendMessage(smtpHost, smtpPort, email)
-  )
+  emails.forEach((email) => sendMessage(smtpHost, smtpPort, email))
 }
 
 sendGreetings(

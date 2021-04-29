@@ -31,14 +31,7 @@ const sendMessage = (
   body: string,
   recipient: string
 ): void => {
-  console.log(
-    smtpHost,
-    smtpPort,
-    from,
-    subject,
-    body,
-    recipient
-  )
+  console.log(smtpHost, smtpPort, from, subject, body, recipient)
 }
 
 const sendGreetings = (
