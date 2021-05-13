@@ -255,68 +255,89 @@ Think at how, just adding a single new primitive, or a single combinator to thos
 
 Of the two combiners in `01_retry.ts` a special mention goes to `concat` since it refers to a very powerful functional programming abstraction: semigroups.
 
-# Semigroups
+# Modelling composition with Semigroups
 
-A term we could associate to _functional_ programming might be _algebraic_ programming:
+A semigroup is a recipe to combine two, or more, values.
 
-> Algebras can be thought of as the design patterns for functional programming
+A semigroup is an **algebra**, which is generally defined as a specific combination of:
 
-An **algebra** is generally defined as whatever combination of:
-
-- sets
-- operations
-- laws
+- one or more sets
+- one or more operations on those sets
+- zero or more laws on the previous operations
 
 Algebras are how mathematicians try to capture an idea in its purest form, eliminating everything that is superfluous.
 
-Algebras can be thought of as an abstraction of interfaces: when an algebraic structure is modified we can only use the operations defined by the algebra, those allowed in compliance with its own laws.
+> When an algebra is modified the only allowed operations are those defined by the algebra itself according to its own laws
 
-Mathematicians work with such interfaces from centuries, and it works.
+Algebras can be thought of as an abstraction of **interfaces**:
 
-Let's see our first example of an algebra, a _magma_.
+> When an interface is modified the only allowed operations are those defined by the interface itself according to its own laws
 
-**Definition**. Given `A` a non empty set and `*` a binary operation _closed on_ (or _internal to_) `A`, then the pair `(A, *)` is called a _magma_.
+Before getting into semigroups, let's see first an example of an algebra, a _magma_.
 
-**Note**: An operation `*` is closed on `A` if `*: A × A ⟶ A`. This means that whichever elements of the set `A` we apply the operation on the result will still be an element of `A`.
+## Definition of a Magma
 
-```ts
-integer + integer = integer
-integer / integer = integer | float | NaN
-```
+A Magma<A> is a very simple algebra:
 
-On line 1 we have the pair `(integer, +)`. The non empty set is the set of integers (in most cases the terms _set_ and _type_ can be used interchangeably), while the binary operation is the usual mathematical addition. No matter which integers we operate on, the sum will always result with an integer. Thus the pair `(integer, +)` is a magma.
+- a set or type (A)
+- a `concat` operation
+- no laws to obey
 
-On line 2 we have the pair `(integer, /)` where the binary operation is the usual division between integers. While this operation results in an integer in some cases (e.g. 9 / 3 = 3), it does not for all the members of the integer set (e.g. 1 / 0 or 10 / 3). Thus, division, is not _closed on_ integer. Thus, the pair `(integer, /)` is **not** a magma.
+**Note**: in most cases the terms _set_ and _type_ can be used interchangeably.
 
-Food for your thoughts: explain why the pair `(positive, -)`, where `positive` is the set of positive numbers, such as `(1, 2, 3, 4, 5, etc)`, does not form a magma under the binary operation `-`, the usual mathematical subtraction.
-
-An interesting property of magmas:
-
-> Since the binary operation of a magma takes two values of a given type and returns a new value of the same type (_closure property_), this operation can be chained indefinitely.
-
-And this is the encoding of a magma in TypeScript:
-
-- the set is encoded in a type parameter (the generic `A` in `Magma<A>`)
-- the `*` operation is here called `concat` (the `concat` method implemented in any instance of `Magma<A>`)
+We can use a TypeScript `interface` to model a Magma.
 
 ```ts
-// fp-ts/lib/Magma.ts
-
 interface Magma<A> {
-  readonly concat: (x: A, y: A) => A
+  readonly concat: (first: A, second: A) => A
 }
 ```
 
+Thus, we have have the ingredients for an algebra:
+
+- a set `A`
+- an operation on the set `A`, `concat`. This operation is said to be _closed on_ the set `A` which means that whichever elements `A` we apply the operation on the result will still be an element of `A`. Since the result is still an `A` it can be used again as input for `concat` the operation can be repeated how many times we want. In other words `concat` is a `combinator` for the type `A`.
+
+Let's implement a concrete instance of `Magma<A>` with `A` being the `number` type.
+
+```ts
+import { Magma } from 'fp-ts/Magma'
+
+const MagmaSub: Magma<number> = {
+  concat: (first, second) => first - second
+}
+
+// helper
+const getPipeableConcat = <A>(M: Magma<A>) => (second: A) => (first: A): A =>
+  M.concat(first, second)
+
+const concat = getPipeableConcat(MagmaSub)
+
+// usage example
+
+import { pipe } from 'fp-ts/function'
+
+pipe(10, concat(2), concat(3), concat(1), concat(2), console.log)
+// => 2
+```
+
+**Quiz**. The fact that `concat` is a _closed_ operation isn't a trivial detail. If `A` is the set of natural numbers (defined as positive integers) instead of the JavaScript number type (a set of positive and negative floats), could we define a `Magma<Natural>` with `concat` implemented like in `MagmaSub`? Can you think of any other `concat` operation on natural numbers for which the `closure` property isn't valid?
+
+**Definition**. Given `A` a non empty set and `*` a binary operation _closed on_ (or _internal to_) `A`, then the pair `(A, *)` is called a _magma_.
+
 Magmas do not obey any law, they only have the closure requirement. Let's see an algebra that do requires another law: semigroups.
 
-## General Definition
+## Definition of a Magma
 
-Given `(A, *)` a magma, if `*` is **associative** then it's a _semigroup_.
+> Given a `Magma` if the `concat` operation is **associative** then it's a _semigroup_.
 
 The term "associative" means that the equation:
 
 ```ts
 (x * y) * z = x * (y * z)
+
+// or
+concat(concat(a, b), c) = concat(a, concat(b, c))
 ```
 
 holds for any `x`, `y`, `z` in `A`.
@@ -331,9 +352,29 @@ String concatenation benefits from associativity.
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
 ```
 
-A characteristic of associativity is that:
+Every semigroup is a magma, but not every magma is a semigroup.
 
-> Semigroups capture the essence of parallelizable operations
+<center>
+<img src="images/semigroup.png" width="300" alt="Magma vs Semigroup" />
+</center>
+
+**Example**
+
+The previous `MagmaSub` is not a semigroup because it's `concat` operation is not associative.
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { Magma } from 'fp-ts/Magma'
+
+const MagmaSub: Magma<number> = {
+  concat: (first, second) => first - second
+}
+
+pipe(MagmaSub.concat(MagmaSub.concat(1, 2), 3), console.log) // => -4
+pipe(MagmaSub.concat(1, MagmaSub.concat(2, 3)), console.log) // => 2
+```
+
+Semigroups capture the essence of parallelizable operations
 
 If we know that there is such an operation that follows the associativity law we can further split a computation in two sub computations, each of them could be further split in sub computations.
 
@@ -343,17 +384,7 @@ a * b * c * d * e * f * g * h = ((a * b) * (c * d)) * ((e * f) * (g * h))
 
 Sub computations can be run in parallel mode.
 
-There are many examples of semigroups:
-
-- `(number, +)` where `+` is the usual addition of numbers
-- `(number, *)` where `*` is the usual number multiplication
-- `(string, +)` where `+` is the usual string concatenation
-- `(boolean, &&)` where `&&` is the [logical conjunction](https://en.wikipedia.org/wiki/Logical_conjunction)
-- `(boolean, ||)` where `||` is the [logical disjunction](https://en.wikipedia.org/wiki/Logical_disjunction)
-
-## Implementation
-
-As usual in `fp-ts` the algebra `Semigroup`, contained in the the `fp-ts/lib/Semigroup` module, is implemented through a TypeScript `interface`:
+As for `Magma`, `Semigroup`s are implemented through a TypeScript `interface`:
 
 ```ts
 // fp-ts/lib/Semigroup.ts
@@ -363,17 +394,34 @@ interface Semigroup<A> extends Magma<A> {}
 
 The following law has to hold true:
 
-- **Associativity**: `concat(concat(x, y), z) = concat(x, concat(y, z))`, for every `x`, `y`, `z` in `A`
+- **Associativity**: If `S` is a semigroup the following has to hold true:
+
+```ts
+;`S.concat(S.concat(x, y), z) = S.concat(x, S.concat(y, z))`
+```
+
+for every `x`, `y`, `z` of type `A`
 
 **Note**. Sadly it is not possible to encode this law in TypeScript's type system.
+
+Let's implement a semigroup for some `ReadonlyArray<string>`:
+
+```ts
+import * as Se from 'fp-ts/Semigroup'
+
+const Semigroup: Se.Semigroup<ReadonlyArray<string>> = {
+  concat: (first, second) => first.concat(second)
+}
+```
 
 The name `concat` makes sense for arrays (as we'll see later) but, depending on the context and the type `A` on whom we're implementing an instance, the `concat` semigroup operation may have different interpretations and meanings:
 
 - "concatenation"
+- "combination"
 - "merging"
 - "fusion"
 - "selection"
-- "addition"
+- "sum"
 - "substitution"
 
 and many others.
@@ -383,36 +431,56 @@ and many others.
 This is how to implement the semigroup `(number, +)` where `+` is the usual addition of numbers:
 
 ```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
 /** number `Semigroup` under addition */
-const semigroupSum: Semigroup<number> = {
-  concat: (x, y) => x + y
+const SemigroupSum: Semigroup<number> = {
+  concat: (first, second) => first + second
 }
 ```
 
-Please note that for the same type (the underlying non-empty set, in the previous case `number`) it is possible to define more **instances** of the _type class_ `Semigroup`.
-
-It is a common mistake to think about the _semigroup of numbers_, but remember that a semigroup is a **pair** `(A,*)` of a non-empty set and an associative operation. So when specifying a semigroup we need both a non-empty set (or type, such as number, string, or more complex ones) **and** an operation.
+**Quiz**. Can the `concat` combinator defined in the demo [`01_retry.ts`](src/01_retry.ts) be used to define an `Semigroup` instance for the `RetryPolicy` type?
 
 This is the implementation for the semigroup `(number, *)` where `*` is the usual number multiplication:
 
 ```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
 /** number `Semigroup` under multiplication */
-const semigroupProduct: Semigroup<number> = {
-  concat: (x, y) => x * y
+const SemigroupSum: Semigroup<number> = {
+  concat: (first, second) => first * second
 }
 ```
 
-Another example, with two strings this time:
+**Note** It is a common mistake to think about the _semigroup of numbers_, but for the same type `A` it is possible to define more **instances** of `Semigroup<A>`. We've seen how for `number` we can define a semigroup under _addition_ and _moltiplication_. It is also possible to have `Semigroup`s that share the same operation but differ in types. SemigroupSum could've been implemented on natural numbers instead of unsigned floats like `number`.
+
+Another example, with the `string` type:
 
 ```ts
-const semigroupString: Semigroup<string> = {
-  concat: (x, y) => x + y
+import { Semigroup } from 'fp-ts/Semigroup'
+
+const SemigroupString: Semigroup<string> = {
+  concat: (first, second) => first + second
 }
 ```
 
-## The `fold` function
+Another two examples, this time with the `boolean` type:
 
-By definition `concat` combines merely two elements of `A` every time, is it possible to combine any _n_ number of them?
+```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
+const SemigroupAll: Semigroup<boolean> = {
+  concat: (first, second) => first && second
+}
+
+const SemigroupAny: Semigroup<boolean> = {
+  concat: (first, second) => first || second
+}
+```
+
+## The `concatAll` function
+
+By definition `concat` combines merely two elements of `A` every time, is it possible to combine any number of them?
 
 The `fold` function takes:
 
