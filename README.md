@@ -804,47 +804,59 @@ It should be also further noticed that, even when I do have a Semigroup instance
 
 ## Order-derivable Semigroups
 
-Given that `number` is **a total order** (meaning that whatever two `x` and `y` we choose, one of those two conditions has to hold true: `x <= y` or `y <= x`) we can define another two instances of semigroup using `min` or `max` as operations.
+Given that `number` is **a total order** (meaning that whichever `x` and `y` we choose, one of those two conditions has to hold true: `x <= y` or `y <= x`) we can define another two `Semigroup<number>` instances using the `min` or `max` operations.
 
 ```ts
-const meet: Semigroup<number> = {
-  concat: (x, y) => Math.min(x, y)
+import { Semigroup } from 'fp-ts/Semigroup'
+
+const SemigroupMin: Semigroup<number> = {
+  concat: (first, second) => Math.min(first, second)
 }
 
-const join: Semigroup<number> = {
-  concat: (x, y) => Math.max(x, y)
+const SemigroupMax: Semigroup<number> = {
+  concat: (first, second) => Math.max(first, second)
 }
 ```
 
 **Quiz**. Why is it so important that `number` is a _total_ order?
 
-Is it possible to capture the notion of being _totally ordered_ for other types that are not `number`? To do so we first need to capture the notion of _equality_.
+It would be very useful to defined those two semigroups (`SemigroupMin` and `SemigroupMax`) for types different than `number`.
 
-# Eq
+Is it possible to capture the notion of being _totally ordered_ for other types?
 
-_Equivalence relations_ capture the concept of _equality_ of elements of the same type. The concept of an _equivalence relation_ can be implemented in TypeScript with the following type class:
+To speak about _ordering_ we first need to capture the notion of _equality_.
+
+# Modelling equivalence with `Eq`
+
+Yet again, we can model the notion of equality.
+
+_Equivalence relations_ capture the concept of _equality_ of elements of the same type. The concept of an _equivalence relation_ can be implemented in TypeScript with the following interface:
 
 ```ts
 interface Eq<A> {
-  readonly equals: (x: A, y: A) => boolean
+  readonly equals: (first: A, second: A) => boolean
 }
 ```
 
 Intuitively:
 
-- if `equals(x, y) = true` then `x = y`
-- if `equals(x, y) = false` then `x ≠ y`
+- if `equals(x, y) = true` then we say `x` and `y` are equal
+- if `equals(x, y) = false` then we say `x` and `y` are different
 
 **Example**
 
 This is an instance of `Eq` for the `number` type:
 
 ```ts
-import { Eq } from 'fp-ts/lib/Eq'
+import { Eq } from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
 
-const eqNumber: Eq<number> = {
-  equals: (x, y) => x === y
+const EqNumber: Eq<number> = {
+  equals: (first, second) => first === second
 }
+
+pipe(EqNumber.equals(1, 1), console.log) // => true
+pipe(EqNumber.equals(1, 2), console.log) // => false
 ```
 
 The following laws have to hold true:
@@ -853,122 +865,233 @@ The following laws have to hold true:
 2. **Symmetry**: `equals(x, y) === equals(y, x)`, for every `x`, `y` in `A`
 3. **Transitivity**: if `equals(x, y) === true` and `equals(y, z) === true`, then `equals(x, z) === true`, for every `x`, `y`, `z` in `A`
 
-**Example**
+**Quiz**. Would a combinator `reverse: <A>(E: Eq<A>) => Eq<A>` make sense?
 
-A programmer can thus define a function `elem` (which indicates whether a value appears in an array) in the following way:
+**Quiz**. Would a combinator `not: <A>(E: Eq<A>) => Eq<A>` make sense?
 
 ```ts
-function elem<A>(E: Eq<A>): (a: A, as: Array<A>) => boolean {
-  return (a, as) => as.some((item) => E.equals(item, a))
-}
+import { Eq } from 'fp-ts/Eq'
 
-elem(eqNumber)(1, [1, 2, 3]) // true
-elem(eqNumber)(4, [1, 2, 3]) // false
+export const not = <A>(E: Eq<A>): Eq<A> => ({
+  equals: (first, second) => !E.equals(first, second)
+})
 ```
 
-Let's define some instances of `Eq` for more complex types.
+**Example**
+
+Let's see the first example of the usage of the `Eq` abstraction by defining a function `elem` that checks whether a given value is an element of `ReadonlyArray`.
+
+```ts
+import { Eq } from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+
+// restituisce `true` se l'elemento `a` compare nella lista `as`
+const elem = <A>(E: Eq<A>) => (a: A) => (as: ReadonlyArray<A>): boolean =>
+  as.some((e) => E.equals(a, e))
+
+pipe([1, 2, 3], elem(N.Eq)(2), console.log) // => true
+pipe([1, 2, 3], elem(N.Eq)(4), console.log) // => false
+```
+
+Why would we not use the native `includes` Array method?
+
+```ts
+console.log([1, 2, 3].includes(2)) // => true
+console.log([1, 2, 3].includes(4)) // => false
+```
+
+Let's define some `Eq` instance for more complex types.
+
+```ts
+import { Eq } from 'fp-ts/Eq'
+
+type Point = {
+  readonly x: number
+  readonly y: number
+}
+
+const EqPoint: Eq<Point> = {
+  equals: (first, second) => first.x === second.x && first.y === second.y
+}
+
+console.log(EqPoint.equals({ x: 1, y: 2 }, { x: 1, y: 2 })) // => true
+console.log(EqPoint.equals({ x: 1, y: 2 }, { x: 1, y: -2 })) // => false
+```
+
+and check the results of `elem` and `includes`
+
+```ts
+const points: ReadonlyArray<Point> = [
+  { x: 0, y: 0 },
+  { x: 1, y: 1 },
+  { x: 2, y: 2 }
+]
+
+const search: Point = { x: 1, y: 1 }
+
+console.log(points.includes(search)) // => false :(
+console.log(pipe(points, elem(EqPoint)(search))) // => true :)
+```
+
+**Quiz** (JavaScript). Why does the `includes` method returns `false`?
+
+Aver catturato il concetto di uguaglianza è fondamentale, soprattutto in un linguaggio come JavaScript in cui alcune strutture dati possiedono delle API poco usabili rispetto ad un concetto di uguaglianza custom.
+
+The JavaScript native `Set` datatype suffers by the same issue:
 
 ```ts
 type Point = {
-  x: number
-  y: number
+  readonly x: number
+  readonly y: number
 }
 
-const eqPoint: Eq<Point> = {
-  equals: (p1, p2) => p1.x === p2.x && p1.y === p2.y
-}
+const points: Set<Point> = new Set([{ x: 0, y: 0 }])
+
+points.add({ x: 0, y: 0 })
+
+console.log(points)
+// => Set { { x: 0, y: 0 }, { x: 0, y: 0 } }
 ```
 
-We can also try to optimize `equals` by first testing whether there is a _reference equality_ (see `fromEquals` in `fp-ts`).
+Given the fact that `Set` uses `===` ("strict equality") for comparing values, `points` now contains **two identical copies** of `{ x: 0, y: 0 }`, a result we definitely did not want. Thus it is convenient to define a new API to add en element to `Set`, one that leverages the `Eq` abstraction.
+
+**Quiz**. What would be the signature of this API?
+
+Does `EqPoint` requires too much boilerplate? The good news is that theory offers us yet again the possibility of implementing an `Eq` instance for a struct like `Point` if we are able to define an `Eq` instance for each of its fields.
+
+Conveniently the `fp-ts/Eq` module exports a `struct` combinator:
 
 ```ts
-const eqPoint: Eq<Point> = {
-  equals: (p1, p2) => p1 === p2 || (p1.x === p2.x && p1.y === p2.y)
+import { Eq, struct } from 'fp-ts/Eq'
+import * as N from 'fp-ts/number'
+
+type Point = {
+  readonly x: number
+  readonly y: number
 }
-```
 
-Too much boilerplate? The good news is that we can write an `Eq` instance for a struct like `Point` if we can provide an `Eq` instance for each of its fields.
-
-Conveniently, the `fp-ts/lib/Eq` module exports a combinator `getStructEq`:
-
-```ts
-import { getStructEq } from 'fp-ts/lib/Eq'
-
-const eqPoint: Eq<Point> = getStructEq({
-  x: eqNumber,
-  y: eqNumber
+const EqPoint: Eq<Point> = struct({
+  x: N.Eq,
+  y: N.Eq
 })
 ```
 
-We can keep passing the just defined `eqPoint` to `getStructEq`.
+**Nota**. Like for Semigroup, we aren't limited to `struct`-like data types, we also have combinators for working with tuples: `tuple`
 
 ```ts
-type Vector = {
-  from: Point
-  to: Point
+import { Eq, tuple } from 'fp-ts/Eq'
+import * as N from 'fp-ts/number'
+
+type Point = readonly [number, number]
+
+const EqPoint: Eq<Point> = tuple(N.Eq, N.Eq)
+
+console.log(EqPoint.equals([1, 2], [1, 2])) // => true
+console.log(EqPoint.equals([1, 2], [1, -2])) // => false
+```
+
+There are other combinators exported by `fp-ts`, here we can see a combinator that allows us to derive an `Eq` instance for `ReadonlyArray`s.
+
+```ts
+import { Eq, tuple } from 'fp-ts/Eq'
+import * as N from 'fp-ts/number'
+import * as RA from 'fp-ts/ReadonlyArray'
+
+type Point = readonly [number, number]
+
+const EqPoint: Eq<Point> = tuple(N.Eq, N.Eq)
+
+const EqPoints: Eq<ReadonlyArray<Point>> = RA.getEq(EqPoint)
+```
+
+Similarly to Semigroups, it is possible to define more than one `Eq` instance for the same given type. Suppose we have modeled a `User` with the following type:
+
+```ts
+type User = {
+  readonly id: number
+  readonly name: string
 }
-
-const eqVector: Eq<Vector> = getStructEq({
-  from: eqPoint,
-  to: eqPoint
-})
 ```
 
-**Note**. There is a combinator similar to `getStructEq` that works on tuples: `getTupleEq`.
-
-There are other combinators exported by fp-ts, here we can see one that allows us to derive an `Eq` instance from an array:
+we can define a "standard" `Eq<User>` instance using the `struct` combinator:
 
 ```ts
-import { getEq } from 'fp-ts/lib/Array'
-
-const eqArrayOfPoints: Eq<Array<Point>> = getEq(eqPoint)
-```
-
-At last, another combinator to create new `Eq` instances is `contramap`: given an `Eq<A>` instance and a function from `B` to `A` we can derive an instance `Eq<B>`
-
-```ts
-import { contramap, eqNumber } from 'fp-ts/lib/Eq'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { Eq, struct } from 'fp-ts/Eq'
+import * as N from 'fp-ts/number'
+import * as S from 'fp-ts/string'
 
 type User = {
-  userId: number
-  name: string
+  readonly id: number
+  readonly name: string
 }
 
-/** two users are equal if their `userId` field is equal */
-const eqUser = pipe(
-  eqNumber,
-  contramap((user: User) => user.userId)
-)
-
-eqUser.equals(
-  { userId: 1, name: 'Giulio' },
-  { userId: 1, name: 'Giulio Canti' }
-) // true
-eqUser.equals({ userId: 1, name: 'Giulio' }, { userId: 2, name: 'Giulio' }) // false
+const EqStandard: Eq<User> = struct({
+  id: N.Eq,
+  name: S.Eq
+})
 ```
 
-**Spoiler**. `contramap` is the fundamental function of [contravariant functors](#contravariant-functors).
+**Note**. In a language like Haskell the `Eq` instance for a struct like `User` can be automatically derived by the compiler:
 
-## Equivalence relations as partitions
+```haskell
+data User = User Int String
+     deriving (Eq)
+```
 
-Defining an `Eq<A>` instance is equivalent to defining a _partition_ of `A` where two elements `x`, `y` of `A` are members of the same partition if and only if `equals(x, y) = true`.
-
-**Note**. Every `f: A ⟶ B` function creates an `Eq<A>` instance defined by:
+That being said, we may have different contexts where the meaning of `User` equality might differ. One common context is where two `User`s are equal if their `id` field is equal.
 
 ```ts
-equals(x, y) = f(x) = f(y)
+/** two users are equal if their `id` fields are equal */
+const EqID: Eq<User> = {
+  equals: (first, second) => N.Eq.equals(first.id, second.id)
+}
 ```
 
-for every `x`, `y` of `A`.
+Now that we made an abstract concept, the equivalence relation, concrete, we can programmatically manipulate `Eq` instances like we do with other data structures. Let's see an example.
 
-**Spoiler**. We'll see how this notion will come back useful in the demo: `03_shapes.ts`
+**Example**. Rather than manually defining `EqId` we can use the combinator `contramap`: given an instance `Eq<A>` and a function from `B` to `A`, we can derive an `Eq<B>`
 
-# Ord
+```ts
+import { Eq, struct, contramap } from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import * as S from 'fp-ts/string'
+
+type User = {
+  readonly id: number
+  readonly name: string
+}
+
+const EqStandard: Eq<User> = struct({
+  id: N.Eq,
+  name: S.Eq
+})
+
+const EqID: Eq<User> = pipe(
+  N.Eq,
+  contramap((_: User) => _.id)
+)
+
+console.log(
+  EqStandard.equals({ id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio Canti' })
+) // => false (because the `name` property differs)
+
+console.log(
+  EqID.equals({ id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio Canti' })
+) // => true (even tho the `name` property differs)
+
+console.log(EqID.equals({ id: 1, name: 'Giulio' }, { id: 2, name: 'Giulio' }))
+// => false (even tho the `name` property is equal)
+```
+
+**Quiz**. Given a data type `A`, is it possible to define a `Semigroup<Eq<A>>`? What could it represent?
+
+## Modeling ordering relations with `Ord`
 
 In the previous chapter regarding `Eq` we were dealing with the concept of **equality**. In this one we'll deal with the concept of **ordering**.
 
-The concept of a total order relation can be implemented in TypeScript with the following type class:
+The concept of a total order relation can be implemented in TypeScript as following:
 
 ```ts
 import { Eq } from 'fp-ts/lib/Eq'
@@ -986,16 +1109,16 @@ Resulting in:
 - `x = y` if and only if `compare(x, y) = 0`
 - `x > y` if and only if `compare(x, y) = 1`
 
-Thus we can say that `x <= y` holds true only if `compare(x, y) <= 0`.
-
 **Example**
 
-Here we can see an instance of `Ord` for the type `number`:
+Let's try to define an `Ord` instance for the type `number`:
 
 ```ts
-const ordNumber: Ord<number> = {
-  equals: (x, y) => x === y,
-  compare: (x, y) => (x < y ? -1 : x > y ? 1 : 0)
+import { Ord } from 'fp-ts/Ord'
+
+const OrdNumber: Ord<number> = {
+  equals: (first, second) => first === second,
+  compare: (first, second) => (first < second ? -1 : first > second ? 1 : 0)
 }
 ```
 
@@ -1009,191 +1132,288 @@ The following laws have to hold true:
 
 `compare(x, y) === 0` if and only if `equals(x, y) === true`, for every `x`, `y` in `A`
 
-**Nota**. `equals` can be lawfully derived from `compare` in the following way:
+**Note**. `equals` can be derived from `compare` in the following way:
 
 ```ts
-equals: (x, y) => compare(x, y) === 0
+equals: (first, second) => compare(first, second) === 0
 ```
 
-In fact the `fp-ts/lib/Ord` module exports a handy helper `fromCompare` which allows us to define an `Ord` instance simply by supplying the `compare` function:
+In fact the `fp-ts/Ord` module exports a handy helper `fromCompare` which allows us to define an `Ord` instance simply by supplying the `compare` function:
 
 ```ts
-import { fromCompare, Ord } from 'fp-ts/lib/Ord'
+import { Ord, fromCompare } from 'fp-ts/Ord'
 
-const ordNumber: Ord<number> = fromCompare((x, y) =>
-  x < y ? -1 : x > y ? 1 : 0
+const OrdNumber: Ord<number> = fromCompare((first, second) =>
+  first < second ? -1 : first > second ? 1 : 0
 )
 ```
 
-Thus a programmer can define a `min` function in the following way:
+**Quiz**. Is it possible to define an `Ord` instance for the game Rock-Paper-Scissor where `move1 <= move2` if `move2` beats `move1`?
+
+Let's see a practical usage of an `Ord` instance by defining a `sort` function which orders the elements of a `ReadonlyArray`.
 
 ```ts
-function min<A>(O: Ord<A>): (x: A, y: A) => A {
-  return (x, y) => (O.compare(x, y) === 1 ? y : x)
-}
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import { Ord } from 'fp-ts/Ord'
 
-min(ordNumber)(2, 1) // 1
+export const sort = <A>(O: Ord<A>) => (
+  as: ReadonlyArray<A>
+): ReadonlyArray<A> => as.slice().sort(O.compare)
+
+pipe([3, 1, 2], sort(N.Ord), console.log) // => [1, 2, 3]
 ```
 
-The order's **totality** (thus given any `x` and `y`, one of the following conditions holds true: `x <= y` or `y <= x`) may look obvious when speaking about numbers, but that's not always the case. Let's consider a more complex case:
+**Quiz** (JavaScript). Why does the implementation leverages the native Array `slice` method?
+
+Let's see another `Ord` pratical usage by defining a `min` function that returns the smallest of two values:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import { Ord } from 'fp-ts/Ord'
+
+const min = <A>(O: Ord<A>) => (second: A) => (first: A): A =>
+  O.compare(first, second) === 1 ? second : first
+
+pipe(2, min(N.Ord)(1), console.log) // => 1
+```
+
+## Dual Ordering
+
+In the same way we could invert the `concat` operation to obtain the `dual semigroup` using the `reverse` combinator, we can invert the `compare` operation to get the dual ordering.
+
+Let's define the `reverse` combinator for `Ord`:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import { fromCompare, Ord } from 'fp-ts/Ord'
+
+export const reverse = <A>(O: Ord<A>): Ord<A> =>
+  fromCompare((first, second) => O.compare(second, first))
+```
+
+A usage example for `reverse` is obtaining a `max` function from the `min` one:
+
+```ts
+import { flow, pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import { Ord, reverse } from 'fp-ts/Ord'
+
+const min = <A>(O: Ord<A>) => (second: A) => (first: A): A =>
+  O.compare(first, second) === 1 ? second : first
+
+// const max: <A>(O: Ord<A>) => (second: A) => (first: A) => A
+const max = flow(reverse, min)
+
+pipe(2, max(N.Ord)(1), console.log) // => 2
+```
+
+The **totality** of ordering (meaning that given any `x` and `y`, one of the two conditions needs to hold true: `x <= y` or `y <= z`) may appear obvious when speaking about numbers, but that's not always the case. Let's see a slightly more complex scenario:
 
 ```ts
 type User = {
-  name: string
-  age: number
+  readonly name: string
+  readonly age: number
 }
 ```
 
-How can we define an `Ord<User>`?
+It's not really clear when a `User` is "smaller or equal" than another `User`.
 
-It always depends on the context, but it's always possible to order the users based on their age:
+How can we define an `Ord<User>` instance?
 
-```ts
-const byAge: Ord<User> = fromCompare((x, y) => ordNumber.compare(x.age, y.age))
-```
-
-We can eliminate some boilerplate using the combinator `contramap`: given an `Ord` instance for `A` and a function from `B` to `A`, we can derive an instance of `Ord` for `B`
+That depends on the context, but a possible choice might be ordering `User`s by their age:
 
 ```ts
-import { contramap } from 'fp-ts/lib/Ord'
-import { pipe } from 'fp-ts/lib/pipeable'
+import * as N from 'fp-ts/number'
+import { fromCompare, Ord } from 'fp-ts/Ord'
 
-const byAge: Ord<User> = pipe(
-  ordNumber,
-  contramap((user: User) => user.age)
+type User = {
+  readonly name: string
+  readonly age: number
+}
+
+const byAge: Ord<User> = fromCompare((first, second) =>
+  N.Ord.compare(first.age, second.age)
 )
 ```
 
-**Spoiler**. `contramap` is the fundamental function of [contravariant functors](#contravariant-functors).
-
-Now we can obtain the youngest of two users using `min`:
+Again we can get rid of some boilerplate using the `contramap` combinatorL given an `Ord<A>` instance and a function from `B` to `A`, it is possible to derive `Ord<B>`:
 
 ```ts
-const getYounger = min(byAge)
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import { contramap, Ord } from 'fp-ts/Ord'
 
-getYounger({ name: 'Guido', age: 48 }, { name: 'Giulio', age: 45 }) // { name: 'Giulio', age: 45 }
-```
-
-And what if we wanted to obtain the eldest one? We can invert the order, or better, obtain the _dual_ order.
-
-Luckily there's an another combinator for this:
-
-```ts
-import { getDualOrd } from 'fp-ts/lib/Ord'
-
-function max<A>(O: Ord<A>): (x: A, y: A) => A {
-  return min(getDualOrd(O))
+type User = {
+  readonly name: string
+  readonly age: number
 }
 
-const getOlder = max(byAge)
-
-getOlder({ name: 'Guido', age: 48 }, { name: 'Giulio', age: 45 }) // { name: 'Guido', age: 48 }
+const byAge: Ord<User> = pipe(
+  N.Ord,
+  contramap((_: User) => _.age)
+)
 ```
 
-We've seen before that semigroups are helpful every time we want to "concat"enate or "merge" (choose the word that fits your intuition and use case better) different data in one.
-
-There's another way of creating a semigroup instance for `A`: if we already have an `Ord<A>` then we can derive one of semigroup.
-
-Actually we can derive **two** of them:
+We can get the youngest of two `User`s using the previously defined `min` function.
 
 ```ts
-import { ordNumber } from 'fp-ts/lib/Ord'
-import {
-  getJoinSemigroup,
-  getMeetSemigroup,
-  Semigroup
-} from 'fp-ts/lib/Semigroup'
+// const getYounger: (second: User) => (first: User) => User
+const getYounger = min(byAge)
 
-/** Takes the minimum of two values */
-const semigroupMin: Semigroup<number> = getMeetSemigroup(ordNumber)
+pipe(
+  { name: 'Guido', age: 50 },
+  getYounger({ name: 'Giulio', age: 47 }),
+  console.log
+) // => { name: 'Giulio', age: 47 }
+```
 
-/** Takes the maximum of two values  */
-const semigroupMax: Semigroup<number> = getJoinSemigroup(ordNumber)
+**Quiz**. In the `fp-ts/ReadonlyMap` module the following API is exposed:
 
-semigroupMin.concat(2, 1) // 1
-semigroupMax.concat(2, 1) // 2
+```ts
+/**
+ * Get a sorted `ReadonlyArray` of the keys contained in a `ReadonlyMap`.
+ */
+declare const keys: <K>(
+  O: Ord<K>
+) => <A>(m: ReadonlyMap<K, A>) => ReadonlyArray<K>
+```
+
+why does this API requires an instance for `Ord<K>`?
+
+Let's finally go back to the very first issue: defining two semigroups `SemigroupMin` and `SemigroupMax` for types different than `number`:
+
+```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
+const SemigroupMin: Semigroup<number> = {
+  concat: (first, second) => Math.min(first, second)
+}
+
+const SemigroupMax: Semigroup<number> = {
+  concat: (first, second) => Math.max(first, second)
+}
+```
+
+Now that we have the `Ord` abstraction we can do it:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import { Ord, contramap } from 'fp-ts/Ord'
+import { Semigroup } from 'fp-ts/Semigroup'
+
+export const min = <A>(O: Ord<A>): Semigroup<A> => ({
+  concat: (first, second) => (O.compare(first, second) === 1 ? second : first)
+})
+
+export const max = <A>(O: Ord<A>): Semigroup<A> => ({
+  concat: (first, second) => (O.compare(first, second) === 1 ? first : second)
+})
+
+type User = {
+  readonly name: string
+  readonly age: number
+}
+
+const byAge: Ord<User> = pipe(
+  N.Ord,
+  contramap((_: User) => _.age)
+)
+
+console.log(
+  min(byAge).concat({ name: 'Guido', age: 50 }, { name: 'Giulio', age: 47 })
+) // => { name: 'Giulio', age: 47 }
+console.log(
+  max(byAge).concat({ name: 'Guido', age: 50 }, { name: 'Giulio', age: 47 })
+) // => { name: 'Guido', age: 50 }
 ```
 
 **Example**
 
-Let's wrap it up with one finale example (taken from [Fantas, Eel, and Specification 4: Semigroup](http://www.tomharding.me/2017/03/13/fantas-eel-and-specification-4/))
+Let's recap all of this with one final example (adapted from [Fantas, Eel, and Specification 4: Semigroup](http://www.tomharding.me/2017/03/13/fantas-eel-and-specification-4/)).
 
-Let's suppose of building a system where a client's record are modelled in the following way:
+Suppose we need to build a system where, in a database, there are records of customers implemented in the following way:
 
 ```ts
 interface Customer {
-  name: string
-  favouriteThings: Array<string>
-  registeredAt: number // since epoch
-  lastUpdatedAt: number // since epoch
-  hasMadePurchase: boolean
+  readonly name: string
+  readonly favouriteThings: ReadonlyArray<string>
+  readonly registeredAt: number // since epoch
+  readonly lastUpdatedAt: number // since epoch
+  readonly hasMadePurchase: boolean
 }
 ```
 
-For some reason you may end up having duplicate records for the same person.
+For some reason, there might be duplicate records for the same person.
 
-We need a merging strategy and that's exactly what semigroups take care of!
+We need a merging strategy. Well, that's Semigroup's bread and butter!
 
 ```ts
-import { getMonoid } from 'fp-ts/lib/Array'
-import { contramap, ordNumber } from 'fp-ts/lib/Ord'
-import { pipe } from 'fp-ts/lib/pipeable'
-import {
-  getJoinSemigroup,
-  getMeetSemigroup,
-  getStructSemigroup,
-  Semigroup,
-  semigroupAny
-} from 'fp-ts/lib/Semigroup'
+import * as B from 'fp-ts/boolean'
+import { pipe } from 'fp-ts/function'
+import * as N from 'fp-ts/number'
+import { contramap } from 'fp-ts/Ord'
+import * as RA from 'fp-ts/ReadonlyArray'
+import { max, min, Semigroup, struct } from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/string'
 
-const semigroupCustomer: Semigroup<Customer> = getStructSemigroup({
+interface Customer {
+  readonly name: string
+  readonly favouriteThings: ReadonlyArray<string>
+  readonly registeredAt: number // since epoch
+  readonly lastUpdatedAt: number // since epoch
+  readonly hasMadePurchase: boolean
+}
+
+const SemigroupCustomer: Semigroup<Customer> = struct({
   // keep the longer name
-  name: getJoinSemigroup(
-    pipe(
-      ordNumber,
-      contramap((s: string) => s.length)
-    )
-  ),
+  name: max(pipe(N.Ord, contramap(S.size))),
   // accumulate things
-  favouriteThings: getMonoid<string>(),
+  favouriteThings: RA.getSemigroup<string>(),
   // keep the least recent date
-  registeredAt: getMeetSemigroup(ordNumber),
+  registeredAt: min(N.Ord),
   // keep the most recent date
-  lastUpdatedAt: getJoinSemigroup(ordNumber),
+  lastUpdatedAt: max(N.Ord),
   // boolean semigroup under disjunction
-  hasMadePurchase: semigroupAny
+  hasMadePurchase: B.SemigroupAny
 })
 
-semigroupCustomer.concat(
-  {
-    name: 'Giulio',
-    favouriteThings: ['math', 'climbing'],
-    registeredAt: new Date(2018, 1, 20).getTime(),
-    lastUpdatedAt: new Date(2018, 2, 18).getTime(),
-    hasMadePurchase: false
-  },
-  {
-    name: 'Giulio Canti',
-    favouriteThings: ['functional programming'],
-    registeredAt: new Date(2018, 1, 22).getTime(),
-    lastUpdatedAt: new Date(2018, 2, 9).getTime(),
-    hasMadePurchase: true
-  }
+console.log(
+  SemigroupCustomer.concat(
+    {
+      name: 'Giulio',
+      favouriteThings: ['math', 'climbing'],
+      registeredAt: new Date(2018, 1, 20).getTime(),
+      lastUpdatedAt: new Date(2018, 2, 18).getTime(),
+      hasMadePurchase: false
+    },
+    {
+      name: 'Giulio Canti',
+      favouriteThings: ['functional programming'],
+      registeredAt: new Date(2018, 1, 22).getTime(),
+      lastUpdatedAt: new Date(2018, 2, 9).getTime(),
+      hasMadePurchase: true
+    }
+  )
 )
 /*
 { name: 'Giulio Canti',
   favouriteThings: [ 'math', 'climbing', 'functional programming' ],
   registeredAt: 1519081200000, // new Date(2018, 1, 20).getTime()
   lastUpdatedAt: 1521327600000, // new Date(2018, 2, 18).getTime()
-  hasMadePurchase: true }
+  hasMadePurchase: true
+}
 */
 ```
 
+**Quiz**. Given a type `A` is it possible to define a `Semigroup<Ord<A>>` instance? What could it possibly represent?
+
 **Demo**
 
-[`02_ord.ts`](src/02_ord.ts)
-
-# Monoids
+# Modeling composition through Monoids
 
 If we add another condition to the definition of a semigroup `(A, *)`, such as exists an element `u` in `A` such as for every element `a` in `A` holds true the following condition:
 
@@ -3106,3 +3326,7 @@ Elapsed: 189
 **Demo**
 
 [`05_game.ts`](src/05_game.ts)
+
+```
+
+```
