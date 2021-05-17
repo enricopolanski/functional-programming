@@ -488,52 +488,63 @@ The `fold` function takes:
 - an initial value
 - an array of elements
 
-<!--
-  TODO: Refactor with HM types.
--->
-
 ```ts
-import { fold, semigroupSum, semigroupProduct } from 'fp-ts/lib/Semigroup'
+import * as S from 'fp-ts/Semigroup'
+import * as N from 'fp-ts/number'
 
-const sum = fold(semigroupSum)
+const sum = S.concatAll(N.SemigroupSum)(2)
 
-sum(0, [1, 2, 3, 4]) // 10
+console.log(sum([1, 2, 3, 4])) // => 12
 
-const product = fold(semigroupProduct)
+const product = S.concatAll(N.SemigroupProduct)(3)
 
-product(1, [1, 2, 3, 4]) // 24
+console.log(product([1, 2, 3, 4])) // => 72
 ```
 
 **Quiz**. Why do I need to provide an initial value?
 
 **Example**
 
-Lets provide some applications of `fold`, by reimplementing some popular functions from the JavaScript standard library.
+Lets provide some applications of `concatAll`, by reimplementing some popular functions from the JavaScript standard library.
 
 ```ts
-import { Predicate } from 'fp-ts/lib/function'
-import {
-  fold,
-  Semigroup,
-  semigroupAll,
-  semigroupAny
-} from 'fp-ts/lib/Semigroup'
+import * as B from 'fp-ts/boolean'
+import { concatAll } from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/struct'
 
-function every<A>(p: Predicate<A>, as: Array<A>): boolean {
-  return fold(semigroupAll)(true, as.map(p))
-}
+const every = <A>(predicate: (a: A) => boolean) => (
+  as: ReadonlyArray<A>
+): boolean => concatAll(B.SemigroupAll)(true)(as.map(predicate))
 
-function some<A>(p: Predicate<A>, as: Array<A>): boolean {
-  return fold(semigroupAny)(false, as.map(p))
-}
+const some = <A>(predicate: (a: A) => boolean) => (
+  as: ReadonlyArray<A>
+): boolean => concatAll(B.SemigroupAny)(false)(as.map(predicate))
 
-const semigroupObject: Semigroup<object> = {
-  concat: (x, y) => ({ ...x, ...y })
-}
+const assign: (as: ReadonlyArray<object>) => object = concatAll(
+  S.getAssignSemigroup<object>()
+)({})
+```
 
-function assign(as: Array<object>): object {
-  return fold(semigroupObject)({}, as)
-}
+**Quiz**. Is the following Semigroup instance lawful (does it respect semigroup laws)?
+
+```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
+/** Always return the first argument */
+const first = <A>(): Semigroup<A> => ({
+  concat: (first, _second) => first
+})
+```
+
+**Quiz**. Is the following Semigroup instance lawful?
+
+```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
+/** Always return the second argument */
+const last = <A>(): Semigroup<A> => ({
+  concat: (_first, second) => second
+})
 ```
 
 ## The dual semigroup
@@ -541,169 +552,257 @@ function assign(as: Array<object>): object {
 Given a Semigroup instance, it is possible to obtain a new Semigroup instance simply swapping the order in which the operands are combined:
 
 ```ts
-// this is a Semigroup combinator
-function getDualSemigroup<A>(S: Semigroup<A>): Semigroup<A> {
-  return {
-    concat: (x, y) => S.concat(y, x)
-  }
-}
+import { pipe } from 'fp-ts/function'
+import { Semigroup } from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/string'
+
+// This is a Semigroup combinator
+const reverse = <A>(S: Semigroup<A>): Semigroup<A> => ({
+  concat: (first, second) => S.concat(second, first)
+})
+
+pipe(S.Semigroup.concat('a', 'b'), console.log) // => 'ab'
+pipe(reverse(S.Semigroup).concat('a', 'b'), console.log) // => 'ba'
 ```
 
-**Quiz**. This combinator makes sense because, generally speaking, the `concat` operation is not [**commutative**](https://en.wikipedia.org/wiki/Commutative_property), can you find an example?
-
-<!--  -->
-
-## Finding a Semigroup instance for any type
-
-What happens if, given a specific type `A` we can't find an associative binary operation on `A`?
-
-You can **always** define a semigroup instance for **any** instance for **any** given type using the following constructors:
-
-```ts
-// fp-ts/lib/Semigroup.ts
-
-/** Always return the first argument */
-function getFirstSemigroup<A = never>(): Semigroup<A> {
-  return {
-    concat: (x, y) => x
-  }
-}
-
-/** Always return the second argument */
-function getLastSemigroup<A = never>(): Semigroup<A> {
-  return {
-    concat: (x, y) => y
-  }
-}
-```
-
-**Quiz**: Can you explain the presence of the `= never` for the type parameter `A`?
-
-Another technique is to define a semigroup instance not for the `A` type but for `Array<A>` (to be precise, it is a semigroup instance not for `A` but for the non-empty arrays of `A`) called the **free semigroup** of `A`.
-
-```ts
-function getSemigroup<A = never>(): Semigroup<Array<A>> {
-  return {
-    concat: (x, y) => x.concat(y)
-  }
-}
-```
-
-and then we can map the elements of `A` to the singleton (a one-dimensional tuple) of `Array<A>` meaning an array with only one A element.
-
-```ts
-function of<A>(a: A): Array<A> {
-  return [a]
-}
-```
-
-**Notes**. The `concat` in `getSemigroup` is the native array concat operation, this also explains why concat is the name of `*`, the binary associative operation of semigroups.
-
-The free semigroup of `A` thus is simply the semigroup whose elements are all the possible finite and non-empty combinations of `A` elements.
-
-<!--
-  TODO: Alphabet and words.
--->
-
-The free semigroup of `A` can be seen as a _lazy_ way of concatenating elements of `A` while preserving the content of `A`.
-
-Even though I may have an instance of a semigroup for `A`, I could very well decide to use the free semigroup nonetheless because:
-
-- it avoids executing potentially useless computations
-- it avoids passing around the semigroup instance
-- allows the consumer of my APIs to decide the merging strategy
-
-<!--
-  TODO: practical uses of a free semigroup?
--->
+**Quiz**. This combinator makes sense because, generally speaking, the `concat` operation is not [**commutative**](https://en.wikipedia.org/wiki/Commutative_property), can you find an example where `concat` is commutative and one where it isn't?
 
 ## Semigroup product
 
 Let's try defining a semigroup instance for more complex types:
 
 ```ts
-import { Semigroup, semigroupSum } from 'fp-ts/lib/Semigroup'
+import * as N from 'fp-ts/number'
+import { Semigroup } from 'fp-ts/Semigroup'
 
-type Point = {
-  x: number
-  y: number
+// models a vector starting at the origin
+type Vector = {
+  readonly x: number
+  readonly y: number
 }
 
-const semigroupPoint: Semigroup<Point> = {
-  concat: (p1, p2) => ({
-    x: semigroupSum.concat(p1.x, p2.x),
-    y: semigroupSum.concat(p1.y, p2.y)
+// models a sum of two vectors
+const SemigroupVector: Semigroup<Vector> = {
+  concat: (first, second) => ({
+    x: N.SemigroupSum.concat(first.x, second.x),
+    y: N.SemigroupSum.concat(first.y, second.y)
   })
 }
 ```
 
-Too much boilerplate? The good news is that we can construct a semigroup instance for a struct like `Point` if we are able to provide a semigroup instance for each of its fields.
-
-Conveniently the `fp-ts/lib/Semigroup` module exports a `getStructSemigroup` instance:
-
-```ts
-import {
-  getStructSemigroup,
-  Semigroup,
-  semigroupSum
-} from 'fp-ts/lib/Semigroup'
-
-type Point = {
-  x: number
-  y: number
-}
-
-const semigroupPoint: Semigroup<Point> = getStructSemigroup({
-  x: semigroupSum,
-  y: semigroupSum
-})
-```
-
-We can keep passing to `getStructSemigroup` the freshly defined `semigroupPoint` instance.:
-
-```ts
-type Vector = {
-  from: Point
-  to: Point
-}
-
-const semigroupVector: Semigroup<Vector> = getStructSemigroup({
-  from: semigroupPoint,
-  to: semigroupPoint
-})
-```
-
-**Note**. There is a combinator similar to `getStructSemigroup` that works with tuples: `getTupleSemigroup`.
-
-There are other combinators exported from `fp-ts`, here we can see a combinator that allows us to derive a semigroup instance for functions: given an instance of a semigroup `B` we can derive a new semigroup instance for functions with the following signatures: `(a: A) => B` (for every possible `A`).
-
 **Example**
 
 ```ts
-import { Predicate } from 'fp-ts/lib/function'
-import { getFunctionSemigroup, semigroupAll } from 'fp-ts/lib/Semigroup'
+const v1: Vector = { x: 1, y: 1 }
+const v2: Vector = { x: 1, y: 2 }
 
-/** `semigroupAll` is the boolean semigroup under conjunction */
-const semigroupPredicate: Semigroup<Predicate<Point>> = getFunctionSemigroup(
-  semigroupAll
-)<Point>()
+console.log(SemigroupVector.concat(v1, v2)) // => { x: 2, y: 3 }
 ```
 
-Now we can "merge" two predicates defined over `Point`.
+<center>
+<img src="images/semigroupVector.png" width="300" alt="SemigroupVector" />
+</center>
+
+Too much boilerplate? The good new is that the **mathematical theory** behind semigroups tells us we can implement a semigroup instance for a struct like `Vector` if we can implement a semigroup instance for each of its fields.
+
+Conveniently the `fp-ts/Semigroup` module exports a `struct` combinator:
 
 ```ts
-const isPositiveX = (p: Point): boolean => p.x >= 0
-const isPositiveY = (p: Point): boolean => p.y >= 0
+import { struct } from 'fp-ts/Semigroup'
 
-const isPositiveXY = semigroupPredicate.concat(isPositiveX, isPositiveY)
-
-isPositiveXY({ x: 1, y: 1 }) // true
-isPositiveXY({ x: 1, y: -1 }) // false
-isPositiveXY({ x: -1, y: 1 }) // false
-isPositiveXY({ x: -1, y: -1 }) // false
+// modeld the sum of two vectors
+const SemigroupVector: Semigroup<Vector> = struct({
+  x: N.SemigroupSum,
+  y: N.SemigroupSum
+})
 ```
 
-## Equality and ordering
+**Note**. There is a combinator similar to `struct` that works with tuples: `tuple`
+
+```ts
+import * as N from 'fp-ts/number'
+import { Semigroup, tuple } from 'fp-ts/Semigroup'
+
+// models a vector starting from origin
+type Vector = readonly [number, number]
+
+// models the sum of two vectors
+const SemigroupVector: Semigroup<Vector> = tuple(N.SemigroupSum, N.SemigroupSum)
+
+const v1: Vector = [1, 1]
+const v2: Vector = [1, 2]
+
+console.log(SemigroupVector.concat(v1, v2)) // => [2, 3]
+```
+
+**Quiz**. Is it true that given any `Semigroup<A>` and having chosen any `middle` of `A`, if I insert it between the two `concat` parameters the result is still a Semigroup?
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { Semigroup } from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/string'
+
+export const intercalate = <A>(middle: A) => (
+  S: Semigroup<A>
+): Semigroup<A> => ({
+  concat: (first, second) => S.concat(S.concat(first, middle), second)
+})
+
+const SemigroupIntercalate = pipe(S.Semigroup, intercalate('|'))
+
+pipe(
+  SemigroupIntercalate.concat('a', SemigroupIntercalate.concat('b', 'c')),
+  console.log
+) // => 'a|b|c'
+```
+
+## Finding a Semigroup instance for any type
+
+The associativity property is a very strong requirement, what happens if, given a specific type `A` we can't find an associative operation on `A`?
+
+Suppose we have a type `User` defined as:
+
+```ts
+type User = {
+  readonly id: number
+  readonly name: string
+}
+```
+
+and that inside my database we have multiple copies of the same `User` (e.g. they could be historical entries of its modifications).
+
+```ts
+// internal APIs
+declare const getCurrent: (id: number) => User
+declare const getHistory: (id: number) => ReadonlyArray<User>
+```
+
+and that we need to implement a public API
+
+```ts
+export declare const getUser: (id: number) => User
+```
+
+which takes into account all of its copies depending on some criteria. The criteria should be to return the most recent copy, or the oldest one, or the current one, etc..
+
+Naturally we can define a specific API for each of these criterias:
+
+```ts
+export declare const getMostRecentUser: (id: number) => User
+export declare const getLeastRecentUser: (id: number) => User
+export declare const getCurrentUser: (id: number) => User
+// etc...
+```
+
+Thus, to return a value of type `User` I need to consider all the copies and make a `merge` (or `selection`) of them, meaning I can model the criteria problem with a `Semigroup<User>`.
+
+That being said, it is not really clear right now what it means to "merge two `User`s" nor if this merge operation is associative.
+
+You can **always** define a Semigroup instance for **any** given type `A` by defining a Semigroup instance not for `A` itself but for `NonEmptyArray<A>` called the **free semigroup** of `A`:
+
+```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
+// represents a non empty array, meaning an array that has at least one element A
+type ReadonlyNonEmptyArray<A> = ReadonlyArray<A> & {
+  readonly 0: A
+}
+
+// the concatenation of two NonEmptyArrays is still a NonEmptyArray
+const getSemigroup = <A>(): Semigroup<ReadonlyNonEmptyArray<A>> => ({
+  concat: (first, second) => [first[0], ...first.slice(1), ...second]
+})
+```
+
+and then we can map the elements of `A` to "singletons" of `ReadonlyNonEmptyArray<A>`, meaning arrays with only one element.
+
+```ts
+// insert an element into a non empty array
+const of = <A>(a: A): ReadonlyNonEmptyArray<A> => [a]
+```
+
+Let's apply this technique to the `User` type:
+
+```ts
+import {
+  getSemigroup,
+  of,
+  ReadonlyNonEmptyArray
+} from 'fp-ts/ReadonlyNonEmptyArray'
+import { Semigroup } from 'fp-ts/Semigroup'
+
+type User = {
+  readonly id: number
+  readonly name: string
+}
+
+// this semigroup is not for the `User` type but for `ReadonlyNonEmptyArray<User>`
+const S: Semigroup<ReadonlyNonEmptyArray<User>> = getSemigroup<User>()
+
+declare const user1: User
+declare const user2: User
+declare const user3: User
+
+// const merge: ReadonlyNonEmptyArray<User>
+const merge = S.concat(S.concat(of(user1), of(user2)), of(user3))
+
+// I can get the same result by "packing" the users manually into an array
+const merge2: ReadonlyNonEmptyArray<User> = [user1, user2, user3]
+```
+
+Thus, the semigroup free of `A` is merely another semigroup where every the elements are all the possible, non empty, finite sequences of `A`.
+
+The free semigroup of `A` can be seen as a _lazy_ way to `concat`enate elements of type `A` while preserving their data content.
+
+The `merge` value, containing `[user1, user2, user3]`, tells me which are the elements to concatenate and in which order they are.
+
+Now I have three possible options to design the `getUser` API:
+
+1. I can define `Semigroup<User>` and I want to get straight into `merge`ing.
+
+```ts
+declare const SemigroupUser: Semigroup<User>
+
+export const getUser = (id: number): User => {
+  const current = getCurrent(id)
+  const history = getHistory(id)
+  return concatAll(SemigroupUser)(current)(history)
+}
+```
+
+2. I can't define `Semigroup<User>` or I want to leave the merging strategy open to implementation, thus I'll ask it to the API consumer:
+
+```ts
+export const getUser = (SemigroupUser: Semigroup<User>) => (
+  id: number
+): User => {
+  const current = getCurrent(id)
+  const history = getHistory(id)
+  // merge immediately
+  return concatAll(SemigroupUser)(current)(history)
+}
+```
+
+3. I can't define `Semigroup<User>` nor I want to require it.
+
+In this case the semigroup free of `User` can come to rescue:
+
+```ts
+export const getUser = (id: number): ReadonlyNonEmptyArray<User> => {
+  const current = getCurrent(id)
+  const history = getHistory(id)
+  // I DO NOT proceed withmerging and return the free semigroup of User
+  return [current, ...history]
+}
+```
+
+It should be also further noticed that, even when I do have a Semigroup instance for the A type, using a free semigroup might be still convenient for the following reasons:
+
+- avoids executing possibly expensive and pointless computations
+- avoids passing around the semigroup instance
+- allors the API consumer to decide which is the correct merging strategy (by using `concatAll`).
+
+## Order-derivable Semigroups
 
 Given that `number` is **a total order** (meaning that whatever two `x` and `y` we choose, one of those two conditions has to hold true: `x <= y` or `y <= x`) we can define another two instances of semigroup using `min` or `max` as operations.
 
