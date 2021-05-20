@@ -1431,11 +1431,11 @@ concat(first: A, second: A) => A
 
 has still to be an element of the `A` type.
 
-Later on we have seen how adding one simple requirement, *associativity*, allowed some `Magma<A>` to be further refined as a `Semigroup<A>`, and how associativity captures the possibility of computations to be parallelized.
+Later on we have seen how adding one simple requirement, _associativity_, allowed some `Magma<A>` to be further refined as a `Semigroup<A>`, and how associativity captures the possibility of computations to be parallelized.
 
 Now we're going to add another condition on Semigroup.
 
-Given a `Semigroup` defined on some set `A` with some `concat` operation, if there is some element in `A`, we'll call this element _empty_,  such as for every element `a` in `A` the two following equations hold true:
+Given a `Semigroup` defined on some set `A` with some `concat` operation, if there is some element in `A`, we'll call this element _empty_, such as for every element `a` in `A` the two following equations hold true:
 
 - **Right identity**: `concat(a, empty) = a`
 - **Left identity**: `concat(empty, a) = a`
@@ -1560,7 +1560,7 @@ export const getEndomorphismMonoid = <A>(): Monoid<Endomorphism<A>> => ({
 const identity = (a: A) => a
 ```
 
-Whatever value we pass in input, it gives us the same value in output. 
+Whatever value we pass in input, it gives us the same value in output.
 
 <!--
 TODO:
@@ -1672,9 +1672,9 @@ Please note that the set `f` has to be described _statically_ when defining the 
 In this way we can exclude any form of side effect and the return value is always the same.
 -->
 
-The one in the example is called an _extensional_ definition of a function, meaning we enumerate one by one each of the elements of its domain and for each one of them we point the corresponding codomain element. 
+The one in the example is called an _extensional_ definition of a function, meaning we enumerate one by one each of the elements of its domain and for each one of them we point the corresponding codomain element.
 
-Naturally, when such a set is infinite this proves to be problematic. We can't list the entire domain and codomain of all functions. 
+Naturally, when such a set is infinite this proves to be problematic. We can't list the entire domain and codomain of all functions.
 
 We can get around this issue by introducing the one that is called _intentional_ definition, meaning that we express a condition that has to hold for every couple `(x, y) ∈ f` meaning `y = x * 2`.
 
@@ -1805,13 +1805,18 @@ declare const head: <A>(as: ReadonlyArray<A>) => A
 **Quiz**. Is `JSON.parse` a total function?
 
 ```ts
-parse: (text: string, reviver?: (this: any, key: string, value: any) => any) => any
+parse: (text: string, reviver?: (this: any, key: string, value: any) => any) =>
+  any
 ```
 
 **Quiz**. Is `JSON.stringify` a total function?
 
 ```ts
-stringify: (value: any, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => string
+stringify: (
+  value: any,
+  replacer?: (this: any, key: string, value: any) => any,
+  space?: string | number
+) => string
 ```
 
 In functional programming there is a tendency to only define **pure and total functions**. From now one with the term function we'll be specifically referring to "pure and total function". So what do we do when we have a partial function in our applications?
@@ -1849,6 +1854,10 @@ Two common families of algebraic data types are:
 - **product types**
 - **sum types**
 
+<center>
+<img src="images/adt.png" width="400" alt="ADT" />
+</center>
+
 Let's begin with the more familiar ones: product types.
 
 ## Product types
@@ -1881,9 +1890,21 @@ type Name = Person['name'] // string
 type Age = Person['age'] // number
 ```
 
+Product types can be **polimorphic**.
+
+**Example**
+
+```ts
+//                ↓ type parameter
+type HttpResponse<A> = {
+  readonly code: number
+  readonly body: A
+}
+```
+
 ### Why "product" types?
 
-If we label with `C(A)` the number of elements of type `A` (also called in mathematics, **cardinality**), then the following identities hold true:
+If we label with `C(A)` the number of elements of type `A` (also called in mathematics, **cardinality**), then the following equation hold true:
 
 ```ts
 C([A, B]) = C(A) * C(B)
@@ -1893,13 +1914,36 @@ C([A, B]) = C(A) * C(B)
 
 **Example**
 
+The `null` type has cardinality `1` because it has only one member: `null`.
+
+**Quiz**: What is the cardinality of the `boolean` type.
+
+**Example**
+
 ```ts
 type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 type Period = 'AM' | 'PM'
 type Clock = [Hour, Period]
 ```
 
-Type `Clock` has `12 * 2 = 24` elements.
+Type `Hour` has 12 members.
+Type `Period` has 2 members.
+Thus type `Clock` has `12 * 2 = 24` elements.
+
+**Quiz**: What is the cardinality of the following `Clock` type?
+
+```ts
+// same as before
+type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
+// same as before
+type Period = 'AM' | 'PM'
+
+// different encoding, no longer a Tuple
+type Clock = {
+  readonly hour: Hour
+  readonly period: Period
+}
+```
 
 ### When can I use a product type?
 
@@ -1915,9 +1959,41 @@ Here `Hour` and `Period` are independent: the value of `Hour` does not change th
 
 A sum type is a a data type that can hold a value of different (but limited) types. Only one of these types can be used in a single instance and there is generally a "tag" value differentiating those types.
 
-In TypeScript official docs those are called _tagged union types_.
+In TypeScript's official docs they are called [discriminated union](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html).
+
+It is important to note that the members of the union have to be **disjoint**, there can't be values that belong to more than one member.
+
+**Example**
+
+The type:
+
+```ts
+type StringsOrNumbers = ReadonlyArray<string> | ReadonlyArray<number>
+
+declare const sn: StringsOrNumbers
+
+sn.map() // error: This expression is not callable.
+```
+
+is not a disjoint union because the value `[]`, the empty array, belongs to both members.
+
+**Quiz**. Is the following union disjoint?
+
+```ts
+type Member1 = { readonly a: string }
+type Member2 = { readonly b: number }
+type MyUnion = Member1 | Member2
+```
+
+Disjoint unions are recurring in functional programming.
+
+Fortunately `TypeScript` has a way to guarantee that a union is disjoint: add a specific field that works as a **tag**.
+
+**Note**: Disjoint unions, sum types and tagged unions are used interchangeably to indicate the same thing.
 
 **Example** (redux actions)
+
+The `Action` sum type models a portion of the operation that the user can take i a [todo app](https://todomvc.com/).
 
 ```ts
 type Action =
@@ -1939,61 +2015,150 @@ type Action =
 
 The `type` tag makes sure every member of the union is disjointed.
 
-**Note**. The name of the field that acts as a tag is chosen by the developer. It doesn't have to be "type".
+**Note**. The name of the field that acts as a tag is chosen by the developer. It doesn't have to be "type". In `fp-ts` the convention is to use a `_tag` field.
+
+Now that we've seen few examples we can define more explicitly what algebraic data types are:
+
+> In general, an algebraic data type specifies a sum of one or more alternatives, where each alternative is a product of zero or more fields.
+
+Sum types can be **polymorphic** and **recursive**.
+
+**Example** (linked list)
+
+```ts
+//               ↓ type parameter
+export type List<A> =
+  | { readonly _tag: 'Nil' }
+  | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
+//                                                              ↑ recursion
+```
+
+**Quiz** (TypeScript). Which of the following data types is a product or a sum type?
+
+- `ReadonlyArray<A>`
+- `Record<string, A>`
+- `Record<'k1' | 'k2', A>`
+- `ReadonlyMap<string, A>`
+- `ReadonlyMap<'k1' | 'k2', A>`
 
 ### Constructors
 
 A sum type with `n` elements needs at least `n` **constructors**, one for each member:
 
+**Example** (redux action creators)
+
 ```ts
-const add = (text: string): Action => ({
+export type Action =
+  | {
+      readonly type: 'ADD_TODO'
+      readonly text: string
+    }
+  | {
+      readonly type: 'UPDATE_TODO'
+      readonly id: number
+      readonly text: string
+      readonly completed: boolean
+    }
+  | {
+      readonly type: 'DELETE_TODO'
+      readonly id: number
+    }
+
+export const add = (text: string): Action => ({
   type: 'ADD_TODO',
   text
 })
 
-const update = (id: number, text: string, completed: boolean): Action => ({
+export const update = (
+  id: number,
+  text: string,
+  completed: boolean
+): Action => ({
   type: 'UPDATE_TODO',
   id,
   text,
   completed
 })
 
-const del = (id: number): Action => ({
+export const del = (id: number): Action => ({
   type: 'DELETE_TODO',
   id
 })
 ```
 
-Sum types can be **polymorphic** and **recursive**.
-
-**Example** (linked lists)
+**Example** (TypeScript, linked lists)
 
 ```ts
-//        ↓ type parameter
-type List<A> = { type: 'Nil' } | { type: 'Cons'; head: A; tail: List<A> }
-//                                                              ↑ recursion
+export type List<A> =
+  | { readonly _tag: 'Nil' }
+  | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> }
+
+// a nullary constructor can be implemented as a constant
+export const nil: List<never> = { _tag: 'Nil' }
+
+export const cons = <A>(head: A, tail: List<A>): List<A> => ({
+  _tag: 'Cons',
+  head,
+  tail
+})
+
+// equivalent to an array containing [1, 2, 3]
+const myList = cons(1, cons(2, cons(3, nil)))
 ```
 
 ### Pattern matching
 
-JavaScript doesn't have [pattern matching](https://github.com/tc39/proposal-pattern-matching) (neither does TypeScript) but we can simulate it with a `fold` function:
+JavaScript doesn't support [pattern matching](https://github.com/tc39/proposal-pattern-matching) (neither does TypeScript) but we can simulate it with a `match` function.
+
+**Esempio** (TypeScript, linked lists)
 
 ```ts
-const fold = <A, R>(onNil: () => R, onCons: (head: A, tail: List<A>) => R) => (
-  fa: List<A>
-): R => (fa.type === 'Nil' ? onNil() : onCons(fa.head, fa.tail))
-```
+interface Nil {
+  readonly _tag: 'Nil'
+}
 
-**Note**. TypeScript offers a great feature for sum types: **exhaustive check**. The type checker is able to infer if all the cases are covered.
+interface Cons<A> {
+  readonly _tag: 'Cons'
+  readonly head: A
+  readonly tail: List<A>
+}
 
-**Example** (calculate the length of a `List` recursively)
+export type List<A> = Nil | Cons<A>
 
-```ts
-const length: <A>(fa: List<A>) => number = fold(
+export const match = <R, A>(
+  onNil: () => R,
+  onCons: (head: A, tail: List<A>) => R
+) => (fa: List<A>): R => {
+  switch (fa._tag) {
+    case 'Nil':
+      return onNil()
+    case 'Cons':
+      return onCons(fa.head, fa.tail)
+  }
+}
+
+// returns `true` if the list is empty
+export const isEmpty = match(
+  () => true,
+  () => false
+)
+
+// returns the first element of the list or `undefined`
+export const head = match(
+  () => undefined,
+  (head, _tail) => head
+)
+
+// returns the length of the the list, recursively
+export const length: <A>(fa: List<A>) => number = match(
   () => 0,
   (_, tail) => 1 + length(tail)
 )
 ```
+
+**Quiz**. Why's the `head` API sub optimal?
+
+**Note**. TypeScript offers a great feature for sum types: **exhaustive check**. The type checker can _check_, no pun intended, whether all the possible cases are handled by the `switch` defined in the body of the function.
 
 ### Why "sum" types?
 
@@ -2008,59 +2173,68 @@ C(A | B) = C(A) + C(B)
 **Example** (the `Option` type)
 
 ```ts
-type Option<A> =
-  | { _tag: 'None' }
-  | {
-      _tag: 'Some'
-      value: A
-    }
+interface None {
+  readonly _tag: 'None'
+}
+
+interface Some<A> {
+  readonly _tag: 'Some'
+  readonly value: A
+}
+
+type Option<A> = None | Some<A>
 ```
 
-From the general formula `C(Option<A>) = 1 + C(A)` we can derive the cardinality of the `Option<boolean>` type: `1 + 2 = 3` abitanti.
+From the general formula `C(Option<A>) = 1 + C(A)` we can derive the cardinality of the `Option<boolean>` type: `1 + 2 = 3` members.
 
 ### When should I use a sum type?
 
 When the components would be **dependent** if implemented with a product type.
 
-**Example** (component props)
+**Example** (`React` props)
 
 ```ts
+import * as React from 'react'
+
 interface Props {
-  editable: boolean
-  onChange?: (text: string) => void
+  readonly editable: boolean
+  readonly onChange?: (text: string) => void
 }
 
 class Textbox extends React.Component<Props> {
   render() {
     if (this.props.editable) {
       // error: Cannot invoke an object which is possibly 'undefined' :(
-      this.props.onChange(...)
+      this.props.onChange('a')
     }
+    return <div />
   }
 }
 ```
 
-The problem here is that `Props` is modelled like a product but `onChange` **depends** on `editable`.
+The problem here is that `Props` is modeled like a product, but `onChange` **depends** on `editable`.
 
-A sum type is a better choice:
+A sum type fits the use case better:
 
 ```ts
+import * as React from 'react'
+
 type Props =
   | {
-      type: 'READONLY'
+      readonly type: 'READONLY'
     }
   | {
-      type: 'EDITABLE'
-      onChange: (text: string) => void
+      readonly type: 'EDITABLE'
+      readonly onChange: (text: string) => void
     }
 
 class Textbox extends React.Component<Props> {
   render() {
     switch (this.props.type) {
-      case 'EDITABLE' :
-        this.props.onChange(...) // :)
-      ...
+      case 'EDITABLE':
+        this.props.onChange('a') // :)
     }
+    return <div />
   }
 }
 ```
@@ -2075,13 +2249,13 @@ declare function readFile(
 ): void
 ```
 
-The result is modelled with a product type:
+The result of the `readFile` operation is modeled like a product type (to be more precise, as a tuple) which is later on passed to the `callback` function:
 
 ```ts
 type CallbackArgs = [Error | undefined, string | undefined]
 ```
 
-there's an issue though: it's components are **dependent**: we either receive an error **or** a string, but not both: but the components are
+the callback components though are **dependent**: we either get an `Error` **oppure** or a `string`:
 
 | err         | data        | legal? |
 | ----------- | ----------- | ------ |
@@ -2090,43 +2264,78 @@ there's an issue though: it's components are **dependent**: we either receive an
 | `Error`     | `string`    | ✘      |
 | `undefined` | `undefined` | ✘      |
 
-A sum type would be a better choice...but which sum type?
+This API is clarly not modeled on the following premise:
+
+> Make impossible state unrepresentable
+
+A sum type would've been a better choice, but which sum type?
+We'll see how to handle errors in a functional way.
+
+**Quiz**. Recently API's based on callbacks have been largely replaced by their `Promise` equivalents.
+
+```ts
+declare function readFile(path: string): Promise<string>
+```
+
+Can you find some cons of the Promise solution when using static typing like in TypeScript?
 
 ## Functional error handling
 
 Let's see how to handle errors in a functional way.
 
+A functions that returns errors or throws exceptions is an example of a partial function.
+
+In the previous chapters we have seen that every partial function `f` can always be brought back to a total one `f'`.
+
+```
+f': X ⟶ Option(Y)
+```
+
+Now that we know a bit more about sum types in TypeScript we can define the `Option` without much issues.
+
 ### The `Option` type
 
-The type `Option` represents the effect of a computation which may fail or return a type `A`:
+The type `Option` represents the effect of a computation which may fail (case `None`) or return a type `A` (case `Some<A>`):
 
 ```ts
-type Option<A> =
-  | { _tag: 'None' } // represents a failure
-  | { _tag: 'Some'; value: A } // represents a success
+// represents a failure
+interface None {
+  readonly _tag: 'None'
+}
+
+// represents a success
+interface Some<A> {
+  readonly _tag: 'Some'
+  readonly value: A
+}
+
+type Option<A> = None | Some<A>
 ```
 
 Constructors and pattern matching:
 
 ```ts
-// a nullary constructor can be implemented as a constant
 const none: Option<never> = { _tag: 'None' }
 
-const some = <A>(value: A): Option<A> => ({
-  _tag: 'Some',
-  value
-})
+const some = <A>(value: A): Option<A> => ({ _tag: 'Some', value })
 
-const fold = <A, R>(onNone: () => R, onSome: (a: A) => R) => (
+const match = <R, A>(onNone: () => R, onSome: (a: A) => R) => (
   fa: Option<A>
-): R => (fa._tag === 'None' ? onNone() : onSome(fa.value))
+): R => {
+  switch (fa._tag) {
+    case 'None':
+      return onNone()
+    case 'Some':
+      return onSome(fa.value)
+  }
+}
 ```
 
-The `Option` type can be used to avoid throwing exceptions or representing the optional values, thus we can move from...
+The `Option` type can be used to avoid throwing exceptions or representing the optional values, thus we can move from:
 
 ```ts
-//                this is a lie ↓
-function head<A>(as: Array<A>): A {
+//                        this is a lie ↓
+const head = <A>(as: ReadonlyArray<A>): A => {
   if (as.length === 0) {
     throw new Error('Empty array')
   }
@@ -2141,26 +2350,186 @@ try {
 }
 ```
 
-...where the type systems is in the absolute dark about the possibility of a failure, to...
+where the type system is ignorant about the possibility of failure, to:
 
 ```ts
-//                              ↓ the type system "knows" that this computation may fail
-function head<A>(as: Array<A>): Option<A> {
-  return as.length === 0 ? none : some(as[0])
-}
+import { pipe } from 'fp-ts/function'
 
-import { pipe } from 'fp-ts/lib/pipeable'
+//                                      ↓ the type system "knows" that this computation may fail
+const head = <A>(as: ReadonlyArray<A>): Option<A> =>
+  as.length === 0 ? none : some(as[0])
 
-const s = pipe(
-  head([]),
-  fold(
+declare const numbers: ReadonlyArray<number>
+
+const result = pipe(
+  head(numbers),
+  match(
     () => 'Empty array',
-    (a) => String(a)
+    (n) => String(n)
   )
 )
 ```
 
-...where **the possibility of an error is encoded in the type system**.
+where **the possibility of an error is encoded in the type system**.
+
+If we attempt to access the `value` property of an `Option` without checking in which case we are, the type system will warn us about the possibility of getting an error:
+
+```ts
+declare const numbers: ReadonlyArray<number>
+
+const result = head(numbers)
+result.value // type checker error: Property 'value' does not exist on type 'Option<number>'
+```
+
+The only way to access the value contained in an `Option` is to handle also the failure case using the `match` function.
+
+```ts
+pipe(result, match(
+  () => ...handle error...
+  (n) => ...go on with my business logic...
+))
+```
+
+Is it possible to define instances for the abstractions we've seen in the chapters before? Let's begin with `Eq`.
+
+### An `Eq` instance
+
+Suppose we have two values of type `Option<string>` and that we want to compare them to check if their equal:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { match, Option } from 'fp-ts/Option'
+
+declare const o1: Option<string>
+declare const o2: Option<string>
+
+const result: boolean = pipe(
+  o1,
+  match(
+    // onNone o1
+    () =>
+      pipe(
+        o2,
+        match(
+          // onNone o2
+          () => true,
+          // onSome o2
+          () => false
+        )
+      ),
+    // onSome o1
+    (s1) =>
+      pipe(
+        o2,
+        match(
+          // onNone o2
+          () => false,
+          // onSome o2
+          (s2) => s1 === s2 // <= qui uso l'uguaglianza tra stringhe
+        )
+      )
+  )
+)
+```
+
+What if we had two values of type `Option<number>`? It would be pretty annoying to write the same code we just wrote above, the only difference afterall would be how we compare the two values contained in the `Option`.
+
+Thus we can generalize the necessary code by requiring the user to provide an `Eq` instance for `A` and then derive an `Eq` instance for `Option<A>`.
+
+In other words we can define a **combinator** `getEq`: given an `Eq<A>` this combinator will return an `Eq<Option<A>>`:
+
+```ts
+import { Eq } from 'fp-ts/Eq'
+import { pipe } from 'fp-ts/function'
+import { match, Option, none, some } from 'fp-ts/Option'
+
+export const getEq = <A>(E: Eq<A>): Eq<Option<A>> => ({
+  equals: (first, second) =>
+    pipe(
+      first,
+      match(
+        () =>
+          pipe(
+            second,
+            match(
+              () => true,
+              () => false
+            )
+          ),
+        (a1) =>
+          pipe(
+            second,
+            match(
+              () => false,
+              (a2) => E.equals(a1, a2) // <= here I use the `A` equality
+            )
+          )
+      )
+    )
+})
+
+import * as S from 'fp-ts/string'
+
+const EqOptionString = getEq(S.Eq)
+
+console.log(EqOptionString.equals(none, none)) // => true
+console.log(EqOptionString.equals(none, some('b'))) // => false
+console.log(EqOptionString.equals(some('a'), none)) // => false
+console.log(EqOptionString.equals(some('a'), some('b'))) // => false
+console.log(EqOptionString.equals(some('a'), some('a'))) // => true
+```
+
+The best thing about being able to define an `Eq` instance for a type `Option<A>` is being able to leverage all of the combiners we've seen previously for `Eq`.
+
+**Example**:
+
+An `Eq` instance for the type `Option<readonly [string, number]>`:
+
+```ts
+import { tuple } from 'fp-ts/Eq'
+import * as N from 'fp-ts/number'
+import { getEq, Option, some } from 'fp-ts/Option'
+import * as S from 'fp-ts/string'
+
+type MyTuple = readonly [string, number]
+
+const EqMyTuple = tuple<MyTuple>(S.Eq, N.Eq)
+
+const EqOptionMyTuple = getEq(EqMyTuple)
+
+const o1: Option<MyTuple> = some(['a', 1])
+const o2: Option<MyTuple> = some(['a', 2])
+const o3: Option<MyTuple> = some(['b', 1])
+
+console.log(EqOptionMyTuple.equals(o1, o1)) // => true
+console.log(EqOptionMyTuple.equals(o1, o2)) // => false
+console.log(EqOptionMyTuple.equals(o1, o3)) // => false
+```
+
+If we slightly modify the imports in the following snippet we can obtain a similar result for `Ord`:
+
+```ts
+import * as N from 'fp-ts/number'
+import { getOrd, Option, some } from 'fp-ts/Option'
+import { tuple } from 'fp-ts/Ord'
+import * as S from 'fp-ts/string'
+
+type MyTuple = readonly [string, number]
+
+const OrdMyTuple = tuple<MyTuple>(S.Ord, N.Ord)
+
+const OrdOptionMyTuple = getOrd(OrdMyTuple)
+
+const o1: Option<MyTuple> = some(['a', 1])
+const o2: Option<MyTuple> = some(['a', 2])
+const o3: Option<MyTuple> = some(['b', 1])
+
+console.log(OrdOptionMyTuple.compare(o1, o1)) // => 0
+console.log(OrdOptionMyTuple.compare(o1, o2)) // => -1
+console.log(OrdOptionMyTuple.compare(o1, o3)) // => -1
+```
+
+### `Semigroup` and `Monoid` instances
 
 Now, let's suppose we want to "merge" two different `Option<A>`s,: there are four different cases:
 
@@ -2171,105 +2540,109 @@ Now, let's suppose we want to "merge" two different `Option<A>`s,: there are fou
 | none    | some(a) | none         |
 | some(a) | some(b) | ?            |
 
-There's an issue in the last case, we need to "merge" two different `A`s.
+There's an issue in the last case, we need a recipe to "merge" two different `A`s.
 
-Isn't that the job our old good friends `Semigroup`s!? We can request an instance of a `Semigroup<A>` and then derive an instance for the semigroup of `Option<A>`. That's exactly how the combinator `getApplySemigroup` from `fp-ts` works:
+If only we had such a recipe..Isn't that the job our old good friends `Semigroup`s!?
+
+| x        | y        | concat(x, y)           |
+| -------- | -------- | ---------------------- |
+| some(a1) | some(a2) | some(S.concat(a1, a2)) |
+
+All we need to do is to require the user to provide a `Semigroup` instance for `A` and then derive a `Semigroup` instance for `Option<A>`.
 
 ```ts
-import { semigroupSum } from 'fp-ts/lib/Semigroup'
-import { getApplySemigroup, some, none } from 'fp-ts/lib/Option'
-
-const S = getApplySemigroup(semigroupSum)
-
-S.concat(some(1), none) // none
-S.concat(some(1), some(2)) // some(3)
+// the implementation is left as an exercise for the reader
+declare const getApplySemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>
 ```
 
-If we have a monoid instance for `A` then we can derive a monoid instance for `Option<A>` (via `getApplyMonoid`) that works this way (`some(empty)` will be the neutral (identity) element):
-
-<!--
-  TODO: FIX
--->
-
-| x       | y       | concat(x, y)       |
-| ------- | ------- | ------------------ |
-| none    | none    | none               |
-| some(a) | none    | none               |
-| none    | some(a) | none               |
-| some(a) | some(b) | some(concat(a, b)) |
+**Quiz**. Is it possible to add a neutral element to the previous semigroup to make it a monoid?
 
 ```ts
-import { getApplyMonoid, some, none } from 'fp-ts/lib/Option'
-
-const M = getApplyMonoid(monoidSum)
-
-M.concat(some(1), none) // none
-M.concat(some(1), some(2)) // some(3)
-M.concat(some(1), M.empty) // some(1)
+// the implementation is left as an exercise for the reader
+declare const getApplicativeMonoid: <A>(M: Monoid<A>) => Monoid<Option<A>>
 ```
 
-We can derive another two monoids for `Option<A>` (for every `A`):
+It is possible to define a monoid instance for `Option<A>` that behaves like that:
 
-1. `getFirstMonoid`...
-
-Monoid returning the left-most non-`None` value:
-
-| x       | y       | concat(x, y) |
-| ------- | ------- | ------------ |
-| none    | none    | none         |
-| some(a) | none    | some(a)      |
-| none    | some(a) | some(a)      |
-| some(a) | some(b) | some(a)      |
+| x        | y        | concat(x, y)           |
+| -------- | -------- | ---------------------- |
+| none     | none     | none                   |
+| some(a1) | none     | some(a1)               |
+| none     | some(a2) | some(a2)               |
+| some(a1) | some(a2) | some(S.concat(a1, a2)) |
 
 ```ts
-import { getFirstMonoid, some, none } from 'fp-ts/lib/Option'
-
-const M = getFirstMonoid<number>()
-
-M.concat(some(1), none) // some(1)
-M.concat(some(1), some(2)) // some(1)
+// the implementation is left as an exercise for the reader
+declare const getMonoid: <A>(S: Semigroup<A>) => Monoid<Option<A>>
 ```
 
-2. ...and it's **dual**: `getLastMonoid`
+**Quiz**. What is the `empty` member for the monoid?
 
-Monoid returning the right-most non-`None` value:
+**Example**
 
-| x       | y       | concat(x, y) |
-| ------- | ------- | ------------ |
-| none    | none    | none         |
-| some(a) | none    | some(a)      |
-| none    | some(a) | some(a)      |
-| some(a) | some(b) | some(b)      |
+Using `getMonoid` we can derive another two useful monoids:
+
+(Monoid returning the left-most non-`None` value)
+
+| x        | y        | concat(x, y) |
+| -------- | -------- | ------------ |
+| none     | none     | none         |
+| some(a1) | none     | some(a1)     |
+| none     | some(a2) | some(a2)     |
+| some(a1) | some(a2) | some(a1)     |
 
 ```ts
-import { getLastMonoid, some, none } from 'fp-ts/lib/Option'
+import { Monoid } from 'fp-ts/Monoid'
+import { getMonoid, Option } from 'fp-ts/Option'
+import { first } from 'fp-ts/Semigroup'
 
-const M = getLastMonoid<number>()
-
-M.concat(some(1), none) // some(1)
-M.concat(some(1), some(2)) // some(2)
+export const getFirstMonoid = <A = never>(): Monoid<Option<A>> =>
+  getMonoid(first())
 ```
 
-Example given, `getLastMonoid` can be used to handle optional values:
+and its dual:
+
+(Monoid returning the right-most non-`None` value)
+
+| x        | y        | concat(x, y) |
+| -------- | -------- | ------------ |
+| none     | none     | none         |
+| some(a1) | none     | some(a1)     |
+| none     | some(a2) | some(a2)     |
+| some(a1) | some(a2) | some(a2)     |
 
 ```ts
-import { Monoid, getStructMonoid } from 'fp-ts/lib/Monoid'
-import { Option, some, none, getLastMonoid } from 'fp-ts/lib/Option'
+import { Monoid } from 'fp-ts/Monoid'
+import { getMonoid, Option } from 'fp-ts/Option'
+import { last } from 'fp-ts/Semigroup'
+
+export const getLastMonoid = <A = never>(): Monoid<Option<A>> =>
+  getMonoid(last())
+```
+
+**Example**
+
+`getLastMonoid` can be useful to manage optional values. Let's seen an example where we want to derive user settings for a text editor, in this case VSCode.
+
+```ts
+import { Monoid, struct } from 'fp-ts/Monoid'
+import { getMonoid, none, Option, some } from 'fp-ts/Option'
+import { last } from 'fp-ts/Semigroup'
 
 /** VSCode settings */
 interface Settings {
   /** Controls the font family */
-  fontFamily: Option<string>
+  readonly fontFamily: Option<string>
   /** Controls the font size in pixels */
-  fontSize: Option<number>
+  readonly fontSize: Option<number>
   /** Limit the width of the minimap to render at most a certain number of columns. */
-  maxColumn: Option<number>
+  readonly maxColumn: Option<number>
 }
 
-const monoidSettings: Monoid<Settings> = getStructMonoid({
-  fontFamily: getLastMonoid<string>(),
-  fontSize: getLastMonoid<number>(),
-  maxColumn: getLastMonoid<number>()
+const monoidSettings: Monoid<Settings> = struct({
+  fontFamily: getMonoid(last()),
+  fontSize: getMonoid(last()),
+  maxColumn: getMonoid(last())
 })
 
 const workspaceSettings: Settings = {
@@ -2285,13 +2658,15 @@ const userSettings: Settings = {
 }
 
 /** userSettings overrides workspaceSettings */
-monoidSettings.concat(workspaceSettings, userSettings)
+console.log(monoidSettings.concat(workspaceSettings, userSettings))
 /*
 { fontFamily: some("Fira Code"),
   fontSize: some(12),
   maxColumn: some(80) }
 */
 ```
+
+**Quiz**. Suppose VSCode cannot manage more than `80` columns per row, how could we modify the definition of `monoidSettings` to take that into account?
 
 ### The `Either` type
 
