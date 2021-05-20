@@ -2670,34 +2670,48 @@ console.log(monoidSettings.concat(workspaceSettings, userSettings))
 
 ### The `Either` type
 
-A common usage of `Either` is as an alternative for `Option` for handling the possibility of missing values.
-In such use case, `None` is replaced by `Left` which holds the useful information. `Right` replaces `Some`. As a convention `Left` is used for failure while `Right` is used for success.
+We have seen how the `Option` data type can be used to handle partial functions, which often represent computations than can fail or throw exceptions. 
+
+This data type might be limiting in some use cases tho. While in the case of success we get `Some<A>` which contains information of type `A`, the other member, `None` does not carry any data. We know it failed, but we don't know the reason.
+
+In order to fix this we simply need to another data type to represent failure, we'll call it `Left<E>`. We'll also replace the `Some<A>` type with the `Right<A>`.
 
 ```ts
-type Either<E, A> =
-  | { _tag: 'Left'; left: E } // represents a failure
-  | { _tag: 'Right'; right: A } // represents a success
+// represents a failure
+interface Left<E> {
+  readonly _tag: 'Left'
+  readonly left: E
+}
+
+// represents a success
+interface Right<A> {
+  readonly _tag: 'Right'
+  readonly right: A
+}
+
+type Either<E, A> = Left<E> | Right<A>
 ```
 
 Constructors and pattern matching:
 
 ```ts
-const left = <E, A>(left: E): Either<E, A> => ({
-  _tag: 'Left',
-  left
-})
+const left = <E, A>(left: E): Either<E, A> => ({ _tag: 'Left', left })
 
-const right = <E, A>(right: A): Either<E, A> => ({
-  _tag: 'Right',
-  right
-})
+const right = <A, E>(right: A): Either<E, A> => ({ _tag: 'Right', right })
 
-const fold = <E, A, R>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
+const match = <E, R, A>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
   fa: Either<E, A>
-): R => (fa._tag === 'Left' ? onLeft(fa.left) : onRight(fa.right))
+): R => {
+  switch (fa._tag) {
+    case 'Left':
+      return onLeft(fa.left)
+    case 'Right':
+      return onRight(fa.right)
+  }
+}
 ```
 
-Let's get back to the callback example:
+Let's get back to the previous callback example:
 
 ```ts
 declare function readFile(
@@ -2719,7 +2733,7 @@ readFile('./myfile', (err, data) => {
 })
 ```
 
-we can change the signature in:
+we can change it's signature to:
 
 ```ts
 declare function readFile(
@@ -2728,15 +2742,13 @@ declare function readFile(
 ): void
 ```
 
-and consume the API in this new way:
+and consume the API in such way:
 
 ```ts
-import { flow } from 'fp-ts/lib/function'
-
-readFile(
-  './myfile',
-  flow(
-    fold(
+readFile('./myfile', (e) =>
+  pipe(
+    e,
+    match(
       (err) => `Error: ${err.message}`,
       (data) => `Data: ${data.trim()}`
     ),
@@ -2747,72 +2759,134 @@ readFile(
 
 # Category theory
 
-Historically, the first advanced abstraction implemented in `fp-ts` has been `Functor`, but before we can talk about functors, we'll talk a bit about **categories** since functors are based on them.
+We have seen how a founding pillar of functional programming is **composition**.
 
-One of functional's programming core characteristics is **composition**
+> And how do we solve problems? We decompose bigger problems into smaller problems. If the smaller problems are still too big, we decompose them further, and so on. Finally, we write code that solves all the small problems. And then comes the essence of programming: we compose those pieces of code to create solutions to larger problems. Decomposition wouldn't make sense if we weren't able to put the pieces back together. - Bartosz Milewski
 
-> And how do we solve problems? We decompose bigger problems into smaller problems. If the smaller problems are still too big,
-> we decompose them further, and so on. Finally, we write code that solves all the small problems. And then comes the essence of programming: we compose those pieces of code to create solutions to larger problems. Decomposition wouldn't make sense if we weren't able to put the pieces back together. - Bartosz Milewski
-
-But what does it means exactly? How can we say two things _compose_? And how can we say two things compose _well_?
+But what does it means exactly? How can we state whether two things _compose_? And how can we say if two things compose _well_?
 
 > Entities are composable if we can easily and generally combine their behaviours in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for achieving reuse, and for achieving a combinatorial expansion of what is succinctly expressible in a programming model. - Paul Chiusano
 
-We need to refer to a **strict theory** able to answer such fundamental questions. We need a formal definition of the concept of composability.
+We've briefly mentioned how a program written in functional styles tends to resemble a pipeline:
 
-Luckily, for the last 60 years ago, a large number of researchers, members of the oldest and largest humanity's open source project (maths) occupies itself with developing a theory dedicated to composability: category theory.
+```ts
+const program = pipe(
+  input,
+  f1, // pure function
+  f2, // pure function
+  f3, // pure function
+  ...
+)
+```
+
+But how simple it is to code in such a style? Let's try:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as RA from 'fp-ts/ReadonlyArray'
+
+const double = (n: number): number => n * 2
+
+/**
+ * Given a ReadonlyArray<number> the program doubles the first element and returns it
+ */
+const program = (input: ReadonlyArray<number>): number =>
+  pipe(
+    input,
+    RA.head, // compilation error! Type 'Option<number>' is not assignable to type 'number'
+    double
+  )
+```
+
+Why do I get a compilation error? Because `head` and `double` do not compose.
+
+```ts
+head: (as: ReadonlyArray<number>) => Option<number>
+double: (n: number) => number
+```
+
+`head`'s codomain is not included in `double`'s domain.
+
+Looks like our goal to program using pure functions is over..Or is it?
+
+We need to be able to refer to some **rigorous theory**, one able to answer such fundamental questions.
+
+We need to refer to a **formal definition** of composability.
+
+Luckily, for the last 70 years ago, a large number of researchers, members of the oldest and largest humanity's open source project (mathematics) occupied itself with developing a theory dedicated to composability: **category theory**, a branch of mathematics founded by Saunders Mac Lane along Samuel Eilenberg (1945).
 
 > Categories capture the essence of composition.
 
 Saunders Mac Lane
 
+<center>
 <img src="images/maclane.jpg" width="300" alt="Saunders Mac Lane" />
 
-Samuel Eilenberg
+(Saunders Mac Lane)
 
 <img src="images/eilenberg.jpg" width="300" alt="Samuel Eilenberg" />
 
+(Samuel Eilenberg)
+</center>
+
+
+We'll see in the following chapters how a category can form the basis for:
+
+- a model for a generic **programming language**
+- a model for the concept of **composition**
+
 ## Definition
 
-The definition of a category, even though isn't really complex, is a bit long, thus I'll split it in two parts:
+The definition of a category, even though it isn't really complex, is a bit long, thus I'll split it in two parts:
 
-- the first is merely technical (we need to define its laws)
+- the first is merely technical (we need to define its constituents)
 - the second one will be more relevant to what we care for: a notion of composition
 
 ### Part I (Constituents)
 
-A category is an `(Objects, Morphisms)` pair where:
+A category is a pair of `(Objects, Morphisms)` where:
 
 - `Objects` is a collection of **objects**
 - `Morphisms` is a collection of **morphisms** (also called "arrows") between objects
 
-**Note**. The term "object" has nothing to do with the concept of "objects" in programming and. Just think about those "objects" as black boxes we can't inspect, or simple placeholders useful to define the various morphisms.
+**Note**. The term "object" has nothing to do with the concept of "objects" in programming. Just think about those "objects" as black boxes we can't inspect, or simple placeholders useful to define the various morphisms.
 
 Every morphism `f` owns a source object `A` and a target object `B`.
 
-In every morphism, both `A` and `B` are members of `Objects`. We write `f: A ⟼ B` and we say that"f is a morphism from A to B"
+In every morphism, both `A` and `B` are members of `Objects`. We write `f: A ⟼ B` and we say that "f is a morphism from A to B".
 
-### Part II (Composition)
+<img src="images/morphism.png" width="300" alt="A morphism" />
+
+**Note**. For simplicity, from now on, I'll use labels only for objects, skipping the circles.
+
+**Part II (Composition)**
 
 There is an operation, `∘`, called "composition", such as the following properties hold true:
 
-- (**composition of morphisms**) every time we have two morphisms `f: A ⟼ B` and `g: B ⟼ C` in `Morphisms` then there has to be a third `g ∘ f: A ⟼ C` in `Morphisms` which is the _composition_ of `f` and `g`
+- (**composition of morphisms**) every time we have two morphisms `f: A ⟼ B` and `g: B ⟼ C` in `Morphisms` then there has to be a third morphism `g ∘ f: A ⟼ C` in `Morphisms` which is the _composition_ of `f` and `g`
+
+<img src="images/composition.png" width="300" alt="composition" />
+
 - (**associativity**) if `f: A ⟼ B`, `g: B ⟼ C` and `h: C ⟼ D` then `h ∘ (g ∘ f) = (h ∘ g) ∘ f`
+
+<img src="images/associativity.png" width="500" alt="associativity" />
+
 - (**identity**) for every object `X`, there is a morphism `identity: X ⟼ X` called _identity morphism_ of `X`, such as for every morphism `f: A ⟼ X` and `g: X ⟼ B`, the following equation holds true `identity ∘ f = f` and `g ∘ identity = g`.
+
+<img src="images/identity.png" width="300" alt="identity" />
+
 
 **Example**
 
-(source: [category on wikipedia.org](<https://en.wikipedia.org/wiki/Category_(mathematics)>))
-
 <img src="images/category.png" width="300" alt="a simple category" />
 
-This category is simple, there are three objects and six morphisms (1<sub>A</sub>, 1<sub>B</sub>, 1<sub>C</sub> are the identity morphisms for `A`, `B`, `C`).
+This category is very simple, there are three objects and six morphisms (1<sub>A</sub>, 1<sub>B</sub>, 1<sub>C</sub> are the identity morphisms for `A`, `B`, `C`).
 
-## Categories as programming languages
+## Modeling programming languages with categories
 
 A category can be seen as a simplified model for a **typed programming language**, where:
 
-- the objects are **types**
+- objects are **types**
 - morphisms are **functions**
 - `∘` is the usual **function composition**
 
@@ -2820,7 +2894,7 @@ The following diagram:
 
 <img src="images/category.png" width="300" alt="a simple programming language" />
 
-can be seen as an imaginary (and simple) programming language with just three types and a handful of functions
+can be seen as an imaginary (and simple) programming language with just three types and six functions
 
 Example given:
 
@@ -2833,27 +2907,29 @@ Example given:
 
 The implementation could be something like:
 
+L'implementazione potrebbe essere qualcosa come:
+
 ```ts
-function f(s: string): number {
-  return s.length
-}
+const idA = (s: string): string => s
 
-function g(n: number): boolean {
-  return n > 2
-}
+const idB = (n: number): string => n
 
-// h = g ∘ f
-function h(s: string): boolean {
-  return g(f(s))
-}
+const idC = (b: boolean): boolean => b
+
+const f = (s: string): number => s.length
+
+const g = (n: number): boolean => n > 2
+
+// gf = g ∘ f
+const gf = (s: string): boolean => g(f(s))
 ```
 
 ## A category for TypeScript
 
 We can define a category, let's call it _TS_, as a simplified model of the TypeScript language, where:
 
-- the **objects** are all the possible TypeScript types: `string`, `number`, `Array<string>`, ...
-- the **morphisms** are all TypeScript functions: `(a: A) => B`, `(b: B) => C`, ... where `A`, `B`, `C`, ... are TypeScript types
+- **objects** are all the possible TypeScript types: `string`, `number`, `ReadonlyArray<string>`, etc...
+- **morphisms** are all TypeScript functions: `(a: A) => B`, `(b: B) => C`, ... where `A`, `B`, `C`, ... are TypeScript types
 - the **identity morphisms** are all encoded in a single polymorphic function `const identity = <A>(a: A): A => a`
 - **morphism's composition** is the usual function composition (which we know to be associative)
 
@@ -2864,22 +2940,45 @@ As a model of TypeScript, the _TS_ category may seem a bit limited: no loops, no
 In the _TS_ category we can compose two generic functions `f: (a: A) => B` and `g: (c: C) => D` as long as `C = B`
 
 ```ts
-function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
+function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
   return (a) => g(f(a))
+}
+
+function pipe<A, B, C>(a: A, f: (a: A) => B, g: (b: B) => C): C {
+  return flow(f, g)(a)
 }
 ```
 
 But what happens if `B != C`? How can we compose two such functions? Should we give up?
 
-In the next section we'll see under which conditions such a composition is possible. We'll talk about **functors**.
+In the next section we'll see under which conditions such a composition is possible.
+
+**Spoiler**
+
+- to compose `f: (a: A) => B` with `g: (b: B) => C` we use our usual function composition
+- to compose `f: (a: A) => F<B>` with `g: (b: B) => C` we need a **functor** instance for `F`
+- to compose `f: (a: A) => F<B>` with `g: (b: B, c: C) => D` we need an **applicative functor** instance for `F`
+- to compose `f: (a: A) => F<B>` with `g: (b: B) => F<C>` we need a **monad** instance for `F`
+
+<img src="images/spoiler.png" width="900" alt="The four composition recipes" />
+
+The problem we started with at the beginning of this chapter corresponds to the second situation, where `F` is the `Option` type:
+
+```ts
+// A = ReadonlyArray<number>, B = number, F = Option
+head: (as: ReadonlyArray<number>) => Option<number>
+double: (n: number) => number
+```
+
+To solve it, the next chapter will talk about functors.
 
 # Functors
 
-In the last section we've spoken about the _TS_ category (the TypeScript category) and composition's core problem with functions:
+In the last section we've spoken about the _TS_ category (the TypeScript category) and about function composition's core problem:
 
 > How can we compose two generic functions `f: (a: A) => B` and `g: (c: C) => D`?
 
-Why is finding solutions to these problem so important?
+Why is finding solutions to this problem so important?
 
 Because, if it is true that categories can be used to model programming languages, morphisms (functions in the _TS_ category) can be used to model **programs**.
 
@@ -2887,9 +2986,11 @@ Thus, solving this abstract problem means finding a concrete way of **composing 
 
 ## Functions as programs
 
+If we want to model programs with functions we need to tackle an issue immediately:
+
 > How is it possible to model a program that produces side effects with a pure function?
 
-The answer is to model it's side effects through **effects**, meaning types that **represent** side effects.
+The answer is to model side effects through **effects**, meaning types that **represent** side effects.
 
 Let's see two possible techniques to do so in JavaScript:
 
@@ -2904,7 +3005,7 @@ function log(message: string): void {
 }
 ```
 
-changing its codomain and making possible that it'll be a function that returns a **description** of the side effect:
+changing its codomain to make the function return a **description** of the side effect:
 
 ```ts
 type DSL = ... // sum type of every possible effect handled by the system
@@ -2919,32 +3020,36 @@ function log(message: string): DSL {
 
 **Quiz**. Is the freshly defined `log` function really pure? Actually `log('foo') !== log('foo')`!
 
-This technique requires a way to combine effects and the definition of an interpreter able to execute the side effects.
+This technique requires a way to combine effects and the definition of an interpreter able to execute the side effects when launching the final program.
 
-The second technique is to enclose the computation in a thunk:
+The second technique, way simpler in TypeScript, is to enclose the computation in a *thunk*:
 
 ```ts
-interface IO<A> {
-  (): A
-}
+// a thunk representing a synchronous side effect
+type IO<A> = () => A
 
-function log(message: string): IO<void> {
-  return () => {
-    console.log(message)
-  }
+const log = (message: string): IO<void> => {
+  return () => console.log(message) // returns a thunk
 }
 ```
 
-The `log` program, once executed, it won't instantly cause a side effect, but returns **a value representing the computation** (also known as _action_).
+The `log` program, once executed, won't cause immediately a side effect, but returns **a value representing the computation** (also known as _action_).
 
-Let's see another example using thunks, reading and writing on `localStorage`:
 
 ```ts
-const read = (name: string): IO<string | null> => () =>
-  localStorage.getItem(name)
+import { IO } from 'fp-ts/IO'
 
-const write = (name: string, value: string): IO<void> => () =>
-  localStorage.setItem(name, value)
+export const log = (message: string): IO<void> => {
+  return () => console.log(message) // returns a thunk
+}
+
+export const main = log('hello!')
+// there's nothing in the output at this point
+// because `main` is only an inert value
+// representing the computation
+
+main()
+// only when launching the program I will see the result
 ```
 
 In functional programming there's a tendency to shove side effects (under the form of effects) to the border of the system (the `main` function) where they are executed by an interpreter obtaining the following schema:
@@ -2953,12 +3058,12 @@ In functional programming there's a tendency to shove side effects (under the fo
 
 In _purely functional_ languages (like Haskell, PureScript or Elm) this division is strict and clear and imposed by the very languages.
 
-Even with this thunk technique (the same technique used in `fp-ts`) we need a way to combine effects, let's see how.
+Even with this thunk technique (the same technique used in `fp-ts`) we need a way to combine effects, which brings us back to our goal of composing programs in a generic way, let's see how.
 
-We first need a bit of terminology: we'll call **pure program** a function with the following signature:
+We first need a bit of (informal) terminology: we'll call **pure program** a function with the following signature:
 
 ```ts
-;(a: A) => B
+(a: A) => B
 ```
 
 Such a signature models a program that takes an input of type `A` and returns a result of type `B` without any effect.
@@ -2979,14 +3084,16 @@ We'll call an **effectful program** a function with the following signature:
 
 Such a signature models a program that takes an input of type `A` and returns a result of type `B` together with an **effect** `F`, where `F` is some sort of type constructor.
 
-Let's recall that a [type constructor](https://en.wikipedia.org/wiki/Type_constructor) is an `n`-ary type operator that takes as argument one or more types and returns another type.
+Let's recall that a [type constructor](https://en.wikipedia.org/wiki/Type_constructor) is an `n`-ary type operator that takes as argument one or more types and returns another type. We have seen examples of such constructors as `Option`, `ReadonlyArray`, `Either`.
 
 **Example**
 
 The `head` program:
 
 ```ts
-const head = (as: Array<string>): Option<string> =>
+import { Option, some, none } from 'fp-ts/Option'
+
+const head = <A>(as: ReadonlyArray<A>): Option<A> =>
   as.length === 0 ? none : some(as[0])
 ```
 
@@ -2994,17 +3101,29 @@ is a program with an `Option` effect.
 
 When we talk about effects we are interested in `n`-ary type constructors where `n >= 1`, example given:
 
-| Type constructor | Effect (interpretation)                     |
-| ---------------- | ------------------------------------------- |
-| `Array<A>`       | a non deterministic computation             |
-| `Option<A>`      | a computation that may fail                 |
-| `IO<A>`          | a synchronous computation with side effects |
-| `Task<A>`        | an asynchronous computation                 |
+| Type constructor   | Effect (interpretation)                        |
+| ------------------ | ---------------------------------------------- |
+| `ReadonlyArray<A>` | a non deterministic computation                |
+| `Option<A>`        | a computation that may fail                    |
+| `Either<E, A>`     | a computation that may fail                    |
+| `IO<A>`            | a synchronous computation that **never fails** |
+| `Task<A>`          | an asynchronous computation **never fails**    |
+| `Reader<R, A>`     | reading from an environment                    |
+
+ove
 
 where
 
+
 ```ts
-interface Task<A> extends IO<Promise<A>> {}
+// a thunk returning a `Promise`
+type Task<A> = () => Promise<A>
+```
+
+```ts
+// `R` represents an "environment" needed for the computation
+// (we can "read" from it) and `A` is the result
+type Reader<R, A> = (r: R) => A
 ```
 
 Let's get back to our core problem:
@@ -3016,62 +3135,229 @@ With our current set of rules this general problem is not solvable. We need to a
 We already know that if `B = C` then the solution is the usual function composition.
 
 ```ts
-function compose<A, B, C>(g: (b: B) => C, f: (a: A) => B): (a: A) => C {
+function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
   return (a) => g(f(a))
 }
 ```
 
 But what about other cases?
 
-## On how the `B = F<C>` boundary leads to functors...
+## A boundary that leads to functors
 
-Let's consider the following boundary: `B = F<C>` for some type constructor `F`, or in other words (and after some renaming):
+Let's consider the following boundary: `B = F<C>` for some type constructor `F`, we have the following situation:
 
 - `f: (a: A) => F<B>` is an effectful program
 - `g: (b: B) => C` is a pure program
 
-In order to compose `f` with `g` we need to find a procedure (called `lift`ing) that allows us to derive a function `g` from a function `(b: B) => C` to a function `(fb: F<B>) => F<C>` in order to use the usual function composition (in fact, in this way the codomain of `f` would be the same of the new function's domain).
+In order to compose `f` with `g` we need to find a procedure that allows us to derive a function `g` from a function `(b: B) => C` to a function `(fb: F<B>) => F<C>` in order to use the usual function composition (this way the codomain of `f` would be the same of the new function's domain).
 
-That is, we have modified the original problem in a different and new one: can we find a `lift` function that operates this way?
+<img src="images/map.png" width="500" alt="map" />
+
+We have mutated the original problem in a new one: can we find a function, let's call it `map`, that operates this way?
 
 Let's see some practical example:
 
-**Example** (`F = Array`)
+**Example** (`F = ReadonlyArray`)
 
 ```ts
-function lift<B, C>(g: (b: B) => C): (fb: Array<B>) => Array<C> {
-  return (fb) => fb.map(g)
+import { flow, pipe } from 'fp-ts/function'
+
+// transforms functions `B -> C` to functions `ReadonlyArray<B> -> ReadonlyArray<C>`
+const map = <B, C>(g: (b: B) => C) => (
+  fb: ReadonlyArray<B>
+): ReadonlyArray<C> => fb.map(g)
+
+// -------------------
+// usage example
+// -------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
 }
+
+const getFollowers = (user: User): ReadonlyArray<User> => user.followers
+const getName = (user: User): string => user.name
+
+// getFollowersNames: User -> ReadonlyArray<string>
+const getFollowersNames = flow(getFollowers, map(getName))
+
+// o se preferite usare `pipe` al posto di `flow`...
+export const getFollowersNames2 = (user: User) =>
+  pipe(user, getFollowers, map(getName))
+
+const user: User = {
+  id: 1,
+  name: 'Ruth R. Gonzalez',
+  followers: [
+    { id: 2, name: 'Terry R. Emerson', followers: [] },
+    { id: 3, name: 'Marsha J. Joslyn', followers: [] }
+  ]
+}
+
+console.log(getFollowersNames(user)) // => [ 'Terry R. Emerson', 'Marsha J. Joslyn' ]
 ```
 
 **Example** (`F = Option`)
 
 ```ts
-import { isNone, none, Option, some } from 'fp-ts/lib/Option'
+import { flow } from 'fp-ts/function'
+import { none, Option, match, some } from 'fp-ts/Option'
 
-function lift<B, C>(g: (b: B) => C): (fb: Option<B>) => Option<C> {
-  return (fb) => (isNone(fb) ? none : some(g(fb.value)))
+// transforms functions `B -> C` to functions `Option<B> -> Option<C>`
+const map = <B, C>(g: (b: B) => C): ((fb: Option<B>) => Option<C>) =>
+  match(
+    () => none,
+    (b) => {
+      const c = g(b)
+      return some(c)
+    }
+  )
+
+// -------------------
+// usage example
+// -------------------
+
+import * as RA from 'fp-ts/ReadonlyArray'
+
+const head: (input: ReadonlyArray<number>) => Option<number> = RA.head
+const double = (n: number): number => n * 2
+
+// getDoubleHead: ReadonlyArray<number> -> Option<number>
+const getDoubleHead = flow(head, map(double))
+
+console.log(getDoubleHead([1, 2, 3])) // => some(2)
+console.log(getDoubleHead([])) // => none
+```
+
+**Example** (`F = IO`)
+
+```ts
+import { flow } from 'fp-ts/function'
+import { IO } from 'fp-ts/IO'
+
+// transforms functions `B -> C` to functions `IO<B> -> IO<C>`
+const map = <B, C>(g: (b: B) => C) => (fb: IO<B>): IO<C> => () => {
+  const b = fb()
+  return g(b)
 }
+
+// -------------------
+// usage example
+// -------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+// a dummy in-memory database
+const database: Record<number, User> = {
+  1: { id: 1, name: 'Ruth R. Gonzalez' },
+  2: { id: 2, name: 'Terry R. Emerson' },
+  3: { id: 3, name: 'Marsha J. Joslyn' }
+}
+
+const getUser = (id: number): IO<User> => () => database[id]
+const getName = (user: User): string => user.name
+
+// getUserName: number -> IO<string>
+const getUserName = flow(getUser, map(getName))
+
+console.log(getUserName(1)()) // => Ruth R. Gonzalez
 ```
 
 **Example** (`F = Task`)
 
 ```ts
-import { Task } from 'fp-ts/lib/Task'
+import { flow } from 'fp-ts/function'
+import { Task } from 'fp-ts/Task'
 
-function lift<B, C>(g: (b: B) => C): (fb: Task<B>) => Task<C> {
-  return (fb) => () => fb().then(g)
+// transforms functions `B -> C` into functions `Task<B> -> Task<C>`
+const map = <B, C>(g: (b: B) => C) => (fb: Task<B>): Task<C> => () => {
+  const promise = fb()
+  return promise.then(g)
 }
+
+// -------------------
+// usage example
+// -------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+// a dummy remote database
+const database: Record<number, User> = {
+  1: { id: 1, name: 'Ruth R. Gonzalez' },
+  2: { id: 2, name: 'Terry R. Emerson' },
+  3: { id: 3, name: 'Marsha J. Joslyn' }
+}
+
+const getUser = (id: number): Task<User> => () => Promise.resolve(database[id])
+const getName = (user: User): string => user.name
+
+// getUserName: number -> Task<string>
+const getUserName = flow(getUser, map(getName))
+
+getUserName(1)().then(console.log) // => Ruth R. Gonzalez
 ```
 
-All of these `lift` functions look pretty much similar. That's no coincidence, there's a very important pattern behind the scenes: each of these type constructors (and many others) admit a **functor instance**.
+**Example** (`F = Reader`)
 
-Functors are **maps between categories** that preserve the structure of the category, meaning they preserve the identity morphisms and the composition operation.
+```ts
+import { flow } from 'fp-ts/function'
+import { Reader } from 'fp-ts/Reader'
 
-Since categories are pairs of objects and morphisms, a functor too is a pair of something:
+// transforms functions `B -> C` into functions `Reader<R, B> -> Reader<R, C>`
+const map = <B, C>(g: (b: B) => C) => <R>(fb: Reader<R, B>): Reader<R, C> => (
+  r
+) => {
+  const b = fb(r)
+  return g(b)
+}
 
-- a **map between objects** that binds every object `A` in _C_ an object in _D_.
-- a **map between morphisms** that binds every morphism in _C_ a morphism in _D_.
+// -------------------
+// usage example
+// -------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+interface Env {
+  // a dummy in-memory database
+  readonly database: Record<string, User>
+}
+
+const getUser = (id: number): Reader<Env, User> => (env) => env.database[id]
+const getName = (user: User): string => user.name
+
+// getUserName: number -> Reader<Env, string>
+const getUserName = flow(getUser, map(getName))
+
+console.log(
+  getUserName(1)({
+    database: {
+      1: { id: 1, name: 'Ruth R. Gonzalez' },
+      2: { id: 2, name: 'Terry R. Emerson' },
+      3: { id: 3, name: 'Marsha J. Joslyn' }
+    }
+  })
+) // => Ruth R. Gonzalez
+```
+
+More generally, when a type constructor `F` admits a `map` function, we say it admits a **functor instance**.
+
+From a mathematical point of view, functors are **maps between categories** that preserve the structure of the category, meaning they preserve the identity morphisms and the composition operation.
+
+Since categories are pairs of objects and morphisms, a functor too is a pair of two things:
+
+- a **map between objects** that binds every object `A` in _C_ to an object in _D_.
+- a **map between morphisms** that binds every morphism in _C_ to a morphism in _D_.
 
 where _C_ e _D_ are two categories (aka two programming languages).
 
