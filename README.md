@@ -1415,183 +1415,222 @@ console.log(
 
 # Modeling composition through Monoids
 
-If we add another condition to the definition of a semigroup `(A, *)`, such as exists an element `u` in `A` such as for every element `a` in `A` holds true the following condition:
+Let's recap what we have seen till now.
+
+We have seen how an **algebra** is a combination of:
+
+- some type `A`
+- some operations involving the type `A`
+- some laws and properties for that combination.
+
+The first algebra we have seen has been the magma, an algebra defined on some type A equipped with one operation called `concat`. There were no laws involved in `Magma<A>` the only requirement we had was that the `concat` operation had to be _closed_ on `A` meaning that the result:
 
 ```ts
-u * a = a * u = a
+concat(first: A, second: A) => A
 ```
 
-then the triplet `(A, *, u)` is called a _monoid_ and the element `u` is called _unity_.
-(synonyms: _neutral element_, _identity element_).
+has still to be an element of the `A` type.
 
-## Implementation
+Later on we have seen how adding one simple requirement, *associativity*, allowed some `Magma<A>` to be further refined as a `Semigroup<A>`, and how associativity captures the possibility of computations to be parallelized.
+
+Now we're going to add another condition on Semigroup.
+
+Given a `Semigroup` defined on some set `A` with some `concat` operation, if there is some element in `A`, we'll call this element _empty_,  such as for every element `a` in `A` the two following equations hold true:
+
+- **Right identity**: `concat(a, empty) = a`
+- **Left identity**: `concat(empty, a) = a`
+
+then the `Semigroup` is also a `Monoid`.
+
+**Note**: We'll call the `empty` element **unit** for the rest of this section. There's other synonyms in literature, some of the most common ones are _neutral element_ and _identity_element_.
+
+We have seen how in TypeScript `Magma`s and `Semigroup`s, can be modeled with `interface`s, so it should not come as a surprise that the very same can be done for `Monoid`s.
 
 ```ts
-import { Semigroup } from 'fp-ts/lib/Semigroup'
+import { Semigroup } from 'fp-ts/Semigroup'
 
 interface Monoid<A> extends Semigroup<A> {
   readonly empty: A
 }
 ```
 
-The following laws have to hold true:
-
-- **Right identity**: `concat(a, empty) = a`, for every `a` in `A`
-- **Left identity**: `concat(empty, a) = a`, for every `a` in `A`
-
-**Note**. The monoids unity is unique.
-
-Many of the semigroups we've seen before are monoids as well:
+Many of the semigroups we have seen in the previous sections can be extended to become `Monoid`s. All we need to find is some element of type `A` for which the Right and Left identities hold true.
 
 ```ts
+import { Monoid } from 'fp-ts/Monoid'
+
 /** number `Monoid` under addition */
-const monoidSum: Monoid<number> = {
-  concat: (x, y) => x + y,
+const MonoidSum: Monoid<number> = {
+  concat: (first, second) => first + second,
   empty: 0
 }
 
 /** number `Monoid` under multiplication */
-const monoidProduct: Monoid<number> = {
-  concat: (x, y) => x * y,
+const MonoidProduct: Monoid<number> = {
+  concat: (first, second) => first * second,
   empty: 1
 }
 
-const monoidString: Monoid<string> = {
-  concat: (x, y) => x + y,
+const MonoidString: Monoid<string> = {
+  concat: (first, second) => first + second,
   empty: ''
 }
 
 /** boolean monoid under conjunction */
-const monoidAll: Monoid<boolean> = {
-  concat: (x, y) => x && y,
+const MonoidAll: Monoid<boolean> = {
+  concat: (first, second) => first && second,
   empty: true
 }
 
 /** boolean monoid under disjunction */
-const monoidAny: Monoid<boolean> = {
-  concat: (x, y) => x || y,
+const MonoidAny: Monoid<boolean> = {
+  concat: (first, second) => first || second,
   empty: false
 }
 ```
 
-Let's see some more complex example.
+**Quiz**. In the semigroup section we have seen how the type `ReadonlyArray<string>` admits a `Semigroup` instance:
 
-Given a type `A`, the _endomorphisms_ (an endomorphism is simply a function whose domain and codomain are the same) on `A` admit a monoid instance:
+```ts
+import { Semigroup } from 'fp-ts/Semigroup'
+
+const Semigroup: Semigroup<ReadonlyArray<string>> = {
+  concat: (first, second) => first.concat(second)
+}
+```
+
+Can you find the `unit` for this semigroup? If so, can we generalize the result not just for `ReadonlyArray<string>` but `ReadonlyArray<A>` as well?
+
+**Quiz** (more complex). Prove that given a monoid, there can only be one unit.
+
+The consequence of the previous proof is that there can be only one unit per monoid, once we find one we can stop searching.
+
+We have seen how each semigroup was a magma, but not every magma was a semigroup. In the same way, each monoid is a semigroup, but not every semigroup is a monoid.
+
+<center>
+<img src="images/monoid.png" width="300" alt="Magma vs Semigroup vs Monoid" />
+</center>
+
+**Example**
+
+Let's consider the following example:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { intercalate } from 'fp-ts/Semigroup'
+import * as S from 'fp-ts/string'
+
+const SemigroupIntercalate = pipe(S.Semigroup, intercalate('|'))
+
+console.log(S.Semigroup.concat('a', 'b')) // => 'ab'
+console.log(SemigroupIntercalate.concat('a', 'b')) // => 'a|b'
+console.log(SemigroupIntercalate.concat('a', '')) // => 'a|'
+```
+
+Note how for this Semigroup there's no such `empty` value of type `string` such as `concat(a, empty) = a`.
+
+And now one final, slightly more "exotic" example, involving functions:
+
+**Example**
+
+An **endomorphism** is a function whose input and output type is the same:
 
 ```ts
 type Endomorphism<A> = (a: A) => A
-
-function identity<A>(a: A): A {
-  return a
-}
-
-function getEndomorphismMonoid<A = never>(): Monoid<Endomorphism<A>> {
-  return {
-    concat: (x, y) => (a) => x(y(a)),
-    empty: identity
-  }
-}
 ```
 
-If the type `M` admits a monoid instance then the type (a: A) => M gives rise to a monoid instance for every type A:
+Given a type `A`, all endomorphisms defined on `A` are a monoid, such as:
+
+- the `concat` operation is the usual function composition
+- the unit, our `empty` value is the identity function
 
 ```ts
-function getFunctionMonoid<M>(
-  M: Monoid<M>
-): <A = never>() => Monoid<(a: A) => M> {
-  return () => ({
-    concat: (f, g) => (a) => M.concat(f(a), g(a)),
-    empty: () => M.empty
-  })
-}
+import { Endomorphism, flow, identity } from 'fp-ts/function'
+import { Monoid } from 'fp-ts/Monoid'
+
+export const getEndomorphismMonoid = <A>(): Monoid<Endomorphism<A>> => ({
+  concat: flow,
+  empty: identity
+})
 ```
 
-As a consequence we can see that reducers admit a monoid instance:
+**Note**: The `identity` function has one, and only one possible implementation:
 
 ```ts
-type Reducer<S, A> = (a: A) => (s: S) => S
-
-function getReducerMonoid<S, A>(): Monoid<Reducer<S, A>> {
-  return getFunctionMonoid(getEndomorphismMonoid<S>())<A>()
-}
+const identity = (a: A) => a
 ```
 
-One could think that every semigroup is also a monoid. That's not the case. Let's see a counter example:
+Whatever value we pass in input, it gives us the same value in output. 
+
+<!--
+TODO:
+We can start having a small taste of the importance of the `identity` function. While apparently useless per se, this function is vital to define a monoid for functions, in this case, endomorphisms. In fact, _doing nothing_, being _empty_ or _neutral_ is a tremendously valuable property to have when it comes to composition and we can think of the `identity` function as the number `0` of functions.
+-->
+
+## The `concatAll` function
+
+One great property of monoids, compared to semigrops, is that the concatenation of multiple elements becomes even easier: it is not necessary anymore to provide an initial value.
 
 ```ts
-const semigroupSpace: Semigroup<string> = {
-  concat: (x, y) => x + ' ' + y
-}
+import { concatAll } from 'fp-ts/Monoid'
+import * as S from 'fp-ts/string'
+import * as N from 'fp-ts/number'
+import * as B from 'fp-ts/boolean'
+
+console.log(concatAll(N.MonoidSum)([1, 2, 3, 4])) // => 10
+console.log(concatAll(N.MonoidProduct)([1, 2, 3, 4])) // => 24
+console.log(concatAll(S.Monoid)(['a', 'b', 'c'])) // => 'abc'
+console.log(concatAll(B.MonoidAll)([true, false, true])) // => false
+console.log(concatAll(B.MonoidAny)([true, false, true])) // => true
 ```
 
-It is not possible to find such an `empty` value that `concat(x, empty) = x`.
+**Quiz**. Why is the initial value not needed anymore?
 
-Lastly we can construct a monoid instance for a structure like `Point`:
+## Product monoid
+
+As we have already seen with semigroups, it is possible to define a monoid instance for a `struct` if we are able to define a monoid instance for each of its fields.
+
+**Example**
 
 ```ts
+import { Monoid, struct } from 'fp-ts/Monoid'
+import * as N from 'fp-ts/number'
+
 type Point = {
-  x: number
-  y: number
+  readonly x: number
+  readonly y: number
 }
-```
 
-if we are able to feed the `getStructMonoid` a monoid instance for each of its fields:
-
-```ts
-import { getStructMonoid, Monoid, monoidSum } from 'fp-ts/lib/Monoid'
-
-const monoidPoint: Monoid<Point> = getStructMonoid({
-  x: monoidSum,
-  y: monoidSum
+const Monoid: Monoid<Point> = struct({
+  x: N.MonoidSum,
+  y: N.MonoidSum
 })
 ```
 
-We can move further through the freshly defined `getStructMonoid` instance:
+**Note**. There is a combinator similar to `struct` that works with tuples: `tuple`.
 
 ```ts
-type Vector = {
-  from: Point
-  to: Point
-}
+import { Monoid, tuple } from 'fp-ts/Monoid'
+import * as N from 'fp-ts/number'
 
-const monoidVector: Monoid<Vector> = getStructMonoid({
-  from: monoidPoint,
-  to: monoidPoint
-})
+type Point = readonly [number, number]
+
+const Monoid: Monoid<Point> = tuple(N.MonoidSum, N.MonoidSum)
 ```
 
-**Note**. There is a combinator similar to `getStructMonoid` that works with tuples: `getTupleMonoid`.
+**Quiz**. Is it possible to define a "free monoid" for a generic type `A`?
 
-## Folding
-
-When we use a monoid instead of a semigroup the folding operation is even easier: we no longer need to feed an initial value, we can use the neutral element for that:
-
-```ts
-import {
-  fold,
-  monoidAll,
-  monoidAny,
-  monoidProduct,
-  monoidString,
-  monoidSum
-} from 'fp-ts/lib/Monoid'
-
-fold(monoidSum)([1, 2, 3, 4]) // 10
-fold(monoidProduct)([1, 2, 3, 4]) // 24
-fold(monoidString)(['a', 'b', 'c']) // 'abc'
-fold(monoidAll)([true, false, true]) // false
-fold(monoidAny)([true, false, true]) // true
-```
-
-**Demo**
+**Demo** (implementing a system to draw geoetric shapes on canvas)
 
 [`03_shapes.ts`](src/03_shapes.ts)
 
 # Pure and partial functions
 
-> A pure function is a procedure that given the same input always gives the same output and does not have any observable side effect.
+In the first chapter we've seen an informal definition of a pure function:
 
-Such an informal statement could leave space for some doubts
+> A pure function is a procedure that given the same input always returns the same output and does not have any observable side effect.
+
+Such an informal statement could leave space for some doubts, such as:
 
 - what is a "side effect"?
 - what does it means "observable"?
@@ -1616,10 +1655,10 @@ The set `X` is called the _domain_ of `f`, `Y` is it's _codomain_.
 
 The function `double: Nat ⟶ Nat` is the subset of the cartesian product `Nat × Nat` given by `{ (1, 2), (2, 4), (3, 6), ...}`.
 
-In TypeScript
+In TypeScript we could define `f` as
 
 ```ts
-const f: { [key: number]: number } = {
+const f: Record<number, number> = {
   1: 2,
   2: 4,
   3: 6
@@ -1627,32 +1666,108 @@ const f: { [key: number]: number } = {
 }
 ```
 
+<!--
+TODO:
 Please note that the set `f` has to be described _statically_ when defining the function (meaning that the elements of that set cannot change with time for no reason).
 In this way we can exclude any form of side effect and the return value is always the same.
+-->
 
-The one in the example is called an _extensional_ definition of a function, meaning we enumerate one by one each of the elements of its domain.
-Obviously, when such a set is infinite this proves to be problematic.
+The one in the example is called an _extensional_ definition of a function, meaning we enumerate one by one each of the elements of its domain and for each one of them we point the corresponding codomain element. 
+
+Naturally, when such a set is infinite this proves to be problematic. We can't list the entire domain and codomain of all functions. 
 
 We can get around this issue by introducing the one that is called _intentional_ definition, meaning that we express a condition that has to hold for every couple `(x, y) ∈ f` meaning `y = x * 2`.
 
 This the familiar form in which we write the `double` function and its definition in TypeScript:
 
 ```ts
-function double(x: number): number {
-  return x * 2
-}
+const double = (x: number): number => x * 2
 ```
 
 The definition of a function as a subset of a cartesian product shows how in mathematics every function is pure: there is no action, no state mutation or elements being modified.
 In functional programming the implementation of functions has to follow as much as possible this ideal model.
 
+**Quiz**. Which of the following procedures are pure functions?
+
+```ts
+const coefficient1 = 2
+export const f1 = (n: number) => n * coefficient1
+
+// ------------------------------------------------------
+
+let coefficient2 = 2
+export const f2 = (n: number) => n * coefficient2++
+
+// ------------------------------------------------------
+
+let coefficient3 = 2
+export const f3 = (n: number) => n * coefficient3
+
+// ------------------------------------------------------
+
+export const f4 = (n: number) => {
+  const out = n * 2
+  console.log(out)
+  return out
+}
+
+// ------------------------------------------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+export declare const f5: (id: number) => Promise<User>
+
+// ------------------------------------------------------
+
+import * as fs from 'fs'
+
+export const f6 = (path: string): string =>
+  fs.readFileSync(path, { encoding: 'utf8' })
+
+// ------------------------------------------------------
+
+export const f7 = (
+  path: string,
+  callback: (err: Error | null, data: string) => void
+): void => fs.readFile(path, { encoding: 'utf8' }, callback)
+```
+
 The fact that a function is pure does not imply automatically a ban on local mutability as long as it doesn't leaks out of its scope.
 
 ![mutable / immutable](images/mutable-immutable.jpg)
 
+**Example** (Implementazion details of the `concatAll` function for monoids)
+
+```ts
+import { Monoid } from 'fp-ts/Monoid'
+
+const concatAll = <A>(M: Monoid<A>) => (as: ReadonlyArray<A>): A => {
+  let out: A = M.empty // <= local mutability
+  for (const a of as) {
+    out = M.concat(out, a)
+  }
+  return out
+}
+```
+
 The ultimate goal is to guarantee: **referential transparency**.
 
+The contract we sign with a user of our APIs is defined by the APIs signature:
+
+```ts
+declare const concatAll: <A>(M: Monoid<A>) => (as: ReadonlyArray<A>) => A
+```
+
+and by the promise of respecting referential transparency. The technical details of how the function is implemented are not relevant, thus there is maximum freedom implementation-wise.
+
+Thus, how do we define a "side effect"? Simply by negating referential transparency:
+
 > An expression contains "side effects" if it doesn't benefit from referential transparency
+
+Not only functions are a perfect example of one of the two pillars of functional programming, referential transparency, but they're also examples of the second pillar: **composition**.
 
 Functions compose:
 
@@ -1666,8 +1781,6 @@ is called _composition_ of `f` and `g` and is written `h = f ∘ g`
 
 Please note that in order for `f` and `g` to combine, the domain of `f` has to be included in the codomain of `g`.
 
-## Partial functions
-
 **Definition**. A function is said to be _partial_ if it is not defined for each value of its domain.
 
 Vice versa, a function defined for all values of its domain is said to be _total_
@@ -1679,6 +1792,29 @@ f(x) = 1 / x
 ```
 
 The function `f: number ⟶ number` is not defined for `x = 0`.
+
+**Example**
+
+```ts
+// Get the first element of a `ReadonlyArray`
+declare const head: <A>(as: ReadonlyArray<A>) => A
+```
+
+**Quiz**. Why is the `head` function partial?
+
+**Quiz**. Is `JSON.parse` a total function?
+
+```ts
+parse: (text: string, reviver?: (this: any, key: string, value: any) => any) => any
+```
+
+**Quiz**. Is `JSON.stringify` a total function?
+
+```ts
+stringify: (value: any, replacer?: (this: any, key: string, value: any) => any, space?: string | number) => string
+```
+
+In functional programming there is a tendency to only define **pure and total functions**. From now one with the term function we'll be specifically referring to "pure and total function". So what do we do when we have a partial function in our applications?
 
 A partial function `f: X ⟶ Y` can always be "brought back" to a total one by adding a special value, let's call it `None`, to the codomain and by assigning it to the output of `f` for every value of `X` where the function is not defined.
 
@@ -1694,9 +1830,9 @@ f': X ⟶ Option(Y)
 
 In functional programming the tendency is to define only pure and and total functions.
 
-Is it possible to define `Option` in TypeScript?
+Is it possible to define `Option` in TypeScript? In the following chapters we'll see how to do it.
 
-# ADTs and functional error-handling
+# Algebraic Data Types
 
 A good first step when writing an application or feature is to define it's domain model. TypeScript offers many tools that help accomplishing this task. **Algebraic Data Types** (in short, ADTs) are one of these tools.
 
