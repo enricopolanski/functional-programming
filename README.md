@@ -2670,7 +2670,7 @@ console.log(monoidSettings.concat(workspaceSettings, userSettings))
 
 ### The `Either` type
 
-We have seen how the `Option` data type can be used to handle partial functions, which often represent computations than can fail or throw exceptions. 
+We have seen how the `Option` data type can be used to handle partial functions, which often represent computations than can fail or throw exceptions.
 
 This data type might be limiting in some use cases tho. While in the case of success we get `Some<A>` which contains information of type `A`, the other member, `None` does not carry any data. We know it failed, but we don't know the reason.
 
@@ -2827,8 +2827,8 @@ Saunders Mac Lane
 <img src="images/eilenberg.jpg" width="300" alt="Samuel Eilenberg" />
 
 (Samuel Eilenberg)
-</center>
 
+</center>
 
 We'll see in the following chapters how a category can form the basis for:
 
@@ -2874,7 +2874,6 @@ There is an operation, `∘`, called "composition", such as the following proper
 - (**identity**) for every object `X`, there is a morphism `identity: X ⟼ X` called _identity morphism_ of `X`, such as for every morphism `f: A ⟼ X` and `g: X ⟼ B`, the following equation holds true `identity ∘ f = f` and `g ∘ identity = g`.
 
 <img src="images/identity.png" width="300" alt="identity" />
-
 
 **Example**
 
@@ -3022,7 +3021,7 @@ function log(message: string): DSL {
 
 This technique requires a way to combine effects and the definition of an interpreter able to execute the side effects when launching the final program.
 
-The second technique, way simpler in TypeScript, is to enclose the computation in a *thunk*:
+The second technique, way simpler in TypeScript, is to enclose the computation in a _thunk_:
 
 ```ts
 // a thunk representing a synchronous side effect
@@ -3034,7 +3033,6 @@ const log = (message: string): IO<void> => {
 ```
 
 The `log` program, once executed, won't cause immediately a side effect, but returns **a value representing the computation** (also known as _action_).
-
 
 ```ts
 import { IO } from 'fp-ts/IO'
@@ -3063,7 +3061,7 @@ Even with this thunk technique (the same technique used in `fp-ts`) we need a wa
 We first need a bit of (informal) terminology: we'll call **pure program** a function with the following signature:
 
 ```ts
-(a: A) => B
+;(a: A) => B
 ```
 
 Such a signature models a program that takes an input of type `A` and returns a result of type `B` without any effect.
@@ -3113,7 +3111,6 @@ When we talk about effects we are interested in `n`-ary type constructors where 
 ove
 
 where
-
 
 ```ts
 // a thunk returning a `Promise`
@@ -3356,53 +3353,191 @@ From a mathematical point of view, functors are **maps between categories** that
 
 Since categories are pairs of objects and morphisms, a functor too is a pair of two things:
 
-- a **map between objects** that binds every object `A` in _C_ to an object in _D_.
-- a **map between morphisms** that binds every morphism in _C_ to a morphism in _D_.
+- a **map between objects** that binds every object `X` in _C_ to an object in _D_.
+- a **map between morphisms** that binds every morphism `f` in _C_ to a morphism `map(f)` in _D_.
 
 where _C_ e _D_ are two categories (aka two programming languages).
 
-<img src="images/functor.jpg" width="300" alt="functor" />
+<img src="images/functor.png" width="500" alt="functor" />
 
-(source: [functor on ncatlab.org](https://ncatlab.org/nlab/show/functor))
+Even though a map between two different programming languages is a fascinating idea, we're more interested in a map where _C_ and _D_ are the same (the _TS_ category). In that case we're talking about **endofunctors** (from the greek "endo" meaning "inside", "internal").
 
-Even though a map between two different programming languages is an interesting idea, we're more interested in a map where _C_ and _D_ are the same (the _TS_ category). In that case we're talking about **endofunctors** (from the greek "endo" meaning "inside"/"internal").
-
-From now on, unless specified differently, when I write "functor" I mean an endofunctor in the _TS_ category.
+From now on, unless specified differently, when we write "functor" we mean an endofunctor in the _TS_ category.
 
 Now we know the practical side of functors, let's see the formal definition.
 
 ### Definition
 
-A functor is a pair `(F, lift)` where:
+A functor is a pair `(F, map)` where:
 
 - `F` is an `n`-ary (`n >= 1`) type constructor mapping every type `X` in a type `F<X>` (**map between objects**)
-- `lift` is a function with the following signature:
+- `map` is a function with the following signature:
 
 ```ts
-lift: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
+map: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
 ```
 
-that maps every function `f: (a: A) => B` in a function `lift(f): (fa: F<A>) => F<B>` (**map between morphism**)
+that maps every function `f: (a: A) => B` in a function `map(f): (fa: F<A>) => F<B>` (**map between morphism**)
 
 The following properties have to hold true:
 
-- `lift(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**identities go to identities**)
-- `lift(g ∘ f) = lift(g) ∘ lift(f)` (**the image of a composition is the composition of its images**)
+- `map(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**identities go to identities**)
+- `map(g ∘ f) = map(g) ∘ map(f)` (**the image of a composition is the composition of its images**)
 
-The `lift` function is also called under its variant `map`, which is essentially a `lift` with the argument's order rearranged:
+The second law allows to refactor and optimize the following computation:
 
 ```ts
-lift: <A, B>(f: (a: A) => B) => ((fa: F<A>) => F<B>)
-map:  <A, B>(fa: F<A>, f: (a: A) => B) => F<B>
+import { flow, increment, pipe } from 'fp-ts/function'
+import { map } from 'fp-ts/ReadonlyArray'
+
+const double = (n: number): number => n * 2
+
+// cicla due volte
+console.log(pipe([1, 2, 3], map(double), map(increment))) // => [ 3, 5, 7 ]
+
+// cicla una volta sola
+console.log(pipe([1, 2, 3], map(flow(double, increment)))) // => [ 3, 5, 7 ]
 ```
 
-Please note that `map` can be derived from `lift` (and vice versa).
+## Functors and functional error handling
+
+Functors have a positive impact on functional error handling, let's see a practical example:
+
+```ts
+declare const doSomethingWithIndex: (index: number) => string
+
+export const program = (ns: ReadonlyArray<number>): string => {
+  // -1 indicates that no element has been found
+  const i = ns.findIndex((n) => n > 0)
+  if (i !== -1) {
+    return doSomethingWithIndex(i)
+  }
+  throw new Error('cannot find a positive number')
+}
+```
+
+Using the native `findIndex` API we are forced to use an `if` branch to test whether we have a result different than 1. If we forget to do so, the value `-1` could be unintentionally passed as input to `doSomethingWithIndex`.
+
+Let's see how easier it is to obtain the same behavior using `Option` and its functor instance:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import { map, Option } from 'fp-ts/Option'
+import { findIndex } from 'fp-ts/ReadonlyArray'
+
+declare const doSomethingWithIndex: (index: number) => string
+
+export const program = (ns: ReadonlyArray<number>): Option<string> =>
+  pipe(
+    ns,
+    findIndex((n) => n > 0),
+    map(doSomethingWithIndex)
+  )
+```
+
+Practically, using `Option`, we're always in front of the `happy path`, error handing happens behind the scenes thanks to `map`.
+
+**Demo** (optional)
+
+[`04_functor.ts`](src/04_functor.ts)
+
+**Quiz**. `Task<A>` represents an asynchronous call that always succeed, how can we model a computation that can fail instead?
+
+## Functors compose
+
+Functors compose, meaning that given two functors `F` and `G` then the composition `F<G<A>>` is still a functor and the `map` of this composition is the composition of the `map`s.
+
+**Example** (`F = Task`, `G = Option`)
+
+```ts
+import { flow } from 'fp-ts/function'
+import * as O from 'fp-ts/Option'
+import * as T from 'fp-ts/Task'
+
+type TaskOption<A> = T.Task<O.Option<A>>
+
+export const map: <A, B>(
+  f: (a: A) => B
+) => (fa: TaskOption<A>) => TaskOption<B> = flow(O.map, T.map)
+
+// -------------------
+// usage example
+// -------------------
+
+interface User {
+  readonly id: number
+  readonly name: string
+}
+
+// a dummy remote database
+const database: Record<number, User> = {
+  1: { id: 1, name: 'Ruth R. Gonzalez' },
+  2: { id: 2, name: 'Terry R. Emerson' },
+  3: { id: 3, name: 'Marsha J. Joslyn' }
+}
+
+const getUser = (id: number): TaskOption<User> => () =>
+  Promise.resolve(O.fromNullable(database[id]))
+const getName = (user: User): string => user.name
+
+// getUserName: number -> TaskOption<string>
+const getUserName = flow(getUser, map(getName))
+
+getUserName(1)().then(console.log) // => some('Ruth R. Gonzalez')
+getUserName(4)().then(console.log) // => none
+```
+
+## Contravariant Functors
+
+In the previous section we haven't been completely thorough with our definitions. What we have seen in the previous section and called "functors" should be more properly called **covariant functors**.
+
+In this section we'll see another variant of the functor concept, **contravariant** functors.
+
+The definition of a contravariant functor is pretty much the same of the covariant one, except for the signature of its fundamental operation, which is called `contramap` rather than `map`.
+
+<img src="images/contramap.png" width="300" alt="contramap" />
+
+**Example**
+
+```ts
+import { map } from 'fp-ts/Option'
+import { contramap } from 'fp-ts/Eq'
+
+type User = {
+  readonly id: number
+  readonly name: string
+}
+
+const getId = (_: User): number => _.id
+
+// the way `map` operates...
+// const getIdOption: (fa: Option<User>) => Option<number>
+const getIdOption = map(getId)
+
+// the way `contramap` operates...
+// const getIdEq: (fa: Eq<number>) => Eq<User>
+const getIdEq = contramap(getId)
+
+import * as N from 'fp-ts/number'
+
+const EqID = getIdEq(N.Eq)
+
+/*
+
+In the `Eq` chapter we saw:
+
+const EqID: Eq<User> = pipe(
+  N.Eq,
+  contramap((_: User) => _.id)
+)
+*/
+```
 
 ## Functors in `fp-ts`
 
-How do we define a functor instance in `fp-ts`? Let's see some example:
+How do we define a functor instance in `fp-ts`? Let's see some example.
 
-The following interface represents the model of a call to some API:
+The following interface represents the model of some result we get by calling some HTTP API:
 
 ```ts
 interface Response<A> {
@@ -3413,122 +3548,72 @@ interface Response<A> {
 }
 ```
 
-Please note that since `body` is parametric, this makes `Response` a good candidate to find a functor instance since `Response` is a an `n`-ary type constructor with `n >= 1` (a necessary condition).
+Please note that since `body` is parametric, this makes `Response` a good candidate to find a functor instance given that `Response` is a an `n`-ary type constructor with `n >= 1` (a necessary condition).
 
 To define a functor instance for `Response` we need to define a `map` function along some [technical details](https://gcanti.github.io/fp-ts/recipes/HKT.html) required by `fp-ts`.
 
 ```ts
 // `Response.ts` module
 
-import { Functor1 } from 'fp-ts/lib/Functor'
+import { pipe } from 'fp-ts/function'
+import { Functor1 } from 'fp-ts/Functor'
 
-export const URI = 'Response'
-
-export type URI = typeof URI
-
-declare module 'fp-ts/lib/HKT' {
+declare module 'fp-ts/HKT' {
   interface URItoKind<A> {
-    Response: Response<A>
+    readonly Response: Response<A>
   }
 }
 
 export interface Response<A> {
-  url: string
-  status: number
-  headers: Record<string, string>
-  body: A
+  readonly url: string
+  readonly status: number
+  readonly headers: Record<string, string>
+  readonly body: A
 }
 
-function map<A, B>(fa: Response<A>, f: (a: A) => B): Response<B> {
-  return { ...fa, body: f(fa.body) }
-}
+export const map = <A, B>(f: (a: A) => B) => (
+  fa: Response<A>
+): Response<B> => ({
+  ...fa,
+  body: f(fa.body)
+})
 
-// functor instance for `Response`
-export const functorResponse: Functor1<URI> = {
-  URI,
-  map
-}
-```
-
-## Functor composition
-
-Functor compose, given two functors `F` and `G`, then the composition `F<G<A>>` is still a functor and its `map` is the combination of `F`'s and `G`'s `map`, thus the composition
-
-**Example**
-
-```ts
-import { Option, option } from 'fp-ts/lib/Option'
-import { array } from 'fp-ts/lib/Array'
-
-export const functorArrayOption = {
-  map: <A, B>(fa: Array<Option<A>>, f: (a: A) => B): Array<Option<B>> =>
-    array.map(fa, (oa) => option.map(oa, f))
+// functor instance for `Response<A>`
+export const Functor: Functor1<'Response'> = {
+  URI: 'Response',
+  map: (fa, f) => pipe(fa, map(f))
 }
 ```
 
-To avoid boilerplate `fp-ts` exports an helper:
-
-```ts
-import { array } from 'fp-ts/lib/Array'
-import { getFunctorComposition } from 'fp-ts/lib/Functor'
-import { option } from 'fp-ts/lib/Option'
-
-export const functorArrayOption = getFunctorComposition(array, option)
-```
-
-## Did we solve the general problem?
+## Do functors solve the general problem?
 
 Not yet. Functors allow us to compose an effectful program `f` with a pure program `g`, but `g` has to be a **unary** function, accepting one single argument. What happens if `g` takes two or more arguments?
 
-| Program f | Program g               | Composition   |
-| --------- | ----------------------- | ------------- |
-| pure      | pure                    | `g ∘ f`       |
-| effectful | pure (unary)            | `lift(g) ∘ f` |
-| effectful | pure (`n`-ary, `n > 1`) | ?             |
+| Program f | Program g               | Composition  |
+| --------- | ----------------------- | ------------ |
+| pure      | pure                    | `g ∘ f`      |
+| effectful | pure (unary)            | `map(g) ∘ f` |
+| effectful | pure (`n`-ary, `n > 1`) | ?            |
 
 To manage this circumstance we need something _more_, in the next chapter we'll see another important abstraction in functional programming: **applicative functors**.
 
-## Contravariant functors
-
-Before we get into applicative functors I'd like to show you a variant of the functor concept we've seen in the last section: **contravariant functors**.
-
-If we want to be meticulous, those that we called "functors" should be more properly called **convariant functors**.
-
-The definition of a contravariant functor is very close to the covariant functor, the only difference is the signature of its fundamental operation (called `contramap` insteaf of `map`).
-
-```ts
-// covariant functor
-export interface Functor<F> {
-  readonly map: <A, B>(fa: HKT<F, A>, f: (a: A) => B) => HKT<F, B>
-}
-
-// contravariant functor
-export interface Contravariant<F> {
-  readonly contramap: <A, B>(fa: HKT<F, A>, f: (b: B) => A) => HKT<F, B>
-}
-```
-
-**Note**: the `HKT` type is the way `fp-ts` uses to represent a generic type constructor (a technique proposed in the following paper [Lightweight higher-kinded polymorphism](https://www.cl.cam.ac.uk/~jdy22/papers/lightweight-higher-kinded-polymorphism.pdf)) so when you see `HKT<F, X>` you can simply read it as `F` applied on the `X` type (thus `F<X>`).
-
-As examples, we've already seen two relevant types that admit an instance of a contravariant functor: `Eq` and `Ord`.
-
 # Applicative functors
 
-In the section regarding functors we've seen that we can compose an effectful program `f: (a: A) => F<B>` with a pure one `g: (b: B) => C` through the lifting of `g` to a function `lift(g): (fb: F<B>) => F<C>` (if and only if F has a functor instance).
+In the section regarding functors we've seen that we can compose an effectful program `f: (a: A) => F<B>` with a pure one `g: (b: B) => C` through the transformation of `g` to a function `map(g): (fb: F<B>) => F<C>` (if and only if `F` admits a functor instance).
 
-| Program f | Program g    | Composition   |
-| --------- | ------------ | ------------- |
-| pure      | pure         | `g ∘ f`       |
-| effectful | pure (unary) | `lift(g) ∘ f` |
+| Program f | Program g    | Composition  |
+| --------- | ------------ | ------------ |
+| pure      | pure         | `g ∘ f`      |
+| effectful | pure (unary) | `map(g) ∘ f` |
 
-But `g` has to be unary, it can only accept a single argument as input. What happens if `g` accepts two arguments? Can we still lift `g` using only the functor instance? Let's try
+But `g` has to be unary, it can only accept a single argument as input. What happens if `g` accepts two arguments? Can we still transform `g` using only the functor instance?
 
 ## Currying
 
 First of all we need to model a function that accepts two arguments of type `B` and `C` (we can use a tuple for this) and returns a value of type `D`:
 
 ```ts
-g: (args: [B, C]) => D
+g: (b: B, c: C) => D
 ```
 
 We can rewrite `g` using a technique called **currying**.
@@ -3543,468 +3628,814 @@ Thus, through currying, we can rewrite `g` as:
 g: (b: B) => (c: C) => D
 ```
 
-What we're looking for is a lifting operation, let's call it `liftA2` to distinguish it from the other functor's `lift`, that returns a function with the following signature:
+**Example**
+
+```ts
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
+}
+
+const addFollower = (follower: User, user: User): User => ({
+  ...user,
+  followers: [...user.followers, follower]
+})
+```
+
+Let's refactor `addFollower` through currying
+
+```ts
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
+}
+
+const addFollower = (follower: User) => (user: User): User => ({
+  ...user,
+  followers: [...user.followers, follower]
+})
+
+// -------------------
+// usage example
+// -------------------
+
+const user: User = { id: 1, name: 'Ruth R. Gonzalez', followers: [] }
+const follower: User = { id: 3, name: 'Marsha J. Joslyn', followers: [] }
+
+console.log(addFollower(follower)(user))
+/*
+{
+  id: 1,
+  name: 'Ruth R. Gonzalez',
+  followers: [ { id: 3, name: 'Marsha J. Joslyn', followers: [] } ]
+}
+*/
+```
+
+## The `ap` operation
+
+Suppose that:
+
+- we do not have a `follower` but only his `id`
+- we do not have a `user` but only his `id`
+- that we have an API `fetchUser` which, given an `id`, queries an endpoint that returns the corresponding `User`
+
+```ts
+import * as T from 'fp-ts/Task'
+
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
+}
+
+const addFollower = (follower: User) => (user: User): User => ({
+  ...user,
+  followers: [...user.followers, follower]
+})
+
+declare const fetchUser: (id: number) => T.Task<User>
+
+const userId = 1
+const followerId = 3
+
+const result = addFollower(fetchUser(followerId))(fetchUser(userId)) // does not compile
+```
+
+I can't use `addFollower` anymore! How can we proceed?
+Non posso più usare `addFollower`! Come possiamo procedere?
+
+If only we had a function with the following signature:
+
+```ts
+declare const addFollowerAsync: (
+  follower: T.Task<User>
+) => (user: T.Task<User>) => T.Task<User>
+```
+
+we could proceed with ease:
+
+```ts
+import * as T from 'fp-ts/Task'
+
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
+}
+
+declare const fetchUser: (id: number) => T.Task<User>
+
+declare const addFollowerAsync: (
+  follower: T.Task<User>
+) => (user: T.Task<User>) => T.Task<User>
+
+const userId = 1
+const followerId = 3
+
+// const result: T.Task<User>
+const result = addFollowerAsync(fetchUser(followerId))(fetchUser(userId)) // now compiles
+```
+
+We can obviously implement `addFollowerAsyn` manually, but is it possible instead to find a transformation which starting with a function like `addFollower: (follower: User) => (user: User): User` returns a function like `addFollowerAsync: (follower: Task<User>) => (user: Task<User>) => Task<User>`?
+
+More generally what we would like to have is a transformation, call it `liftA2`, which beginning with a function `g: (b: B) => (c: C) => D` returns a function with the following signature:
 
 ```ts
 liftA2(g): (fb: F<B>) => (fc: F<C>) => F<D>
 ```
 
-How can we obtain it? Since `g` is unary, we can use a functor instance and the old `lift`:
+<img src="images/liftA2.png" width="500" alt="liftA2" />
+
+How can we obtain it? Given that `g` is now a unary function, we can leverage the functor instance and the good old `map`:
 
 ```ts
-lift(g): (fb: F<B>) => F<(c: C) => D>
+map(g): (fb: F<B>) => F<(c: C) => D>
 ```
 
-But now we're stuck: functor instances provide no legal operation that allows us to **unwrap** (`unpack`) the value `F<(c: C) => D>` in a function `(fc: F<C>) => F<D>`.
+<img src="images/liftA2-first-step.png" width="500" alt="liftA2 (first step)" />
 
-## Apply
+Now we are blocked: there's no legal operation the functor instance provides us to "unpack" the type `F<(c: C) => D>` into `(fc: F<C>) => F<D>`.
 
-Let's introduce a new abstraction called `Apply` that owns such an unwrapping operation (called `ap`):
+We need to introduce a new operation `ap` which realizes this unpacking:
 
 ```ts
-interface Apply<F> extends Functor<F> {
-  readonly ap: <C, D>(fcd: HKT<F, (c: C) => D>, fc: HKT<F, C>) => HKT<F, D>
+declare const ap: <A>(fa: Task<A>) => <B>(fab: Task<(a: A) => B>) => Task<B>
+```
+
+**Note**. Why is it names "ap"? Because it can be seen like some sort of function application.
+
+```ts
+// `apply` applies a function to a value
+declare const apply: <A>(a: A) => <B>(f: (a: A) => B) => B
+
+declare const ap: <A>(a: Task<A>) => <B>(f: Task<(a: A) => B>) => Task<B>
+// `ap` applies a function wrapped into an effect to a value wrapped into an effect
+```
+
+Now that we have `ap` we can define `liftA2`:
+
+```ts
+import { pipe } from 'fp-ts/function'
+import * as T from 'fp-ts/Task'
+
+const liftA2 = <B, C, D>(g: (b: B) => (c: C) => D) => (fb: T.Task<B>) => (
+  fc: T.Task<C>
+): T.Task<D> => pipe(fb, T.map(g), T.ap(fc))
+
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
 }
+
+const addFollower = (follower: User) => (user: User): User => ({
+  ...user,
+  followers: [...user.followers, follower]
+})
+
+// const addFollowerAsync: (fb: T.Task<User>) => (fc: T.Task<User>) => T.Task<User>
+const addFollowerAsync = liftA2(addFollower)
 ```
 
-The `ap` is basically `unpack` with rearranged arguments:
+and finally, we can compose `fetchUser` with the previous result:
 
 ```ts
-unpack: <C, D>(fcd: HKT<F, (c: C) => D>) => ((fc: HKT<F, C>) => HKT<F, D>)
-ap:     <C, D>(fcd: HKT<F, (c: C) => D>, fc: HKT<F, C>) => HKT<F, D>
-```
+import { flow, pipe } from 'fp-ts/function'
+import * as T from 'fp-ts/Task'
 
-thus `ap` can be derived from `unpack` (and vice versa).
+const liftA2 = <B, C, D>(g: (b: B) => (c: C) => D) => (fb: T.Task<B>) => (
+  fc: T.Task<C>
+): T.Task<D> => pipe(fb, T.map(g), T.ap(fc))
 
-## Applicative
-
-It would be handy if there was another operation able to **to lift a value** of type `A` into a value of type `F<A>`.
-
-We introduce the `Applicative` abstraction that enriches `Apply` and contains such an operation (called `of`):
-
-```ts
-interface Applicative<F> extends Apply<F> {
-  readonly of: <A>(a: A) => HKT<F, A>
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
 }
+
+const addFollower = (follower: User) => (user: User): User => ({
+  ...user,
+  followers: [...user.followers, follower]
+})
+
+declare const fetchUser: (id: number) => T.Task<User>
+
+// const program: (id: number) => (fc: T.Task<User>) => T.Task<User>
+const program = flow(fetchUser, liftA2(addFollower))
+
+const userId = 1
+const followerId = 3
+
+// const result: T.Task<User>
+const result = program(followerId)(fetchUser(userId))
 ```
 
-Let's see some `Applicative` instance for some common data types:
+We have found a standard procedure to compose two functions `f: (a: A) => F<B>`, `g: (b: B, c: C) => D`:
 
-**Example** (`F = Array`)
+1. we transform `g` through currying in a function `g: (b: B) => (c: C) => D`
+2. we define the `ap` function for the effect `F` (library function)
+3. we define the utility function `liftA2` for the effect `F` (library function)
+4. we obtain the composition `flow(f, liftA2(g))`
+
+Let's see how's the `ap` operation implemented for some of the type constructors we've already seen:
+
+**Example** (`F = ReadonlyArray`)
 
 ```ts
-import { flatten } from 'fp-ts/lib/Array'
+import { increment, pipe } from 'fp-ts/function'
 
-export const applicativeArray = {
-  map: <A, B>(fa: Array<A>, f: (a: A) => B): Array<B> => fa.map(f),
-  of: <A>(a: A): Array<A> => [a],
-  ap: <A, B>(fab: Array<(a: A) => B>, fa: Array<A>): Array<B> =>
-    flatten(fab.map((f) => fa.map(f)))
+const ap = <A>(fa: ReadonlyArray<A>) => <B>(
+  fab: ReadonlyArray<(a: A) => B>
+): ReadonlyArray<B> => {
+  const out: Array<B> = []
+  for (const f of fab) {
+    for (const a of fa) {
+      out.push(f(a))
+    }
+  }
+  return out
 }
+
+const double = (n: number): number => n * 2
+
+pipe([double, increment], ap([1, 2, 3]), console.log) // => [ 2, 4, 6, 2, 3, 4 ]
 ```
 
 **Example** (`F = Option`)
 
 ```ts
-import { fold, isNone, map, none, Option, some } from 'fp-ts/lib/Option'
-import { pipe } from 'fp-ts/lib/pipeable'
+import { pipe } from 'fp-ts/function'
+import * as O from 'fp-ts/Option'
 
-export const applicativeOption = {
-  map: <A, B>(fa: Option<A>, f: (a: A) => B): Option<B> =>
-    isNone(fa) ? none : some(f(fa.value)),
-  of: <A>(a: A): Option<A> => some(a),
-  ap: <A, B>(fab: Option<(a: A) => B>, fa: Option<A>): Option<B> =>
-    pipe(
-      fab,
-      fold(
-        () => none,
-        (f) => pipe(fa, map(f))
-      )
+const ap = <A>(fa: O.Option<A>) => <B>(
+  fab: O.Option<(a: A) => B>
+): O.Option<B> =>
+  pipe(
+    fab,
+    O.match(
+      () => O.none,
+      (f) =>
+        pipe(
+          fa,
+          O.match(
+            () => O.none,
+            (a) => O.some(f(a))
+          )
+        )
     )
+  )
+
+const double = (n: number): number => n * 2
+
+pipe(O.some(double), ap(O.some(1)), console.log) // => some(2)
+pipe(O.some(double), ap(O.none), console.log) // => none
+pipe(O.none, ap(O.some(1)), console.log) // => none
+pipe(O.none, ap(O.none), console.log) // => none
+```
+
+**Example** (`F = IO`)
+
+```ts
+import { IO } from 'fp-ts/IO'
+
+const ap = <A>(fa: IO<A>) => <B>(fab: IO<(a: A) => B>): IO<B> => () => {
+  const f = fab()
+  const a = fa()
+  return f(a)
 }
 ```
 
 **Example** (`F = Task`)
 
 ```ts
-import { Task } from 'fp-ts/lib/Task'
+import { Task } from 'fp-ts/Task'
 
-export const applicativeTask = {
-  map: <A, B>(fa: Task<A>, f: (a: A) => B): Task<B> => () => fa().then(f),
-  of: <A>(a: A): Task<A> => () => Promise.resolve(a),
-  ap: <A, B>(fab: Task<(a: A) => B>, fa: Task<A>): Task<B> => () =>
-    Promise.all([fab(), fa()]).then(([f, a]) => f(a))
-}
+const ap = <A>(fa: Task<A>) => <B>(fab: Task<(a: A) => B>): Task<B> => () =>
+  Promise.all([fab(), fa()]).then(([f, a]) => f(a))
 ```
 
-## Lifting
-
-Given an `Apply` instance for `F` can we define `liftA2`?
+**Example** (`F = Reader`)
 
 ```ts
-import { HKT } from 'fp-ts/lib/HKT'
-import { Apply } from 'fp-ts/lib/Apply'
+import { Reader } from 'fp-ts/Reader'
 
-type Curried2<B, C, D> = (b: B) => (c: C) => D
-
-function liftA2<F>(
-  F: Apply<F>
-): <B, C, D>(
-  g: Curried2<B, C, D>
-) => Curried2<HKT<F, B>, HKT<F, C>, HKT<F, D>> {
-  return (g) => (fb) => (fc) => F.ap(F.map(fb, g), fc)
+const ap = <R, A>(fa: Reader<R, A>) => <B>(
+  fab: Reader<R, (a: A) => B>
+): Reader<R, B> => (r) => {
+  const f = fab(r)
+  const a = fa(r)
+  return f(a)
 }
 ```
 
-Great! But what happens if the functions accept **three** arguments? Do we need, _yet another abstraction_?
+We've seen how with `ap` we can manage functions with two parameters, but what happens with functions that take **three** parameters? Do we need _yet another abstraction_?
 
-Good news, we don't, `Apply` is enough:
+Good news is no, `map` and `ap` are sufficient:
 
 ```ts
-type Curried3<B, C, D, E> = (b: B) => (c: C) => (d: D) => E
+import { pipe } from 'fp-ts/function'
+import * as T from 'fp-ts/Task'
 
-function liftA3<F>(
-  F: Apply<F>
-): <B, C, D, E>(
-  g: Curried3<B, C, D, E>
-) => Curried3<HKT<F, B>, HKT<F, C>, HKT<F, D>, HKT<F, E>> {
-  return (g) => (fb) => (fc) => (fd) => F.ap(F.ap(F.map(fb, g), fc), fd)
-}
+const liftA3 = <B, C, D, E>(f: (b: B) => (c: C) => (d: D) => E) => (
+  fb: T.Task<B>
+) => (fc: T.Task<C>) => (fd: T.Task<D>): T.Task<E> =>
+  pipe(fb, T.map(f), T.ap(fc), T.ap(fd))
+
+const liftA4 = <B, C, D, E, F>(
+  f: (b: B) => (c: C) => (d: D) => (e: E) => F
+) => (fb: T.Task<B>) => (fc: T.Task<C>) => (fd: T.Task<D>) => (
+  fe: T.Task<E>
+): T.Task<F> => pipe(fb, T.map(f), T.ap(fc), T.ap(fd), T.ap(fe))
+
+// etc...
 ```
 
-In reality, given an `Apply` instance we can write with the same pattern a function `liftAn`, **no matter** what `n` is!
-
-**Note**. `liftA1` is simply `lift`, `Functor`'s fundamental operation.
-
-We can now refresh our "composition table":
+Now we cam update ore "composition table":
 
 | Program f | Program g     | Composition     |
 | --------- | ------------- | --------------- |
 | pure      | pure          | `g ∘ f`         |
+| effectful | pure (unary)  | `map(g) ∘ f`    |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 
-where `liftA1 = lift`
+## The `of` operation
+
+Now we know that given two function `f: (a: A) => F<B>`, `g: (b: B, c: C) => D` we can obtain the composition `h`:
+
+```ts
+h: (a: A) => (fb: F<B>) => F<D>
+```
+
+To execute `h` we need a new value of type `A` and a value of type `F<B>`.
+
+But what happens if, instead of having a value of type `F<B>`, for the second parameter `fb` we only have a value of type `B`?
+
+It would be helpful to have an operation which can transform a value of type `B` in a value of type `F<B>` in order to use `h`.
+
+Let's introduce such operation, called `of` (other synonyms: **pure**, **return**):
+
+```ts
+declare const of: <B>(b: B) => F<B>
+```
+
+In literature the term **applicative functors** is used for the type constructors which admith _both_ the `ap` and `of` operations.
+
+Let's see how `of` is defined for some type constructors we've already seen:
+
+**Example** (`F = ReadonlyArray`)
+
+```ts
+const of = <A>(a: A): ReadonlyArray<A> => [a]
+```
+
+**Example** (`F = Option`)
+
+```ts
+import * as O from 'fp-ts/Option'
+
+const of = <A>(a: A): O.Option<A> => O.some(a)
+```
+
+**Example** (`F = IO`)
+
+```ts
+import { IO } from 'fp-ts/IO'
+
+const of = <A>(a: A): IO<A> => () => a
+```
+
+**Example** (`F = Task`)
+
+```ts
+import { Task } from 'fp-ts/Task'
+
+const of = <A>(a: A): Task<A> => () => Promise.resolve(a)
+```
+
+**Example** (`F = Reader`)
+
+```ts
+import { Reader } from 'fp-ts/Reader'
+
+const of = <R, A>(a: A): Reader<R, A> => () => a
+```
 
 **Demo**
 
-[`04_applicative.ts`](src/04_applicative.ts)
+[`05_applicative.ts`](src/05_applicative.ts)
 
-## Composition of applicative functors
+## Applicative functors compose
 
-An interesting property of applicative functors is that they compose: for every two functors `F` and `G`, their composition `F<G<A>>` is still an applicative functor.
+Applicative functors compose, meaning that given two applicative functors `F` and `G`, their composition `F<G<A>>` is still an applicative functor.
 
-**Example**
+**Example** (`F = Task`, `G = Option`)
 
-```ts
-import { array } from 'fp-ts/lib/Array'
-import { Option, option } from 'fp-ts/lib/Option'
-
-export const applicativeArrayOption = {
-  map: <A, B>(fa: Array<Option<A>>, f: (a: A) => B): Array<Option<B>> =>
-    array.map(fa, (oa) => option.map(oa, f)),
-  of: <A>(a: A): Array<Option<A>> => array.of(option.of(a)),
-  ap: <A, B>(
-    fab: Array<Option<(a: A) => B>>,
-    fa: Array<Option<A>>
-  ): Array<Option<B>> =>
-    array.ap(
-      array.map(fab, (gab) => (ga: Option<A>) => option.ap(gab, ga)),
-      fa
-    )
-}
-```
-
-To avoid all of this boilerplate `fp-ts` exports a useful helper:
+The `of` of the composition is the composition of the `of`s:
 
 ```ts
-import { getApplicativeComposition } from 'fp-ts/lib/Applicative'
-import { array } from 'fp-ts/lib/Array'
-import { option } from 'fp-ts/lib/Option'
+import { flow } from 'fp-ts/function'
+import * as O from 'fp-ts/Option'
+import * as T from 'fp-ts/Task'
 
-export const applicativeArrayOption = getApplicativeComposition(array, option)
+type TaskOption<A> = T.Task<O.Option<A>>
+
+const of: <A>(a: A) => TaskOption<A> = flow(O.of, T.of)
 ```
 
-## Did we solve the general problem?
+the `ap` of the composition is obtained by the following pattern:
 
-Not yet. There is still one last important case we have to consider: when **both** the programs are effectful.
+```ts
+const ap = <A>(
+  fa: TaskOption<A>
+): (<B>(fab: TaskOption<(a: A) => B>) => TaskOption<B>) =>
+  flow(
+    T.map((gab) => (ga: O.Option<A>) => O.ap(ga)(gab)),
+    T.ap(fa)
+  )
+```
+
+## Do applicative functors solve the general problem?
+
+Not yet. There's one last very important case to consider: when **both** programs are effectful.
 
 Yet again we need something more, in the following chapter we'll talk about one of the most important abstractions in functional programming: **monads**.
 
 # Monads
 
-Eugenio Moggi is a professor of computer science at the University of Genoa, Italy. He first described the general use of monads to structure programs.
+<center>
+<img src="images/moggi.jpg" width="300" alt="Eugenio Moggi" />
 
-<img src="images/moggi.jpg" width="300" alt="Heinrich Kleisli" />
+(Eugenio Moggi is a professor of computer science at the University of Genoa, Italy. He first described the general use of monads to structure programs)
 
-Philip Lee Wadler is an American computer scientist known for his contributions to programming language design and type theory.
+<img src="images/wadler.jpg" width="300" alt="Philip Lee Wadler" />
 
-<img src="images/wadler.jpg" width="300" alt="Heinrich Kleisli" />
+(Philip Lee Wadler is an American computer scientist known for his contributions to programming language design and type theory)
 
-In the previous chapter we've seen that we can compose an effectful program `f: (a: A) => M<B>` with a pure `n`-ary one `g`, if and only if `M` admits an instance of an applicative functor:
+</center>
+
+In the last chapter we have seen how we can compose an effectful program `f: (a: A) => F<B>` with an `n`-ary pure program `g`, if and only if the type constructor `F` admits an applicative functor instance:
 
 | Program f | Program g     | Composition     |
 | --------- | ------------- | --------------- |
 | pure      | pure          | `g ∘ f`         |
+| effectful | pure (unary)  | `map(g) ∘ f`    |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 
-where `liftA1 = lift`
-
-But we have yet to solve one last, and common, case: when **both** programs are effectful.
-
-Given these two effectful functions:
+But we need to solve one last, quite common, case: when **both** programs are effectful:
 
 ```ts
-f: (a: A) => M<B>
-g: (b: B) => M<C>
+f: (a: A) => F<B>
+g: (b: B) => F<C>
 ```
 
-what is their composition?
+What is the composition of `f` and `g`?
 
-To handle this last case we need something more "powerful" than `Functor` given that it is quite common to find ourselves with multiple nested contexts.
+## The problem with nested contexts
 
-## The issue: nested contexts
+Let's see few examples on why we need something more.
 
-To show why we need something more, let's see a practical example.
+**Example** (`F = Array`)
 
-**Example** (`M = Array`)
-
-Suppose we need to find the followers of the followers of a Twitter user.
+Suppose we want to get followers' followers.
 
 ```ts
+import { pipe } from 'fp-ts/function'
+import * as A from 'fp-ts/ReadonlyArray'
+
 interface User {
-  followers: Array<User>
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
 }
 
-const getFollowers = (user: User): Array<User> => user.followers
+const getFollowers = (user: User): ReadonlyArray<User> => user.followers
 
 declare const user: User
 
-const followersOfFollowers: Array<Array<User>> = getFollowers(user).map(
-  getFollowers
+// followersOfFollowers: ReadonlyArray<ReadonlyArray<User>>
+const followersOfFollowers = pipe(user, getFollowers, A.map(getFollowers))
+```
+
+There's something wrong here, `followersOfFollowers` has a type `ReadonlyArray<ReadonlyArray<User>>` but we want `ReadonlyArray<User>`.
+
+We need to **flatten** nested arrays.
+
+The function `flatten: <A>(mma: ReadonlyArray<ReadonlyArray<A>>) => ReadonlyArray<A>` exported by the `fp-ts/ReadonlyArray` is exactly what we need:
+
+```ts
+// followersOfFollowers: ReadonlyArray<User>
+const followersOfFollowers = pipe(
+  user,
+  getFollowers,
+  A.map(getFollowers),
+  A.flatten
 )
 ```
 
-Something's odd here: `followersOfFollowers` has typo `Array<Array<User>>` but we actually want `Array<User>`.
+Cool! Let's see some other data type.
 
-We need to un-nest (**flatten**) the nested arrays.
+**Esempio** (`F = Option`)
 
-The `flatten: <A>(mma: Array<Array<A>>) => Array<A>` function exported from `fp-ts` can help us here:
-
-```ts
-import { flatten } from 'fp-ts/lib/Array'
-
-const followersOfFollowers: Array<User> = flatten(
-  getFollowers(user).map(getFollowers)
-)
-```
-
-Good! Let's see another type:
-
-**Example** (`M = Option`)
-
-Suppose we want to calculate the multiplicative inverse (reciprocal) of the first element of an array of numbers:
+Suppose you want to calculate the reciprocal of the first element of a numerical array:
 
 ```ts
-import { head } from 'fp-ts/lib/Array'
-import { none, Option, option, some } from 'fp-ts/lib/Option'
+import { pipe } from 'fp-ts/function'
+import * as O from 'fp-ts/Option'
+import * as A from 'fp-ts/ReadonlyArray'
 
-const inverse = (n: number): Option<number> => (n === 0 ? none : some(1 / n))
+const inverse = (n: number): O.Option<number> =>
+  n === 0 ? O.none : O.some(1 / n)
 
-const inverseHead: Option<Option<number>> = option.map(head([1, 2, 3]), inverse)
+// inverseHead: O.Option<O.Option<number>>
+const inverseHead = pipe([1, 2, 3], A.head, O.map(inverse))
 ```
 
-Oops, we did it again, `inverseHead` has typo `Option<Option<number>>` but we need an `Option<number>`.
+Oops, it happened again, `inverseHead` has type `Option<Option<number>>` but we want `Option<number>`.
 
-We need to un-nest again the nested `Option`s.
+We need to flatten again the nested `Option`s.
+
+The `flatten: <A>(mma: Option<Option<A>>) => Option<A>` function exported by the `fp-ts/Option` module is what we need:
 
 ```ts
-import { head } from 'fp-ts/lib/Array'
-import { isNone, none, Option, option } from 'fp-ts/lib/Option'
-
-const flatten = <A>(mma: Option<Option<A>>): Option<A> =>
-  isNone(mma) ? none : mma.value
-
-const inverseHead: Option<number> = flatten(
-  option.map(head([1, 2, 3]), inverse)
-)
+// inverseHead: O.Option<number>
+const inverseHead = pipe([1, 2, 3], A.head, O.map(inverse), O.flatten)
 ```
 
-All of these `flatten` functions...are not a coincidence. There is a functional pattern behind the scenes: all of those type constructors (and many others) admit **monad instance** and
+All of those `flatten` funcitons...They aren't a coincidence, there is a functional pattern behind the scenes: both the type constructors
+`ReadonlyArray` and `Option` (and many others) admit a **monad instance** and
 
 > `flatten` is the most peculiar operation of monads
 
+**Note**. A common synonym of `flatten` is **join**.
+
 So, what is a monad?
 
-This is how monads are presented very often...
+Here is how they are often presented...
 
-## Definition
+## Monad Definition
 
-A monad is defined by three laws:
+**Definition**. A monad is defined by three things:
 
 (1) a type constructor `M` admitting a functor instance
 
-(2) a function `of` with the following signature:
+(2) a function `of` (also called **pure** or **return**) with the following signature:
 
 ```ts
-of: <A>(a: A) => HKT<M, A>
+of: <A>(a: A) => M<A>
 ```
 
-(3) a `flatMap` function with the following signature:
+(3) a `chain` function (also called **flatMap** or **bind**) with the following signature:
 
 ```ts
-flatMap: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
+chain: <A, B>(f: (a: A) => M<B>) => (ma: M<A>) => M<B>
 ```
 
-**Note**: remember that the `HKT` type is how `fp-ts` represents a generic type constructor, thus when we see `HKT<M, X>` we can think about the type constructor `M` applied on the type `X` (or `M<X>`).
+The `of` and `chain` functions need to obey three laws:
 
-The functions `of` and `flatMap` have to obey these three laws:
-
-- `flatMap(of) ∘ f = f` (**Left identity**)
-- `flatMap(f) ∘ of = f` (**Right identity**)
-- `flatMap(h) ∘ (flatMap(g) ∘ f) = flatMap((flatMap(h) ∘ g)) ∘ f` (**Associativity**)
+- `chain(of) ∘ f = f` (**Left identity**)
+- `chain(f) ∘ of = f` (**Right identity**)
+- `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` (**Associativity**)
 
 where `f`, `g`, `h` are all effectful functions and `∘` is the usual function composition.
 
-## Ok but...why?
+When I saw this definition for the first time I had many questions:
 
-When I (Giulio, ndr) saw this definition for the first time my first reaction was disconcert.
-
-I had many questions:
-
-- why these two operations and why do they have these signatures?
-- why does the "flatMap" name?
-- why do these laws have to hold true? What do they mean?
-- but most importantly, where's my `flatten`?
+- why exactly those two operation `of` and `chain`? and why to they have those signatures?
+- why do they have those synonyms like "pure" or "flatMap"?
+- why does laws need to hold true? What do they mean?
+- if `flatten` is so important for monads, why it doesn't compare in its definition?
 
 This chapter will try to answer all of these questions.
 
-Let's get back to our problem: what is the composition of two effectful functions (also called **Kleisli arrows**)?
+Let's get back to the core problem: what is the composition of two effectful functions `f` and `g`?
 
 <img src="images/kleisli_arrows.png" alt="two Kleisli arrows, what's their composition?" width="450px" />
 
-For now, I don't even know the **type** of such a composition.
+<center>(two Kleisli Arrows)</center>
 
-Wait a moment... we already met an abstraction that deals specifically with composition. Do you remember what did we say about categories?
+**Nota**. An effectful function is also called **Kleisli arrow**.
+
+For the time being I don't even know the **type** of such composition.
+
+But we've already seen some abstractions that talks specifically about composition. Do you remember what we said about categories?
 
 > Categories capture the essence of composition
 
-We can thus turn our composition problem in a category problem: can we find a category that models the composition of Kleisli arrows?
+We can transform our problem into a category problem, meaning: can we find a category that models the composition of Kleisli arrows?
 
-## Kleisli's category
+## The Kleisli category
 
-Heinrich Kleisli (Swiss mathematician)
-
+<center>
 <img src="images/kleisli.jpg" width="300" alt="Heinrich Kleisli" />
 
-Let's try building a category _K_ (called **Kleisli's category**) that contains _only_ effectful functions:
+(Heinrich Kleisli, Swiss mathematician)
 
-- **objects** which are the same of the _TS_ category, thus all the TypeScript's types.
-- **morphism** are constructed this way: every time there is a Kleisli arrow `f: A ⟼ M<B>` in _TS_ we draw an arrow `f': A ⟼ B` in _K_.
+</center>
 
-<img src="images/kleisli_category.png" alt="above the TS category, below the K construction" width="450px" />
+Let's try building a category _K_ (called **Kleisli category**) which contains \_only) Kleisli arrows:
 
-(above the _TS_ category, underneath the construction of _K_)
+- **objects** will be the same objects of the _TS_ category, so all TypeScript types.
+- **morphisms** are built like this: every time there is a Kleisli arrow `f: A ⟼ M<B>` in _TS_ we draw an arrow `f': A ⟼ B` in _K_
 
-Thus, what is the composition of `f` and `g` in _K_? It is the dotted arrow called `h'` in the following image:
+<center>
+<img src="images/kleisli_category.png" alt="above the TS category, below the K construction" width="400px" />
 
-<img src="images/kleisli_composition.png" alt="above the composition in the TS category, below the composition in the K construction" width="450px" />
+(above the composition in the _TS_ category, below the composition in the _K_ construction)
 
-(above the _TS_ category, underneath the construction of _K_)
+</center>
 
-Since `h'` is an arrow that goes from a `A` to `C`, there has to be a corresponding function `h` that goes from `A` to `M<C>` in `TS`.
+So what would be the composition of `f` and `g` in _K_?
+It's th red arrow called `h'` in the image below:
 
-Thus a good composition for composing `f` and `g` in _TS_ is still an effectful function with the following signature: `(a: A) => M<C>`.
+<center>
+<img src="images/kleisli_composition.png" alt="above the composition in the TS category, below the composition in the K construction" width="400px" />
 
-How can we construct such a function? Well, let's try!
+(above the composition in the _TS_ category, below the composition in the _K_ construction)
 
-## Step by step composition construction
+</center>
 
-The first (1) point of the monad definition tells us that `M` admits a functor instance, thus we can use `lift` to transform the function `g: (b: B) => M<C>` in a function `lift(g): (mb: M<B>) => M<M<C>>` (I'll use the name `map` instead of `lift`, but we know they are equivalent). <!-- TODO: WHY? -->
+Given that `h'` is an arrow from `A` to `C` in `K`, we can find a corresponding function `h` from `A` to `M<C>` in `TS`.
 
-<img src="images/flatMap.png" alt="where flatMap comes from" width="450px" />
+Thus, a good candidate for the following composition of `f` and `g` in _TS_ is still a Kleisli arrow with the following signature: `(a: A) => M<C>`.
 
-(where `flatMap` is born)
+Let's try implementing such a function.
 
-But know we're stuck: we have no legal operation for the functor instance allowing us to de-nest a value of type `M<M<C>>` in a value of type `M<C>`, we need an additional operation called `flatten`.
+## Defining `chain` step by step
 
-If we can define such an operation then we can find the composition we are looking for:
+The first point (1) of the monad definition tells us that `M` admits a functor instance, thus we can use the `map` function to transform the function `g: (b: B) => M<C>` into a function `map(g): (mb: M<B>) => M<M<C>>`
+
+<center>
+<img src="images/flatMap.png" alt="where chain comes from" width="450px" />
+
+(how to obtain the `h` function)
+
+</center>
+
+We're stuck now though: there is no legal operation for the functor instance that allows us to flatten a value of type `M<M<C>>` into a value of type `M<C>`, we need an additional operation, let's call it `flatten`.
+
+If we can define such operation then we can find the composition we were looking for:
 
 ```
 h = flatten ∘ map(g) ∘ f
 ```
 
-But wait... `flatten ∘ map(g)` is **flatMap**, that's where the name comes from!
+By joining the `flatten ∘ map(g)` names we get "flatMap", hence the name!
+
+Thus we can get `chain` in this way
 
 ```
-h = flatMap(g) ∘ f
+chain = flatten ∘ map(g)
 ```
 
-We can now update our "composition table"
+<center>
+<img src="images/chain.png" alt="come agisce `chain` sulla funzione `g`" width="400px" />
 
-| Program f | Program g     | Composition      |
-| --------- | ------------- | ---------------- |
-| pure      | pure          | `g ∘ f`          |
-| effectful | pure, `n`-ary | `liftAn(g) ∘ f`  |
-| effectful | effectful     | `flatMap(g) ∘ f` |
+(how `chain` operates on the function `g`)
 
-where `liftA1 = lift`
+</center>
 
-And what about `of`? Well, `of` comes from the identity morphisms in _K_: for every identity morphism 1<sub>A</sub> in _K_ there has to be a corresponding function from `A` to `M<A>` (thus `of: <A>(a: A) => M<A>`).
+Now we can update our composition table
 
+| Program f | Program g     | Composition     |
+| --------- | ------------- | --------------- |
+| pure      | pure          | `g ∘ f`         |
+| effectful | pure (unary)  | `map(g) ∘ f`    |
+| effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
+| effectful | effectful     | `chain(g) ∘ f`  |
+
+What about `of`? Well, `of` comes from the identity morphisms in _K_: for every identity morphism 1<sub>A</sub> in _K_ there has to be a corresponding function from `A` to `M<A>` (ovvero `of: <A>(a: A) => M<A>`).
+
+<center>
 <img src="images/of.png" alt="where of comes from" width="300px" />
 
-(where does `of` comes from)
+(come ottenere `of`)
 
-## Laws
+</center>
 
-Last question: where those these laws come from? Those are nothing else but category laws in _K_ translated to _TS_;
-
-| Law            | _K_                               | _TS_                                                            |
-| -------------- | --------------------------------- | --------------------------------------------------------------- |
-| Left identity  | 1<sub>B</sub> ∘ `f'` = `f'`       | `flatMap(of) ∘ f = f`                                           |
-| Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `flatMap(f) ∘ of = f`                                           |
-| Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `flatMap(h) ∘ (flatMap(g) ∘ f) = flatMap((flatMap(h) ∘ g)) ∘ f` |
-
-## Monads in `fp-ts`
-
-In `fp-ts` the `flatMap` function is modelled with one of its variants called `chain`, which is basically `flatMap` with the arguments rearranged:
+The fact that `of` is the neutral element for `chain` allows this kind of flux control (pretty common):
 
 ```ts
-flatMap: <A, B>(f: (a: A) => HKT<M, B>) => ((ma: HKT<M, A>) => HKT<M, B>)
-chain:   <A, B>(ma: HKT<M, A>, f: (a: A) => HKT<M, B>) => HKT<M, B>
+pipe(
+  mb,
+  M.chain((b) => (predicate(b) ? M.of(b) : g(b)))
+)
 ```
 
-Note that `chain` can be derived from `flatMap` (and vice versa).
+where `predicate: (b: B) => boolean`, `mb: M<B>` and `g: (b: B) => M<B>`.
 
-If we now go back to the previous examples that were showing the nested context we can solve them with `chain`:
+Last question: where do the laws come from? They are nothing else but the categorical laws in _K_ translated to _TS_:
+
+| Law            | _K_                               | _TS_                                                    |
+| -------------- | --------------------------------- | ------------------------------------------------------- |
+| Left identity  | 1<sub>B</sub> ∘ `f'` = `f'`       | `chain(of) ∘ f = f`                                     |
+| Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `chain(f) ∘ of = f`                                     |
+| Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` |
+
+If we now go back to the examples that showed the problem with nested contexts we can solve them using `chain`:
 
 ```ts
-import { array, head } from 'fp-ts/lib/Array'
-import { Option, option } from 'fp-ts/lib/Option'
+import { pipe } from 'fp-ts/function'
+import * as O from 'fp-ts/Option'
+import * as A from 'fp-ts/ReadonlyArray'
 
-const followersOfFollowers: Array<User> = array.chain(
-  getFollowers(user),
-  getFollowers
+interface User {
+  readonly id: number
+  readonly name: string
+  readonly followers: ReadonlyArray<User>
+}
+
+const getFollowers = (user: User): ReadonlyArray<User> => user.followers
+
+declare const user: User
+
+const followersOfFollowers: ReadonlyArray<User> = pipe(
+  user,
+  getFollowers,
+  A.chain(getFollowers)
 )
 
-const headInverse: Option<number> = option.chain(head([1, 2, 3]), inverse)
+const inverse = (n: number): O.Option<number> =>
+  n === 0 ? O.none : O.some(1 / n)
+
+const inverseHead: O.Option<number> = pipe([1, 2, 3], A.head, O.chain(inverse))
 ```
 
-## Referential transparency
+Let's see how is `chain` implemented for the usual type constructors we've already seen:
 
-Let's see now, how can we leverage the monad and referential transparency concepts to manipulate programs programmatically.
-
-Let's see a small program that reads / writes a file.
+**Example** (`F = ReadonlyArray`)
 
 ```ts
-import { log } from 'fp-ts/lib/Console'
-import { IO, chain } from 'fp-ts/lib/IO'
-import { pipe } from 'fp-ts/lib/pipeable'
+// transforms functions `B -> ReadonlyArray<C>` into functions `ReadonlyArray<B> -> ReadonlyArray<C>`
+const chain = <B, C>(g: (b: B) => ReadonlyArray<C>) => (
+  mb: ReadonlyArray<B>
+): ReadonlyArray<C> => {
+  const out: Array<C> = []
+  for (const b of mb) {
+    out.push(...g(b))
+  }
+  return out
+}
+```
+
+**Example** (`F = Option`)
+
+```ts
+import { match, none, Option } from 'fp-ts/Option'
+
+// transforms functions `B -> Option<C>` into functions `Option<B> -> Option<C>`
+const chain = <B, C>(g: (b: B) => Option<C>): ((mb: Option<B>) => Option<C>) =>
+  match(() => none, g)
+```
+
+**Example** (`F = IO`)
+
+```ts
+import { IO } from 'fp-ts/IO'
+
+// transforms functions `B -> IO<C>` into functions `IO<B> -> IO<C>`
+const chain = <B, C>(g: (b: B) => IO<C>) => (mb: IO<B>): IO<C> => () =>
+  g(mb())()
+```
+
+**Example** (`F = Task`)
+
+```ts
+import { Task } from 'fp-ts/Task'
+
+// transforms functions `B -> Task<C>` into functions `Task<B> -> Task<C>`
+const chain = <B, C>(g: (b: B) => Task<C>) => (mb: Task<B>): Task<C> => () =>
+  mb().then((b) => g(b)())
+```
+
+**Example** (`F = Reader`)
+
+```ts
+import { Reader } from 'fp-ts/Reader'
+
+// transforms functions `B -> Reader<R, C>` into functions `Reader<R, B> -> Reader<R, C>`
+const chain = <B, R, C>(g: (b: B) => Reader<R, C>) => (
+  mb: Reader<R, B>
+): Reader<R, C> => (r) => g(mb(r))(r)
+```
+
+## Manipulating programs
+
+Let's see now, how thanks to referential transparency and the monad concept we can programmaticaly manipulate programs.
+
+Here's a small program that reads / writes a file:
+
+```ts
+import { log } from 'fp-ts/Console'
+import { IO, chain } from 'fp-ts/IO'
+import { pipe } from 'fp-ts/function'
 import * as fs from 'fs'
 
-//
+// -----------------------------------------
 // library functions
-//
+// -----------------------------------------
 
 const readFile = (filename: string): IO<string> => () =>
   fs.readFileSync(filename, 'utf-8')
@@ -4012,118 +4443,456 @@ const readFile = (filename: string): IO<string> => () =>
 const writeFile = (filename: string, data: string): IO<void> => () =>
   fs.writeFileSync(filename, data, { encoding: 'utf-8' })
 
-//
+// API deruved from the previous functions
+const modifyFile = (filename: string, f: (s: string) => string): IO<void> =>
+  pipe(
+    readFile(filename),
+    chain((s) => writeFile(filename, f(s)))
+  )
+
+// -----------------------------------------
 // program
-//
+// -----------------------------------------
 
 const program1 = pipe(
   readFile('file.txt'),
   chain(log),
-  chain(() => writeFile('file.txt', 'hello')),
+  chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
   chain(() => readFile('file.txt')),
   chain(log)
 )
 ```
 
-The action:
+The actions:
 
 ```ts
 pipe(readFile('file.txt'), chain(log))
 ```
 
-is repeated twice during the program, but since referential transparency holds we can put to a common factor the action assigning the expression to a constant.
+is repeated more than once in the program, but given that referential transparency holds we can factor it and assign it to a constant:
 
 ```ts
 const read = pipe(readFile('file.txt'), chain(log))
+const modify = modifyFile('file.txt', (s) => s + '\n// eof')
 
 const program2 = pipe(
   read,
-  chain(() => writeFile('file.txt', 'hello')),
+  chain(() => modify),
   chain(() => read)
 )
 ```
 
-We can even define a combinator and use it to make the code more compact:
+We can even define a combinator and leverage it to make the code more compact:
 
 ```ts
-function interleave<A, B>(a: IO<A>, b: IO<B>): IO<A> {
-  return pipe(
-    a,
-    chain(() => b),
-    chain(() => a)
+const interleave = <A, B>(action: IO<A>, middle: IO<B>): IO<A> =>
+  pipe(
+    action,
+    chain(() => middle),
+    chain(() => action)
   )
-}
 
-const program3 = interleave(read, writeFile('file.txt', 'foo'))
+const program3 = interleave(read, modify)
 ```
 
-Another example: implement a function similar to Unix' `time` (the part relative to the time of real execution) for `IO`.
+Another example: implementing a function similar to Unix' `time` (the part related to the execution time) for `IO`.
 
 ```ts
-import { IO, io } from 'fp-ts/lib/IO'
-import { now } from 'fp-ts/lib/Date'
-import { log } from 'fp-ts/lib/Console'
+import * as IO from 'fp-ts/IO'
+import { now } from 'fp-ts/Date'
+import { log } from 'fp-ts/Console'
+import { pipe } from 'fp-ts/function'
 
-export function time<A>(ma: IO<A>): IO<A> {
-  return io.chain(now, (start) =>
-    io.chain(ma, (a) =>
-      io.chain(now, (end) => io.map(log(`Elapsed: ${end - start}`), () => a))
+// logs the computation lenght in milliseconds
+export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
+  pipe(
+    now,
+    IO.chain((startMillis) =>
+      pipe(
+        ma,
+        IO.chain((a) =>
+          pipe(
+            now,
+            IO.chain((endMillis) =>
+              pipe(
+                log(`Elapsed: ${endMillis - startMillis}`),
+                IO.map(() => a)
+              )
+            )
+          )
+        )
+      )
     )
   )
-}
 ```
 
-Usage example:
+**Excursus**. As you can notice, using `chain` when it is required to maintain a scope leads to verbose code.
+In languages that support monadic stile natively there is often syntax support that goes by the name of "do notation" which eases this kind of situations.
+
+Let's see a Haskell example
+
+```haskell
+now :: IO Int
+now = undefined -- `undefined` in Haskell is equivalent to TypeScript's declare
+
+log :: String -> IO ()
+log = undefined
+
+time :: IO a -> IO a
+time ma = do
+  startMillis <- now
+  a <- ma
+  endMillis <- now
+  log ("Elapsed:" ++ show (endMillis - startMillis))
+  return a
+```
+
+TypeScript does not support such syntax, but it can be emulated with something similar:
 
 ```ts
-import { randomInt } from 'fp-ts/lib/Random'
-import { fold, monoidVoid } from 'fp-ts/lib/Monoid'
-import { getMonoid } from 'fp-ts/lib/IO'
-import { replicate } from 'fp-ts/lib/Array'
-import { pipe } from 'fp-ts/lib/pipeable'
-import { chain } from 'fp-ts/lib/IO'
+import { log } from 'fp-ts/Console'
+import { now } from 'fp-ts/Date'
+import { pipe } from 'fp-ts/function'
+import * as IO from 'fp-ts/IO'
 
-function fib(n: number): number {
-  return n <= 1 ? 1 : fib(n - 1) + fib(n - 2)
-}
+// logs the computation lenght in milliseconds
+export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
+  pipe(
+    IO.Do,
+    IO.bind('startMillis', () => now),
+    IO.bind('a', () => ma),
+    IO.bind('endMillis', () => now),
+    IO.chainFirst(({ endMillis, startMillis }) =>
+      log(`Elapsed: ${endMillis - startMillis}`)
+    ),
+    IO.map(({ a }) => a)
+  )
+```
 
-const printFib: IO<void> = pipe(
+Let's see a usage example of the `time` combinator:
+
+```ts
+import { randomInt } from 'fp-ts/Random'
+import { Monoid, concatAll } from 'fp-ts/Monoid'
+import { replicate } from 'fp-ts/ReadonlyArray'
+
+const fib = (n: number): number => (n <= 1 ? 1 : fib(n - 1) + fib(n - 2))
+
+// launches `fib` with a casual integer betwee 30 and 35
+// logging both the input and output
+const randomFib: IO.IO<void> = pipe(
   randomInt(30, 35),
-  chain((n) => log(fib(n)))
+  IO.chain((n) => log([n, fib(n)]))
 )
 
-function replicateIO(n: number, mv: IO<void>): IO<void> {
-  return fold(getMonoid(monoidVoid))(replicate(n, mv))
+// a monoid instance for `IO<void>`
+const MonoidIO: Monoid<IO.IO<void>> = {
+  concat: (first, second) => () => {
+    first()
+    second()
+  },
+  empty: IO.of(undefined)
 }
 
-time(replicateIO(3, printFib))()
+// executes `n` times the `mv` computation
+const replicateIO = (n: number, mv: IO.IO<void>): IO.IO<void> =>
+  concatAll(MonoidIO)(replicate(n, mv))
+
+// -------------------
+// usage example
+// -------------------
+
+time(replicateIO(3, randomFib))()
 /*
-5702887
-1346269
-14930352
-Elapsed: 193
+[ 31, 2178309 ]
+[ 33, 5702887 ]
+[ 30, 1346269 ]
+Elapsed: 89
 */
 ```
 
-Printing also the partials:
+Logs also the partial:
 
 ```ts
-time(replicateIO(3, time(printFib)))()
+time(replicateIO(3, time(randomFib)))()
 /*
-3524578
-Elapsed: 32
-14930352
-Elapsed: 125
-3524578
-Elapsed: 32
-Elapsed: 189
+[ 33, 5702887 ]
+Elapsed: 54
+[ 30, 1346269 ]
+Elapsed: 13
+[ 32, 3524578 ]
+Elapsed: 39
+Elapsed: 106
 */
+```
+
+One of the most interesting aspects of working with the monadic interface (`map`, `of`, `chain`) is the possibility to inject dependencies which the program needs, including the **way of concatenating different computations**.
+
+To see that, let's refactor the small program that reads and writes a file:
+
+```ts
+import { IO } from 'fp-ts/IO'
+import { pipe } from 'fp-ts/function'
+
+// -----------------------------------------
+// Deps interface, what we would call a "port" in the Hexagonal Architecture
+// -----------------------------------------
+
+interface Deps {
+  readonly readFile: (filename: string) => IO<string>
+  readonly writeFile: (filename: string, data: string) => IO<void>
+  readonly log: <A>(a: A) => IO<void>
+  readonly chain: <A, B>(f: (a: A) => IO<B>) => (ma: IO<A>) => IO<B>
+}
+
+// -----------------------------------------
+// program
+// -----------------------------------------
+
+const program4 = (D: Deps) => {
+  const modifyFile = (filename: string, f: (s: string) => string) =>
+    pipe(
+      D.readFile(filename),
+      D.chain((s) => D.writeFile(filename, f(s)))
+    )
+
+  return pipe(
+    D.readFile('file.txt'),
+    D.chain(D.log),
+    D.chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
+    D.chain(() => D.readFile('file.txt')),
+    D.chain(D.log)
+  )
+}
+
+// -----------------------------------------
+// a `Deps` instance, what we would call an "adapter" in the Hexagonal Architecture
+// -----------------------------------------
+
+import * as fs from 'fs'
+import { log } from 'fp-ts/Console'
+import { chain } from 'fp-ts/IO'
+
+const DepsSync: Deps = {
+  readFile: (filename) => () => fs.readFileSync(filename, 'utf-8'),
+  writeFile: (filename: string, data: string) => () =>
+    fs.writeFileSync(filename, data, { encoding: 'utf-8' }),
+  log,
+  chain
+}
+
+// dependency injection
+program4(DepsSync)()
+```
+
+There's more, we can even abstract the effect in which the program runs. We can define our own `FileSystem` effect (the effect representing read-write operations over the file system):
+
+```ts
+import { IO } from 'fp-ts/IO'
+import { pipe } from 'fp-ts/function'
+
+// -----------------------------------------
+// our program's effect
+// -----------------------------------------
+
+interface FileSystem<A> extends IO<A> {}
+
+// -----------------------------------------
+// dependencies
+// -----------------------------------------
+
+interface Deps {
+  readonly readFile: (filename: string) => FileSystem<string>
+  readonly writeFile: (filename: string, data: string) => FileSystem<void>
+  readonly log: <A>(a: A) => FileSystem<void>
+  readonly chain: <A, B>(
+    f: (a: A) => FileSystem<B>
+  ) => (ma: FileSystem<A>) => FileSystem<B>
+}
+
+// -----------------------------------------
+// program
+// -----------------------------------------
+
+const program4 = (D: Deps) => {
+  const modifyFile = (filename: string, f: (s: string) => string) =>
+    pipe(
+      D.readFile(filename),
+      D.chain((s) => D.writeFile(filename, f(s)))
+    )
+
+  return pipe(
+    D.readFile('file.txt'),
+    D.chain(D.log),
+    D.chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
+    D.chain(() => D.readFile('file.txt')),
+    D.chain(D.log)
+  )
+}
+```
+
+With a simple change in the definition of the `FileSystem` effect. we can modify the program to make it run asynchronously
+
+```diff
+// -----------------------------------------
+// our program's effect
+// -----------------------------------------
+
+-interface FileSystem<A> extends IO<A> {}
++interface FileSystem<A> extends Task<A> {}
+```
+
+now all there's left is to modify the `Deps` instance to adapt to the new definition.
+
+```ts
+import { Task } from 'fp-ts/Task'
+import { pipe } from 'fp-ts/function'
+
+// -----------------------------------------
+// our program's effect (modified)
+// -----------------------------------------
+
+interface FileSystem<A> extends Task<A> {}
+
+// -----------------------------------------
+// dependencies (NOT modified)
+// -----------------------------------------
+
+interface Deps {
+  readonly readFile: (filename: string) => FileSystem<string>
+  readonly writeFile: (filename: string, data: string) => FileSystem<void>
+  readonly log: <A>(a: A) => FileSystem<void>
+  readonly chain: <A, B>(
+    f: (a: A) => FileSystem<B>
+  ) => (ma: FileSystem<A>) => FileSystem<B>
+}
+
+// -----------------------------------------
+// program (NOT modified)
+// -----------------------------------------
+
+const program5 = (D: Deps) => {
+  const modifyFile = (filename: string, f: (s: string) => string) =>
+    pipe(
+      D.readFile(filename),
+      D.chain((s) => D.writeFile(filename, f(s)))
+    )
+
+  return pipe(
+    D.readFile('file.txt'),
+    D.chain(D.log),
+    D.chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
+    D.chain(() => D.readFile('file.txt')),
+    D.chain(D.log)
+  )
+}
+
+// -----------------------------------------
+// a `Deps` instance (modified)
+// -----------------------------------------
+
+import * as fs from 'fs'
+import { log } from 'fp-ts/Console'
+import { chain, fromIO } from 'fp-ts/Task'
+
+const DepsAsync: Deps = {
+  readFile: (filename) => () =>
+    new Promise((resolve) =>
+      fs.readFile(filename, { encoding: 'utf-8' }, (_, s) => resolve(s))
+    ),
+  writeFile: (filename: string, data: string) => () =>
+    new Promise((resolve) => fs.writeFile(filename, data, () => resolve())),
+  log: (a) => fromIO(log(a)),
+  chain
+}
+
+// dependency injection
+program5(DepsAsync)()
+```
+
+**Quiz**. The previous examples overlook, on purpose, possible errors. Example give: the file we're operating on may not exist at all. How could we modify the `FileSystem` effect to take this into account?
+
+```ts
+import { Task } from 'fp-ts/Task'
+import { pipe } from 'fp-ts/function'
+import * as E from 'fp-ts/Either'
+
+// -----------------------------------------
+// our program's effect (modyfied)
+// -----------------------------------------
+
+interface FileSystem<A> extends Task<E.Either<Error, A>> {}
+
+// -----------------------------------------
+// dependencies (NOT modyfied)
+// -----------------------------------------
+
+interface Deps {
+  readonly readFile: (filename: string) => FileSystem<string>
+  readonly writeFile: (filename: string, data: string) => FileSystem<void>
+  readonly log: <A>(a: A) => FileSystem<void>
+  readonly chain: <A, B>(
+    f: (a: A) => FileSystem<B>
+  ) => (ma: FileSystem<A>) => FileSystem<B>
+}
+
+// -----------------------------------------
+// program (NOT modyfied)
+// -----------------------------------------
+
+const program5 = (D: Deps) => {
+  const modifyFile = (filename: string, f: (s: string) => string) =>
+    pipe(
+      D.readFile(filename),
+      D.chain((s) => D.writeFile(filename, f(s)))
+    )
+
+  return pipe(
+    D.readFile('-.txt'),
+    D.chain(D.log),
+    D.chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
+    D.chain(() => D.readFile('file.txt')),
+    D.chain(D.log)
+  )
+}
+
+// -----------------------------------------
+// `Deps` instance (modyfied)
+// -----------------------------------------
+
+import * as fs from 'fs'
+import { log } from 'fp-ts/Console'
+import { chain, fromIO } from 'fp-ts/TaskEither'
+
+const DepsAsync: Deps = {
+  readFile: (filename) => () =>
+    new Promise((resolve) =>
+      fs.readFile(filename, { encoding: 'utf-8' }, (err, s) => {
+        if (err !== null) {
+          resolve(E.left(err))
+        } else {
+          resolve(E.right(s))
+        }
+      })
+    ),
+  writeFile: (filename: string, data: string) => () =>
+    new Promise((resolve) =>
+      fs.writeFile(filename, data, (err) => {
+        if (err !== null) {
+          resolve(E.left(err))
+        } else {
+          resolve(E.right(undefined))
+        }
+      })
+    ),
+  log: (a) => fromIO(log(a)),
+  chain
+}
+
+// dependency injection
+program5(DepsAsync)().then(console.log)
 ```
 
 **Demo**
 
-[`05_game.ts`](src/05_game.ts)
-
-```
-
-```
+[`06_game.ts`](src/06_game.ts)
