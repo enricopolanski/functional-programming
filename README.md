@@ -327,7 +327,7 @@ pipe(10, concat(2), concat(3), concat(1), concat(2), console.log)
 
 Magmas do not obey any law, they only have the closure requirement. Let's see an algebra that do requires another law: semigroups.
 
-## Definition of a Magma
+## Definition of a Semigroup
 
 > Given a `Magma` if the `concat` operation is **associative** then it's a _semigroup_.
 
