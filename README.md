@@ -48,7 +48,7 @@ We'll see how functional programming provides us with tools to structure our cod
 
 Other than understanding what functional programming _is_, it is also essential to understand what is it's goal.
 
-Functional programming's goal is to **tabe a system's complexity** through the use of formal _models_, and to give careful attention to **code's properties** and refactoring ease.
+Functional programming's goal is to **tame a system's complexity** through the use of formal _models_, and to give careful attention to **code's properties** and refactoring ease.
 
 > Functional programming will help teach people the mathematics behind program construction:
 >
