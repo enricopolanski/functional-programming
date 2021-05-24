@@ -48,7 +48,7 @@ We'll see how functional programming provides us with tools to structure our cod
 
 Other than understanding what functional programming _is_, it is also essential to understand what is it's goal.
 
-Functional programming's goal is to **dominate a system's complexit**y through the use of formal _models_, and to give careful attention to **code's properties** and refactoring ease.
+Functional programming's goal is to **tabe a system's complexity** through the use of formal _models_, and to give careful attention to **code's properties** and refactoring ease.
 
 > Functional programming will help teach people the mathematics behind program construction:
 >
@@ -84,7 +84,7 @@ A `for` loop offers a lot of flexibility, I can modify:
 
 This also implies that I may introduce **errors** and that I have no guarantees about the returned value.
 
-**Quiz**. Is the for loop is correct?
+**Quiz**. Is the `for loop` correct?
 
 Let's rewrite the same exercise using `map`.
 
@@ -106,7 +106,7 @@ We can note how `map` lacks the same flexibility of a `for loop`, but it offers 
 
 In functional programming, where theres's an emphasis on code properties rather than implementation details, the `map` operation is interesting **due to its limitations**
 
-This about how easier it is to review a PR that involves `map` rathern than a `for` loop.
+Think about how easier it is to review a PR that involves `map` rathern than a `for` loop.
 
 # The two pillars of functional programming
 
@@ -192,7 +192,7 @@ const x = await question('What is your name?')
 const y = x
 ```
 
-As you can see refactoring a program that includes non referentially transparent expressions might be a challenge.
+As you can see refactoring a program including non-referentially transparent expressions might be challenging.
 In functional programming, where every expression is referentially transparent the cognitive load required to make changes is severely reduced.
 
 ## Composition
@@ -225,7 +225,7 @@ combinator: Thing -> Thing
 
 The goal of a combinator is to create new *Thing*s from *Thing*s already defined.
 
-Since the output of a combinator, the new _Thing_, can be passed around as input to other programs and combinators, we obtain a combinatory explosion of opportunities, which makes this pattern extremely powerful.
+Since the output of a combinator, the new _Thing_, can be passed around as input to other programs and combinators, we obtain a combinatorial explosion of opportunities, which makes this pattern extremely powerful.
 
 **Example**
 
@@ -239,7 +239,7 @@ console.log(pipe(2, double, double, double)) // => 16
 
 Thus the usual design you can find in a functional module is:
 
-- a model for `T`
+- a model for some type `T`
 - a small set of "primitives" of type `T`
 - a set of combinators to combine the primitives in larger structures
 
@@ -253,7 +253,7 @@ As you can see from the previous demo, with merely 3 primitives and two combinat
 
 Think at how, just adding a single new primitive, or a single combinator to those already defined adds expressive possibilities exponentially.
 
-Of the two combiners in `01_retry.ts` a special mention goes to `concat` since it refers to a very powerful functional programming abstraction: semigroups.
+Of the two combinators in `01_retry.ts` a special mention goes to `concat` since it refers to a very powerful functional programming abstraction: semigroups.
 
 # Modelling composition with Semigroups
 
@@ -342,7 +342,7 @@ concat(concat(a, b), c) = concat(a, concat(b, c))
 
 holds for any `x`, `y`, `z` in `A`.
 
-In layman terms _associativity_ tells us that we do not have to need to worry about parentheses in expressions and that, we can simply write `x * y * z` (there's no ambiguity).
+In layman terms _associativity_ tells us that we do not have to worry about parentheses in expressions and that, we can simply write `x * y * z` (there's no ambiguity).
 
 **Example**
 
@@ -360,7 +360,7 @@ Every semigroup is a magma, but not every magma is a semigroup.
 
 **Example**
 
-The previous `MagmaSub` is not a semigroup because it's `concat` operation is not associative.
+The previous `MagmaSub` is not a semigroup because its `concat` operation is not associative.
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -452,7 +452,7 @@ const SemigroupSum: Semigroup<number> = {
 }
 ```
 
-**Note** It is a common mistake to think about the _semigroup of numbers_, but for the same type `A` it is possible to define more **instances** of `Semigroup<A>`. We've seen how for `number` we can define a semigroup under _addition_ and _moltiplication_. It is also possible to have `Semigroup`s that share the same operation but differ in types. SemigroupSum could've been implemented on natural numbers instead of unsigned floats like `number`.
+**Note** It is a common mistake to think about the _semigroup of numbers_, but for the same type `A` it is possible to define more **instances** of `Semigroup<A>`. We've seen how for `number` we can define a semigroup under _addition_ and _multiplication_. It is also possible to have `Semigroup`s that share the same operation but differ in types. `SemigroupSum` could've been implemented on natural numbers instead of unsigned floats like `number`.
 
 Another example, with the `string` type:
 
@@ -482,7 +482,7 @@ const SemigroupAny: Semigroup<boolean> = {
 
 By definition `concat` combines merely two elements of `A` every time, is it possible to combine any number of them?
 
-The `fold` function takes:
+The `concatAll` function takes:
 
 - an instance of a semigroup
 - an initial value
@@ -525,7 +525,7 @@ const assign: (as: ReadonlyArray<object>) => object = concatAll(
 )({})
 ```
 
-**Quiz**. Is the following Semigroup instance lawful (does it respect semigroup laws)?
+**Quiz**. Is the following semigroup instance lawful (does it respect semigroup laws)?
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
@@ -536,7 +536,7 @@ const first = <A>(): Semigroup<A> => ({
 })
 ```
 
-**Quiz**. Is the following Semigroup instance lawful?
+**Quiz**. Is the following semigroup instance lawful?
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
@@ -549,7 +549,7 @@ const last = <A>(): Semigroup<A> => ({
 
 ## The dual semigroup
 
-Given a Semigroup instance, it is possible to obtain a new Semigroup instance simply swapping the order in which the operands are combined:
+Given a semigroup instance, it is possible to obtain a new semigroup instance by simply swapping the order in which the operands are combined:
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -635,7 +635,7 @@ const v2: Vector = [1, 2]
 console.log(SemigroupVector.concat(v1, v2)) // => [2, 3]
 ```
 
-**Quiz**. Is it true that given any `Semigroup<A>` and having chosen any `middle` of `A`, if I insert it between the two `concat` parameters the result is still a Semigroup?
+**Quiz**. Is it true that given any `Semigroup<A>` and having chosen any `middle` of `A`, if I insert it between the two `concat` parameters the result is still a semigroup?
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -698,12 +698,12 @@ Thus, to return a value of type `User` I need to consider all the copies and mak
 
 That being said, it is not really clear right now what it means to "merge two `User`s" nor if this merge operation is associative.
 
-You can **always** define a Semigroup instance for **any** given type `A` by defining a Semigroup instance not for `A` itself but for `NonEmptyArray<A>` called the **free semigroup** of `A`:
+You can **always** define a Semigroup instance for **any** given type `A` by defining a semigroup instance not for `A` itself but for `NonEmptyArray<A>` called the **free semigroup** of `A`:
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-// represents a non empty array, meaning an array that has at least one element A
+// represents a non-empty array, meaning an array that has at least one element A
 type ReadonlyNonEmptyArray<A> = ReadonlyArray<A> & {
   readonly 0: A
 }
@@ -750,7 +750,7 @@ const merge = S.concat(S.concat(of(user1), of(user2)), of(user3))
 const merge2: ReadonlyNonEmptyArray<User> = [user1, user2, user3]
 ```
 
-Thus, the semigroup free of `A` is merely another semigroup where every the elements are all the possible, non empty, finite sequences of `A`.
+Thus, the free semigroup of `A` is merely another semigroup where every the elements are all the possible, non empty, finite sequences of `A`.
 
 The free semigroup of `A` can be seen as a _lazy_ way to `concat`enate elements of type `A` while preserving their data content.
 
@@ -785,7 +785,7 @@ export const getUser = (SemigroupUser: Semigroup<User>) => (
 
 3. I can't define `Semigroup<User>` nor I want to require it.
 
-In this case the semigroup free of `User` can come to rescue:
+In this case the free semigroup of `User` can come to the rescue:
 
 ```ts
 export const getUser = (id: number): ReadonlyNonEmptyArray<User> => {
@@ -796,7 +796,7 @@ export const getUser = (id: number): ReadonlyNonEmptyArray<User> => {
 }
 ```
 
-It should be also further noticed that, even when I do have a Semigroup instance for the A type, using a free semigroup might be still convenient for the following reasons:
+It should be noted that, even when I do have a `Semigroup<A>` instance, using a free semigroup might be still convenient for the following reasons:
 
 - avoids executing possibly expensive and pointless computations
 - avoids passing around the semigroup instance
@@ -820,7 +820,7 @@ const SemigroupMax: Semigroup<number> = {
 
 **Quiz**. Why is it so important that `number` is a _total_ order?
 
-It would be very useful to defined those two semigroups (`SemigroupMin` and `SemigroupMax`) for types different than `number`.
+It would be very useful to define such semigroups (`SemigroupMin` and `SemigroupMax`) for different types than `number`.
 
 Is it possible to capture the notion of being _totally ordered_ for other types?
 
@@ -886,7 +886,7 @@ import { Eq } from 'fp-ts/Eq'
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 
-// restituisce `true` se l'elemento `a` compare nella lista `as`
+// returns `true` if the element `a` is included in the list `as`
 const elem = <A>(E: Eq<A>) => (a: A) => (as: ReadonlyArray<A>): boolean =>
   as.some((e) => E.equals(a, e))
 
@@ -936,7 +936,7 @@ console.log(pipe(points, elem(EqPoint)(search))) // => true :)
 
 **Quiz** (JavaScript). Why does the `includes` method returns `false`?
 
-Aver catturato il concetto di uguaglianza è fondamentale, soprattutto in un linguaggio come JavaScript in cui alcune strutture dati possiedono delle API poco usabili rispetto ad un concetto di uguaglianza custom.
+Abstracting the concept of equality is of paramount importance, especially in a language like JavaScript where some data types do not offer handy APIs for checking user-defined equality.
 
 The JavaScript native `Set` datatype suffers by the same issue:
 
@@ -954,7 +954,7 @@ console.log(points)
 // => Set { { x: 0, y: 0 }, { x: 0, y: 0 } }
 ```
 
-Given the fact that `Set` uses `===` ("strict equality") for comparing values, `points` now contains **two identical copies** of `{ x: 0, y: 0 }`, a result we definitely did not want. Thus it is convenient to define a new API to add en element to `Set`, one that leverages the `Eq` abstraction.
+Given the fact that `Set` uses `===` ("strict equality") for comparing values, `points` now contains **two identical copies** of `{ x: 0, y: 0 }`, a result we definitely did not want. Thus it is convenient to define a new API to add an element to a `Set`, one that leverages the `Eq` abstraction.
 
 **Quiz**. What would be the signature of this API?
 
@@ -1032,14 +1032,7 @@ const EqStandard: Eq<User> = struct({
 })
 ```
 
-**Note**. In a language like Haskell the `Eq` instance for a struct like `User` can be automatically derived by the compiler:
-
-```haskell
-data User = User Int String
-     deriving (Eq)
-```
-
-That being said, we may have different contexts where the meaning of `User` equality might differ. One common context is where two `User`s are equal if their `id` field is equal.
+Several languages, even pure functional languages like Haskell, do not allow to have more than one `Eq` instance per data type. But we may have different contexts where the meaning of `User` equality might differ. One common context is where two `User`s are equal if their `id` field is equal.
 
 ```ts
 /** two users are equal if their `id` fields are equal */
@@ -1048,7 +1041,7 @@ const EqID: Eq<User> = {
 }
 ```
 
-Now that we made an abstract concept, the equivalence relation, concrete, we can programmatically manipulate `Eq` instances like we do with other data structures. Let's see an example.
+Now that we made an abstract concept concrete, the equivalence relation, we can programmatically manipulate `Eq` instances like we do with other data structures. Let's see an example.
 
 **Example**. Rather than manually defining `EqId` we can use the combinator `contramap`: given an instance `Eq<A>` and a function from `B` to `A`, we can derive an `Eq<B>`
 
@@ -1676,7 +1669,7 @@ The one in the example is called an _extensional_ definition of a function, mean
 
 Naturally, when such a set is infinite this proves to be problematic. We can't list the entire domain and codomain of all functions.
 
-We can get around this issue by introducing the one that is called _intentional_ definition, meaning that we express a condition that has to hold for every couple `(x, y) ∈ f` meaning `y = x * 2`.
+We can get around this issue by introducing the one that is called _intensional_ definition, meaning that we express a condition that has to hold for every couple `(x, y) ∈ f` meaning `y = x * 2`.
 
 This the familiar form in which we write the `double` function and its definition in TypeScript:
 
