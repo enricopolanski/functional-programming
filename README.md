@@ -482,7 +482,7 @@ const SemigroupAny: Semigroup<boolean> = {
 
 By definition `concat` combines merely two elements of `A` every time, is it possible to combine any number of them?
 
-The `fold` function takes:
+The `concatAll` function takes:
 
 - an instance of a semigroup
 - an initial value
