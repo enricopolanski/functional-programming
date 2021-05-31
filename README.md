@@ -397,7 +397,7 @@ The following law has to hold true:
 - **Associativity**: If `S` is a semigroup the following has to hold true:
 
 ```ts
-;`S.concat(S.concat(x, y), z) = S.concat(x, S.concat(y, z))`
+S.concat(S.concat(x, y), z) = S.concat(x, S.concat(y, z))
 ```
 
 for every `x`, `y`, `z` of type `A`
@@ -3054,7 +3054,7 @@ Even with this thunk technique (the same technique used in `fp-ts`) we need a wa
 We first need a bit of (informal) terminology: we'll call **pure program** a function with the following signature:
 
 ```ts
-;(a: A) => B
+(a: A) => B
 ```
 
 Such a signature models a program that takes an input of type `A` and returns a result of type `B` without any effect.
