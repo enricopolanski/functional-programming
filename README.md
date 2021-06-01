@@ -2248,7 +2248,7 @@ The result of the `readFile` operation is modeled like a product type (to be mor
 type CallbackArgs = [Error | undefined, string | undefined]
 ```
 
-the callback components though are **dependent**: we either get an `Error` **oppure** or a `string`:
+the callback components though are **dependent**: we either get an `Error` **or** a `string`:
 
 | err         | data        | legal? |
 | ----------- | ----------- | ------ |
