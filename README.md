@@ -958,7 +958,7 @@ Given the fact that `Set` uses `===` ("strict equality") for comparing values, `
 
 **Quiz**. What would be the signature of this API?
 
-Does `EqPoint` requires too much boilerplate? The good news is that theory offers us yet again the possibility of implementing an `Eq` instance for a struct like `Point` if we are able to define an `Eq` instance for each of its fields.
+Does `EqPoint` require too much boilerplate? The good news is that theory offers us yet again the possibility of implementing an `Eq` instance for a struct like `Point` if we are able to define an `Eq` instance for each of its fields.
 
 Conveniently the `fp-ts/Eq` module exports a `struct` combinator:
 
@@ -1041,7 +1041,7 @@ const EqID: Eq<User> = {
 }
 ```
 
-Now that we made an abstract concept concrete, the equivalence relation, we can programmatically manipulate `Eq` instances like we do with other data structures. Let's see an example.
+Now that we made an abstract concept concrete by representing it as a data structure, we can programmatically manipulate `Eq` instances like we do with other data structures. Let's see an example.
 
 **Example**. Rather than manually defining `EqId` we can use the combinator `contramap`: given an instance `Eq<A>` and a function from `B` to `A`, we can derive an `Eq<B>`
 
@@ -1063,7 +1063,7 @@ const EqStandard: Eq<User> = struct({
 
 const EqID: Eq<User> = pipe(
   N.Eq,
-  contramap((_: User) => _.id)
+  contramap((user: User) => user.id)
 )
 
 console.log(
@@ -1072,10 +1072,10 @@ console.log(
 
 console.log(
   EqID.equals({ id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio Canti' })
-) // => true (even tho the `name` property differs)
+) // => true (even though the `name` property differs)
 
 console.log(EqID.equals({ id: 1, name: 'Giulio' }, { id: 2, name: 'Giulio' }))
-// => false (even tho the `name` property is equal)
+// => false (even though the `name` property is equal)
 ```
 
 **Quiz**. Given a data type `A`, is it possible to define a `Semigroup<Eq<A>>`? What could it represent?
