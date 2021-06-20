@@ -20,7 +20,7 @@ A quick search on the internet may lead you to the following definition:
 
 > A (pure) function is a procedure that given the same input always return the same output without any observable side-effect.
 
-The term "side effect" does not have yet any specific meaning (we'll see in the future how to give a formal definition), what matters is to have some sort of intuition, think about opening a file or writing into a database.
+The term "side effect" does not yet have any specific meaning (we'll see in the future how to give a formal definition), what matters is to have some sort of intuition, think about opening a file or writing into a database.
 
 For the time being we can limit ourselves to say that a side effect is _anything_ a function does besides returning a value.
 
@@ -38,7 +38,7 @@ const program = pipe(
 )
 ```
 
-What happens here is that `input`is passed to the first function `f`, which returns a value that is passed to the second function `f2`, which returns a value that is passed as an argument to the third function `f3`, and so on.
+What happens here is that `input` is passed to the first function `f`, which returns a value that is passed to the second function `f2`, which returns a value that is passed as an argument to the third function `f3`, and so on.
 
 **Demo**
 
@@ -56,7 +56,7 @@ Functional programming's goal is to **tame a system's complexity** through the u
 > - how to reason about side effects
 > - how to write consistent, general, less ad-hoc APIs
 
-What does it means to give careful attention to code's properties? Let's see with an example:
+What does it mean to give careful attention to code's properties? Let's see with an example:
 
 **Example**
 
@@ -102,11 +102,11 @@ const ys: Array<number> = xs.map(double)
 We can note how `map` lacks the same flexibility of a `for loop`, but it offers us some guarantees:
 
 - all the elements of the input array will be processed
-- the resulting array will always have the same number of elements of the starting one
+- the resulting array will always have the same number of elements as the starting one
 
-In functional programming, where theres's an emphasis on code properties rather than implementation details, the `map` operation is interesting **due to its limitations**
+In functional programming, where there's an emphasis on code properties rather than implementation details, the `map` operation is interesting **due to its limitations**
 
-Think about how easier it is to review a PR that involves `map` rathern than a `for` loop.
+Think about how easier it is to review a PR that involves `map` rather than a `for` loop.
 
 # The two pillars of functional programming
 
@@ -185,7 +185,7 @@ const x = await question('What is your name?')
 const y = await question('What is your name?')
 ```
 
-Can I refactor in this way? Does the program's behavior changes or is it going to change?
+Can I refactor in this way? Does the program's behavior change or is it going to change?
 
 ```ts
 const x = await question('What is your name?')
@@ -193,7 +193,7 @@ const y = x
 ```
 
 As you can see refactoring a program including non-referentially transparent expressions might be challenging.
-In functional programming, where every expression is referentially transparent the cognitive load required to make changes is severely reduced.
+In functional programming, where every expression is referentially transparent, the cognitive load required to make changes is severely reduced.
 
 ## Composition
 
@@ -215,7 +215,7 @@ The term **combinator** refers to the [combinator pattern](https://wiki.haskell.
 
 > A style of organizing libraries centered around the idea of combining things. Usually there is some type `T`, some "primitive" values of type `T`, and some "combinators" which can combine values of type `T` in various ways to build up more complex values of type `T`
 
-The general concept of a combinator is rather vague and it can show itself in different forms, but the simplest one is this:
+The general concept of a combinator is rather vague and it can appear in different forms, but the simplest one is this:
 
 ```ts
 combinator: Thing -> Thing
@@ -251,7 +251,7 @@ Let's try to implement such a module:
 
 As you can see from the previous demo, with merely 3 primitives and two combinators we've been able to express a pretty complex policy.
 
-Think at how, just adding a single new primitive, or a single combinator to those already defined adds expressive possibilities exponentially.
+Think at how just adding a single new primitive, or a single combinator to those already defined, adds expressive possibilities exponentially.
 
 Of the two combinators in `01_retry.ts` a special mention goes to `concat` since it refers to a very powerful functional programming abstraction: semigroups.
 
@@ -296,7 +296,7 @@ interface Magma<A> {
 Thus, we have have the ingredients for an algebra:
 
 - a set `A`
-- an operation on the set `A`, `concat`. This operation is said to be _closed on_ the set `A` which means that whichever elements `A` we apply the operation on the result will still be an element of `A`. Since the result is still an `A` it can be used again as input for `concat` the operation can be repeated how many times we want. In other words `concat` is a `combinator` for the type `A`.
+- an operation on the set `A`, `concat`. This operation is said to be _closed on_ the set `A` which means that whichever elements `A` we apply the operation on the result will still be an element of `A`. Since the result is still an `A`, it can be used again as an input for `concat` and the operation can be repeated how many times we want. In other words `concat` is a `combinator` for the type `A`.
 
 Let's implement a concrete instance of `Magma<A>` with `A` being the `number` type.
 
@@ -342,7 +342,7 @@ concat(concat(a, b), c) = concat(a, concat(b, c))
 
 holds for any `x`, `y`, `z` in `A`.
 
-In layman terms _associativity_ tells us that we do not have to worry about parentheses in expressions and that, we can simply write `x * y * z` (there's no ambiguity).
+In layman terms _associativity_ tells us that we do not have to worry about parentheses in expressions and that we can simply write `x * y * z` (there's no ambiguity).
 
 **Example**
 
@@ -376,7 +376,7 @@ pipe(MagmaSub.concat(1, MagmaSub.concat(2, 3)), console.log) // => 2
 
 Semigroups capture the essence of parallelizable operations
 
-If we know that there is such an operation that follows the associativity law we can further split a computation in two sub computations, each of them could be further split in sub computations.
+If we know that there is such an operation that follows the associativity law, we can further split a computation into two sub computations, each of them could be further split into sub computations.
 
 ```ts
 a * b * c * d * e * f * g * h = ((a * b) * (c * d)) * ((e * f) * (g * h))
@@ -402,7 +402,7 @@ S.concat(S.concat(x, y), z) = S.concat(x, S.concat(y, z))
 
 for every `x`, `y`, `z` of type `A`
 
-**Note**. Sadly it is not possible to encode this law in TypeScript's type system.
+**Note**. Sadly it is not possible to encode this law using TypeScript's type system.
 
 Let's implement a semigroup for some `ReadonlyArray<string>`:
 
@@ -439,7 +439,7 @@ const SemigroupSum: Semigroup<number> = {
 }
 ```
 
-**Quiz**. Can the `concat` combinator defined in the demo [`01_retry.ts`](src/01_retry.ts) be used to define an `Semigroup` instance for the `RetryPolicy` type?
+**Quiz**. Can the `concat` combinator defined in the demo [`01_retry.ts`](src/01_retry.ts) be used to define a `Semigroup` instance for the `RetryPolicy` type?
 
 This is the implementation for the semigroup `(number, *)` where `*` is the usual number multiplication:
 
@@ -447,7 +447,7 @@ This is the implementation for the semigroup `(number, *)` where `*` is the usua
 import { Semigroup } from 'fp-ts/Semigroup'
 
 /** number `Semigroup` under multiplication */
-const SemigroupSum: Semigroup<number> = {
+const SemigroupProduct: Semigroup<number> = {
   concat: (first, second) => first * second
 }
 ```
@@ -480,7 +480,7 @@ const SemigroupAny: Semigroup<boolean> = {
 
 ## The `concatAll` function
 
-By definition `concat` combines merely two elements of `A` every time, is it possible to combine any number of them?
+By definition `concat` combines merely two elements of `A` every time. Is it possible to combine any number of them?
 
 The `concatAll` function takes:
 
@@ -603,14 +603,14 @@ console.log(SemigroupVector.concat(v1, v2)) // => { x: 2, y: 3 }
 <img src="images/semigroupVector.png" width="300" alt="SemigroupVector" />
 </center>
 
-Too much boilerplate? The good new is that the **mathematical theory** behind semigroups tells us we can implement a semigroup instance for a struct like `Vector` if we can implement a semigroup instance for each of its fields.
+Too much boilerplate? The good news is that the **mathematical theory** behind semigroups tells us we can implement a semigroup instance for a struct like `Vector` if we can implement a semigroup instance for each of its fields.
 
 Conveniently the `fp-ts/Semigroup` module exports a `struct` combinator:
 
 ```ts
 import { struct } from 'fp-ts/Semigroup'
 
-// modeld the sum of two vectors
+// models the sum of two vectors
 const SemigroupVector: Semigroup<Vector> = struct({
   x: N.SemigroupSum,
   y: N.SemigroupSum
@@ -750,11 +750,11 @@ const merge = S.concat(S.concat(of(user1), of(user2)), of(user3))
 const merge2: ReadonlyNonEmptyArray<User> = [user1, user2, user3]
 ```
 
-Thus, the free semigroup of `A` is merely another semigroup where every the elements are all the possible, non empty, finite sequences of `A`.
+Thus, the free semigroup of `A` is merely another semigroup in which the elements are all possible, non empty, finite sequences of `A`.
 
 The free semigroup of `A` can be seen as a _lazy_ way to `concat`enate elements of type `A` while preserving their data content.
 
-The `merge` value, containing `[user1, user2, user3]`, tells me which are the elements to concatenate and in which order they are.
+The `merge` value, containing `[user1, user2, user3]`, tells us which are the elements to concatenate and in which order they are.
 
 Now I have three possible options to design the `getUser` API:
 
@@ -791,7 +791,7 @@ In this case the free semigroup of `User` can come to the rescue:
 export const getUser = (id: number): ReadonlyNonEmptyArray<User> => {
   const current = getCurrent(id)
   const history = getHistory(id)
-  // I DO NOT proceed withmerging and return the free semigroup of User
+  // I DO NOT proceed with merging and return the free semigroup of User
   return [current, ...history]
 }
 ```
@@ -958,7 +958,7 @@ Given the fact that `Set` uses `===` ("strict equality") for comparing values, `
 
 **Quiz**. What would be the signature of this API?
 
-Does `EqPoint` requires too much boilerplate? The good news is that theory offers us yet again the possibility of implementing an `Eq` instance for a struct like `Point` if we are able to define an `Eq` instance for each of its fields.
+Does `EqPoint` require too much boilerplate? The good news is that theory offers us yet again the possibility of implementing an `Eq` instance for a struct like `Point` if we are able to define an `Eq` instance for each of its fields.
 
 Conveniently the `fp-ts/Eq` module exports a `struct` combinator:
 
@@ -1041,7 +1041,7 @@ const EqID: Eq<User> = {
 }
 ```
 
-Now that we made an abstract concept concrete, the equivalence relation, we can programmatically manipulate `Eq` instances like we do with other data structures. Let's see an example.
+Now that we made an abstract concept concrete by representing it as a data structure, we can programmatically manipulate `Eq` instances like we do with other data structures. Let's see an example.
 
 **Example**. Rather than manually defining `EqId` we can use the combinator `contramap`: given an instance `Eq<A>` and a function from `B` to `A`, we can derive an `Eq<B>`
 
@@ -1063,7 +1063,7 @@ const EqStandard: Eq<User> = struct({
 
 const EqID: Eq<User> = pipe(
   N.Eq,
-  contramap((_: User) => _.id)
+  contramap((user: User) => user.id)
 )
 
 console.log(
@@ -1072,10 +1072,10 @@ console.log(
 
 console.log(
   EqID.equals({ id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio Canti' })
-) // => true (even tho the `name` property differs)
+) // => true (even though the `name` property differs)
 
 console.log(EqID.equals({ id: 1, name: 'Giulio' }, { id: 2, name: 'Giulio' }))
-// => false (even tho the `name` property is equal)
+// => false (even though the `name` property is equal)
 ```
 
 **Quiz**. Given a data type `A`, is it possible to define a `Semigroup<Eq<A>>`? What could it represent?
