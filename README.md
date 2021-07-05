@@ -2276,7 +2276,7 @@ Can you find some cons of the Promise solution when using static typing like in 
 
 Let's see how to handle errors in a functional way.
 
-A functions that returns errors or throws exceptions is an example of a partial function.
+A function that returns errors or throws exceptions is an example of a partial function.
 
 In the previous chapters we have seen that every partial function `f` can always be brought back to a total one `f'`.
 
