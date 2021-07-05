@@ -2103,7 +2103,7 @@ const myList = cons(1, cons(2, cons(3, nil)))
 
 JavaScript doesn't support [pattern matching](https://github.com/tc39/proposal-pattern-matching) (neither does TypeScript) but we can simulate it with a `match` function.
 
-**Esempio** (TypeScript, linked lists)
+**Example** (TypeScript, linked lists)
 
 ```ts
 interface Nil {
@@ -4130,8 +4130,7 @@ const followersOfFollowers = pipe(
 
 Cool! Let's see some other data type.
 
-**Esempio** (`F = Option`)
-
+**Example** (`F = Option`)
 Suppose you want to calculate the reciprocal of the first element of a numerical array:
 
 ```ts
