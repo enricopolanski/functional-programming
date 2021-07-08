@@ -2899,8 +2899,6 @@ Example given:
 
 The implementation could be something like:
 
-L'implementazione potrebbe essere qualcosa come:
-
 ```ts
 const idA = (s: string): string => s
 
