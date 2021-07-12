@@ -3169,7 +3169,7 @@ const getName = (user: User): string => user.name
 // getFollowersNames: User -> ReadonlyArray<string>
 const getFollowersNames = flow(getFollowers, map(getName))
 
-// o se preferite usare `pipe` al posto di `flow`...
+// let's use `pipe` instead of `flow`...
 export const getFollowersNames2 = (user: User) =>
   pipe(user, getFollowers, map(getName))
 
