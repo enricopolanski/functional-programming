@@ -3381,10 +3381,10 @@ import { map } from 'fp-ts/ReadonlyArray'
 
 const double = (n: number): number => n * 2
 
-// cicla due volte
+// iterates array twice
 console.log(pipe([1, 2, 3], map(double), map(increment))) // => [ 3, 5, 7 ]
 
-// cicla una volta sola
+// single iteration
 console.log(pipe([1, 2, 3], map(flow(double, increment)))) // => [ 3, 5, 7 ]
 ```
 
