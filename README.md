@@ -3099,8 +3099,6 @@ When we talk about effects we are interested in `n`-ary type constructors where 
 | `Task<A>`          | an asynchronous computation **never fails**    |
 | `Reader<R, A>`     | reading from an environment                    |
 
-ove
-
 where
 
 ```ts
