@@ -3405,7 +3405,7 @@ export const program = (ns: ReadonlyArray<number>): string => {
 }
 ```
 
-Using the native `findIndex` API we are forced to use an `if` branch to test whether we have a result different than 1. If we forget to do so, the value `-1` could be unintentionally passed as input to `doSomethingWithIndex`.
+Using the native `findIndex` API we are forced to use an `if` branch to test whether we have a result different than `-1`. If we forget to do so, the value `-1` could be unintentionally passed as input to `doSomethingWithIndex`.
 
 Let's see how easier it is to obtain the same behavior using `Option` and its functor instance:
 
