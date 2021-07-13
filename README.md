@@ -2103,7 +2103,7 @@ const myList = cons(1, cons(2, cons(3, nil)))
 
 JavaScript doesn't support [pattern matching](https://github.com/tc39/proposal-pattern-matching) (neither does TypeScript) but we can simulate it with a `match` function.
 
-**Esempio** (TypeScript, linked lists)
+**Example** (TypeScript, linked lists)
 
 ```ts
 interface Nil {
@@ -2276,7 +2276,7 @@ Can you find some cons of the Promise solution when using static typing like in 
 
 Let's see how to handle errors in a functional way.
 
-A functions that returns errors or throws exceptions is an example of a partial function.
+A function that returns errors or throws exceptions is an example of a partial function.
 
 In the previous chapters we have seen that every partial function `f` can always be brought back to a total one `f'`.
 
@@ -2899,8 +2899,6 @@ Example given:
 
 The implementation could be something like:
 
-L'implementazione potrebbe essere qualcosa come:
-
 ```ts
 const idA = (s: string): string => s
 
@@ -3101,8 +3099,6 @@ When we talk about effects we are interested in `n`-ary type constructors where 
 | `Task<A>`          | an asynchronous computation **never fails**    |
 | `Reader<R, A>`     | reading from an environment                    |
 
-ove
-
 where
 
 ```ts
@@ -3173,7 +3169,7 @@ const getName = (user: User): string => user.name
 // getFollowersNames: User -> ReadonlyArray<string>
 const getFollowersNames = flow(getFollowers, map(getName))
 
-// o se preferite usare `pipe` al posto di `flow`...
+// let's use `pipe` instead of `flow`...
 export const getFollowersNames2 = (user: User) =>
   pipe(user, getFollowers, map(getName))
 
@@ -3385,10 +3381,10 @@ import { map } from 'fp-ts/ReadonlyArray'
 
 const double = (n: number): number => n * 2
 
-// cicla due volte
+// iterates array twice
 console.log(pipe([1, 2, 3], map(double), map(increment))) // => [ 3, 5, 7 ]
 
-// cicla una volta sola
+// single iteration
 console.log(pipe([1, 2, 3], map(flow(double, increment)))) // => [ 3, 5, 7 ]
 ```
 
@@ -3409,7 +3405,7 @@ export const program = (ns: ReadonlyArray<number>): string => {
 }
 ```
 
-Using the native `findIndex` API we are forced to use an `if` branch to test whether we have a result different than 1. If we forget to do so, the value `-1` could be unintentionally passed as input to `doSomethingWithIndex`.
+Using the native `findIndex` API we are forced to use an `if` branch to test whether we have a result different than `-1`. If we forget to do so, the value `-1` could be unintentionally passed as input to `doSomethingWithIndex`.
 
 Let's see how easier it is to obtain the same behavior using `Option` and its functor instance:
 
@@ -3698,7 +3694,6 @@ const result = addFollower(fetchUser(followerId))(fetchUser(userId)) // does not
 ```
 
 I can't use `addFollower` anymore! How can we proceed?
-Non posso più usare `addFollower`! Come possiamo procedere?
 
 If only we had a function with the following signature:
 
@@ -4130,8 +4125,7 @@ const followersOfFollowers = pipe(
 
 Cool! Let's see some other data type.
 
-**Esempio** (`F = Option`)
-
+**Example** (`F = Option`)
 Suppose you want to calculate the reciprocal of the first element of a numerical array:
 
 ```ts
