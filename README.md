@@ -3694,7 +3694,6 @@ const result = addFollower(fetchUser(followerId))(fetchUser(userId)) // does not
 ```
 
 I can't use `addFollower` anymore! How can we proceed?
-Non posso più usare `addFollower`! Come possiamo procedere?
 
 If only we had a function with the following signature:
 
