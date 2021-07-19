@@ -4222,7 +4222,7 @@ We can transform our problem into a category problem, meaning: can we find a cat
 
 </center>
 
-Let's try building a category _K_ (called **Kleisli category**) which contains \_only) Kleisli arrows:
+Let's try building a category _K_ (called **Kleisli category**) which contains _only_ Kleisli arrows:
 
 - **objects** will be the same objects of the _TS_ category, so all TypeScript types.
 - **morphisms** are built like this: every time there is a Kleisli arrow `f: A ⟼ M<B>` in _TS_ we draw an arrow `f': A ⟼ B` in _K_
