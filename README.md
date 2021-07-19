@@ -4203,7 +4203,7 @@ Let's get back to the core problem: what is the composition of two effectful fun
 
 <center>(two Kleisli Arrows)</center>
 
-Note**. An effectful function is also called **Kleisli arrow**.
+**Note**. An effectful function is also called **Kleisli arrow**.
 
 For the time being I don't even know the **type** of such composition.
 
