@@ -977,7 +977,7 @@ const EqPoint: Eq<Point> = struct({
 })
 ```
 
-**Nota**. Like for Semigroup, we aren't limited to `struct`-like data types, we also have combinators for working with tuples: `tuple`
+**Note**. Like for Semigroup, we aren't limited to `struct`-like data types, we also have combinators for working with tuples: `tuple`
 
 ```ts
 import { Eq, tuple } from 'fp-ts/Eq'
@@ -4203,7 +4203,7 @@ Let's get back to the core problem: what is the composition of two effectful fun
 
 <center>(two Kleisli Arrows)</center>
 
-**Nota**. An effectful function is also called **Kleisli arrow**.
+Note**. An effectful function is also called **Kleisli arrow**.
 
 For the time being I don't even know the **type** of such composition.
 
