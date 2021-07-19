@@ -4430,7 +4430,7 @@ const readFile = (filename: string): IO<string> => () =>
 const writeFile = (filename: string, data: string): IO<void> => () =>
   fs.writeFileSync(filename, data, { encoding: 'utf-8' })
 
-// API deruved from the previous functions
+// API derived from the previous functions
 const modifyFile = (filename: string, f: (s: string) => string): IO<void> =>
   pipe(
     readFile(filename),
