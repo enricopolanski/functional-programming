@@ -4293,7 +4293,7 @@ Now we can update our composition table
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 | effectful | effectful     | `chain(g) ∘ f`  |
 
-What about `of`? Well, `of` comes from the identity morphisms in _K_: for every identity morphism 1<sub>A</sub> in _K_ there has to be a corresponding function from `A` to `M<A>` (ovvero `of: <A>(a: A) => M<A>`).
+What about `of`? Well, `of` comes from the identity morphisms in _K_: for every identity morphism 1<sub>A</sub> in _K_ there has to be a corresponding function from `A` to `M<A>` (that is, `of: <A>(a: A) => M<A>`).
 
 <center>
 <img src="images/of.png" alt="where of comes from" width="300px" />
