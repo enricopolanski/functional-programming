@@ -4565,7 +4565,7 @@ import { replicate } from 'fp-ts/ReadonlyArray'
 
 const fib = (n: number): number => (n <= 1 ? 1 : fib(n - 1) + fib(n - 2))
 
-// launches `fib` with a casual integer betwee 30 and 35
+// launches `fib` with a random integer between 30 and 35
 // logging both the input and output
 const randomFib: IO.IO<void> = pipe(
   randomInt(30, 35),
