@@ -4513,8 +4513,8 @@ export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
   )
 ```
 
-**Excursus**. As you can notice, using `chain` when it is required to maintain a scope leads to verbose code.
-In languages that support monadic stile natively there is often syntax support that goes by the name of "do notation" which eases this kind of situations.
+**Digression**. As you can notice, using `chain` when it is required to maintain a scope leads to verbose code.
+In languages that support monadic style natively there is often syntax support that goes by the name of "do notation" which eases this kind of situations.
 
 Let's see a Haskell example
 
