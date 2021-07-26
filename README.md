@@ -4811,7 +4811,7 @@ import * as E from 'fp-ts/Either'
 interface FileSystem<A> extends Task<E.Either<Error, A>> {}
 
 // -----------------------------------------
-// dependencies (NOT modyfied)
+// dependencies (NOT modified)
 // -----------------------------------------
 
 interface Deps {
@@ -4824,7 +4824,7 @@ interface Deps {
 }
 
 // -----------------------------------------
-// program (NOT modyfied)
+// program (NOT modified)
 // -----------------------------------------
 
 const program5 = (D: Deps) => {
