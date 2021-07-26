@@ -4805,7 +4805,7 @@ import { pipe } from 'fp-ts/function'
 import * as E from 'fp-ts/Either'
 
 // -----------------------------------------
-// our program's effect (modyfied)
+// our program's effect (modified)
 // -----------------------------------------
 
 interface FileSystem<A> extends Task<E.Either<Error, A>> {}
@@ -4844,7 +4844,7 @@ const program5 = (D: Deps) => {
 }
 
 // -----------------------------------------
-// `Deps` instance (modyfied)
+// `Deps` instance (modified)
 // -----------------------------------------
 
 import * as fs from 'fs'
