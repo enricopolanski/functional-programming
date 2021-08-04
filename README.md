@@ -977,7 +977,7 @@ const EqPoint: Eq<Point> = struct({
 })
 ```
 
-**Nota**. Like for Semigroup, we aren't limited to `struct`-like data types, we also have combinators for working with tuples: `tuple`
+**Note**. Like for Semigroup, we aren't limited to `struct`-like data types, we also have combinators for working with tuples: `tuple`
 
 ```ts
 import { Eq, tuple } from 'fp-ts/Eq'
@@ -2103,7 +2103,7 @@ const myList = cons(1, cons(2, cons(3, nil)))
 
 JavaScript doesn't support [pattern matching](https://github.com/tc39/proposal-pattern-matching) (neither does TypeScript) but we can simulate it with a `match` function.
 
-**Esempio** (TypeScript, linked lists)
+**Example** (TypeScript, linked lists)
 
 ```ts
 interface Nil {
@@ -2276,7 +2276,7 @@ Can you find some cons of the Promise solution when using static typing like in 
 
 Let's see how to handle errors in a functional way.
 
-A functions that returns errors or throws exceptions is an example of a partial function.
+A function that returns errors or throws exceptions is an example of a partial function.
 
 In the previous chapters we have seen that every partial function `f` can always be brought back to a total one `f'`.
 
@@ -2899,8 +2899,6 @@ Example given:
 
 The implementation could be something like:
 
-L'implementazione potrebbe essere qualcosa come:
-
 ```ts
 const idA = (s: string): string => s
 
@@ -3101,8 +3099,6 @@ When we talk about effects we are interested in `n`-ary type constructors where 
 | `Task<A>`          | an asynchronous computation **never fails**    |
 | `Reader<R, A>`     | reading from an environment                    |
 
-ove
-
 where
 
 ```ts
@@ -3173,7 +3169,7 @@ const getName = (user: User): string => user.name
 // getFollowersNames: User -> ReadonlyArray<string>
 const getFollowersNames = flow(getFollowers, map(getName))
 
-// o se preferite usare `pipe` al posto di `flow`...
+// let's use `pipe` instead of `flow`...
 export const getFollowersNames2 = (user: User) =>
   pipe(user, getFollowers, map(getName))
 
@@ -3385,10 +3381,10 @@ import { map } from 'fp-ts/ReadonlyArray'
 
 const double = (n: number): number => n * 2
 
-// cicla due volte
+// iterates array twice
 console.log(pipe([1, 2, 3], map(double), map(increment))) // => [ 3, 5, 7 ]
 
-// cicla una volta sola
+// single iteration
 console.log(pipe([1, 2, 3], map(flow(double, increment)))) // => [ 3, 5, 7 ]
 ```
 
@@ -3409,7 +3405,7 @@ export const program = (ns: ReadonlyArray<number>): string => {
 }
 ```
 
-Using the native `findIndex` API we are forced to use an `if` branch to test whether we have a result different than 1. If we forget to do so, the value `-1` could be unintentionally passed as input to `doSomethingWithIndex`.
+Using the native `findIndex` API we are forced to use an `if` branch to test whether we have a result different than `-1`. If we forget to do so, the value `-1` could be unintentionally passed as input to `doSomethingWithIndex`.
 
 Let's see how easier it is to obtain the same behavior using `Option` and its functor instance:
 
@@ -3698,7 +3694,6 @@ const result = addFollower(fetchUser(followerId))(fetchUser(userId)) // does not
 ```
 
 I can't use `addFollower` anymore! How can we proceed?
-Non posso più usare `addFollower`! Come possiamo procedere?
 
 If only we had a function with the following signature:
 
@@ -4130,8 +4125,7 @@ const followersOfFollowers = pipe(
 
 Cool! Let's see some other data type.
 
-**Esempio** (`F = Option`)
-
+**Example** (`F = Option`)
 Suppose you want to calculate the reciprocal of the first element of a numerical array:
 
 ```ts
@@ -4209,7 +4203,7 @@ Let's get back to the core problem: what is the composition of two effectful fun
 
 <center>(two Kleisli Arrows)</center>
 
-**Nota**. An effectful function is also called **Kleisli arrow**.
+**Note**. An effectful function is also called **Kleisli arrow**.
 
 For the time being I don't even know the **type** of such composition.
 
@@ -4228,7 +4222,7 @@ We can transform our problem into a category problem, meaning: can we find a cat
 
 </center>
 
-Let's try building a category _K_ (called **Kleisli category**) which contains \_only) Kleisli arrows:
+Let's try building a category _K_ (called **Kleisli category**) which contains _only_ Kleisli arrows:
 
 - **objects** will be the same objects of the _TS_ category, so all TypeScript types.
 - **morphisms** are built like this: every time there is a Kleisli arrow `f: A ⟼ M<B>` in _TS_ we draw an arrow `f': A ⟼ B` in _K_
@@ -4299,7 +4293,7 @@ Now we can update our composition table
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 | effectful | effectful     | `chain(g) ∘ f`  |
 
-What about `of`? Well, `of` comes from the identity morphisms in _K_: for every identity morphism 1<sub>A</sub> in _K_ there has to be a corresponding function from `A` to `M<A>` (ovvero `of: <A>(a: A) => M<A>`).
+What about `of`? Well, `of` comes from the identity morphisms in _K_: for every identity morphism 1<sub>A</sub> in _K_ there has to be a corresponding function from `A` to `M<A>` (that is, `of: <A>(a: A) => M<A>`).
 
 <center>
 <img src="images/of.png" alt="where of comes from" width="300px" />
@@ -4436,7 +4430,7 @@ const readFile = (filename: string): IO<string> => () =>
 const writeFile = (filename: string, data: string): IO<void> => () =>
   fs.writeFileSync(filename, data, { encoding: 'utf-8' })
 
-// API deruved from the previous functions
+// API derived from the previous functions
 const modifyFile = (filename: string, f: (s: string) => string): IO<void> =>
   pipe(
     readFile(filename),
@@ -4519,8 +4513,8 @@ export const time = <A>(ma: IO.IO<A>): IO.IO<A> =>
   )
 ```
 
-**Excursus**. As you can notice, using `chain` when it is required to maintain a scope leads to verbose code.
-In languages that support monadic stile natively there is often syntax support that goes by the name of "do notation" which eases this kind of situations.
+**Digression**. As you can notice, using `chain` when it is required to maintain a scope leads to verbose code.
+In languages that support monadic style natively there is often syntax support that goes by the name of "do notation" which eases this kind of situations.
 
 Let's see a Haskell example
 
@@ -4571,7 +4565,7 @@ import { replicate } from 'fp-ts/ReadonlyArray'
 
 const fib = (n: number): number => (n <= 1 ? 1 : fib(n - 1) + fib(n - 2))
 
-// launches `fib` with a casual integer betwee 30 and 35
+// launches `fib` with a random integer between 30 and 35
 // logging both the input and output
 const randomFib: IO.IO<void> = pipe(
   randomInt(30, 35),
@@ -4811,13 +4805,13 @@ import { pipe } from 'fp-ts/function'
 import * as E from 'fp-ts/Either'
 
 // -----------------------------------------
-// our program's effect (modyfied)
+// our program's effect (modified)
 // -----------------------------------------
 
 interface FileSystem<A> extends Task<E.Either<Error, A>> {}
 
 // -----------------------------------------
-// dependencies (NOT modyfied)
+// dependencies (NOT modified)
 // -----------------------------------------
 
 interface Deps {
@@ -4830,7 +4824,7 @@ interface Deps {
 }
 
 // -----------------------------------------
-// program (NOT modyfied)
+// program (NOT modified)
 // -----------------------------------------
 
 const program5 = (D: Deps) => {
@@ -4850,7 +4844,7 @@ const program5 = (D: Deps) => {
 }
 
 // -----------------------------------------
-// `Deps` instance (modyfied)
+// `Deps` instance (modified)
 // -----------------------------------------
 
 import * as fs from 'fs'
