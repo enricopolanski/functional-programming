@@ -2,7 +2,7 @@ import { log } from 'fp-ts/Console'
 import { fromIO, Task } from 'fp-ts/Task'
 import { createInterface } from 'readline'
 
-/** legge dallo standard input */
+/** reads from the standard input */
 export const getLine: Task<string> = () =>
   new Promise((resolve) => {
     const rl = createInterface({
@@ -15,5 +15,5 @@ export const getLine: Task<string> = () =>
     })
   })
 
-/** scrive dallo standard output */
+/** writes to the standard output */
 export const putStrLn = (message: string): Task<void> => fromIO(log(message))
