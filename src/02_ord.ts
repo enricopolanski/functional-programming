@@ -14,7 +14,7 @@ import * as B from 'fp-ts/boolean'
 
 /*
 
-  prima di tutto definiamo una istanza di semigrouppo per `Ord<A>`
+  first of all let's define a semigroup instance for `Ord<A>`
 
 */
 
@@ -28,7 +28,7 @@ const getSemigroup = <A = never>(): Semigroup<O.Ord<A>> => ({
 
 /*
 
-  adesso vediamola applicata ad un esempio pratico
+  now let's see it applied to a practical example
 
 */
 
@@ -56,7 +56,7 @@ const byRememberMe = pipe(
 
 const SemigroupOrdUser = getSemigroup<User>()
 
-// rappresenta una tabella da ordinare
+// represents a table to sort
 const users: ReadonlyArray<User> = [
   { id: 1, name: 'Guido', age: 47, rememberMe: false },
   { id: 2, name: 'Guido', age: 46, rememberMe: true },

@@ -10,17 +10,17 @@ import { randomInt } from 'fp-ts/Random'
 import * as T from 'fp-ts/Task'
 import { getLine, putStrLn } from './Console'
 
-// il numero da indovinare
+// the number to guess
 export const secret: T.Task<number> = T.fromIO(randomInt(1, 100))
 
-// combinatore: stampa un messaggio prima di una azione
+// combinator: print a message before an action
 const withMessage = <A>(message: string, next: T.Task<A>): T.Task<A> =>
   pipe(
     putStrLn(message),
     T.chain(() => next)
   )
 
-// l'input è una stringa perciò dobbiamo validarlo
+// the input is a string so we have to validate it
 const isValidGuess = between(N.Ord)(1, 100)
 const parseGuess = (s: string): O.Option<number> => {
   const n = parseInt(s, 10)
@@ -44,10 +44,10 @@ const answer: T.Task<number> = pipe(
 )
 
 const check = <A>(
-  secret: number, // il numero segreto da indovinare
-  guess: number, // tentativo dell'utente
-  ok: T.Task<A>, // cosa fare se l'utente ha indovinato
-  ko: T.Task<A> // cosa fare se l'utente NON ha indovinato
+  secret: number, // the secret number to guess
+  guess: number, // user attempt
+  ok: T.Task<A>, // what to do if the user guessed
+  ko: T.Task<A> // what to do if the user did NOT guess
 ): T.Task<A> => {
   if (guess > secret) {
     return withMessage('Troppo alto', ko)
@@ -60,7 +60,7 @@ const check = <A>(
 
 const end: T.Task<void> = putStrLn('Hai indovinato!')
 
-// mantengo lo stato (secret) come argomento della funzione (alla Erlang)
+// keep the state (secret) as the argument of the function (alla Erlang)
 const loop = (secret: number): T.Task<void> =>
   pipe(
     answer,

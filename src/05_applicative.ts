@@ -1,6 +1,6 @@
 /*
 
-  Modellare il lancio di dadi di un gioco di ruolo.
+  Models the dice roll of a role-playing game.
 
 */
 import { pipe } from 'fp-ts/function'
