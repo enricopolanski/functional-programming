@@ -192,7 +192,9 @@ const x = await question('What is your name?')
 const y = x
 ```
 
-As you can see refactoring a program including non-referentially transparent expressions might be challenging.
+The answer is: there's no way to know without reading `question`'s _implementation_.
+
+As you can see, refactoring a program including non-referentially transparent expressions might be challenging.
 In functional programming, where every expression is referentially transparent, the cognitive load required to make changes is severely reduced.
 
 ## Composition
