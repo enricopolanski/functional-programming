@@ -38,7 +38,7 @@ const program = pipe(
 )
 ```
 
-What happens here is that `input` is passed to the first function `f`, which returns a value that is passed to the second function `f2`, which returns a value that is passed as an argument to the third function `f3`, and so on.
+What happens here is that `input` is passed to the first function `f1`, which returns a value that is passed to the second function `f2`, which returns a value that is passed as an argument to the third function `f3`, and so on.
 
 **Demo**
 
