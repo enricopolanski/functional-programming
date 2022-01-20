@@ -4278,7 +4278,7 @@ chain = flatten ∘ map(g)
 ```
 
 <center>
-<img src="images/chain.png" alt="come agisce `chain` sulla funzione `g`" width="400px" />
+<img src="images/chain.png" alt="how chain operates on the function g" width="400px" />
 
 (how `chain` operates on the function `g`)
 
@@ -4298,7 +4298,7 @@ What about `of`? Well, `of` comes from the identity morphisms in _K_: for every 
 <center>
 <img src="images/of.png" alt="where of comes from" width="300px" />
 
-(come ottenere `of`)
+(where `of` comes from)
 
 </center>
 
