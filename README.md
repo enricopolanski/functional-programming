@@ -4350,7 +4350,7 @@ const inverse = (n: number): O.Option<number> =>
 const inverseHead: O.Option<number> = pipe([1, 2, 3], A.head, O.chain(inverse))
 ```
 
-Let's see how is `chain` implemented for the usual type constructors we've already seen:
+Let's see how `chain` is implemented for the usual type constructors we've already seen:
 
 **Example** (`F = ReadonlyArray`)
 
