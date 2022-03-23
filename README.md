@@ -802,7 +802,7 @@ It should be noted that, even when I do have a `Semigroup<A>` instance, using a 
 
 - avoids executing possibly expensive and pointless computations
 - avoids passing around the semigroup instance
-- allors the API consumer to decide which is the correct merging strategy (by using `concatAll`).
+- allows the API consumer to decide which is the correct merging strategy (by using `concatAll`).
 
 ## Order-derivable Semigroups
 
