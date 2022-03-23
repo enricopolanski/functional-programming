@@ -1814,7 +1814,7 @@ stringify: (
 ) => string
 ```
 
-In functional programming there is a tendency to only define **pure and total functions**. From now one with the term function we'll be specifically referring to "pure and total function". So what do we do when we have a partial function in our applications?
+In functional programming there is a tendency to only define **pure and total functions**. From now on with the term function we'll be specifically referring to "pure and total function". So what do we do when we have a partial function in our applications?
 
 A partial function `f: X ⟶ Y` can always be "brought back" to a total one by adding a special value, let's call it `None`, to the codomain and by assigning it to the output of `f` for every value of `X` where the function is not defined.
 
