@@ -4280,7 +4280,7 @@ chain = flatten ∘ map(g)
 ```
 
 <center>
-<img src="images/chain.png" alt="come agisce `chain` sulla funzione `g`" width="400px" />
+<img src="images/chain.png" alt="how chain operates on the function g" width="400px" />
 
 (how `chain` operates on the function `g`)
 
@@ -4300,7 +4300,7 @@ What about `of`? Well, `of` comes from the identity morphisms in _K_: for every 
 <center>
 <img src="images/of.png" alt="where of comes from" width="300px" />
 
-(come ottenere `of`)
+(where `of` comes from)
 
 </center>
 
@@ -4352,7 +4352,7 @@ const inverse = (n: number): O.Option<number> =>
 const inverseHead: O.Option<number> = pipe([1, 2, 3], A.head, O.chain(inverse))
 ```
 
-Let's see how is `chain` implemented for the usual type constructors we've already seen:
+Let's see how `chain` is implemented for the usual type constructors we've already seen:
 
 **Example** (`F = ReadonlyArray`)
 
