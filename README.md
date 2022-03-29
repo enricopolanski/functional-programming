@@ -19,6 +19,13 @@ npm i
   - [Referential transparency](#referential-transparency)
   - [Composition](#composition)
 - [Modelling composition with Semigroups](#semigroups)
+  - [Definition of a Magma](#magma-definition)
+  - [Definition of a Semigroup](#semigroup-definition)
+  - [The `concatAll` function](#semigroup-concat-all)
+  - [The dual semigroup](#dual-semigroup)
+  - [Semigroup product](#semigroup-product)
+  - [Finding a Semigroup instance for any type](#finding-a-semigroup)
+  - [Order-derivable Semigroups](#order-derivable-semigroups)
 - [Modelling equivalence with `Eq`](#equivalence)
 - [Modeling composition through Monoids](#monoids)
 - [Pure and partial functions](#functions)
@@ -293,7 +300,7 @@ Algebras can be thought of as an abstraction of **interfaces**:
 
 Before getting into semigroups, let's see first an example of an algebra, a _magma_.
 
-## Definition of a Magma
+## <a name="magma-definition"></a>Definition of a Magma
 
 A Magma<A> is a very simple algebra:
 
@@ -345,7 +352,7 @@ pipe(10, concat(2), concat(3), concat(1), concat(2), console.log)
 
 Magmas do not obey any law, they only have the closure requirement. Let's see an algebra that do requires another law: semigroups.
 
-## Definition of a Semigroup
+## <a name="semigroup-definition"></a>Definition of a Semigroup
 
 > Given a `Magma` if the `concat` operation is **associative** then it's a _semigroup_.
 
@@ -496,7 +503,7 @@ const SemigroupAny: Semigroup<boolean> = {
 }
 ```
 
-## The `concatAll` function
+## <a name="semigroup-concat-all"></a>The `concatAll` function
 
 By definition `concat` combines merely two elements of `A` every time. Is it possible to combine any number of them?
 
@@ -565,7 +572,7 @@ const last = <A>(): Semigroup<A> => ({
 })
 ```
 
-## The dual semigroup
+## <a name="dual-semigroup"></a>The dual semigroup
 
 Given a semigroup instance, it is possible to obtain a new semigroup instance by simply swapping the order in which the operands are combined:
 
@@ -585,7 +592,7 @@ pipe(reverse(S.Semigroup).concat('a', 'b'), console.log) // => 'ba'
 
 **Quiz**. This combinator makes sense because, generally speaking, the `concat` operation is not [**commutative**](https://en.wikipedia.org/wiki/Commutative_property), can you find an example where `concat` is commutative and one where it isn't?
 
-## Semigroup product
+## <a name="semigroup-product"></a>Semigroup product
 
 Let's try defining a semigroup instance for more complex types:
 
@@ -674,7 +681,7 @@ pipe(
 ) // => 'a|b|c'
 ```
 
-## Finding a Semigroup instance for any type
+## <a name="finding-a-semigroup"></a>Finding a Semigroup instance for any type
 
 The associativity property is a very strong requirement, what happens if, given a specific type `A` we can't find an associative operation on `A`?
 
@@ -820,7 +827,7 @@ It should be noted that, even when I do have a `Semigroup<A>` instance, using a 
 - avoids passing around the semigroup instance
 - allows the API consumer to decide which is the correct merging strategy (by using `concatAll`).
 
-## Order-derivable Semigroups
+## <a name="order-derivable-semigroups"></a>Order-derivable Semigroups
 
 Given that `number` is **a total order** (meaning that whichever `x` and `y` we choose, one of those two conditions has to hold true: `x <= y` or `y <= x`) we can define another two `Semigroup<number>` instances using the `min` or `max` operations.
 
