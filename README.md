@@ -12,7 +12,21 @@ cd functional-programming
 npm i
 ```
 
-# What is functional programming
+# Table of content
+
+1. [What is functional programming](#what-is-functional-programming)
+2. [The two pillars of functional programming](#two-pillars)
+3. [Modelling composition with Semigroups](#semigroups)
+4. [Modelling equivalence with `Eq`](#equivalence)
+5. [Modeling composition through Monoids](#monoids)
+6. [Pure and partial functions](#functions)
+7. [Algebraic Data Types](#algebraic-data-types)
+8. [Category theory](#category-theory)
+9. [Functors](#functors)
+10. [Applicative functors](#applicative-functors)
+11. [Monads](#monads)
+
+# <a name="what-is-functional-programming"></a>What is functional programming
 
 > Functional Programming is programming with pure functions. Mathematical functions.
 
@@ -108,7 +122,7 @@ In functional programming, where there's an emphasis on code properties rather t
 
 Think about how easier it is to review a PR that involves `map` rather than a `for` loop.
 
-# The two pillars of functional programming
+# <a name="two-pillars"></a>The two pillars of functional programming
 
 Functional programming is based on the following two pillars:
 
@@ -257,7 +271,7 @@ Think at how just adding a single new primitive, or a single combinator to those
 
 Of the two combinators in `01_retry.ts` a special mention goes to `concat` since it refers to a very powerful functional programming abstraction: semigroups.
 
-# Modelling composition with Semigroups
+# <a name="semigroups"></a>Modelling composition with Semigroups
 
 A semigroup is a recipe to combine two, or more, values.
 
@@ -828,7 +842,7 @@ Is it possible to capture the notion of being _totally ordered_ for other types?
 
 To speak about _ordering_ we first need to capture the notion of _equality_.
 
-# Modelling equivalence with `Eq`
+# <a name="equivalence"></a>Modelling equivalence with `Eq`
 
 Yet again, we can model the notion of equality.
 
@@ -1408,7 +1422,7 @@ console.log(
 
 **Demo**
 
-# Modeling composition through Monoids
+# <a name="monoids"></a>Modeling composition through Monoids
 
 Let's recap what we have seen till now.
 
@@ -1619,7 +1633,7 @@ const Monoid: Monoid<Point> = tuple(N.MonoidSum, N.MonoidSum)
 
 [`03_shapes.ts`](src/03_shapes.ts)
 
-# Pure and partial functions
+# <a name="functions"></a>Pure and partial functions
 
 In the first chapter we've seen an informal definition of a pure function:
 
@@ -1832,7 +1846,7 @@ In functional programming the tendency is to define only pure and and total func
 
 Is it possible to define `Option` in TypeScript? In the following chapters we'll see how to do it.
 
-# Algebraic Data Types
+# <a name="algebraic-data-types"></a>Algebraic Data Types
 
 A good first step when writing an application or feature is to define it's domain model. TypeScript offers many tools that help accomplishing this task. **Algebraic Data Types** (in short, ADTs) are one of these tools.
 
@@ -2752,7 +2766,7 @@ readFile('./myfile', (e) =>
 )
 ```
 
-# Category theory
+# <a name="category-theory"></a>Category theory
 
 We have seen how a founding pillar of functional programming is **composition**.
 
@@ -2964,7 +2978,7 @@ double: (n: number) => number
 
 To solve it, the next chapter will talk about functors.
 
-# Functors
+# <a name="functors"></a>Functors
 
 In the last section we've spoken about the _TS_ category (the TypeScript category) and about function composition's core problem:
 
@@ -3588,7 +3602,7 @@ Not yet. Functors allow us to compose an effectful program `f` with a pure progr
 
 To manage this circumstance we need something _more_, in the next chapter we'll see another important abstraction in functional programming: **applicative functors**.
 
-# Applicative functors
+# <a name="applicative-functors"></a>Applicative functors
 
 In the section regarding functors we've seen that we can compose an effectful program `f: (a: A) => F<B>` with a pure one `g: (b: B) => C` through the transformation of `g` to a function `map(g): (fb: F<B>) => F<C>` (if and only if `F` admits a functor instance).
 
@@ -4053,7 +4067,7 @@ Not yet. There's one last very important case to consider: when **both** program
 
 Yet again we need something more, in the following chapter we'll talk about one of the most important abstractions in functional programming: **monads**.
 
-# Monads
+# <a name="monads"></a>Monads
 
 <center>
 <img src="images/moggi.jpg" width="300" alt="Eugenio Moggi" />
