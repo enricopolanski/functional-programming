@@ -84,7 +84,7 @@ A `for` loop offers a lot of flexibility, I can modify:
 
 This also implies that I may introduce **errors** and that I have no guarantees about the returned value.
 
-**Quiz**. Is the `for loop` correct?
+**Quiz**. Is the `for loop` correct? (see the [answer here](src/quiz-answers/for-loop.md))
 
 Let's rewrite the same exercise using `map`.
 
@@ -3054,7 +3054,7 @@ Even with this thunk technique (the same technique used in `fp-ts`) we need a wa
 We first need a bit of (informal) terminology: we'll call **pure program** a function with the following signature:
 
 ```ts
-(a: A) => B
+;(a: A) => B
 ```
 
 Such a signature models a program that takes an input of type `A` and returns a result of type `B` without any effect.
