@@ -36,10 +36,22 @@ npm i
 - [Algebraic Data Types](#algebraic-data-types)
   - [What is an ADT?](#what-is-adt)
   - [Product types](#product-types)
+    - [Why "product" types?](#why-product-types)
+    - [When can I use a product type?](#when-product-types)
   - [Sum types](#sum-types)
+    - [Constructors](#product-type-constructors)
+    - [Pattern matching](#pattern-matching)
+    - [Why "sum" types?](#why-sum-types)
+    - [When should I use a sum type?](#when-sum-types)
   - [Functional error handling](#error-handling)
+    - [The `Option` type](#option-type)
+    - [An `Eq` instance](#eq-instance)
+    - [`Semigroup` and `Monoid` instances](#semigroup-monoid-instances)
+    - [The `Either` type](#either-type)
 - [Category theory](#category-theory)
   - [Definition](#category-definition)
+    - [Part I (Constituents)](#category-theory-constituents)
+    - [Part II (Composition)](#category-theory-composition)
   - [Modeling programming languages with categories](#modeling-with-categories)
   - [A category for TypeScript](#typescript-category)
   - [Composition's core problem](#composition-core-problem)
@@ -1950,7 +1962,7 @@ type HttpResponse<A> = {
 }
 ```
 
-### Why "product" types?
+### <a name="why-product-types"></a>Why "product" types?
 
 If we label with `C(A)` the number of elements of type `A` (also called in mathematics, **cardinality**), then the following equation hold true:
 
@@ -1993,7 +2005,7 @@ type Clock = {
 }
 ```
 
-### When can I use a product type?
+### <a name="when-product-types"></a>When can I use a product type?
 
 Each time it's components are **independent**.
 
@@ -2089,7 +2101,7 @@ export type List<A> =
 - `ReadonlyMap<string, A>`
 - `ReadonlyMap<'k1' | 'k2', A>`
 
-### Constructors
+### <a name="product-type-constructors"></a>Constructors
 
 A sum type with `n` elements needs at least `n` **constructors**, one for each member:
 
@@ -2154,7 +2166,7 @@ export const cons = <A>(head: A, tail: List<A>): List<A> => ({
 const myList = cons(1, cons(2, cons(3, nil)))
 ```
 
-### Pattern matching
+### <a name="pattern-matching"></a>Pattern matching
 
 JavaScript doesn't support [pattern matching](https://github.com/tc39/proposal-pattern-matching) (neither does TypeScript) but we can simulate it with a `match` function.
 
@@ -2208,7 +2220,7 @@ export const length: <A>(fa: List<A>) => number = match(
 
 **Note**. TypeScript offers a great feature for sum types: **exhaustive check**. The type checker can _check_, no pun intended, whether all the possible cases are handled by the `switch` defined in the body of the function.
 
-### Why "sum" types?
+### <a name="why-sum-types"></a>Why "sum" types?
 
 Because the following identity holds true:
 
@@ -2235,7 +2247,7 @@ type Option<A> = None | Some<A>
 
 From the general formula `C(Option<A>) = 1 + C(A)` we can derive the cardinality of the `Option<boolean>` type: `1 + 2 = 3` members.
 
-### When should I use a sum type?
+### <a name="when-sum-types"></a>When should I use a sum type?
 
 When the components would be **dependent** if implemented with a product type.
 
@@ -2341,7 +2353,7 @@ f': X ⟶ Option(Y)
 
 Now that we know a bit more about sum types in TypeScript we can define the `Option` without much issues.
 
-### The `Option` type
+### <a name="option-type"></a>The `Option` type
 
 The type `Option` represents the effect of a computation which may fail (case `None`) or return a type `A` (case `Some<A>`):
 
@@ -2440,7 +2452,7 @@ pipe(result, match(
 
 Is it possible to define instances for the abstractions we've seen in the chapters before? Let's begin with `Eq`.
 
-### An `Eq` instance
+### <a name="eq-instance"></a>An `Eq` instance
 
 Suppose we have two values of type `Option<string>` and that we want to compare them to check if their equal:
 
@@ -2577,7 +2589,7 @@ console.log(OrdOptionMyTuple.compare(o1, o2)) // => -1
 console.log(OrdOptionMyTuple.compare(o1, o3)) // => -1
 ```
 
-### `Semigroup` and `Monoid` instances
+### <a name="semigroup-monoid-instances"></a>`Semigroup` and `Monoid` instances
 
 Now, let's suppose we want to "merge" two different `Option<A>`s,: there are four different cases:
 
@@ -2716,7 +2728,7 @@ console.log(monoidSettings.concat(workspaceSettings, userSettings))
 
 **Quiz**. Suppose VSCode cannot manage more than `80` columns per row, how could we modify the definition of `monoidSettings` to take that into account?
 
-### The `Either` type
+### <a name="either-type"></a>The `Either` type
 
 We have seen how the `Option` data type can be used to handle partial functions, which often represent computations than can fail or throw exceptions.
 
@@ -2890,7 +2902,7 @@ The definition of a category, even though it isn't really complex, is a bit long
 - the first is merely technical (we need to define its constituents)
 - the second one will be more relevant to what we care for: a notion of composition
 
-### Part I (Constituents)
+### <a name="category-theory-constituents"></a>Part I (Constituents)
 
 A category is a pair of `(Objects, Morphisms)` where:
 
@@ -2907,7 +2919,7 @@ In every morphism, both `A` and `B` are members of `Objects`. We write `f: A ⟼
 
 **Note**. For simplicity, from now on, I'll use labels only for objects, skipping the circles.
 
-**Part II (Composition)**
+### <a name="category-theory-composition"></a>Part II (Composition)
 
 There is an operation, `∘`, called "composition", such as the following properties hold true:
 
