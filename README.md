@@ -27,13 +27,42 @@ npm i
   - [Finding a Semigroup instance for any type](#finding-a-semigroup)
   - [Order-derivable Semigroups](#order-derivable-semigroups)
 - [Modelling equivalence with `Eq`](#equivalence)
+  - [Modeling ordering relations with `Ord`](#modeling-ordering)
+  - [Dual Ordering](#dual-ordering)
 - [Modeling composition through Monoids](#monoids)
+  - [The `concatAll` function](#monoid-concat-all)
+  - [Product monoid](#product-monoid)
 - [Pure and partial functions](#functions)
 - [Algebraic Data Types](#algebraic-data-types)
+  - [What is an ADT?](#what-is-adt)
+  - [Product types](#product-types)
+  - [Sum types](#sum-types)
+  - [Functional error handling](#error-handling)
 - [Category theory](#category-theory)
+  - [Definition](#category-definition)
+  - [Modeling programming languages with categories](#modeling-with-categories)
+  - [A category for TypeScript](#typescript-category)
+  - [Composition's core problem](#composition-core-problem)
 - [Functors](#functors)
+  - [Functions as programs](#functions-as-program)
+  - [A boundary that leads to functors](#boundary-to-functors)
+  - [Functors and functional error handling](#functors-and-error-handling)
+  - [Functors compose](#functors-compose)
+  - [Contravariant Functors](#contravariant-functors)
+  - [Functors in `fp-ts`](#functors-in-fp-ts)
+  - [Do functors solve the general problem?](#functors-general-problem)
 - [Applicative functors](#applicative-functors)
+  - [Currying](#currying)
+  - [The `ap` operation](#ap-operation)
+  - [The `of` operation](#of-operation)
+  - [Applicative functors compose](#applicative-functors-compose)
+  - [Do applicative functors solve the general problem?](#applicative-functors-general-problem)
 - [Monads](#monads)
+  - [The problem with nested contexts](#nested-contexts-problem)
+  - [Monad Definition](#monad-definition)
+  - [The Kleisli category](#kleisli-category)
+  - [Defining `chain` step by step](#defining-chain)
+  - [Manipulating programs](#manipulating-programs)
 
 # <a name="what-is-functional-programming"></a>What is functional programming
 
@@ -1105,7 +1134,7 @@ console.log(EqID.equals({ id: 1, name: 'Giulio' }, { id: 2, name: 'Giulio' }))
 
 **Quiz**. Given a data type `A`, is it possible to define a `Semigroup<Eq<A>>`? What could it represent?
 
-## Modeling ordering relations with `Ord`
+## <a name="modeling-ordering"></a>Modeling ordering relations with `Ord`
 
 In the previous chapter regarding `Eq` we were dealing with the concept of **equality**. In this one we'll deal with the concept of **ordering**.
 
@@ -1197,7 +1226,7 @@ const min = <A>(O: Ord<A>) => (second: A) => (first: A): A =>
 pipe(2, min(N.Ord)(1), console.log) // => 1
 ```
 
-## Dual Ordering
+## <a name="dual-ordering"></a>Dual Ordering
 
 In the same way we could invert the `concat` operation to obtain the `dual semigroup` using the `reverse` combinator, we can invert the `compare` operation to get the dual ordering.
 
@@ -1585,7 +1614,7 @@ TODO:
 We can start having a small taste of the importance of the `identity` function. While apparently useless per se, this function is vital to define a monoid for functions, in this case, endomorphisms. In fact, _doing nothing_, being _empty_ or _neutral_ is a tremendously valuable property to have when it comes to composition and we can think of the `identity` function as the number `0` of functions.
 -->
 
-## The `concatAll` function
+## <a name="monoid-concat-all"></a>The `concatAll` function
 
 One great property of monoids, compared to semigrops, is that the concatenation of multiple elements becomes even easier: it is not necessary anymore to provide an initial value.
 
@@ -1604,7 +1633,7 @@ console.log(concatAll(B.MonoidAny)([true, false, true])) // => true
 
 **Quiz**. Why is the initial value not needed anymore?
 
-## Product monoid
+## <a name="product-monoid"></a>Product monoid
 
 As we have already seen with semigroups, it is possible to define a monoid instance for a `struct` if we are able to define a monoid instance for each of its fields.
 
@@ -1863,7 +1892,7 @@ A good first step when writing an application or feature is to define it's domai
   What are the other tools?
 -->
 
-## What is an ADT?
+## <a name="what-is-adt"></a>What is an ADT?
 
 > In computer programming, especially functional programming and type theory, an algebraic data type is a kind of composite type, i.e., **a type formed by combining other types**.
 
@@ -1878,7 +1907,7 @@ Two common families of algebraic data types are:
 
 Let's begin with the more familiar ones: product types.
 
-## Product types
+## <a name="product-types"></a>Product types
 
 A product type is a collection of types T<sub>i</sub> indexed by a set `I`.
 
@@ -1973,7 +2002,7 @@ type Clock = [Hour, Period]
 
 Here `Hour` and `Period` are independent: the value of `Hour` does not change the value of `Period`. Every legal pair of `[Hour, Period]` makes "sense" and is legal.
 
-## Sum types
+## <a name="sum-types"></a>Sum types
 
 A sum type is a a data type that can hold a value of different (but limited) types. Only one of these types can be used in a single instance and there is generally a "tag" value differentiating those types.
 
@@ -2297,7 +2326,7 @@ declare function readFile(path: string): Promise<string>
 
 Can you find some cons of the Promise solution when using static typing like in TypeScript?
 
-## Functional error handling
+## <a name="error-handling"></a>Functional error handling
 
 Let's see how to handle errors in a functional way.
 
@@ -2853,7 +2882,7 @@ We'll see in the following chapters how a category can form the basis for:
 - a model for a generic **programming language**
 - a model for the concept of **composition**
 
-## Definition
+## <a name="category-definition"></a>Definition
 
 The definition of a category, even though it isn't really complex, is a bit long, thus I'll split it in two parts:
 
@@ -2899,7 +2928,7 @@ There is an operation, `∘`, called "composition", such as the following proper
 
 This category is very simple, there are three objects and six morphisms (1<sub>A</sub>, 1<sub>B</sub>, 1<sub>C</sub> are the identity morphisms for `A`, `B`, `C`).
 
-## Modeling programming languages with categories
+## <a name="modeling-with-categories"></a>Modeling programming languages with categories
 
 A category can be seen as a simplified model for a **typed programming language**, where:
 
@@ -2939,7 +2968,7 @@ const g = (n: number): boolean => n > 2
 const gf = (s: string): boolean => g(f(s))
 ```
 
-## A category for TypeScript
+## <a name="typescript-category"></a>A category for TypeScript
 
 We can define a category, let's call it _TS_, as a simplified model of the TypeScript language, where:
 
@@ -2950,7 +2979,7 @@ We can define a category, let's call it _TS_, as a simplified model of the TypeS
 
 As a model of TypeScript, the _TS_ category may seem a bit limited: no loops, no `if`s, there's _almost_ nothing... that being said that simplified model is rich enough to help us reach our goal: to reason about a well-defined notion of composition.
 
-## Composition's core problem
+## <a name="composition-core-problem"></a>Composition's core problem
 
 In the _TS_ category we can compose two generic functions `f: (a: A) => B` and `g: (c: C) => D` as long as `C = B`
 
@@ -2999,7 +3028,7 @@ Because, if it is true that categories can be used to model programming language
 
 Thus, solving this abstract problem means finding a concrete way of **composing programs in a generic way**. And _that_ is really interesting for us developers, isn't it?
 
-## Functions as programs
+## <a name="functions-as-program"></a>Functions as programs
 
 If we want to model programs with functions we need to tackle an issue immediately:
 
@@ -3153,7 +3182,7 @@ function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
 
 But what about other cases?
 
-## A boundary that leads to functors
+## <a name="boundary-to-functors"></a>A boundary that leads to functors
 
 Let's consider the following boundary: `B = F<C>` for some type constructor `F`, we have the following situation:
 
@@ -3413,7 +3442,7 @@ console.log(pipe([1, 2, 3], map(double), map(increment))) // => [ 3, 5, 7 ]
 console.log(pipe([1, 2, 3], map(flow(double, increment)))) // => [ 3, 5, 7 ]
 ```
 
-## Functors and functional error handling
+## <a name="functors-and-error-handling"></a>Functors and functional error handling
 
 Functors have a positive impact on functional error handling, let's see a practical example:
 
@@ -3457,7 +3486,7 @@ Practically, using `Option`, we're always in front of the `happy path`, error ha
 
 **Quiz**. `Task<A>` represents an asynchronous call that always succeed, how can we model a computation that can fail instead?
 
-## Functors compose
+## <a name="functors-compose"></a>Functors compose
 
 Functors compose, meaning that given two functors `F` and `G` then the composition `F<G<A>>` is still a functor and the `map` of this composition is the composition of the `map`s.
 
@@ -3501,7 +3530,7 @@ getUserName(1)().then(console.log) // => some('Ruth R. Gonzalez')
 getUserName(4)().then(console.log) // => none
 ```
 
-## Contravariant Functors
+## <a name="contravariant-functors"></a>Contravariant Functors
 
 In the previous section we haven't been completely thorough with our definitions. What we have seen in the previous section and called "functors" should be more properly called **covariant functors**.
 
@@ -3547,7 +3576,7 @@ const EqID: Eq<User> = pipe(
 */
 ```
 
-## Functors in `fp-ts`
+## <a name="functors-in-fp-ts"></a>Functors in `fp-ts`
 
 How do we define a functor instance in `fp-ts`? Let's see some example.
 
@@ -3599,7 +3628,7 @@ export const Functor: Functor1<'Response'> = {
 }
 ```
 
-## Do functors solve the general problem?
+## <a name="functors-general-problem"></a>Do functors solve the general problem?
 
 Not yet. Functors allow us to compose an effectful program `f` with a pure program `g`, but `g` has to be a **unary** function, accepting one single argument. What happens if `g` takes two or more arguments?
 
@@ -3622,7 +3651,7 @@ In the section regarding functors we've seen that we can compose an effectful pr
 
 But `g` has to be unary, it can only accept a single argument as input. What happens if `g` accepts two arguments? Can we still transform `g` using only the functor instance?
 
-## Currying
+## <a name="currying"></a>Currying
 
 First of all we need to model a function that accepts two arguments of type `B` and `C` (we can use a tuple for this) and returns a value of type `D`:
 
@@ -3688,7 +3717,7 @@ console.log(addFollower(follower)(user))
 */
 ```
 
-## The `ap` operation
+## <a name="ap-operation"></a>The `ap` operation
 
 Suppose that:
 
@@ -3974,7 +4003,7 @@ Now we cam update ore "composition table":
 | effectful | pure (unary)  | `map(g) ∘ f`    |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 
-## The `of` operation
+## <a name="of-operation"></a>The `of` operation
 
 Now we know that given two function `f: (a: A) => F<B>`, `g: (b: B, c: C) => D` we can obtain the composition `h`:
 
@@ -4040,7 +4069,7 @@ const of = <R, A>(a: A): Reader<R, A> => () => a
 
 [`05_applicative.ts`](src/05_applicative.ts)
 
-## Applicative functors compose
+## <a name="applicative-functors-compose"></a>Applicative functors compose
 
 Applicative functors compose, meaning that given two applicative functors `F` and `G`, their composition `F<G<A>>` is still an applicative functor.
 
@@ -4070,7 +4099,7 @@ const ap = <A>(
   )
 ```
 
-## Do applicative functors solve the general problem?
+## <a name="applicative-functors-general-problem"></a>Do applicative functors solve the general problem?
 
 Not yet. There's one last very important case to consider: when **both** programs are effectful.
 
@@ -4106,7 +4135,7 @@ g: (b: B) => F<C>
 
 What is the composition of `f` and `g`?
 
-## The problem with nested contexts
+## <a name="nested-contexts-problem"></a>The problem with nested contexts
 
 Let's see few examples on why we need something more.
 
@@ -4187,7 +4216,7 @@ So, what is a monad?
 
 Here is how they are often presented...
 
-## Monad Definition
+## <a name="monad-definition"></a>Monad Definition
 
 **Definition**. A monad is defined by three things:
 
@@ -4238,7 +4267,7 @@ But we've already seen some abstractions that talks specifically about compositi
 
 We can transform our problem into a category problem, meaning: can we find a category that models the composition of Kleisli arrows?
 
-## The Kleisli category
+## <a name="kleisli-category"></a>The Kleisli category
 
 <center>
 <img src="images/kleisli.jpg" width="300" alt="Heinrich Kleisli" />
@@ -4275,7 +4304,7 @@ Thus, a good candidate for the following composition of `f` and `g` in _TS_ is s
 
 Let's try implementing such a function.
 
-## Defining `chain` step by step
+## <a name="defining-chain"></a>Defining `chain` step by step
 
 The first point (1) of the monad definition tells us that `M` admits a functor instance, thus we can use the `map` function to transform the function `g: (b: B) => M<C>` into a function `map(g): (mb: M<B>) => M<M<C>>`
 
@@ -4433,7 +4462,7 @@ const chain = <B, R, C>(g: (b: B) => Reader<R, C>) => (
 ): Reader<R, C> => (r) => g(mb(r))(r)
 ```
 
-## Manipulating programs
+## <a name="manipulating-programs"></a>Manipulating programs
 
 Let's see now, how thanks to referential transparency and the monad concept we can programmaticaly manipulate programs.
 
