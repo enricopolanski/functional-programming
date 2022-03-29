@@ -46,6 +46,7 @@ npm i
 - [Functors](#functors)
   - [Functions as programs](#functions-as-program)
   - [A boundary that leads to functors](#boundary-to-functors)
+  - [Definition](#functor-definition)
   - [Functors and functional error handling](#functors-and-error-handling)
   - [Functors compose](#functors-compose)
   - [Contravariant Functors](#contravariant-functors)
@@ -3409,7 +3410,7 @@ From now on, unless specified differently, when we write "functor" we mean an en
 
 Now we know the practical side of functors, let's see the formal definition.
 
-### Definition
+## <a name="functor-definition"></a>Definition
 
 A functor is a pair `(F, map)` where:
 
