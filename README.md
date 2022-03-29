@@ -323,7 +323,7 @@ pipe(10, concat(2), concat(3), concat(1), concat(2), console.log)
 // => 2
 ```
 
-**Quiz**. The fact that `concat` is a _closed_ operation isn't a trivial detail. If `A` is the set of natural numbers (defined as positive integers) instead of the JavaScript number type (a set of positive and negative floats), could we define a `Magma<Natural>` with `concat` implemented like in `MagmaSub`? Can you think of any other `concat` operation on natural numbers for which the `closure` property isn't valid?
+**Quiz**. The fact that `concat` is a _closed_ operation isn't a trivial detail. If `A` is the set of natural numbers (defined as positive integers) instead of the JavaScript number type (a set of positive and negative floats), could we define a `Magma<Natural>` with `concat` implemented like in `MagmaSub`? Can you think of any other `concat` operation on natural numbers for which the `closure` property isn't valid? (see the [answer here](src/quiz-answers/magma-concat-closed.md))
 
 **Definition**. Given `A` a non empty set and `*` a binary operation _closed on_ (or _internal to_) `A`, then the pair `(A, *)` is called a _magma_.
 
@@ -3054,7 +3054,7 @@ Even with this thunk technique (the same technique used in `fp-ts`) we need a wa
 We first need a bit of (informal) terminology: we'll call **pure program** a function with the following signature:
 
 ```ts
-;(a: A) => B
+(a: A) => B
 ```
 
 Such a signature models a program that takes an input of type `A` and returns a result of type `B` without any effect.
