@@ -14,17 +14,19 @@ npm i
 
 # Table of content
 
-1. [What is functional programming](#what-is-functional-programming)
-2. [The two pillars of functional programming](#two-pillars)
-3. [Modelling composition with Semigroups](#semigroups)
-4. [Modelling equivalence with `Eq`](#equivalence)
-5. [Modeling composition through Monoids](#monoids)
-6. [Pure and partial functions](#functions)
-7. [Algebraic Data Types](#algebraic-data-types)
-8. [Category theory](#category-theory)
-9. [Functors](#functors)
-10. [Applicative functors](#applicative-functors)
-11. [Monads](#monads)
+- [What is functional programming](#what-is-functional-programming)
+- [The two pillars of functional programming](#two-pillars)
+  - [Referential transparency](#referential-transparency)
+  - [Composition](#composition)
+- [Modelling composition with Semigroups](#semigroups)
+- [Modelling equivalence with `Eq`](#equivalence)
+- [Modeling composition through Monoids](#monoids)
+- [Pure and partial functions](#functions)
+- [Algebraic Data Types](#algebraic-data-types)
+- [Category theory](#category-theory)
+- [Functors](#functors)
+- [Applicative functors](#applicative-functors)
+- [Monads](#monads)
 
 # <a name="what-is-functional-programming"></a>What is functional programming
 
@@ -131,7 +133,7 @@ Functional programming is based on the following two pillars:
 
 All of the remaining content derives directly or indirectly from those two points.
 
-## Referential transparency
+## <a name="referential-transparency"></a>Referential transparency
 
 > **Definition**. An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
 
@@ -211,7 +213,7 @@ The answer is: there's no way to know without reading `question`'s _implementati
 As you can see, refactoring a program including non-referentially transparent expressions might be challenging.
 In functional programming, where every expression is referentially transparent, the cognitive load required to make changes is severely reduced.
 
-## Composition
+## <a name="composition"></a>Composition
 
 Functional programming's fundamental pattern is _composition_: we compose small units of code accomplishing very specific tasks into larger and complex units.
 
