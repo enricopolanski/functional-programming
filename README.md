@@ -1430,7 +1430,7 @@ Later on we have seen how adding one simple requirement, _associativity_, allowe
 
 Now we're going to add another condition on Semigroup.
 
-Given a `Semigroup` defined on some set `A` with some `concat` operation, if there is some element in `A`, we'll call this element _empty_, such as for every element `a` in `A` the two following equations hold true:
+Given a `Semigroup` defined on some set `A` with some `concat` operation, if there is some element in `A` – we'll call this element _empty_ – such as for every element `a` in `A` the two following equations hold true:
 
 - **Right identity**: `concat(a, empty) = a`
 - **Left identity**: `concat(empty, a) = a`
