@@ -2854,7 +2854,7 @@ In every morphism, both `A` and `B` are members of `Objects`. We write `f: A ⟼
 
 **Note**. For simplicity, from now on, I'll use labels only for objects, skipping the circles.
 
-**Part II (Composition)**
+### Part II (Composition)
 
 There is an operation, `∘`, called "composition", such as the following properties hold true:
 
@@ -3357,7 +3357,7 @@ From now on, unless specified differently, when we write "functor" we mean an en
 
 Now we know the practical side of functors, let's see the formal definition.
 
-### Definition
+## Definition
 
 A functor is a pair `(F, map)` where:
 
