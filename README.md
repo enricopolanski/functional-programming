@@ -441,7 +441,7 @@ const SemigroupSum: Semigroup<number> = {
 }
 ```
 
-**Quiz**. Can the `concat` combinator defined in the demo [`01_retry.ts`](src/01_retry.ts) be used to define a `Semigroup` instance for the `RetryPolicy` type?
+**Quiz**. Can the `concat` combinator defined in the demo [`01_retry.ts`](src/01_retry.ts) be used to define a `Semigroup` instance for the `RetryPolicy` type? (see the [answer here](src/quiz-answers/semigroup-demo-concat.md))
 
 This is the implementation for the semigroup `(number, *)` where `*` is the usual number multiplication:
 
