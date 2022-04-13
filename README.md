@@ -503,7 +503,7 @@ const product = S.concatAll(N.SemigroupProduct)(3)
 console.log(product([1, 2, 3, 4])) // => 72
 ```
 
-**Quiz**. Why do I need to provide an initial value?
+**Quiz**. Why do I need to provide an initial value? (see the [answer here](src/quiz-answers/semigroup-concatAll-initial-value.md))
 
 **Example**
 
@@ -527,7 +527,7 @@ const assign: (as: ReadonlyArray<object>) => object = concatAll(
 )({})
 ```
 
-**Quiz**. Is the following semigroup instance lawful (does it respect semigroup laws)?
+**Quiz**. Is the following semigroup instance lawful (does it respect semigroup laws)? (see the [answer here](src/quiz-answers/semigroup-first.md))
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
@@ -538,7 +538,7 @@ const first = <A>(): Semigroup<A> => ({
 })
 ```
 
-**Quiz**. Is the following semigroup instance lawful?
+**Quiz**. Is the following semigroup instance lawful? (see the [answer here](src/quiz-answers/semigroup-second.md))
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
