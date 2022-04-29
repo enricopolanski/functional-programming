@@ -86,6 +86,8 @@ This also implies that I may introduce **errors** and that I have no guarantees 
 
 **Quiz**. Is the `for loop` correct?
 
+> See the [answer here](src/quiz-answers/for-loop.md)
+
 Let's rewrite the same exercise using `map`.
 
 ```ts
@@ -325,6 +327,8 @@ pipe(10, concat(2), concat(3), concat(1), concat(2), console.log)
 
 **Quiz**. The fact that `concat` is a _closed_ operation isn't a trivial detail. If `A` is the set of natural numbers (defined as positive integers) instead of the JavaScript number type (a set of positive and negative floats), could we define a `Magma<Natural>` with `concat` implemented like in `MagmaSub`? Can you think of any other `concat` operation on natural numbers for which the `closure` property isn't valid?
 
+> See the [answer here](src/quiz-answers/magma-concat-closed.md)
+
 **Definition**. Given `A` a non empty set and `*` a binary operation _closed on_ (or _internal to_) `A`, then the pair `(A, *)` is called a _magma_.
 
 Magmas do not obey any law, they only have the closure requirement. Let's see an algebra that do requires another law: semigroups.
@@ -443,6 +447,8 @@ const SemigroupSum: Semigroup<number> = {
 
 **Quiz**. Can the `concat` combinator defined in the demo [`01_retry.ts`](src/01_retry.ts) be used to define a `Semigroup` instance for the `RetryPolicy` type?
 
+> See the [answer here](src/quiz-answers/semigroup-demo-concat.md)
+
 This is the implementation for the semigroup `(number, *)` where `*` is the usual number multiplication:
 
 ```ts
@@ -529,6 +535,8 @@ const assign: (as: ReadonlyArray<object>) => object = concatAll(
 
 **Quiz**. Is the following semigroup instance lawful (does it respect semigroup laws)?
 
+> See the [answer here](src/quiz-answers/semigroup-first.md)
+
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
@@ -539,6 +547,8 @@ const first = <A>(): Semigroup<A> => ({
 ```
 
 **Quiz**. Is the following semigroup instance lawful?
+
+> See the [answer here](src/quiz-answers/semigroup-second.md)
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
@@ -568,6 +578,8 @@ pipe(reverse(S.Semigroup).concat('a', 'b'), console.log) // => 'ba'
 ```
 
 **Quiz**. This combinator makes sense because, generally speaking, the `concat` operation is not [**commutative**](https://en.wikipedia.org/wiki/Commutative_property), can you find an example where `concat` is commutative and one where it isn't?
+
+> See the [answer here](src/quiz-answers/semigroup-commutative.md)
 
 ## Semigroup product
 
