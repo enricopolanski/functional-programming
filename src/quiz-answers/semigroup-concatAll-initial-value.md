@@ -19,5 +19,4 @@ Why do I need to provide an initial value?
 
 ## Answer
 
-Because the array of elements can be empty.
-In that case, without the initial value, we would have to return `undefined` or `null` which would most probably not match the type of the Semigroup.
+Because there is no way to infer from the Semigroup what to do in case of an empty list. There is no way to define an `empty` value on a Semigroup. See [Monoid's concatAll below](https://github.com/enricopolanski/functional-programming/#the-concatall-function-1) to see the difference.
