@@ -511,6 +511,8 @@ console.log(product([1, 2, 3, 4])) // => 72
 
 **Quiz**. Why do I need to provide an initial value?
 
+-> See the [answer here](src/quiz-answers/semigroup-concatAll-initial-value.md)
+
 **Example**
 
 Lets provide some applications of `concatAll`, by reimplementing some popular functions from the JavaScript standard library.
