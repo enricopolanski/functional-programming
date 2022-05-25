@@ -28,6 +28,8 @@ Why does the `includes` method returns `false`?
 
 ## Answer
 
+The `includes` method compares by value in case of primitive values, and by reference in other cases.
+
 As [explained here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes), includes() uses the `sameValueZero` algorithm to determine whether the given element is found.
 
 The `sameValueZero` algorithm is very close to the one used by `===` (see [details here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness#same-value-zero_equality)) and objects are compared through their references instead of their values:
