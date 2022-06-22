@@ -952,6 +952,8 @@ console.log(pipe(points, elem(EqPoint)(search))) // => true :)
 
 **Quiz** (JavaScript). Why does the `includes` method returns `false`?
 
+-> See the [answer here](src/quiz-answers/javascript-includes.md)
+
 Abstracting the concept of equality is of paramount importance, especially in a language like JavaScript where some data types do not offer handy APIs for checking user-defined equality.
 
 The JavaScript native `Set` datatype suffers by the same issue:

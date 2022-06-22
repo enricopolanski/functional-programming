@@ -27,9 +27,9 @@ Enforcing the need of an initial value makes sure we can return this initial val
 We could also define a `concatAll` method which would take a `NonEmptyArray<A>` and no initial value. It's actually pretty easy to implement:
 
 ```ts
-import * as S from 'fp-ts/Semigroup'
+import * as Semigroup from 'fp-ts/Semigroup'
 import * as NEA from 'fp-ts/NonEmptyArray'
 
 const concatAll = <A>(S: Semigroup<A>) => (as: NEA<A>) =>
-  S.concatAll(S)(NEA.tail(as))(NEA.head(as))
+  Semigroup.concatAll(S)(NEA.tail(as))(NEA.head(as))
 ```
