@@ -5,9 +5,9 @@ Is the following semigroup instance lawful (does it respect semigroup laws)?
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-/** Always return the first argument */
-const first = <A>(): Semigroup<A> => ({
-  concat: (first, _second) => first
+/** Always return the last argument */
+const last = <A>(): Semigroup<A> => ({
+  concat: (_first, second) => second
 })
 ```
 
