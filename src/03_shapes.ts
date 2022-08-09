@@ -43,7 +43,7 @@ export type Shape = (point: Point) => boolean
 // -------------------------------------------------------------------------------------
 
 /**
- * Crea a shape representing a circle
+ * Create a shape representing a circle
  */
 export const disk = (center: Point, radius: number): Shape => (point) =>
   distance(point, center) <= radius
