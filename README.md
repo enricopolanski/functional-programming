@@ -2169,6 +2169,8 @@ export const length: <A>(fa: List<A>) => number = match(
 
 **Quiz**. Why's the `head` API sub optimal?
 
+-> See the [answer here](src/quiz-answers/pattern-matching.md)
+
 **Note**. TypeScript offers a great feature for sum types: **exhaustive check**. The type checker can _check_, no pun intended, whether all the possible cases are handled by the `switch` defined in the body of the function.
 
 ### Why "sum" types?
