@@ -2589,6 +2589,8 @@ declare const getMonoid: <A>(S: Semigroup<A>) => Monoid<Option<A>>
 
 **Quiz**. What is the `empty` member for the monoid?
 
+-> See the [answer here](src/quiz-answers/option-semigroup-monoid-second.md)
+
 **Example**
 
 Using `getMonoid` we can derive another two useful monoids:
