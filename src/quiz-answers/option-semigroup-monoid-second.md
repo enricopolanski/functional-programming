@@ -33,10 +33,10 @@ concat(some(x), concat(some(y), concat(some(z)))) === concat(concat(some(x), som
 
 **right identity**
 ```ts
-concat(x, none) === x
+concat(some(x), none) === some(x)
 ```
 
 **left identity**
 ```ts
-concat(none, x) === x
+concat(none, some(x)) === some(x)
 ```
