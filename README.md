@@ -2275,7 +2275,7 @@ the callback components though are **dependent**: we either get an `Error` **or*
 | `Error`     | `string`    | ✘      |
 | `undefined` | `undefined` | ✘      |
 
-This API is clarly not modeled on the following premise:
+This API is clearly not modeled on the following premise:
 
 > Make impossible state unrepresentable
 
