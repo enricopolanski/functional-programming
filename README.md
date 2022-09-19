@@ -3976,19 +3976,19 @@ Now we cam update ore "composition table":
 Now we know that given two function `f: (a: A) => F<B>`, `g: (b: B, c: C) => D` we can obtain the composition `h`:
 
 ```ts
-h: (a: A) => (fb: F<B>) => F<D>
+h: (a: A) => (fc: F<C>) => F<D>
 ```
 
-To execute `h` we need a new value of type `A` and a value of type `F<B>`.
+To execute `h` we need a new value of type `A` and a value of type `F<C>`.
 
-But what happens if, instead of having a value of type `F<B>`, for the second parameter `fb` we only have a value of type `B`?
+But what happens if, instead of having a value of type `F<C>`, for the second parameter `fc` we only have a value of type `C`?
 
-It would be helpful to have an operation which can transform a value of type `B` in a value of type `F<B>` in order to use `h`.
+It would be helpful to have an operation which can transform a value of type `C` in a value of type `F<C>` in order to use `h`.
 
 Let's introduce such operation, called `of` (other synonyms: **pure**, **return**):
 
 ```ts
-declare const of: <B>(b: B) => F<B>
+declare const of: <C>(c: C) => F<C>
 ```
 
 In literature the term **applicative functors** is used for the type constructors which admith _both_ the `ap` and `of` operations.
