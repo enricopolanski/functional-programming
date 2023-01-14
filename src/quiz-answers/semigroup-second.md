@@ -15,7 +15,7 @@ const last = <A>(): Semigroup<A> => ({
 
 Yes:
 
-- `first`, `second` and the result of `concat` (which is `first`) are all of the same type `A`
+- `first`, `second` and the result of `concat` (which is `second`) are all of the same type `A`
 - `concat` is associative:
-  - `concat(concat(first, second), third)` evaluates to `concat(first, third)` which then evaluates to `first`
-  - `concat(first, concat(second, third))` evaluates to `concat(first, second)` which then evaluates to `first`
+  - `concat(concat(first, second), third)` evaluates to `concat(second, third)` which then evaluates to `third`
+  - `concat(first, concat(second, third))` evaluates to `concat(first, third)` which then evaluates to `third`
