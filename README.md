@@ -1453,7 +1453,7 @@ Given a `Semigroup` defined on some set `A` with some `concat` operation, if the
 
 then the `Semigroup` is also a `Monoid`.
 
-**Note**: We'll call the `empty` element **unit** for the rest of this section. There's other synonyms in literature, some of the most common ones are _neutral element_ and _identity_element_.
+**Note**: We'll call the `empty` element **unit** for the rest of this section. There's other synonyms in literature, some of the most common ones are _neutral element_ and _identity element_.
 
 We have seen how in TypeScript `Magma`s and `Semigroup`s, can be modeled with `interface`s, so it should not come as a surprise that the very same can be done for `Monoid`s.
 
