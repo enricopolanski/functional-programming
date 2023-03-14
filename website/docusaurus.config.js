@@ -11,14 +11,14 @@ const config = {
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: 'https://wwmmzz.github.io',
+  url: 'https://enricopolanski.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: '/functional-programming/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'wwmmzz', // Usually your GitHub org/user name.
+  organizationName: 'enricopolanski', // Usually your GitHub org/user name.
   projectName: 'functional-programming', // Usually your repo name.
   trailingSlash:false,
 
@@ -44,7 +44,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/wwmmzz/functional-programming/blob/master/website',
+            'https://github.com/enricopolanski/functional-programming/blob/master/website',
         },
         blog: false,
         theme: {
@@ -63,7 +63,7 @@ const config = {
 
         items: [
           {
-            href: 'https://github.com/wwmmzz/functional-programming',
+            href: 'https://github.com/enricopolanski/functional-programming',
             position: 'right',
             className: 'header-github-link',
           },

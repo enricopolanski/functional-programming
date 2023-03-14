@@ -1,6 +1,6 @@
 ## Question
 
-Can the `concat` combinator defined in the demo [`01_retry.ts`](https://github.com/wwmmzz/functional-programming/blob/master/src/01_retry.ts) be used to define a `Semigroup` instance for the `RetryPolicy` type?
+Can the `concat` combinator defined in the demo [`01_retry.ts`](https://github.com/enricopolanski/functional-programming/blob/master/src/01_retry.ts) be used to define a `Semigroup` instance for the `RetryPolicy` type?
 
 ## Answer
 

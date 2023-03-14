@@ -7,7 +7,7 @@ The purpose of the edits is to expand on the material without changing the conce
 
 ## Read it Online
 
-For a best reading experience, [read it online via Gitbook](https://wwmmzz.github.io/functional-programming/).
+For a best reading experience, [read it online via Gitbook](https://enricopolanski.github.io/functional-programming/).
 
 - Quick-access side-bar
 - In-browser exercises
