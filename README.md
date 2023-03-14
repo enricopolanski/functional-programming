@@ -4,6 +4,15 @@ This fork is an edited translation of [Giulio Canti](https://gcanti.github.io/ab
 
 The purpose of the edits is to expand on the material without changing the concepts nor structure, for more information about the edit's goals see the [CONTRIBUTING](/CONTRIBUTING.md) file.
 
+
+## Read it Online
+
+For a best reading experience, [read it online via Gitbook](https://wwmmzz.github.io/functional-programming/).
+
+- Quick-access side-bar
+- In-browser exercises
+- In-depth examples
+
 **Setup**
 
 ```sh
