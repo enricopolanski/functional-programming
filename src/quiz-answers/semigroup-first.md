@@ -1,21 +1,23 @@
-## Question
+# semigroup-first
 
-Is the following semigroup instance lawful (does it respect semigroup laws)?
+## 问题
+
+以下半群实例合法吗(是否遵守半群定律)？
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-/** Always return the first argument */
+/** 总是返回第一个参数 */
 const first = <A>(): Semigroup<A> => ({
   concat: (first, _second) => first
 })
 ```
 
-## Answer
+## 答案
 
-Yes:
+合法:
 
-- `first`, `second` and the result of `concat` (which is `first`) are all of the same type `A`
-- `concat` is associative:
-  - `concat(concat(first, second), third)` evaluates to `concat(first, third)` which then evaluates to `first`
-  - `concat(first, concat(second, third))` evaluates to `concat(first, second)` which then evaluates to `first`
+- `first`，`second`与结果`concat`(实际上就是`first`)都是类型`A`
+- `concat`满足交换律：
+  - `concat(concat(first, second), third)`与`concat(first, third)`的结果相等，都是`first`
+  - `concat(first, concat(second, third))`与`concat(first, second)`的结果相等，都是`first`

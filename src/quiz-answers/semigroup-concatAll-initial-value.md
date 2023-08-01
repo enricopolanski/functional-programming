@@ -1,12 +1,14 @@
-## Question
+# semigroup-concatAll-initial-value
 
-By definition `concat` combines merely two elements of `A` every time. Is it possible to combine any number of them?
+## 问题
 
-The `concatAll` function takes:
+根据定义，`concat`每次仅组合`A`的两个元素。是否可以将任意数量的元素组合起来？
 
-- an instance of a semigroup
-- an initial value
-- an array of elements
+`concatAll`函数需要：
+
+- 一个半群的实例
+- 一个初始值
+- 元素的数组
 
 ```ts
 import * as S from 'fp-ts/Semigroup'
@@ -15,16 +17,19 @@ import * as N from 'fp-ts/number'
 const sum = S.concatAll(N.SemigroupSum)(2)
 
 console.log(sum([1, 2, 3, 4])) // => 12
+
+const product = S.concatAll(N.SemigroupProduct)(3)
+
+console.log(product([1, 2, 3, 4])) // => 72
 ```
 
-Why do I need to provide an initial value?
+为什么需要提供一个初始值？
 
-## Answer
+## 答案
 
-The `concatAll` method has to return an element of type `A`. If the provided array of elements is empty, we don't have any element of type `A` to return from it.
-Enforcing the need of an initial value makes sure we can return this initial value if the array is empty.
+`concatAll`方法必须返回一个`A`类型的元素。如果提供的元素数组为空，则我们无法从中获取任何类型为“A”的元素返回。
+强制提供初始值可确保我们可以在数组为空时返回该初始值。
 
-We could also define a `concatAll` method which would take a `NonEmptyArray<A>` and no initial value. It's actually pretty easy to implement:
 
 ```ts
 import * as Semigroup from 'fp-ts/Semigroup'

@@ -1,4 +1,6 @@
-## Question
+# for-loop
+
+## 问题
 
 ```ts
 // input
@@ -14,10 +16,9 @@ for (let i = 0; i <= xs.length; i++) {
 }
 ```
 
-Is the `for loop` correct?
+`for`循环正确吗？
 
-## Answer
+## 答案
 
-No, it's not. The condition `i <= xs.length` should be `i < xs.length`.
-
-As it is coded, `ys`'s value is `[ 2, 4, 6, NaN ]` instead of `[ 2, 4, 6 ]`
+不正确。条件部分的`i <= xs.length`应该是`i < xs.length`。
+按照上述代码，`ys`的值会是`[ 2, 4, 6, NaN ]`，而不是`[ 2, 4, 6 ]`。

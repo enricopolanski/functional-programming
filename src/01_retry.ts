@@ -1,24 +1,24 @@
 /*
 
-  Abstraction for a mechanism to perform actions repetitively until successful.
+  不断重复执行操作直到成功的机制的抽象。
 
-  This module is split in 3 parts:
+  模块分为3部分：
 
-  - the model
-  - primitives
+  - 模型
+  - 原语
   - combinators
 
 */
 
 // -------------------------------------------------------------------------------------
-// model
+// 模型
 // -------------------------------------------------------------------------------------
 
 export interface RetryStatus {
-  /** Iteration number, where `0` is the first try */
+  /** 迭代次数。 `0`代表第一次尝试 */
   readonly iterNumber: number
 
-  /** Latest attempt's delay. Will always be `undefined` on first run. */
+  /** 最近一次尝试的延迟。第一次尝试时总是`undefined`。 */
   readonly previousDelay: number | undefined
 }
 
@@ -28,33 +28,34 @@ export const startStatus: RetryStatus = {
 }
 
 /**
- * A `RetryPolicy` is a function that takes an `RetryStatus` and
- * possibly returns a delay in milliseconds. Iteration numbers start
- * at zero and increase by one on each retry. A *undefined* return value from
- * the function implies we have reached the retry limit.
+ * `RetryPolicy`是一个函数。它接受一个`RetryStatus`并可能返回一个毫秒级的延迟。
+ * 
+ * 迭代次数从0开始，每次尝试都加1。
+ * 
+ * 返回*undefined*意味着我们到达了重试次数的上限。
  */
 export interface RetryPolicy {
   (status: RetryStatus): number | undefined
 }
 
 // -------------------------------------------------------------------------------------
-// primitives
+// 原语
 // -------------------------------------------------------------------------------------
 
 /**
- * Constant delay with unlimited retries.
+ * 固定延迟且无限重试。
  */
 export const constantDelay = (delay: number): RetryPolicy => () => delay
 
 /**
- * Retry immediately, but only up to `i` times.
+ * 立即重试，但是上限重试上限为`i`.
  */
 export const limitRetries = (i: number): RetryPolicy => (status) =>
   status.iterNumber >= i ? undefined : 0
 
 /**
- * Grow delay exponentially each iteration.
- * Each delay will increase by a factor of two.
+ * 每次迭代延迟呈指数增长
+ * 每次延迟都会成为2倍。
  */
 export const exponentialBackoff = (delay: number): RetryPolicy => (status) =>
   delay * Math.pow(2, status.iterNumber)
@@ -64,8 +65,7 @@ export const exponentialBackoff = (delay: number): RetryPolicy => (status) =>
 // -------------------------------------------------------------------------------------
 
 /**
- * Set a time-upperbound for any delays that may be directed by the
- * given policy.
+ * 为给定的策略所指示的任何延迟设置时间上限。
  */
 export const capDelay = (maxDelay: number) => (
   policy: RetryPolicy
@@ -75,7 +75,7 @@ export const capDelay = (maxDelay: number) => (
 }
 
 /**
- * Merges two policies. **Quiz**: what does it mean to merge two policies?
+ * 合并两个策略. **提问**: 什么叫合并两个策略？
  */
 export const concat = (second: RetryPolicy) => (
   first: RetryPolicy
@@ -93,7 +93,7 @@ export const concat = (second: RetryPolicy) => (
 // -------------------------------------------------------------------------------------
 
 /**
- * Apply policy on status to see what the decision would be.
+ * 对给定的status应用策略，来查看结果。
  */
 export const applyPolicy = (policy: RetryPolicy) => (
   status: RetryStatus
@@ -103,7 +103,7 @@ export const applyPolicy = (policy: RetryPolicy) => (
 })
 
 /**
- * Apply a policy keeping all intermediate results.
+ * 应用策略并保存所有的中间结果。
  */
 export const dryRun = (policy: RetryPolicy): ReadonlyArray<RetryStatus> => {
   const apply = applyPolicy(policy)

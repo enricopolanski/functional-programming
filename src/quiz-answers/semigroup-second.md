@@ -1,21 +1,23 @@
-## Question
+# semigroup-second
 
-Is the following semigroup instance lawful (does it respect semigroup laws)?
+## 问题
+
+以下半群实例合法吗？
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-/** Always return the last argument */
+/** 总是返回第二个参数 */
 const last = <A>(): Semigroup<A> => ({
   concat: (_first, second) => second
 })
 ```
 
-## Answer
+## 答案
 
-Yes:
+合法:
 
-- `first`, `second` and the result of `concat` (which is `second`) are all of the same type `A`
-- `concat` is associative:
-  - `concat(concat(first, second), third)` evaluates to `concat(second, third)` which then evaluates to `third`
-  - `concat(first, concat(second, third))` evaluates to `concat(first, third)` which then evaluates to `third`
+- `first`，`second`与结果`concat`(实际上就是`second`)都是类型`A`
+- `concat`满足交换律：
+  - `concat(concat(first, second), third)`与`concat(second, third)`的结果相等，都是`third`
+  - `concat(first, concat(second, third))`与`concat(first, third)`的结果相等，都是`third`

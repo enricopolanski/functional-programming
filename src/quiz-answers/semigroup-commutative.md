@@ -1,10 +1,12 @@
-## Question
+# semigroup-commutative
 
-Can you find a Semigroup example where `concat` is [**commutative**](https://en.wikipedia.org/wiki/Commutative_property) and one where it isn't?
+## 问题
 
-## Answer
+你能分别找到一个`concat`满足交换律与不满足交换律的例子吗？
 
-### Commutative:
+## 答案
+
+### 满足交换律
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
@@ -14,9 +16,9 @@ const SemigroupSum: Semigroup<number> = {
 }
 ```
 
-`concat(a, b) = a + b = b + a = concat(b, a)` as the addition is commutative
+`concat(a, b) = a + b = b + a = concat(b, a)`所以加法满足交换律
 
-### Not commutative:
+### 不满足交换律
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'

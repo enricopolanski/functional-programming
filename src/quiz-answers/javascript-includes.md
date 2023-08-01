@@ -1,4 +1,6 @@
-## Question
+# javascript-includes
+
+## 问题
 
 ```ts
 import { Eq } from 'fp-ts/Eq'
@@ -24,15 +26,15 @@ console.log(points.includes(search)) // => false :(
 console.log(pipe(points, elem(EqPoint)(search))) // => true :)
 ```
 
-Why does the `includes` method returns `false`?
+为什么`includes`方法返回了`false`?
 
-## Answer
+## 答案
 
-The `includes` method compares by value in case of primitive values, and by reference in other cases.
+`includes`方法在基本类型时比较值，其他情况下比较引用。
 
-As [explained here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes), includes() uses the `sameValueZero` algorithm to determine whether the given element is found.
+正如[这里](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes)解释的，includes()使用`零值相等`算法去确定给定的值是否能被找到.
 
-The `sameValueZero` algorithm is very close to the one used by `===` (see [details here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness#same-value-zero_equality)) and objects are compared through their references instead of their values:
+`零值相等`算法非常接近在`===`中使用的算法([细节请看这里](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Equality_comparisons_and_sameness#same-value-zero_equality))，对象比较它们的引用而不是它们的值：
 
 ```ts
 console.log({ foo: 'bar' } === { foo: 'bar' }) // => false

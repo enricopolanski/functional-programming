@@ -1,138 +1,127 @@
-This repo introduces functional programming concepts using TypeScript and possibly libraries in the fp-ts ecosystem.
+# functional-programming
 
-This fork is an edited translation of [Giulio Canti](https://gcanti.github.io/about.html)'s ["Introduction to Functional Programming (Italian)"](https://github.com/gcanti/functional-programming). The author uses the original as a reference and supporting material for his lectures and workshops on functional programming.
+这个repo借用TypeScript与fp-ts生态中的库介绍了函数式编程的概念。
 
-The purpose of the edits is to expand on the material without changing the concepts nor structure, for more information about the edit's goals see the [CONTRIBUTING](/CONTRIBUTING.md) file.
+这个fork是[Giulio Canti](https://gcanti.github.io/about.html)的["Introduction to Functional Programming (Italian)"](https://github.com/gcanti/functional-programming)的翻译。原作者在他的FP讲座以及workshop中使用了它。
 
+由于译者不会意大利语，因此本翻译参考了[enricopolanski](https://github.com/enricopolanski)的[英译版本](https://github.com/enricopolanski/functional-programming)。
 
-## Read it Online
+翻译会尽可能地不带有主观意见的，原封不动的传达原作者的意思。译者水平有限，如有错误请多多包涵。
 
-For a best reading experience, [read it online via Gitbook](https://enricopolanski.github.io/functional-programming/).
+---
 
-- Quick-access side-bar
-- In-browser exercises
-- In-depth examples
+## 什么是函数式编程
 
-**Setup**
+> 函数式编程是使用纯函数进行编程。数学意义上的函数。
 
-```sh
-git clone https://github.com/gcanti/functional-programming.git
-cd functional-programming
-npm i
-```
+在网上很简单地就能找到如下定义：
 
-# What is functional programming
+> (纯)函数是一个过程，给定相同的输入总是返回相同的输出，没有任何可观察到的副作用。
 
-> Functional Programming is programming with pure functions. Mathematical functions.
+虽然现在"副作用"这个术语还没有任何具体的含义(将来我们会看到如何给出正式的定义)，但重要的是拥有某种直觉。思考一下打开文件或向数据库写入数据。
 
-A quick search on the internet may lead you to the following definition:
+目前，我们可以局限地理解为，副作用是函数除了返回一个值之外所做的**任何事情**。
 
-> A (pure) function is a procedure that given the same input always return the same output without any observable side-effect.
+只使用纯函数的程序的结构是什么样的?
 
-The term "side effect" does not yet have any specific meaning (we'll see in the future how to give a formal definition), what matters is to have some sort of intuition, think about opening a file or writing into a database.
-
-For the time being we can limit ourselves to say that a side effect is _anything_ a function does besides returning a value.
-
-What is the structure of a program that uses exclusively pure functions?
-
-A functional program tends to be written like a **pipeline**:
+函数式的程序往往像在写**pipeline**一样：
 
 ```ts
 const program = pipe(
   input,
-  f1, // pure function
-  f2, // pure function
-  f3, // pure function
+  f1, // 纯函数
+  f2, // 纯函数
+  f3, // 纯函数
   ...
 )
 ```
 
-What happens here is that `input` is passed to the first function `f1`, which returns a value that is passed to the second function `f2`, which returns a value that is passed as an argument to the third function `f3`, and so on.
+上面的程序用语言描述就是，`input`被传递给了第一个函数`f1`，该函数的返回值被传递给了第二个函数`f2`，`f2`的返回值又被传递给了第三个函数`f3`。以此类推。
 
-**Demo**
+**Demo**：
 
 [`00_pipe_and_flow.ts`](src/00_pipe_and_flow.ts)
 
-We'll see how functional programming provides us with tools to structure our code in that style.
+我们将看到，在以这种风格构建代码时，函数式编程如何成为我们的工具。
 
-Other than understanding what functional programming _is_, it is also essential to understand what is it's goal.
+除了理解函数式编程是什么之外，理解它的目标是什么也很重要。
 
-Functional programming's goal is to **tame a system's complexity** through the use of formal _models_, and to give careful attention to **code's properties** and refactoring ease.
+函数式编程的目标是通过使用形式化模型(formal models)来**控制系统的复杂性**，并十分关注**代码的属性**和重构的容易性。
 
-> Functional programming will help teach people the mathematics behind program construction:
+> 函数式编程帮助人们了解程序构建背后的数学知识：
 >
-> - how to write composable code
-> - how to reason about side effects
-> - how to write consistent, general, less ad-hoc APIs
+> - 如何编写可组合的代码
+> - 如何推理副作用
+> - 如何编写一致的，通用的，而非临时的，特殊的(ad-hoc)API
 
-What does it mean to give careful attention to code's properties? Let's see with an example:
+什么叫更关注代码的属性？让我们举个例子。
 
-**Example**
+**例**：
 
-Why can we say that the `Array`'s `map` method is "more functional" than a `for` loop?
+为什么我们说`Array.prototype.map`比`for`循环要更"函数式"？
 
 ```ts
-// input
+// 输入
 const xs: Array<number> = [1, 2, 3]
 
-// transformation
+// 转换
 const double = (n: number): number => n * 2
 
-// result: I want an array where each `xs`' element is doubled
+// 结果：我想要一个新的数组，这个数组里的元素是把xs的每个元素翻倍后得到的结果
 const ys: Array<number> = []
 for (let i = 0; i <= xs.length; i++) {
   ys.push(double(xs[i]))
 }
 ```
 
-A `for` loop offers a lot of flexibility, I can modify:
+`for`循环带来了很多的复杂性，我可以修改：
 
-- the starting index, `let i = 0`
-- the looping condition, `i < xs.length`
-- the step change, `i++`.
+- 开始的索引，`let i = 0`
+- 循环条件，`i < xs.length`
+- 步长变化， `i++`
 
-This also implies that I may introduce **errors** and that I have no guarantees about the returned value.
+这同时意味着，我可能会引入某些**错误**，无法对返回值做出任何保证。
 
-**Quiz**. Is the `for loop` correct?
+**测验**：`for`循环正确吗？
 
-> See the [answer here](src/quiz-answers/for-loop.md)
+> [答案](src/quiz-answers/for-loop.md)
 
-Let's rewrite the same exercise using `map`.
+让我们用`map`来重写它。
 
 ```ts
-// input
+// 输入
 const xs: Array<number> = [1, 2, 3]
 
-// transformation
+// 转换
 const double = (n: number): number => n * 2
 
-// result: I want an array where each `xs`' element is doubled
+// 结果：我想要一个新的数组，这个数组里的元素是把xs的每个元素翻倍后得到的结果
 const ys: Array<number> = xs.map(double)
 ```
 
-We can note how `map` lacks the same flexibility of a `for loop`, but it offers us some guarantees:
+我们可以注意到，跟`for`相比，`map`缺少了一些灵活性，但它为我们提供了一些保证:
 
-- all the elements of the input array will be processed
-- the resulting array will always have the same number of elements as the starting one
+- 输入数组的所有元素都会被处理
+- 结果数组的元素数量始终与输入数组相同
 
-In functional programming, where there's an emphasis on code properties rather than implementation details, the `map` operation is interesting **due to its limitations**
+在函数式编程中，更强调代码的属性而不是实现细节。**正是由于其局限性**，而让`map`显得有趣。
 
-Think about how easier it is to review a PR that involves `map` rather than a `for` loop.
+想想看当审查涉及循环的代码时，`map`会比`for`容易多少。
 
-# The two pillars of functional programming
+## 函数式编程的两大支柱
 
-Functional programming is based on the following two pillars:
+函数式编程基于一下的两个支柱
 
-- Referential transparency
-- Composition (as universal design pattern)
+- 引用透明(参照透明)
+- 组合(作为通用设计模式)
 
-All of the remaining content derives directly or indirectly from those two points.
+其余的所有内容都直接或间接地源于这两点。
 
-## Referential transparency
+### 引用透明
 
-> **Definition**. An **expression** is said to be _referentially transparent_ if it can be replaced with its corresponding value without changing the program's behavior
+> **定义**：如果一个**表达式**可以被替换为相应的值而不改变程序的行为，则该表达式被认为是 _引用透明_ 的
 
-**Example** (referential transparency implies the use of pure functions)
+**例** (引用透明意味着使用纯函数)
 
 ```ts
 const double = (n: number): number => n * 2
@@ -141,18 +130,18 @@ const x = double(2)
 const y = double(2)
 ```
 
-The expression `double(2)` has the referential transparency property because it is replaceable with its value, the number 4.
+表达式`double(2)`拥有引用透明性因为它可以被它的值所代替(4)。
 
-Thus I can proceed with the following refactor
+因此我可以继续进行以下重构。
 
 ```ts
 const x = 4
 const y = x
 ```
 
-Not every expression is referentially transparent, let's see an example.
+并不是所有表达式都是引用透明的。让我们看一个例子。
 
-**Example** (referential transparency implies not throwing exceptions)
+**例** (引用透明意味着不抛出异常)
 
 ```ts
 const inverse = (n: number): number => {
@@ -163,9 +152,9 @@ const inverse = (n: number): number => {
 const x = inverse(0) + 1
 ```
 
-I can't replace `inverse(0)` with its value, thus it is not referentially transparent.
+我无法用它的值去替代`inverse(0)`，因此它不是引用透明的。
 
-**Example** (referential transparency requires the use of immutable data structures)
+**例** (引用透明需要使用不可变的数据结构)
 
 ```ts
 const xs = [1, 2, 3]
@@ -179,68 +168,68 @@ append(xs)
 const ys = xs
 ```
 
-On the last line I cannot replace `xs` with its initial value `[1, 2, 3]` since it has been changed by calling `append`.
+在最后一行，我无法用`xs`最初的值`[1, 2, 3]`来代替它，因为在调用`append`时它改变了。
 
-Why is referential transparency so important? Because it allows us to:
+为什么引用透明如此重要？因为它允许我们：
 
-- **reason about code locally**, there is no need to know external context in order to understand a fragment of code
-- **refactor** without changing our system's behaviour
+- 在局部推导代码。不需要去了解外部的代码上下文就可以理解一个代码片段
+- 在不改变程序行为的同时对代码进行**重构**
 
-**Quiz**. Suppose we have the following program:
+**测验**：假设我们有下列程序。
 
 ```ts
-// In TypeScript `declare` allows to introduce a definition without requiring an implementation
+// 在 TypeScript 中， `declare` 允许我们在不写具体实现的情况下进行声明
 declare const question: (message: string) => Promise<string>
 
 const x = await question('What is your name?')
 const y = await question('What is your name?')
 ```
 
-Can I refactor in this way? Does the program's behavior change or is it going to change?
+我可以进行如下重构吗？程序的行为是否会改变？
 
 ```ts
 const x = await question('What is your name?')
 const y = x
 ```
 
-The answer is: there's no way to know without reading `question`'s _implementation_.
+答案是，在不读`question`的 _具体实现_ 的情况下无法做出回答。
 
-As you can see, refactoring a program including non-referentially transparent expressions might be challenging.
-In functional programming, where every expression is referentially transparent, the cognitive load required to make changes is severely reduced.
+如你所见，重构包含非引用透明的表达式的程序可能具有挑战性。
+在函数式编程中，每个表达式都是引用透明的，因此进行更改所需的认知负荷将大大减少。
 
-## Composition
+### 组合
 
-Functional programming's fundamental pattern is _composition_: we compose small units of code accomplishing very specific tasks into larger and complex units.
+函数式编程的基本模式是 _组合_：我们将完成非常具体任务的小的代码单元组合成更大且复杂的单元。
 
-An example of a "from the smallest to the largest" composition pattern we can think of:
+我们能想到的“从最小到最大”的组合模式的例子：
 
-- composing two or more primitive values (numbers or strings)
-- composing two or more functions
-- composing entire programs
+- 组合两个或多个原始值（数字或字符串）
+- 组合两个或多个函数
+- 组合整个程序
 
-In the very last example we can speak of _modular programming_:
+在最后一个例子里，我们可以谈一谈 _模块化编程_
 
-> By modular programming I mean the process of building large programs by gluing together smaller programs - Simon Peyton Jones
+> 我所说的模块化编程是指通过将较小的程序粘合在一起来构建大型程序的过程 - Simon Peyton Jones
 
-This programming style is achievable through the use of combinators.
+这种编程风格可以通过使用 combinators 来实现
 
-The term **combinator** refers to the [combinator pattern](https://wiki.haskell.org/Combinator):
+术语 **combinator** 指的是 [combinator pattern](https://wiki.haskell.org/Combinator):
 
-> A style of organizing libraries centered around the idea of combining things. Usually there is some type `T`, some "primitive" values of type `T`, and some "combinators" which can combine values of type `T` in various ways to build up more complex values of type `T`
+> 一种以组合事物为中心的库组织风格。通常有一些类型`T`，一些`T`类型的原语，以及一些 **combinator**。它们可以以各种方式组合`T`类型的值以构建更复杂的`T`类型的值。
 
-The general concept of a combinator is rather vague and it can appear in different forms, but the simplest one is this:
+combinator 的一般概念相当的模糊，它可以以不同的形式出现，但是最简单的是这样的：
 
 ```ts
 combinator: Thing -> Thing
 ```
 
-**Example**. The function `double` combines two numbers.
+**例**： 函数 `double` 组合了两个数字。
 
-The goal of a combinator is to create new *Thing*s from *Thing*s already defined.
+combinator 的目的是从已定义的事物中创造新的事物。
 
-Since the output of a combinator, the new _Thing_, can be passed around as input to other programs and combinators, we obtain a combinatorial explosion of opportunities, which makes this pattern extremely powerful.
+由于 combinator 输出的新的 _事物_ 可以作为其他的程序或 combinator 的输入，因此我们可以不断地进行组合(组合爆炸)，这使得这种模式非常强大。
 
-**Example**
+**例**：
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -250,55 +239,55 @@ const double = (n: number): number => n * 2
 console.log(pipe(2, double, double, double)) // => 16
 ```
 
-Thus the usual design you can find in a functional module is:
+因此，我们在函数式模块中能找到的常见设计是：
 
-- a model for some type `T`
-- a small set of "primitives" of type `T`
-- a set of combinators to combine the primitives in larger structures
+- 某种类型`T`的模型
+- 一小组`T`的原语
+- 一组 combinator 用于在更大的结构中组合原语
 
-Let's try to implement such a module:
+让我尝试实现这样一个模块。
 
-**Demo**
+**Demo**：
 
 [`01_retry.ts`](src/01_retry.ts)
 
-As you can see from the previous demo, with merely 3 primitives and two combinators we've been able to express a pretty complex policy.
+正如在demo中所演示的，仅用3个原语和两个 combinator，我们就能够表达相当复杂的策略。
 
-Think at how just adding a single new primitive, or a single combinator to those already defined, adds expressive possibilities exponentially.
+仔细思考便可以发现，每添加一个原语或一个 combinator 便可以使表达可能性翻倍。
 
-Of the two combinators in `01_retry.ts` a special mention goes to `concat` since it refers to a very powerful functional programming abstraction: semigroups.
+在这里我想特别提到 `01_retry.ts` 的两个 combinator 中的 `concat`，因为它涉及到一个非常强大的函数式编程抽象：半群(semigroup).
 
-# Modelling composition with Semigroups
+## 用半群建模组合
 
-A semigroup is a recipe to combine two, or more, values.
+半群是组合两个或多个值的方法。
 
-A semigroup is an **algebra**, which is generally defined as a specific combination of:
+半群是一种代数结构，通常定义为以下各项的特定组合：
 
-- one or more sets
-- one or more operations on those sets
-- zero or more laws on the previous operations
+- 一个或多个集合(set)
+- 在这些集合上的一个或多个运算
+- 运算满足0或多个定律
 
-Algebras are how mathematicians try to capture an idea in its purest form, eliminating everything that is superfluous.
+代数是数学家试图以最纯粹的形式捕捉一个想法，消除一切多余的东西的方法。
 
-> When an algebra is modified the only allowed operations are those defined by the algebra itself according to its own laws
+> 当修改代数时，唯一允许的运算是代数本身根据其自身遵循的定律所定义的运算
 
-Algebras can be thought of as an abstraction of **interfaces**:
+代数可以被认为是**接口**的抽象
 
-> When an interface is modified the only allowed operations are those defined by the interface itself according to its own laws
+> 当接口被修改时，唯一允许的运算是接口本身根据其自身规律定义的运算
 
-Before getting into semigroups, let's see first an example of an algebra, a _magma_.
+在讨论半群之前，我们首先看一个代数结构的例子，_原群(magma)_。
 
-## Definition of a Magma
+### 原群(Magma)的定义
 
-A Magma<A> is a very simple algebra:
+原群`Magma<A>`是一个非常简单的代数结构:
 
-- a set or type (A)
-- a `concat` operation
-- no laws to obey
+- 一个集合或一个类型 (A)
+- `concat` 运算
+- 不需要遵循任何定律
 
-**Note**: in most cases the terms _set_ and _type_ can be used interchangeably.
+**注**：在大多数情况下，术语 _集合_ 和 _类型_ 可以互换使用。
 
-We can use a TypeScript `interface` to model a Magma.
+我们可以用 TypeScript `interface` 去建模一个原群
 
 ```ts
 interface Magma<A> {
@@ -306,12 +295,12 @@ interface Magma<A> {
 }
 ```
 
-Thus, we have have the ingredients for an algebra:
+上述的代码描述了这样一种代数结构，它拥有：
 
-- a set `A`
-- an operation on the set `A`, `concat`. This operation is said to be _closed on_ the set `A` which means that whichever elements `A` we apply the operation on the result will still be an element of `A`. Since the result is still an `A`, it can be used again as an input for `concat` and the operation can be repeated how many times we want. In other words `concat` is a `combinator` for the type `A`.
+- 一个集合`A`
+- 集合`A`上的运算`concat`。集合`A`在该运算下 _闭合(closed)_。这意味着对`A` 的任意元素进行该运算，它的结果仍然是`A`的元素。由于结果仍然是`A`，因此可以再次把它用作`concat`的输入，并根据需要重复任意次。换句话说，`concat`是`A`的`combinator`.
 
-Let's implement a concrete instance of `Magma<A>` with `A` being the `number` type.
+让我们实现一个具体的`Magma<A>`实例，其中`A`是`number`.
 
 ```ts
 import { Magma } from 'fp-ts/Magma'
@@ -334,48 +323,46 @@ pipe(10, concat(2), concat(3), concat(1), concat(2), console.log)
 // => 2
 ```
 
-**Quiz**. The fact that `concat` is a _closed_ operation isn't a trivial detail. If `A` is the set of natural numbers (defined as positive integers) instead of the JavaScript number type (a set of positive and negative floats), could we define a `Magma<Natural>` with `concat` implemented like in `MagmaSub`? Can you think of any other `concat` operation on natural numbers for which the `closure` property isn't valid?
+**测验**：`concat`是一个 _封闭性(Closure)_ 运算这一事实看似不起眼，其实非常重要。如果`A`是自然数的集合而不是 JavaScript的number类型(正负浮点数的集合), 我们能用`MagmaSub`的`concat`去定义`Magma<Natural>`吗? 你能想到其他的定义在自然数上的不具备 _封闭性_ 的`concat`运算吗?
 
-> See the [answer here](src/quiz-answers/magma-concat-closed.md)
+> [答案](src/quiz-answers/magma-concat-closed.md)
 
-**Definition**. Given `A` a non empty set and `*` a binary operation _closed on_ (or _internal to_) `A`, then the pair `(A, *)` is called a _magma_.
+**定义**：给定一个非空集合`A`和一个定义在`A`上的二元封闭性运算`*`，我们把组合`(A, *)`叫做 _原群(magma)_ (`A`与`*`构成了原群)。
 
-Magmas do not obey any law, they only have the closure requirement. Let's see an algebra that do requires another law: semigroups.
+原群不遵守任何定律，它只需要满足封闭性。让我们看看需要满足另一个定律的代数：半群。
 
-## Definition of a Semigroup
+### 半群(semigroup)的定义
 
-> Given a `Magma` if the `concat` operation is **associative** then it's a _semigroup_.
+> 给定一个原群，如果`concat`满足**结合律**，则它是一个 _半群_。
 
-The term "associative" means that the equation:
+术语"结合律"意味着下列等式对于`A`中的任意`x`，`y`，`z`成立：
 
 ```ts
 (x * y) * z = x * (y * z)
 
-// or
+// 或
 concat(concat(a, b), c) = concat(a, concat(b, c))
 ```
 
-holds for any `x`, `y`, `z` in `A`.
+用通俗的话来说，结合律告诉我们不必担心表达式中的括号，我们可以简单地写成`x * y * z`(没有歧义)。
 
-In layman terms _associativity_ tells us that we do not have to worry about parentheses in expressions and that we can simply write `x * y * z` (there's no ambiguity).
+**例**：
 
-**Example**
-
-String concatenation benefits from associativity.
+字符串拼接遵循结合律。
 
 ```ts
 ("a" + "b") + "c" = "a" + ("b" + "c") = "abc"
 ```
 
-Every semigroup is a magma, but not every magma is a semigroup.
+每个半群一定是原群，反之则不成立。
 
 <center>
 <img src="images/semigroup.png" width="300" alt="Magma vs Semigroup" />
 </center>
 
-**Example**
+**例**：
 
-The previous `MagmaSub` is not a semigroup because its `concat` operation is not associative.
+刚才的`MagmaSub`就不是半群因为它的`concat`不遵循结合律。
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -389,17 +376,17 @@ pipe(MagmaSub.concat(MagmaSub.concat(1, 2), 3), console.log) // => -4
 pipe(MagmaSub.concat(1, MagmaSub.concat(2, 3)), console.log) // => 2
 ```
 
-Semigroups capture the essence of parallelizable operations
+半群抓住了可并行运算的本质。
 
-If we know that there is such an operation that follows the associativity law, we can further split a computation into two sub computations, each of them could be further split into sub computations.
+如果我们知道存在这样一个遵循结合律的运算，我们可以将一个计算进一步拆分为两个子计算，每个子计算又可以进一步拆分为子计算。
 
 ```ts
 a * b * c * d * e * f * g * h = ((a * b) * (c * d)) * ((e * f) * (g * h))
 ```
 
-Sub computations can be run in parallel mode.
+子计算可以并列运行。
 
-As for `Magma`, `Semigroup`s are implemented through a TypeScript `interface`:
+至于`Magma`, `Semigroup`是通过TypeScript的`interface`实现的:
 
 ```ts
 // fp-ts/lib/Semigroup.ts
@@ -407,19 +394,17 @@ As for `Magma`, `Semigroup`s are implemented through a TypeScript `interface`:
 interface Semigroup<A> extends Magma<A> {}
 ```
 
-The following law has to hold true:
+以下定律必须成立：
 
-- **Associativity**: If `S` is a semigroup the following has to hold true:
+- **结合律**: 如果`S`是一个半群则对任意属于`S`的`x`，`y`，`z`，下式必然成立：
 
 ```ts
 S.concat(S.concat(x, y), z) = S.concat(x, S.concat(y, z))
 ```
 
-for every `x`, `y`, `z` of type `A`
+**注**： 遗憾的是，无法使用TypeScript的类型系统实现该定律.
 
-**Note**. Sadly it is not possible to encode this law using TypeScript's type system.
-
-Let's implement a semigroup for some `ReadonlyArray<string>`:
+让我们为`ReadonlyArray<string>`实现一个半群:
 
 ```ts
 import * as Se from 'fp-ts/Semigroup'
@@ -429,49 +414,49 @@ const Semigroup: Se.Semigroup<ReadonlyArray<string>> = {
 }
 ```
 
-The name `concat` makes sense for arrays (as we'll see later) but, depending on the context and the type `A` on whom we're implementing an instance, the `concat` semigroup operation may have different interpretations and meanings:
+`concat`这个名称对于数组来说是有意义的(稍后我们会看到)，但是根据上下文和我们要实现的实例类型`A`，`concat`可能有不同的解释和含义：
 
-- "concatenation"
-- "combination"
-- "merging"
-- "fusion"
-- "selection"
-- "sum"
-- "substitution"
+- 串联(concatenation)
+- 组合(combination)
+- 合并(merging)
+- 融合(fusion)
+- 选择(selection)
+- 求和(sum)
+- 代换(substitution)
 
-and many others.
+以及许多其它的含义。
 
-**Example**
+**例**：
 
-This is how to implement the semigroup `(number, +)` where `+` is the usual addition of numbers:
+下方的代码展示了如何实现一个半群`(number, +)`，`+`表示一般的加法运算。
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-/** number `Semigroup` under addition */
+/** 闭合于`加法`运算下的`number`半群 */
 const SemigroupSum: Semigroup<number> = {
   concat: (first, second) => first + second
 }
 ```
 
-**Quiz**. Can the `concat` combinator defined in the demo [`01_retry.ts`](src/01_retry.ts) be used to define a `Semigroup` instance for the `RetryPolicy` type?
+**测验**：定义在[`01_retry.ts`](src/01_retry.ts)中的combinator `concat`能否用来给`RetryPolicy`定义一个半群接口？
 
-> See the [answer here](src/quiz-answers/semigroup-demo-concat.md)
+> [答案](src/quiz-answers/semigroup-demo-concat.md)
 
-This is the implementation for the semigroup `(number, *)` where `*` is the usual number multiplication:
+下方的代码展示了如何实现一个半群`(number, *)`，`*`表示一般的乘法运算。
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-/** number `Semigroup` under multiplication */
+/** 闭合于`乘法`运算下的`number`半群 */
 const SemigroupProduct: Semigroup<number> = {
   concat: (first, second) => first * second
 }
 ```
 
-**Note** It is a common mistake to think about the _semigroup of numbers_, but for the same type `A` it is possible to define more **instances** of `Semigroup<A>`. We've seen how for `number` we can define a semigroup under _addition_ and _multiplication_. It is also possible to have `Semigroup`s that share the same operation but differ in types. `SemigroupSum` could've been implemented on natural numbers instead of unsigned floats like `number`.
+**注**： 这里有一个常见错误是仅将半群与类型一起考虑(而不考虑运算)。对于类型`A`，我们可以定义多个`Semigroup<A>`的**实例**。我们已经看到了对于`number`，我们可以用 _加法_ 或 _乘法_ 去定义一个半群。实际上，类型不同但运算相同的半群也完全存在。`SemigroupSum`也可以由自然数而不是无符号浮点数(number)来实现。
 
-Another example, with the `string` type:
+这里有另一个`string`类型的例子：
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
@@ -481,7 +466,7 @@ const SemigroupString: Semigroup<string> = {
 }
 ```
 
-Another two examples, this time with the `boolean` type:
+这里还有一个`boolean`类型的例子：
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
@@ -495,15 +480,15 @@ const SemigroupAny: Semigroup<boolean> = {
 }
 ```
 
-## The `concatAll` function
+## `concatAll`函数
 
-By definition `concat` combines merely two elements of `A` every time. Is it possible to combine any number of them?
+根据定义，`concat`每次仅组合`A`的两个元素。是否可以将任意数量的元素组合起来？
 
-The `concatAll` function takes:
+`concatAll`函数需要：
 
-- an instance of a semigroup
-- an initial value
-- an array of elements
+- 一个半群的实例
+- 一个初始值
+- 元素的数组
 
 ```ts
 import * as S from 'fp-ts/Semigroup'
@@ -518,13 +503,13 @@ const product = S.concatAll(N.SemigroupProduct)(3)
 console.log(product([1, 2, 3, 4])) // => 72
 ```
 
-**Quiz**. Why do I need to provide an initial value?
+**测验**：为什么需要提供一个初始值？
 
--> See the [answer here](src/quiz-answers/semigroup-concatAll-initial-value.md)
+> [答案](src/quiz-answers/semigroup-concatAll-initial-value.md)
 
-**Example**
+**例**：
 
-Lets provide some applications of `concatAll`, by reimplementing some popular functions from the JavaScript standard library.
+让我们通过重新实现JavaScript标准库中的一些流行函数来展示`concatAll`的一些应用。
 
 ```ts
 import * as B from 'fp-ts/boolean'
@@ -544,69 +529,69 @@ const assign: (as: ReadonlyArray<object>) => object = concatAll(
 )({})
 ```
 
-**Quiz**. Is the following semigroup instance lawful (does it respect semigroup laws)?
-
-> See the [answer here](src/quiz-answers/semigroup-first.md)
+**测验**：以下半群实例合法吗(是否遵守半群定律)？
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-/** Always return the first argument */
+/** 总是返回第一个参数 */
 const first = <A>(): Semigroup<A> => ({
   concat: (first, _second) => first
 })
 ```
 
-**Quiz**. Is the following semigroup instance lawful?
+> [答案](src/quiz-answers/semigroup-first.md)
 
-> See the [answer here](src/quiz-answers/semigroup-second.md)
+**测验**：以下半群实例合法吗？
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-/** Always return the second argument */
+/** 总是返回第二个参数 */
 const last = <A>(): Semigroup<A> => ({
   concat: (_first, second) => second
 })
 ```
 
-## The dual semigroup
+> [答案](src/quiz-answers/semigroup-second.md)
 
-Given a semigroup instance, it is possible to obtain a new semigroup instance by simply swapping the order in which the operands are combined:
+## 对偶半群(dual semigroup)
+
+给定一个半群实例，只需交换运算对象的组合顺序即可获得新的半群实例：
 
 ```ts
 import { pipe } from 'fp-ts/function'
 import { Semigroup } from 'fp-ts/Semigroup'
 import * as S from 'fp-ts/string'
 
-// This is a Semigroup combinator
-const reverse = <A>(S: Semigroup<A>): Semigroup<A> => ({
-  concat: (first, second) => S.concat(second, first)
+// 一个半群combinator
+const reverse = <A>(s: Semigroup<A>): Semigroup<A> => ({
+  concat: (first, second) => s.concat(second, first)
 })
 
 pipe(S.Semigroup.concat('a', 'b'), console.log) // => 'ab'
 pipe(reverse(S.Semigroup).concat('a', 'b'), console.log) // => 'ba'
 ```
 
-**Quiz**. This combinator makes sense because, generally speaking, the `concat` operation is not [**commutative**](https://en.wikipedia.org/wiki/Commutative_property), can you find an example where `concat` is commutative and one where it isn't?
+**测验**：这个combinator是有意义的，因为一般来说`concat`运算是不满足[**交换律**](https://en.wikipedia.org/wiki/Commutative_property)的, 你能分别找到一个`concat`满足交换律与不满足交换律的例子吗？
 
-> See the [answer here](src/quiz-answers/semigroup-commutative.md)
+> [答案](src/quiz-answers/semigroup-commutative.md)
 
-## Semigroup product
+## 乘积半群(Semigroup product)
 
-Let's try defining a semigroup instance for more complex types:
+让我们试着为更复杂的类型定义一个半群实例：
 
 ```ts
 import * as N from 'fp-ts/number'
 import { Semigroup } from 'fp-ts/Semigroup'
 
-// models a vector starting at the origin
+// 建模一个从原点开始的向量
 type Vector = {
   readonly x: number
   readonly y: number
 }
 
-// models a sum of two vectors
+// 建模两个向量的和
 const SemigroupVector: Semigroup<Vector> = {
   concat: (first, second) => ({
     x: N.SemigroupSum.concat(first.x, second.x),
@@ -615,7 +600,7 @@ const SemigroupVector: Semigroup<Vector> = {
 }
 ```
 
-**Example**
+**例**：
 
 ```ts
 const v1: Vector = { x: 1, y: 1 }
@@ -628,30 +613,30 @@ console.log(SemigroupVector.concat(v1, v2)) // => { x: 2, y: 3 }
 <img src="images/semigroupVector.png" width="300" alt="SemigroupVector" />
 </center>
 
-Too much boilerplate? The good news is that the **mathematical theory** behind semigroups tells us we can implement a semigroup instance for a struct like `Vector` if we can implement a semigroup instance for each of its fields.
+样板太多？好消息是，半群背后的**数学理论**告诉我们，如果我们可以为`Vector`这样的复杂类型的每个字段实现一个半群实例，我们就可以为它本身实现一个半群实例。
 
-Conveniently the `fp-ts/Semigroup` module exports a `struct` combinator:
+`fp-ts/Semigroup`模块导出了一个非常便利的`struct` combinator:
 
 ```ts
 import { struct } from 'fp-ts/Semigroup'
 
-// models the sum of two vectors
+// 建模两个向量的和
 const SemigroupVector: Semigroup<Vector> = struct({
   x: N.SemigroupSum,
-  y: N.SemigroupSum
+  y: N.SemigroupSum,
 })
 ```
 
-**Note**. There is a combinator similar to `struct` that works with tuples: `tuple`
+**注**：还有一个类似于`struct`的combinator可以用于元祖：`tuple`
 
 ```ts
 import * as N from 'fp-ts/number'
 import { Semigroup, tuple } from 'fp-ts/Semigroup'
 
-// models a vector starting from origin
+// 建模一个从原点开始的向量
 type Vector = readonly [number, number]
 
-// models the sum of two vectors
+// 建模两个向量的和
 const SemigroupVector: Semigroup<Vector> = tuple(N.SemigroupSum, N.SemigroupSum)
 
 const v1: Vector = [1, 1]
@@ -660,7 +645,7 @@ const v2: Vector = [1, 2]
 console.log(SemigroupVector.concat(v1, v2)) // => [2, 3]
 ```
 
-**Quiz**. Is it true that given any `Semigroup<A>` and having chosen any `middle` of `A`, if I insert it between the two `concat` parameters the result is still a semigroup?
+**测验**：给定任意`Semigroup<A>`并从`A`中任意选择一个元素`middle`，如果将其插入`concat`的两个参数之间，结果是否仍然是半群？
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -681,11 +666,11 @@ pipe(
 ) // => 'a|b|c'
 ```
 
-## Finding a Semigroup instance for any type
+## 找到任意类型的半群实例
 
-The associativity property is a very strong requirement, what happens if, given a specific type `A` we can't find an associative operation on `A`?
+结合律是一个非常严格的限制，如果给定一个特定类型`A`且无法在`A`上找到满足结合律的运算会发生什么？
 
-Suppose we have a type `User` defined as:
+假设我们有如下的类型定义：
 
 ```ts
 type User = {
@@ -694,23 +679,23 @@ type User = {
 }
 ```
 
-and that inside my database we have multiple copies of the same `User` (e.g. they could be historical entries of its modifications).
+在数据库中，有同一个`user`的多个副本(例如，修改的历史记录)。
 
 ```ts
-// internal APIs
+// 内部API
 declare const getCurrent: (id: number) => User
 declare const getHistory: (id: number) => ReadonlyArray<User>
 ```
 
-and that we need to implement a public API
+我们需要实现一个公共API
 
 ```ts
 export declare const getUser: (id: number) => User
 ```
 
-which takes into account all of its copies depending on some criteria. The criteria should be to return the most recent copy, or the oldest one, or the current one, etc..
+它根据某些标准考虑其所有的副本。标准应该返回最新的副本，或最旧的副本，或当前副本，等等。
 
-Naturally we can define a specific API for each of these criterias:
+我们当然可以为每一个标准定义一个API：
 
 ```ts
 export declare const getMostRecentUser: (id: number) => User
@@ -719,34 +704,32 @@ export declare const getCurrentUser: (id: number) => User
 // etc...
 ```
 
-Thus, to return a value of type `User` I need to consider all the copies and make a `merge` (or `selection`) of them, meaning I can model the criteria problem with a `Semigroup<User>`.
-
-That being said, it is not really clear right now what it means to "merge two `User`s" nor if this merge operation is associative.
-
-You can **always** define a Semigroup instance for **any** given type `A` by defining a semigroup instance not for `A` itself but for `NonEmptyArray<A>` called the **free semigroup** of `A`:
+要返回`User`类型的值，我们需要考虑所有副本并对它们进行**合并**(或**选择**)。这意味着我可以使用`Semigroup<User>`对这个问题进行建模。
+话虽如此，但现在还不清楚什么叫做"合并两个`user`"，也不清楚这个合并操作是否满足结合律。
+通过为`NonEmptyArray<A>`而不是`A`本身定义半群实例，我们**总是**可以为任意给定的类型`A`定义一个半群实例。这个半群被称作`A`上的**自由半群(free semigroup)**:
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
 
-// represents a non-empty array, meaning an array that has at least one element A
+// 代表非空数组，意味着数组中至少有一个A类型的元素
 type ReadonlyNonEmptyArray<A> = ReadonlyArray<A> & {
   readonly 0: A
 }
 
-// the concatenation of two NonEmptyArrays is still a NonEmptyArray
+// 两个非空数组的串联仍然是非空数组
 const getSemigroup = <A>(): Semigroup<ReadonlyNonEmptyArray<A>> => ({
   concat: (first, second) => [first[0], ...first.slice(1), ...second]
 })
 ```
 
-and then we can map the elements of `A` to "singletons" of `ReadonlyNonEmptyArray<A>`, meaning arrays with only one element.
+接下来，我们可以将`A`类型的元素映射到`ReadonlyNonEmptyArray<A>`的"单例"上，意为只有一个元素的数组。
 
 ```ts
-// insert an element into a non empty array
+// 向非空数组中插入一个元素
 const of = <A>(a: A): ReadonlyNonEmptyArray<A> => [a]
 ```
 
-Let's apply this technique to the `User` type:
+让我们把这个技术应用在`User`类型上:
 
 ```ts
 import {
@@ -761,7 +744,7 @@ type User = {
   readonly name: string
 }
 
-// this semigroup is not for the `User` type but for `ReadonlyNonEmptyArray<User>`
+// 这个半群定义是对`ReadonlyNonEmptyArray<User>`而不是`User`的
 const S: Semigroup<ReadonlyNonEmptyArray<User>> = getSemigroup<User>()
 
 declare const user1: User
@@ -771,65 +754,65 @@ declare const user3: User
 // const merge: ReadonlyNonEmptyArray<User>
 const merge = S.concat(S.concat(of(user1), of(user2)), of(user3))
 
-// I can get the same result by "packing" the users manually into an array
+// 通过手动将所有的user装进数组中也可以获得相同的结果
 const merge2: ReadonlyNonEmptyArray<User> = [user1, user2, user3]
 ```
 
-Thus, the free semigroup of `A` is merely another semigroup in which the elements are all possible, non empty, finite sequences of `A`.
+可以看到，`A`上的自由半群仍然是一个半群，其中的元素都是`A`的可能，非空，有限序列。
 
-The free semigroup of `A` can be seen as a _lazy_ way to `concat`enate elements of type `A` while preserving their data content.
+`A`上的自由半群可以被视为一种连接`A`类型元素的"懒惰"的方式，同时保留了其数据内容。
 
-The `merge` value, containing `[user1, user2, user3]`, tells us which are the elements to concatenate and in which order they are.
+包含`[user1, user2, user3]`的`merge`, 告诉我们要连接的元素以及它们的顺序。
 
-Now I have three possible options to design the `getUser` API:
+现在，有三种方式去设计`getUser` API:
 
-1. I can define `Semigroup<User>` and I want to get straight into `merge`ing.
+1. 可以定义`Semigroup<User>`，并且想要直接进行`合并(merge)`。
 
-```ts
-declare const SemigroupUser: Semigroup<User>
+    ```ts
+    declare const SemigroupUser: Semigroup<User>
 
-export const getUser = (id: number): User => {
-  const current = getCurrent(id)
-  const history = getHistory(id)
-  return concatAll(SemigroupUser)(current)(history)
-}
-```
+    export const getUser = (id: number): User => {
+      const current = getCurrent(id)
+      const history = getHistory(id)
+      return concatAll(SemigroupUser)(current)(history)
+    }
+    ```
 
-2. I can't define `Semigroup<User>` or I want to leave the merging strategy open to implementation, thus I'll ask it to the API consumer:
+2. 无法定义`Semigroup<User>`，或者想开放将合并策略的实现，因此需要向API的使用者询问:
 
-```ts
-export const getUser = (SemigroupUser: Semigroup<User>) => (
-  id: number
-): User => {
-  const current = getCurrent(id)
-  const history = getHistory(id)
-  // merge immediately
-  return concatAll(SemigroupUser)(current)(history)
-}
-```
+    ```ts
+    export const getUser = (SemigroupUser: Semigroup<User>) => (
+      id: number
+    ): User => {
+      const current = getCurrent(id)
+      const history = getHistory(id)
+      // 立即合并
+      return concatAll(SemigroupUser)(current)(history)
+    }
+    ```
 
-3. I can't define `Semigroup<User>` nor I want to require it.
+3. 无法定义`Semigroup<User>`，并且也不想向用户需求它。
 
-In this case the free semigroup of `User` can come to the rescue:
+    这种情况下，`User`的自由半群可以排上用场：
 
-```ts
-export const getUser = (id: number): ReadonlyNonEmptyArray<User> => {
-  const current = getCurrent(id)
-  const history = getHistory(id)
-  // I DO NOT proceed with merging and return the free semigroup of User
-  return [current, ...history]
-}
-```
+    ```ts
+    export const getUser = (id: number): ReadonlyNonEmptyArray<User> => {
+      const current = getCurrent(id)
+      const history = getHistory(id)
+      // 不继续合并，直接返回user的自由半群
+      return [current, ...history]
+    }
+    ```
 
-It should be noted that, even when I do have a `Semigroup<A>` instance, using a free semigroup might be still convenient for the following reasons:
+应该注意的是，即使确实有一个`Semigroup<A>`实例，使用自由半群可能仍然很方便，原因如下：
 
-- avoids executing possibly expensive and pointless computations
-- avoids passing around the semigroup instance
-- allows the API consumer to decide which is the correct merging strategy (by using `concatAll`).
+- 避免执行可能昂贵且无意义的计算
+- 避免传递半群实例
+- 允许 API 使用者决定哪个是正确的合并策略（通过使用`concatAll`）。
 
-## Order-derivable Semigroups
+## 由排序导出的半群(Order-derivable Semigroups)
 
-Given that `number` is **a total order** (meaning that whichever `x` and `y` we choose, one of those two conditions has to hold true: `x <= y` or `y <= x`) we can define another two `Semigroup<number>` instances using the `min` or `max` operations.
+由于`number`是**全序**(意味着对于任意的x，y，一定满足`x <= y`或`x >= y`)，我们可以用`min`或`max`运算来定义另外两个`Semigroup<number>`实例。
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup'
@@ -843,19 +826,17 @@ const SemigroupMax: Semigroup<number> = {
 }
 ```
 
-**Quiz**. Why is it so important that `number` is a _total_ order?
+**测验**：为什么`number`是全序这个前提非常重要？
 
-It would be very useful to define such semigroups (`SemigroupMin` and `SemigroupMax`) for different types than `number`.
+为与`number`不同的类型定义这样的半群(`SemigroupMin`与`SemigroupMax`)将非常有用。
 
-Is it possible to capture the notion of being _totally ordered_ for other types?
+是否有可能表现其他类型的 _全序_ 的概念？在讨论 _排序_ 之前，首先我们需要先讨论 _相等_ 的概念。
 
-To speak about _ordering_ we first need to capture the notion of _equality_.
+## 用`eq`建模等价(Modelling equivalence with `Eq`)
 
-# Modelling equivalence with `Eq`
+我们仍让可以用TypeScript的接口对等价建模。
 
-Yet again, we can model the notion of equality.
-
-_Equivalence relations_ capture the concept of _equality_ of elements of the same type. The concept of an _equivalence relation_ can be implemented in TypeScript with the following interface:
+_等价关系(Equivalence relations)_ 体现了同一类型元素 _等价_ 的概念。_等价关系_ 的概念可以在TypeScript中用下列接口实现：
 
 ```ts
 interface Eq<A> {
@@ -863,14 +844,14 @@ interface Eq<A> {
 }
 ```
 
-Intuitively:
+更直观地说:
 
-- if `equals(x, y) = true` then we say `x` and `y` are equal
-- if `equals(x, y) = false` then we say `x` and `y` are different
+- 如果`equals(x, y) = true`，那我们称`x`与`y`是相等的
+- 如果`equals(x, y) = false`，那我们称`x`与`y`是不同的
 
-**Example**
+**例**：
 
-This is an instance of `Eq` for the `number` type:
+这是`number`类型的一个`Eq`实例：
 
 ```ts
 import { Eq } from 'fp-ts/Eq'
@@ -884,15 +865,15 @@ pipe(EqNumber.equals(1, 1), console.log) // => true
 pipe(EqNumber.equals(1, 2), console.log) // => false
 ```
 
-The following laws have to hold true:
+必须满足以下定律：
 
-1. **Reflexivity**: `equals(x, x) === true`, for every `x` in `A`
-2. **Symmetry**: `equals(x, y) === equals(y, x)`, for every `x`, `y` in `A`
-3. **Transitivity**: if `equals(x, y) === true` and `equals(y, z) === true`, then `equals(x, z) === true`, for every `x`, `y`, `z` in `A`
+- 自反性：对于`A`中的每个`x`，`equals(x, x) === true`
+- 对称性：对于`A`中的任意`x`、`y`，equals(x, y) === equals(y, x)
+- 传递性：如果`equals(x, y) === true`且`equals(y, z) === true`，则对于`A`中的任意`x`、`y`、`z`，`equals(x, z) === true`
 
-**Quiz**. Would a combinator `reverse: <A>(E: Eq<A>) => Eq<A>` make sense?
+**测验**：combinator `reverse: <A>(E: Eq<A>) => Eq<A>`有意义吗？
 
-**Quiz**. Would a combinator `not: <A>(E: Eq<A>) => Eq<A>` make sense?
+**测验**：combinator `not: <A>(E: Eq<A>) => Eq<A>`有意义吗？
 
 ```ts
 import { Eq } from 'fp-ts/Eq'
@@ -902,16 +883,16 @@ export const not = <A>(E: Eq<A>): Eq<A> => ({
 })
 ```
 
-**Example**
+**例**：
 
-Let's see the first example of the usage of the `Eq` abstraction by defining a function `elem` that checks whether a given value is an element of `ReadonlyArray`.
+让我们看看使用`Eq`抽象的第一个示例，定义一个函数`elem`来检查给定值是否是`ReadonlyArray`的元素。
 
 ```ts
 import { Eq } from 'fp-ts/Eq'
 import { pipe } from 'fp-ts/function'
 import * as N from 'fp-ts/number'
 
-// returns `true` if the element `a` is included in the list `as`
+// 如果元素`a`存在于数组`as`中，返回`true`
 const elem = <A>(E: Eq<A>) => (a: A) => (as: ReadonlyArray<A>): boolean =>
   as.some((e) => E.equals(a, e))
 
@@ -919,14 +900,14 @@ pipe([1, 2, 3], elem(N.Eq)(2), console.log) // => true
 pipe([1, 2, 3], elem(N.Eq)(4), console.log) // => false
 ```
 
-Why would we not use the native `includes` Array method?
+为什么我们不用原生的`Array`的`includes`方法？
 
 ```ts
 console.log([1, 2, 3].includes(2)) // => true
 console.log([1, 2, 3].includes(4)) // => false
 ```
 
-Let's define some `Eq` instance for more complex types.
+让我们为更复杂的类型定义一些`Eq`的实例。
 
 ```ts
 import { Eq } from 'fp-ts/Eq'
@@ -944,7 +925,7 @@ console.log(EqPoint.equals({ x: 1, y: 2 }, { x: 1, y: 2 })) // => true
 console.log(EqPoint.equals({ x: 1, y: 2 }, { x: 1, y: -2 })) // => false
 ```
 
-and check the results of `elem` and `includes`
+然后分别验证`elem`和`includes`的结果。
 
 ```ts
 const points: ReadonlyArray<Point> = [
@@ -959,13 +940,13 @@ console.log(points.includes(search)) // => false :(
 console.log(pipe(points, elem(EqPoint)(search))) // => true :)
 ```
 
-**Quiz** (JavaScript). Why does the `includes` method returns `false`?
+**测验**： (JavaScript)。为什么`includes`方法返回了`false`?
 
--> See the [answer here](src/quiz-answers/javascript-includes.md)
+> [答案](src/quiz-answers/javascript-includes.md)
 
-Abstracting the concept of equality is of paramount importance, especially in a language like JavaScript where some data types do not offer handy APIs for checking user-defined equality.
+抽象相等性的概念至关重要，尤其是在像JavaScript这样的语言中，某些数据类型不提供方便的 API 来检查用户定义的相等性。
 
-The JavaScript native `Set` datatype suffers by the same issue:
+JavaScript的原生数据类型`Set`也面临同样的问题：
 
 ```ts
 type Point = {
@@ -981,13 +962,13 @@ console.log(points)
 // => Set { { x: 0, y: 0 }, { x: 0, y: 0 } }
 ```
 
-Given the fact that `Set` uses `===` ("strict equality") for comparing values, `points` now contains **two identical copies** of `{ x: 0, y: 0 }`, a result we definitely did not want. Thus it is convenient to define a new API to add an element to a `Set`, one that leverages the `Eq` abstraction.
+由于`Set`使用`===`(严格相等)来比较值，`points`现在包含`{ x: 0, y: 0 }`的**两个相同副本**，这肯定不是我们想要的。因此，定义一个新的 API 来将元素添加到`Set`(利用`Eq`抽象)是很方便的。
 
-**Quiz**. What would be the signature of this API?
+**测验**：这个API的签名是什么样的？
 
-Does `EqPoint` require too much boilerplate? The good news is that theory offers us yet again the possibility of implementing an `Eq` instance for a struct like `Point` if we are able to define an `Eq` instance for each of its fields.
+`EqPoint`的样板太多？好消息是，理论再次为我们提供了为像`Point`这样的结构实现`Eq`实例的可能性，只要我们能够为它的每个字段定义一个`Eq`实例。
 
-Conveniently the `fp-ts/Eq` module exports a `struct` combinator:
+`fp-ts/Eq`模块导出了一个非常便利的`struct` combinator:
 
 ```ts
 import { Eq, struct } from 'fp-ts/Eq'
@@ -1004,7 +985,7 @@ const EqPoint: Eq<Point> = struct({
 })
 ```
 
-**Note**. Like for Semigroup, we aren't limited to `struct`-like data types, we also have combinators for working with tuples: `tuple`
+**注**：与半群一样，不仅对类`struct`的数据类型，也有用于处理元组的combinators: `tuple`
 
 ```ts
 import { Eq, tuple } from 'fp-ts/Eq'
@@ -1018,7 +999,7 @@ console.log(EqPoint.equals([1, 2], [1, 2])) // => true
 console.log(EqPoint.equals([1, 2], [1, -2])) // => false
 ```
 
-There are other combinators exported by `fp-ts`, here we can see a combinator that allows us to derive an `Eq` instance for `ReadonlyArray`s.
+`fp-ts`还导出了其他combinator，下面的这个combinator允许我们为`ReadonlyArray`派生一个`Eq`实例。
 
 ```ts
 import { Eq, tuple } from 'fp-ts/Eq'
@@ -1032,7 +1013,7 @@ const EqPoint: Eq<Point> = tuple(N.Eq, N.Eq)
 const EqPoints: Eq<ReadonlyArray<Point>> = RA.getEq(EqPoint)
 ```
 
-Similarly to Semigroups, it is possible to define more than one `Eq` instance for the same given type. Suppose we have modeled a `User` with the following type:
+与半群类似，可以为同一给定类型定义多个`Eq`实例。假设我们用以下类型建模了一个`User`：
 
 ```ts
 type User = {
@@ -1041,7 +1022,7 @@ type User = {
 }
 ```
 
-we can define a "standard" `Eq<User>` instance using the `struct` combinator:
+我们可以用`struct` combinator定义一个“标准的”`Eq<User>`：
 
 ```ts
 import { Eq, struct } from 'fp-ts/Eq'
@@ -1059,18 +1040,18 @@ const EqStandard: Eq<User> = struct({
 })
 ```
 
-Several languages, even pure functional languages like Haskell, do not allow to have more than one `Eq` instance per data type. But we may have different contexts where the meaning of `User` equality might differ. One common context is where two `User`s are equal if their `id` field is equal.
+有几种语言，甚至像Haskell这样的纯函数式语言，都不允许每种数据类型有多个`Eq`实例。但我们可能有不同的上下文，其中`User`等价的含义可能不同。一种常见的情况是，如果两个`User`的`id`字段相等，则它们相等。
 
 ```ts
-/** two users are equal if their `id` fields are equal */
+/** 如果两个user的`id`相同，则他们相同 */
 const EqID: Eq<User> = {
   equals: (first, second) => N.Eq.equals(first.id, second.id)
 }
 ```
 
-Now that we made an abstract concept concrete by representing it as a data structure, we can programmatically manipulate `Eq` instances like we do with other data structures. Let's see an example.
+现在我们通过将抽象概念表示为数据结构来将其具体化，我们可以像处理其他数据结构一样以编程方式操作`Eq`实例。让我们看一个例子。
 
-**Example**. Rather than manually defining `EqId` we can use the combinator `contramap`: given an instance `Eq<A>` and a function from `B` to `A`, we can derive an `Eq<B>`
+**例**：我们可以使用`contramap` combinator，而不是手动定义`EqId`：给定一个实例`Eq<A>`和一个从`B`到`A`的函数，我们可以导出一个`Eq<B>`
 
 ```ts
 import { Eq, struct, contramap } from 'fp-ts/Eq'
@@ -1095,14 +1076,14 @@ const EqID: Eq<User> = pipe(
 
 console.log(
   EqStandard.equals({ id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio Canti' })
-) // => false (because the `name` property differs)
+) // => false (因为`name`不同)
 
 console.log(
   EqID.equals({ id: 1, name: 'Giulio' }, { id: 1, name: 'Giulio Canti' })
-) // => true (even though the `name` property differs)
+) // => true (尽管`name`不同)
 
 console.log(EqID.equals({ id: 1, name: 'Giulio' }, { id: 2, name: 'Giulio' }))
-// => false (even though the `name` property is equal)
+// => false (尽管`name`相同)
 ```
 
 **Quiz**. Given a data type `A`, is it possible to define a `Semigroup<Eq<A>>`? What could it represent?
