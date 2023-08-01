@@ -854,7 +854,7 @@ interface Eq<A> {
 }
 ```
 
-更直观地说:
+更直观地说：
 
 - 如果`equals(x, y) = true`，那我们称`x`与`y`是相等的
 - 如果`equals(x, y) = false`，那我们称`x`与`y`是不同的
@@ -1053,7 +1053,14 @@ const EqStandard: Eq<User> = struct({
 });
 ```
 
-有几种语言，甚至像Haskell这样的纯函数式语言，都不允许每种数据类型有多个`Eq`实例。但我们可能有不同的上下文，其中`User`等价的含义可能不同。一种常见的情况是，如果两个`User`的`id`字段相等，则它们相等。
+在像Haskell这样的语言中，像`User`这样的结构的标准`Eq`实例可以由编译器自动生成。
+
+```haskell
+data User = User Int String
+     deriving (Eq)
+```
+
+但是在某些特定情况下，我们可能对不同用户之间的某种类型的相等感兴趣。例如，如果两个用户具有相同的`id`，我们可以认为他们是相等的。
 
 ```ts
 /** 如果两个user的`id`相同，则他们相同 */
@@ -1099,13 +1106,13 @@ console.log(EqID.equals({ id: 1, name: 'Giulio' }, { id: 2, name: 'Giulio' }));
 // => false (尽管`name`相同)
 ```
 
-**Quiz**. Given a data type `A`, is it possible to define a `Semigroup<Eq<A>>`? What could it represent?
+**测验**：给定一个数据类型`A`，是否可以定义`Semigroup<Eq<A>>`？它能代表什么？
 
-## Modeling ordering relations with `Ord`
+## 使用`Ord`建模排序关系(Modeling ordering relations with `Ord`)
 
-In the previous chapter regarding `Eq` we were dealing with the concept of **equality**. In this one we'll deal with the concept of **ordering**.
+在前面关于`Eq`的章节中，我们讨论了**相等**的概念。在这一章中，我们将讨论**排序**的概念。
 
-The concept of a total order relation can be implemented in TypeScript as following:
+全序的概念可以在TypeScript中实现，如下所示：
 
 ```ts
 import { Eq } from 'fp-ts/lib/Eq';
@@ -1117,15 +1124,15 @@ interface Ord<A> extends Eq<A> {
 }
 ```
 
-Resulting in:
+更直观地说：
 
-- `x < y` if and only if `compare(x, y) = -1`
-- `x = y` if and only if `compare(x, y) = 0`
-- `x > y` if and only if `compare(x, y) = 1`
+- 当且仅当`compare(x, y) = -1`时`x < y`
+- 当且仅当`compare(x, y) = 0`时`x = y`
+- 当且仅当`compare(x, y) = 1`时`x > y`
 
-**Example**
+**例**：
 
-Let's try to define an `Ord` instance for the type `number`:
+让我们尝试给`number`类型定义一个`Ord`实例：
 
 ```ts
 import { Ord } from 'fp-ts/Ord';
@@ -1136,23 +1143,23 @@ const OrdNumber: Ord<number> = {
 };
 ```
 
-The following laws have to hold true:
+必须满足以下定律：
 
-1. **Reflexivity**: `compare(x, x) <= 0`, for every `x` in `A`
-2. **Antisymmetry**: if `compare(x, y) <= 0` and `compare(y, x) <= 0` then `x = y`, for every `x`, `y` in `A`
-3. **Transitivity**: if `compare(x, y) <= 0` and `compare(y, z) <= 0` then `compare(x, z) <= 0`, for every `x`, `y`, `z` in `A`
+1. **自反性**：对于任意属于`A`的`x`，`compare(x, x) <= 0`
+2. **反对称**：对于任意属于`A`的`x`、`y`，如果`compare(x, y) <= 0`且`compare(y, x) <= 0`，则`x = y`
+3. **传递性**：对于任意属于`A`的`x`、`y`、`z`，如果`compare(x, y) <= 0`且`compare(y, z) <= 0`，则`compare(x, z) <= 0`
 
-`compare` has also to be compatible with the `equals` operation from `Eq`:
+`compare`还必须与`Eq`中的`equals`运算兼容:
 
-`compare(x, y) === 0` if and only if `equals(x, y) === true`, for every `x`, `y` in `A`
+对于任意属于`A`的`x`、`y`，当且仅当`equals(x, y) === true`时`compare(x, y) === 0`。
 
-**Note**. `equals` can be derived from `compare` in the following way:
+**注**：`equals`可以通过下列方式从`compare`派生得到:
 
 ```ts
 equals: (first, second) => compare(first, second) === 0;
 ```
 
-In fact the `fp-ts/Ord` module exports a handy helper `fromCompare` which allows us to define an `Ord` instance simply by supplying the `compare` function:
+事实上，`fp-ts/Ord`模块导出了一个方便的helper `fromCompare`，它允许我们只需提供`compare`函数即可定义`Ord`实例：
 
 ```ts
 import { Ord, fromCompare } from 'fp-ts/Ord';
@@ -1162,16 +1169,16 @@ const OrdNumber: Ord<number> = fromCompare((first, second) =>
 );
 ```
 
-**Quiz**. Is it possible to define an `Ord` instance for the game Rock-Paper-Scissor where `move1 <= move2` if `move2` beats `move1`?
+**测验**：是否可以为石头剪刀布定义一个`Ord`实例，其中如果`move2`击败`move1`，则`move1 <= move2`？
 
-Let's see a practical usage of an `Ord` instance by defining a `sort` function which orders the elements of a `ReadonlyArray`.
+让我们通过定义一个对`ReadonlyArray`元素进行排序的`sort`函数来了解`Ord`实例的实际用法。
 
 ```ts
 import { pipe } from 'fp-ts/function';
 import * as N from 'fp-ts/number';
 import { Ord } from 'fp-ts/Ord';
 
-export const sort =
+const sort =
   <A,>(O: Ord<A>) =>
   (as: ReadonlyArray<A>): ReadonlyArray<A> =>
     as.slice().sort(O.compare);
@@ -1179,9 +1186,9 @@ export const sort =
 pipe([3, 1, 2], sort(N.Ord), console.log); // => [1, 2, 3]
 ```
 
-**Quiz** (JavaScript). Why does the implementation leverages the native Array `slice` method?
+**测验**：(JavaScript)。为什么该实现用到了数组原生的`slice`方法？
 
-Let's see another `Ord` pratical usage by defining a `min` function that returns the smallest of two values:
+让我们通过定义一个返回两个值中最小值的`min`函数来看看另一个`Ord`实际用法：
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -1197,11 +1204,11 @@ const min =
 pipe(2, min(N.Ord)(1), console.log); // => 1
 ```
 
-## Dual Ordering
+## 对偶排序(Dual Ordering)
 
-In the same way we could invert the `concat` operation to obtain the `dual semigroup` using the `reverse` combinator, we can invert the `compare` operation to get the dual ordering.
+通过`reverse` combinator反转`concat`，我们得到了对偶半群。同样地，我们也可以反转`compare`得到对偶排序。
 
-Let's define the `reverse` combinator for `Ord`:
+让我们为`Ord`定义`reverse` combinator：
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -1212,7 +1219,7 @@ export const reverse = <A,>(O: Ord<A>): Ord<A> =>
   fromCompare((first, second) => O.compare(second, first));
 ```
 
-A usage example for `reverse` is obtaining a `max` function from the `min` one:
+`reverse`的一个用法示例是从`min`函数获取`max`函数：
 
 ```ts
 import { flow, pipe } from 'fp-ts/function';
@@ -1231,7 +1238,7 @@ const max = flow(reverse, min);
 pipe(2, max(N.Ord)(1), console.log); // => 2
 ```
 
-The **totality** of ordering (meaning that given any `x` and `y`, one of the two conditions needs to hold true: `x <= y` or `y <= z`) may appear obvious when speaking about numbers, but that's not always the case. Let's see a slightly more complex scenario:
+当谈到数字时，**全序**可能非常显而易见。但并不总是这样。让我们看一个稍微复杂一点的场景：
 
 ```ts
 type User = {
@@ -1240,11 +1247,11 @@ type User = {
 };
 ```
 
-It's not really clear when a `User` is "smaller or equal" than another `User`.
+一个用户“小于或等于”另一个用户的定义并不清晰。
 
-How can we define an `Ord<User>` instance?
+我们应该如何定义`Ord<User>`？
 
-That depends on the context, but a possible choice might be ordering `User`s by their age:
+实际上这取决于上下文。但一种可能是根据用户的年龄对用户进行排序：
 
 ```ts
 import * as N from 'fp-ts/number';
@@ -1260,7 +1267,7 @@ const byAge: Ord<User> = fromCompare((first, second) =>
 );
 ```
 
-Again we can get rid of some boilerplate using the `contramap` combinatorL given an `Ord<A>` instance and a function from `B` to `A`, it is possible to derive `Ord<B>`:
+我们可以使用`contramap` combinator消除一些样板代码：给定`A`的`Ord`实例和从`B`到`A`的函数，我们可以派生出`B`的`Ord`实例
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -1278,7 +1285,7 @@ const byAge: Ord<User> = pipe(
 );
 ```
 
-We can get the youngest of two `User`s using the previously defined `min` function.
+我们可以使用之前定义的`min`函数获取两个`User`中年龄小的那个。
 
 ```ts
 // const getYounger: (second: User) => (first: User) => User
@@ -1291,20 +1298,20 @@ pipe(
 ); // => { name: 'Giulio', age: 47 }
 ```
 
-**Quiz**. In the `fp-ts/ReadonlyMap` module the following API is exposed:
+**测验**：`fp-ts/ReadonlyMap`模块导出了下列API：
 
 ```ts
 /**
- * Get a sorted `ReadonlyArray` of the keys contained in a `ReadonlyMap`.
+ * 获取`ReadonlyMap`的键的排序后的数组`ReadonlyArray`。
  */
 declare const keys: <K>(
   O: Ord<K>,
 ) => <A>(m: ReadonlyMap<K, A>) => ReadonlyArray<K>;
 ```
 
-why does this API requires an instance for `Ord<K>`?
+为什么这个API需要`Ord<K>`的实例`O`?
 
-Let's finally go back to the very first issue: defining two semigroups `SemigroupMin` and `SemigroupMax` for types different than `number`:
+最后让我们回到第一个问题：为不同于`number`的类型定义两个半群`SemigroupMin`和`SemigroupMax`：
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup';
@@ -1318,7 +1325,7 @@ const SemigroupMax: Semigroup<number> = {
 };
 ```
 
-Now that we have the `Ord` abstraction we can do it:
+有了`Ord`抽象，现在我们可以这么写：
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -1352,25 +1359,25 @@ console.log(
 ); // => { name: 'Guido', age: 50 }
 ```
 
-**Example**
+**例**：
 
-Let's recap all of this with one final example (adapted from [Fantas, Eel, and Specification 4: Semigroup](http://www.tomharding.me/2017/03/13/fantas-eel-and-specification-4/)).
+让我们用最后一个例子来回顾一下这一切(改编自[Fantas, Eel, and Specification 4: Semigroup](http://www.tomharding.me/2017/03/13/fantas-eel-and-specification-4/)).
 
-Suppose we need to build a system where, in a database, there are records of customers implemented in the following way:
+假设我们需要构建一个系统，在数据库中存在按以下方式实现的客户记录：
 
 ```ts
 interface Customer {
   readonly name: string;
-  readonly favouriteThings: ReadonlyArray<string>;
-  readonly registeredAt: number; // since epoch
-  readonly lastUpdatedAt: number; // since epoch
+  readonly favoriteThings: ReadonlyArray<string>;
+  readonly registeredAt: number; // 时间戳(自1970)
+  readonly lastUpdatedAt: number; // 时间戳(自1970)
   readonly hasMadePurchase: boolean;
 }
 ```
 
-For some reason, there might be duplicate records for the same person.
+由于某些原因，同一个人可能有重复的记录。
 
-We need a merging strategy. Well, that's Semigroup's bread and butter!
+我们需要一个合并策略。这就是`Semigroup`的用武之地！
 
 ```ts
 import * as B from 'fp-ts/boolean';
@@ -1381,24 +1388,16 @@ import * as RA from 'fp-ts/ReadonlyArray';
 import { max, min, Semigroup, struct } from 'fp-ts/Semigroup';
 import * as S from 'fp-ts/string';
 
-interface Customer {
-  readonly name: string;
-  readonly favouriteThings: ReadonlyArray<string>;
-  readonly registeredAt: number; // since epoch
-  readonly lastUpdatedAt: number; // since epoch
-  readonly hasMadePurchase: boolean;
-}
-
 const SemigroupCustomer: Semigroup<Customer> = struct({
-  // keep the longer name
+  // 保留长的那个
   name: max(pipe(N.Ord, contramap(S.size))),
-  // accumulate things
-  favouriteThings: RA.getSemigroup<string>(),
-  // keep the least recent date
+  // 累加
+  favoriteThings: RA.getSemigroup<string>(),
+  // 保留最早的日期
   registeredAt: min(N.Ord),
-  // keep the most recent date
+  // 保留最新的日期
   lastUpdatedAt: max(N.Ord),
-  // boolean semigroup under disjunction
+  // 或
   hasMadePurchase: B.SemigroupAny,
 });
 
@@ -1406,14 +1405,14 @@ console.log(
   SemigroupCustomer.concat(
     {
       name: 'Giulio',
-      favouriteThings: ['math', 'climbing'],
+      favoriteThings: ['math', 'climbing'],
       registeredAt: new Date(2018, 1, 20).getTime(),
       lastUpdatedAt: new Date(2018, 2, 18).getTime(),
       hasMadePurchase: false,
     },
     {
       name: 'Giulio Canti',
-      favouriteThings: ['functional programming'],
+      favoriteThings: ['functional programming'],
       registeredAt: new Date(2018, 1, 22).getTime(),
       lastUpdatedAt: new Date(2018, 2, 9).getTime(),
       hasMadePurchase: true,
@@ -1430,9 +1429,11 @@ console.log(
 */
 ```
 
-**Quiz**. Given a type `A` is it possible to define a `Semigroup<Ord<A>>` instance? What could it possibly represent?
+**测验**：对于给定的类型`A`，能否定义`Semigroup<Ord<A>>`实例？它代表的可能是什么？
 
-**Demo**
+**Demo**：
+
+[`02_ord.ts`](src/02_ord.ts)
 
 # Modeling composition through Monoids
 
