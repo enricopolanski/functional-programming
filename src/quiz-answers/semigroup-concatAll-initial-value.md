@@ -30,7 +30,6 @@ console.log(product([1, 2, 3, 4])) // => 72
 `concatAll`方法必须返回一个`A`类型的元素。如果提供的元素数组为空，则我们无法从中获取任何类型为“A”的元素返回。
 强制提供初始值可确保我们可以在数组为空时返回该初始值。
 
-
 ```ts
 import * as Semigroup from 'fp-ts/Semigroup'
 import * as NEA from 'fp-ts/NonEmptyArray'
