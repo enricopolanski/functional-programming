@@ -1,12 +1,12 @@
-// run `npm run shapes` to execute
+// 执行`npm run shapes`
 /*
-  PROBLEM: devise a system to draw shapes on canvas.
+  问题：设计一个在画布上绘制图形的系统。
 */
 import { pipe } from 'fp-ts/function'
 import { Monoid, concatAll } from 'fp-ts/Monoid'
 
 // -------------------------------------------------------------------------------------
-// model
+// 模型
 // -------------------------------------------------------------------------------------
 
 export interface Point {
@@ -15,8 +15,7 @@ export interface Point {
 }
 
 /**
- * A shape is a function that given a point
- * returns `true` if the point belongs to the shape and `false` otherwise
+ * 如果点在给定的图形内部则返回`true`，否则返回`false`
  */
 export type Shape = (point: Point) => boolean
 
@@ -39,16 +38,16 @@ export type Shape = (point: Point) => boolean
 */
 
 // -------------------------------------------------------------------------------------
-// primitives
+// 原语
 // -------------------------------------------------------------------------------------
 
 /**
- * Create a shape representing a circle
+ * 创建一个代表圆形的形状
  */
 export const disk = (center: Point, radius: number): Shape => (point) =>
   distance(point, center) <= radius
 
-// euclidean distance
+// 欧氏距离
 const distance = (p1: Point, p2: Point) =>
   Math.sqrt(
     Math.pow(Math.abs(p1.x - p2.x), 2) + Math.pow(Math.abs(p1.y - p2.y), 2)
@@ -61,19 +60,19 @@ const distance = (p1: Point, p2: Point) =>
 // -------------------------------------------------------------------------------------
 
 /**
- * We can define the first combinator which given a shape
- * returns its complimentary one (the negative)
+ * 我们可以定义第一个combinator。
+ * 给定一个shape，返回它的补数(逻辑非)
  */
 export const outside = (s: Shape): Shape => (point) => !s(point)
 
 // pipe(disk({ x: 200, y: 200 }, 100), outside, draw)
 
 // -------------------------------------------------------------------------------------
-// instances
+// 实例
 // -------------------------------------------------------------------------------------
 
 /**
- * A monoid where `concat` represents the union of two `Shape`s
+ * `concat`代表两个`Shape`的并集的幺半群
  */
 export const MonoidUnion: Monoid<Shape> = {
   concat: (first, second) => (point) => first(point) || second(point),
@@ -89,7 +88,7 @@ export const MonoidUnion: Monoid<Shape> = {
 // )
 
 /**
- * A monoid where `concat` represents the intersection of two `Shape`s
+ * `concat`代表两个`Shape`的交集的幺半群
  */
 const MonoidIntersection: Monoid<Shape> = {
   concat: (first, second) => (point) => first(point) && second(point),
@@ -105,8 +104,8 @@ const MonoidIntersection: Monoid<Shape> = {
 // )
 
 /**
- * Using the combinator `outside` and `MonoidIntersection` we can
- * create a `Shape` representing a ring
+ * 利用 `outside`和`MonoidIntersection`
+ * 我们可以创造一个代表环的`Shape`
  */
 export const ring = (
   point: Point,
@@ -133,8 +132,8 @@ export const mickeymouse: ReadonlyArray<Shape> = [
 // -------------------------------------------------------------------------------------
 
 export function draw(shape: Shape): void {
-  const canvas: HTMLCanvasElement = document.getElementById('canvas') as any
-  const ctx: CanvasRenderingContext2D = canvas.getContext('2d') as any
+  const canvas = document.querySelector<HTMLCanvasElement>('#canvas')!
+  const ctx = canvas.getContext('2d')!
   const width = canvas.width
   const height = canvas.height
   const imagedata = ctx.createImageData(width, height)

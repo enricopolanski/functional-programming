@@ -483,7 +483,7 @@ const SemigroupAny: Semigroup<boolean> = {
 };
 ```
 
-## `concatAll`函数
+### `concatAll`函数
 
 根据定义，`concat`每次仅组合`A`的两个元素。是否可以将任意数量的元素组合起来？
 
@@ -560,7 +560,7 @@ const last = <A,>(): Semigroup<A> => ({
 
 > [答案](src/quiz-answers/semigroup-second.md)
 
-## 对偶半群(dual semigroup)
+### 对偶半群(dual semigroup)
 
 给定一个半群实例，只需交换运算对象的组合顺序即可获得新的半群实例：
 
@@ -674,7 +674,7 @@ pipe(
 ); // => 'a|b|c'
 ```
 
-## 找到任意类型的半群实例
+### 找到任意类型的半群实例
 
 结合律是一个非常严格的限制，如果给定一个特定类型`A`且无法在`A`上找到满足结合律的运算会发生什么？
 
@@ -820,7 +820,7 @@ const merge2: ReadonlyNonEmptyArray<User> = [user1, user2, user3];
 - 避免传递半群实例
 - 允许 API 使用者决定哪个是正确的合并策略（通过使用`concatAll`）。
 
-## 由排序导出的半群(Order-derivable Semigroups)
+### 由排序导出的半群(Order-derivable Semigroups)
 
 由于`number`是**全序**(意味着对于任意的x，y，一定满足`x <= y`或`x >= y`)，我们可以用`min`或`max`运算来定义另外两个`Semigroup<number>`实例。
 
@@ -1108,7 +1108,7 @@ console.log(EqID.equals({ id: 1, name: 'Giulio' }, { id: 2, name: 'Giulio' }));
 
 **测验**：给定一个数据类型`A`，是否可以定义`Semigroup<Eq<A>>`？它能代表什么？
 
-## 使用`Ord`建模排序关系(Modeling ordering relations with `Ord`)
+### 使用`Ord`建模排序关系(Modeling ordering relations with `Ord`)
 
 在前面关于`Eq`的章节中，我们讨论了**相等**的概念。在这一章中，我们将讨论**排序**的概念。
 
@@ -1204,7 +1204,7 @@ const min =
 pipe(2, min(N.Ord)(1), console.log); // => 1
 ```
 
-## 对偶排序(Dual Ordering)
+### 对偶排序(Dual Ordering)
 
 通过`reverse` combinator反转`concat`，我们得到了对偶半群。同样地，我们也可以反转`compare`得到对偶排序。
 
@@ -1435,38 +1435,37 @@ console.log(
 
 [`02_ord.ts`](src/02_ord.ts)
 
-# Modeling composition through Monoids
+## 用幺半群建模组合(Modeling composition through Monoids)
 
-Let's recap what we have seen till now.
+让我们回顾一下到目前为止所看到的内容。
 
-We have seen how an **algebra** is a combination of:
+我们已经看到一个**代数结构**涉及以下条件:
 
-- some type `A`
-- some operations involving the type `A`
-- some laws and properties for that combination.
+- 一些类型`A`
+- 一些涉及类型`A`的运算
+- 一些定律
 
-The first algebra we have seen has been the magma, an algebra defined on some type A equipped with one operation called `concat`. There were no laws involved in `Magma<A>` the only requirement we had was that the `concat` operation had to be _closed_ on `A` meaning that the result:
+我们看到的第一个代数结构是原群，它是定义在某种类型`A`上定义的代数结构，带有一个`concat`运算。`Magma<A>`中没有涉及任何定律，唯一的要求是`concat`必须在`A`上 _闭合_，这意味着它的结果必须仍然是一个`A`的元素。
 
 ```ts
 concat(first: A, second: A) => A
 ```
 
-has still to be an element of the `A` type.
+紧接着我们看到了，如果给该运算添加一个限制，让其满足 _结合律_ ，我们便可以从原群`Magma<A>`得到半群`Semigroup<A>`。
+我们也看到了结合律是如何体现并行运算的可能性的。
 
-Later on we have seen how adding one simple requirement, _associativity_, allowed some `Magma<A>` to be further refined as a `Semigroup<A>`, and how associativity captures the possibility of computations to be parallelized.
+现在我们要对半群添加另一个条件。
 
-Now we're going to add another condition on Semigroup.
+给定一个定义在集合`A`上的半群，假设`A`中存在一个元素 _empty_。
+若对于任意`A`中的元素`a`，`concat(a, empty) = a`均成立，则称 _empty_ 为**右单位元**。
+若对于任意`A`中的元素`a`，`concat(empty, a) = a`均成立，则称 _empty_ 为**左单位元**。
+若 _empty_ 同时为左单位元及右单位元，则称之为**双边单位元**，简称**单位元(unit element)**。
 
-Given a `Semigroup` defined on some set `A` with some `concat` operation, if there is some element in `A` – we'll call this element _empty_ – such as for every element `a` in `A` the two following equations hold true:
+若半群中存在单位元，则该半群被称为**幺半群(Monoid)**。
 
-- **Right identity**: `concat(a, empty) = a`
-- **Left identity**: `concat(empty, a) = a`
+**注**：在本节中的剩余部分，我们将称`empty`为**单位**。也可以称它为恒等元(identity element)、中立元(neutral element)。
 
-then the `Semigroup` is also a `Monoid`.
-
-**Note**: We'll call the `empty` element **unit** for the rest of this section. There's other synonyms in literature, some of the most common ones are _neutral element_ and _identity element_.
-
-We have seen how in TypeScript `Magma`s and `Semigroup`s, can be modeled with `interface`s, so it should not come as a surprise that the very same can be done for `Monoid`s.
+我们已经看到了如何在TypeScript中用接口建模原群和半群。对幺半群也可以进行同样的操作。
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup';
@@ -1476,18 +1475,18 @@ interface Monoid<A> extends Semigroup<A> {
 }
 ```
 
-Many of the semigroups we have seen in the previous sections can be extended to become `Monoid`s. All we need to find is some element of type `A` for which the Right and Left identities hold true.
+我们在前面几节中看到的许多半群都可以扩展为幺半群。我们需要找到的只是`A`的单位元。
 
 ```ts
 import { Monoid } from 'fp-ts/Monoid';
 
-/** number `Monoid` under addition */
+/** 加法下的number `Monoid` */
 const MonoidSum: Monoid<number> = {
   concat: (first, second) => first + second,
   empty: 0,
 };
 
-/** number `Monoid` under multiplication */
+/** 乘法下的number `Monoid` */
 const MonoidProduct: Monoid<number> = {
   concat: (first, second) => first * second,
   empty: 1,
@@ -1498,20 +1497,20 @@ const MonoidString: Monoid<string> = {
   empty: '',
 };
 
-/** boolean monoid under conjunction */
+/** 逻辑与下的boolean monoid */
 const MonoidAll: Monoid<boolean> = {
   concat: (first, second) => first && second,
   empty: true,
 };
 
-/** boolean monoid under disjunction */
+/** 逻辑或下的boolean monoid */
 const MonoidAny: Monoid<boolean> = {
   concat: (first, second) => first || second,
   empty: false,
 };
 ```
 
-**Quiz**. In the semigroup section we have seen how the type `ReadonlyArray<string>` admits a `Semigroup` instance:
+**测验**：在半群的章节中，我们已经看到了如何实现`ReadonlyArray<string>`的`Semigroup`实例:
 
 ```ts
 import { Semigroup } from 'fp-ts/Semigroup';
@@ -1521,21 +1520,19 @@ const Semigroup: Semigroup<ReadonlyArray<string>> = {
 };
 ```
 
-Can you find the `unit` for this semigroup? If so, can we generalize the result not just for `ReadonlyArray<string>` but `ReadonlyArray<A>` as well?
+你能找到这个半群的单位元吗？如果能，是否可以将结果推广到`ReadonlyArray<A>`？
 
-**Quiz** (more complex). Prove that given a monoid, there can only be one unit.
+**测验**(更复杂)：证明给定一个幺半群，单位元是唯一的。
 
-The consequence of the previous proof is that there can be only one unit per monoid, once we find one we can stop searching.
+因为对于一个幺半群来说单位元，因此当找到一个单位元后便不必再继续寻找。
 
-We have seen how each semigroup was a magma, but not every magma was a semigroup. In the same way, each monoid is a semigroup, but not every semigroup is a monoid.
+每个幺半群都是半群，反之则不成立。
 
 <center>
 <img src="images/monoid.png" width="300" alt="Magma vs Semigroup vs Monoid" />
 </center>
 
-**Example**
-
-Let's consider the following example:
+**例**：
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -1549,22 +1546,22 @@ console.log(SemigroupIntercalate.concat('a', 'b')); // => 'a|b'
 console.log(SemigroupIntercalate.concat('a', '')); // => 'a|'
 ```
 
-Note how for this Semigroup there's no such `empty` value of type `string` such as `concat(a, empty) = a`.
+对于此半群，不存在一个`empty`使`concat(a, empty) = a`成立。
 
-And now one final, slightly more "exotic" example, involving functions:
+再让我们最后看一个有点“怪”的例子，涉及函数。
 
-**Example**
+**例**：
 
-An **endomorphism** is a function whose input and output type is the same:
+**自同态(endomorphism)** 是输入类型与输出类型相同的函数：
 
 ```ts
 type Endomorphism<A> = (a: A) => A;
 ```
 
-Given a type `A`, all endomorphisms defined on `A` are a monoid, such as:
+给定类型`A`，可以通过下列方法使定义在`A`上的自同态构成一个幺半群：
 
-- the `concat` operation is the usual function composition
-- the unit, our `empty` value is the identity function
+- `concat`是组合函数(flow)
+- `empty`是恒等函数(identity)
 
 ```ts
 import { Endomorphism, flow, identity } from 'fp-ts/function';
@@ -1576,22 +1573,22 @@ export const getEndomorphismMonoid = <A,>(): Monoid<Endomorphism<A>> => ({
 });
 ```
 
-**Note**: The `identity` function has one, and only one possible implementation:
+**注**：`identity`函数有且只有一种可能实现。
 
 ```ts
 const identity = (a: A) => a;
 ```
 
-Whatever value we pass in input, it gives us the same value in output.
+不论我们输入什么，它都会返回给我们相同的值。
 
 <!--
 TODO:
-We can start having a small taste of the importance of the `identity` function. While apparently useless per se, this function is vital to define a monoid for functions, in this case, endomorphisms. In fact, _doing nothing_, being _empty_ or _neutral_ is a tremendously valuable property to have when it comes to composition and we can think of the `identity` function as the number `0` of functions.
+我们可以开始初步了解`identity`函数的重要性了。虽然这个函数本身显然没有什么用处，但它对于定义函数的幺半群至关重要。在本例中是自同态。事实上，在组合方面，_什么都不做_ ，_空_ ， _中立_ 是一个非常有价值的属性。我们可以将`identity`函数视为函数的`0`。
 -->
 
-## The `concatAll` function
+### `concatAll` 函数
 
-One great property of monoids, compared to semigrops, is that the concatenation of multiple elements becomes even easier: it is not necessary anymore to provide an initial value.
+与半群相比，幺半群的一大特性是多个元素的串联变得更加容易：不再需要提供初始值。
 
 ```ts
 import { concatAll } from 'fp-ts/Monoid';
@@ -1606,13 +1603,13 @@ console.log(concatAll(B.MonoidAll)([true, false, true])); // => false
 console.log(concatAll(B.MonoidAny)([true, false, true])); // => true
 ```
 
-**Quiz**. Why is the initial value not needed anymore?
+**测验**：为什么不需要提供初始值？
 
-## Product monoid
+### 乘积幺半群(Product monoid)
 
-As we have already seen with semigroups, it is possible to define a monoid instance for a `struct` if we are able to define a monoid instance for each of its fields.
+正如我们在半群中看到的那样，如果我们能够为复杂结构的每个字段定义一个幺半群实例，则可以为复杂结构定义一个幺半群实例。
 
-**Example**
+**例**：
 
 ```ts
 import { Monoid, struct } from 'fp-ts/Monoid';
@@ -1629,7 +1626,7 @@ const Monoid: Monoid<Point> = struct({
 });
 ```
 
-**Note**. There is a combinator similar to `struct` that works with tuples: `tuple`.
+**注**：有一个类似于`struct`的combinator可以与元祖一起使用：`tuple`.
 
 ```ts
 import { Monoid, tuple } from 'fp-ts/Monoid';
@@ -1640,44 +1637,43 @@ type Point = readonly [number, number];
 const Monoid: Monoid<Point> = tuple(N.MonoidSum, N.MonoidSum);
 ```
 
-**Quiz**. Is it possible to define a "free monoid" for a generic type `A`?
+**测验**：是否可以为泛型`A`定义一个"自由幺半群"?
 
-**Demo** (implementing a system to draw geoetric shapes on canvas)
+**Demo** (实现一个在画布上绘制几何形状的系统)
 
 [`03_shapes.ts`](src/03_shapes.ts)
 
-# Pure and partial functions
+## 纯函数与偏函数(Pure and partial functions)
 
-In the first chapter we've seen an informal definition of a pure function:
+在第一章中，我们看到了纯函数的非正式定义：
 
-> A pure function is a procedure that given the same input always returns the same output and does not have any observable side effect.
+> 纯函数是一个过程，给定相同的输入总是返回相同的输出，没有任何可观察到的副作用。
 
-Such an informal statement could leave space for some doubts, such as:
+这种非正式的定义可能会带来一些疑问，例如：
 
-- what is a "side effect"?
-- what does it means "observable"?
-- what does it mean "same"?
+- 什么是副作用？
+- 什么是可观察到的？
+- 什么叫相同？
 
-Let's see a formal definition of the concept of a function.
+让我们看看函数概念的正式定义。
 
-**Note**. If `X` and `Y` are sets, then with `X × Y` we indicate their _cartesian product_, meaning the set
+**注**：如果`X`与`Y`是集合，则用`X × Y`表示他们的笛卡尔积，即集合。
 
-```
+```plaintext
 X × Y = { (x, y) | x ∈ X, y ∈ Y }
 ```
 
-The following [definition](https://en.wikipedia.org/wiki/History_of_the_function_concept) was given a century ago:
+一个世纪前人们给出了下面的[定义](https://en.wikipedia.org/wiki/History_of_the_function_concept)：
 
-**Definition**. A \_function: `f: X ⟶ Y` is a subset of `X × Y` such as
-for every `x ∈ X` there's exactly one `y ∈ Y` such that `(x, y) ∈ f`.
+**定义**：_函数_ `f: X ⟶ Y`是`X × Y`的子集，使得对于每个`x ∈ X`，总是只存在一个`y ∈ Y`，使得`(x, y) ∈ f`.
 
-The set `X` is called the _domain_ of `f`, `Y` is it's _codomain_.
+集合`X`称为`f`的 _定义域(Domain)_，`Y`称为 _到达域(Codomain)_.
 
-**Example**
+**例**：
 
-The function `double: Nat ⟶ Nat` is the subset of the cartesian product `Nat × Nat` given by `{ (1, 2), (2, 4), (3, 6), ...}`.
+函数`double: Nat ⟶ Nat`，其中`Nat`是自然数，是由`{ (1, 2), (2, 4), (3, 6), ...}`给出的笛卡尔积`Nat × Nat`的子集。
 
-In TypeScript we could define `f` as
+在TypeScript中我们可以这样定义`f`：
 
 ```ts
 const f: Record<number, number> = {
@@ -1690,26 +1686,26 @@ const f: Record<number, number> = {
 
 <!--
 TODO:
-Please note that the set `f` has to be described _statically_ when defining the function (meaning that the elements of that set cannot change with time for no reason).
-In this way we can exclude any form of side effect and the return value is always the same.
+注意，在定义函数时，必须静态地描述集合`f`（这意味着该集合的元素不能无缘无故地随时间变化）。
+通过这种方式，我们可以排除任何形式的副作用，并且返回值始终相同。
 -->
 
-The one in the example is called an _extensional_ definition of a function, meaning we enumerate one by one each of the elements of its domain and for each one of them we point the corresponding codomain element.
+示例中的定义称为函数的外延定义，这意味着我们一一枚举其定义域上中的每个元素，并对每个元素指定其相应的到达域中的元素。
 
-Naturally, when such a set is infinite this proves to be problematic. We can't list the entire domain and codomain of all functions.
+当集合是无限的时候，这是不可行的。因为我们无法列出所有函数的定义域与到达域。
 
-We can get around this issue by introducing the one that is called _intensional_ definition, meaning that we express a condition that has to hold for every couple `(x, y) ∈ f` meaning `y = x * 2`.
+我们可以通过引入内涵定义来解决这个问题。这意味着我们表达了一个条件，该条件必须适用于每一对`(x, y) ∈ f`，即`y = x * 2`.
 
-This the familiar form in which we write the `double` function and its definition in TypeScript:
+这与我们在TypeScript重定义的`double`函数非常类似。
 
 ```ts
 const double = (x: number): number => x * 2;
 ```
 
-The definition of a function as a subset of a cartesian product shows how in mathematics every function is pure: there is no action, no state mutation or elements being modified.
-In functional programming the implementation of functions has to follow as much as possible this ideal model.
+将函数定义为笛卡尔积的子集表明了数学中每个函数都是纯粹的：没有动作，没有状态突变或元素被修改。
+在函数式编程中，函数的实现必须尽可能遵循这个理想模型。
 
-**Quiz**. Which of the following procedures are pure functions?
+**测验**：以下哪些过程是纯函数？
 
 ```ts
 const coefficient1 = 2;
@@ -1757,11 +1753,11 @@ export const f7 = (
 ): void => fs.readFile(path, { encoding: 'utf8' }, callback);
 ```
 
-The fact that a function is pure does not imply automatically a ban on local mutability as long as it doesn't leaks out of its scope.
+函数是纯函数的事实并不意味着禁止局部可变性，只要它不泄漏到其范围之外即可。
 
 ![mutable / immutable](images/mutable-immutable.jpg)
 
-**Example** (Implementazion details of the `concatAll` function for monoids)
+**例** (幺半群的`concatAll`函数的实现细节)
 
 ```ts
 import { Monoid } from 'fp-ts/Monoid';
@@ -1769,7 +1765,7 @@ import { Monoid } from 'fp-ts/Monoid';
 const concatAll =
   <A,>(M: Monoid<A>) =>
   (as: ReadonlyArray<A>): A => {
-    let out: A = M.empty; // <= local mutability
+    let out: A = M.empty; // <= 局部可变
     for (const a of as) {
       out = M.concat(out, a);
     }
@@ -1777,63 +1773,63 @@ const concatAll =
   };
 ```
 
-The ultimate goal is to guarantee: **referential transparency**.
+最终目标是保证**引用透明**。
 
-The contract we sign with a user of our APIs is defined by the APIs signature:
+我们与API使用者的约定由函数签名定义。
 
 ```ts
 declare const concatAll: <A>(M: Monoid<A>) => (as: ReadonlyArray<A>) => A;
 ```
 
-and by the promise of respecting referential transparency. The technical details of how the function is implemented are not relevant, thus there is maximum freedom implementation-wise.
+而且从尊重引用透明性的承诺来看，该功能的具体实现的技术细节并不重要，也不受审查，因此有最大的自由度。
 
-Thus, how do we define a "side effect"? Simply by negating referential transparency:
+那么，我们如何定义“副作用”呢？只需要通过否定引用透明​​：
 
-> An expression contains "side effects" if it doesn't benefit from referential transparency
+> 如果表达式不具有引用透明性，则它包含“副作用”。
 
-Not only functions are a perfect example of one of the two pillars of functional programming, referential transparency, but they're also examples of the second pillar: **composition**.
+函数不仅是引用透明性的完美实例，也是**组合**的完美实例
 
-Functions compose:
+函数组合：
 
-**Definition**. Given `f: Y ⟶ Z` and `g: X ⟶ Y` two functions, then the function `h: X ⟶ Z` defined by:
+**定义**：给定`f: Y ⟶ Z`与`g: X ⟶ Y` 两个函数，则函数`h: X ⟶ Z`定义为:
 
-```
+```plaintext
 h(x) = f(g(x))
 ```
 
-is called _composition_ of `f` and `g` and is written `h = f ∘ g`
+称为`f`与`g`的组合，写作`h = f ∘ g`
 
-Please note that in order for `f` and `g` to combine, the domain of `f` has to be included in the codomain of `g`.
+注意，为了组合`f`和`g`，`f`的定义域必须与`g`的到达域一致。
 
-**Definition**. A function is said to be _partial_ if it is not defined for each value of its domain.
+**定义**：偏函数是没有为定义域中所有值定义的函数。
 
-Vice versa, a function defined for all values of its domain is said to be _total_
+相反，为定义域中所有制定义了的函数称为全函数。
 
-**Example**
+**例**：
 
-```
+```plaintext
 f(x) = 1 / x
 ```
 
-The function `f: number ⟶ number` is not defined for `x = 0`.
+函数`f: number ⟶ number`在`x = 0`时没有定义.
 
-**Example**
+**例**：
 
 ```ts
 // Get the first element of a `ReadonlyArray`
 declare const head: <A>(as: ReadonlyArray<A>) => A;
 ```
 
-**Quiz**. Why is the `head` function partial?
+**测验**：为什么`head`函数是偏函数？
 
-**Quiz**. Is `JSON.parse` a total function?
+**测验**：`JSON.parse`是全函数吗？
 
 ```ts
 parse: (text: string, reviver?: (this: any, key: string, value: any) => any) =>
   any;
 ```
 
-**Quiz**. Is `JSON.stringify` a total function?
+**测验**：`JSON.stringify`是全函数吗？
 
 ```ts
 stringify: (
@@ -1843,25 +1839,23 @@ stringify: (
 ) => string;
 ```
 
-In functional programming there is a tendency to only define **pure and total functions**. From now on with the term function we'll be specifically referring to "pure and total function". So what do we do when we have a partial function in our applications?
+在函数领域中，我们倾向于只定义**纯函数和全函数**（从现在开始，“函数”将专指“纯函数和全函数”），当我们碰到偏函数时，我们应该怎么办？
 
-A partial function `f: X ⟶ Y` can always be "brought back" to a total one by adding a special value, let's call it `None`, to the codomain and by assigning it to the output of `f` for every value of `X` where the function is not defined.
+偏函数`f: X ⟶ Y`总是可以通过向到达域添加一个不属于`Y`的特殊值(我们称之为`None`)，并将其与未定义`f`的`X`的每个值相关联，来“恢复”为全函数。
 
-```
+```plaintext
 f': X ⟶ Y ∪ None
 ```
 
-Let's call it `Option(Y) = Y ∪ None`.
+让我们称`Option(Y) = Y ∪ None`.
 
-```
+```plaintext
 f': X ⟶ Option(Y)
 ```
 
-In functional programming the tendency is to define only pure and and total functions.
+是否可以在TypeScript中定义`Option`？在接下来的章节中，我们将了解如何做到这一点。
 
-Is it possible to define `Option` in TypeScript? In the following chapters we'll see how to do it.
-
-# Algebraic Data Types
+## 代数数据类型(Algebraic Data Types)
 
 A good first step when writing an application or feature is to define it's domain model. TypeScript offers many tools that help accomplishing this task. **Algebraic Data Types** (in short, ADTs) are one of these tools.
 
