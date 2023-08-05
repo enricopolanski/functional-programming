@@ -2310,7 +2310,7 @@ f': X ⟶ Option(Y)
 
 #### `Option`类型
 
-`Option<A>`类型代表计算的效果(返回值)，该计算可能失败（`None`）或返回类型为`A`的值（`Some<A>`）：
+`Option<A>`类型代表计算的作用(返回值)，该计算可能失败（`None`）或返回类型为`A`的值（`Some<A>`）：
 
 ```ts
 // 代表失败
@@ -2962,7 +2962,7 @@ function pipe<A, B, C>(a: A, f: (a: A) => B, g: (b: B) => C): C {
 
 - 要组合`f: (a: A) => B`与`g: (b: B) => C`，我们使用常用的函数组合。
 - 要组合`f: (a: A) => F<B>`与`g: (b: B) => C`，我们需要`F`的 **函子（functor）** 实例。
-- 要组合`f: (a: A) => F<B>` with `g: (b: B, c: C) => D`，我们需要`F`的 **可应用的函子（applicative functor）** 实例。
+- 要组合`f: (a: A) => F<B>` with `g: (b: B, c: C) => D`，我们需要`F`的 **应用函子（applicative functor）** 实例。
 - 要组合`f: (a: A) => F<B>`与`g: (b: B) => F<C>`，我们需要`F`的 **单子（monad）** 实例。
 
 <img src="images/spoiler.png" width="900" alt="The four composition recipes" />
@@ -2977,32 +2977,32 @@ double: (n: number) => number;
 
 为了解决这个问题，下一章我们将讨论函子。
 
-# Functors
+## 函子（Functor）
 
-In the last section we've spoken about the _TS_ category (the TypeScript category) and about function composition's core problem:
+在上一章，我们讨论了 _TS_ 范畴与函数组合的核心问题：
 
-> How can we compose two generic functions `f: (a: A) => B` and `g: (c: C) => D`?
+> 我们如何组合两个泛型函数 `f: (a: A) => B` 和 `g: (c: C) => D`？
 
-Why is finding solutions to this problem so important?
+为什么找到这个问题的解决方案如此重要？
 
-Because, if it is true that categories can be used to model programming languages, morphisms (functions in the _TS_ category) can be used to model **programs**.
+因为，如果范畴确实可以用于对编程语言进行建模，则态射（_TS_ 范畴中的函数）可以用于对**程序**进行建模。
 
-Thus, solving this abstract problem means finding a concrete way of **composing programs in a generic way**. And _that_ is really interesting for us developers, isn't it?
+因此，解决这个抽象问题意味着找到一种**以通用方式编写程序**的具体方法。这对于我们开发者来说真的很有趣，不是吗？
 
-## Functions as programs
+### 函数作为程序
 
-If we want to model programs with functions we need to tackle an issue immediately:
+如果我们想用函数来建模程序，我们需要立即解决一个问题：
 
-> How is it possible to model a program that produces side effects with a pure function?
+> 如何用纯函数对产生副作用的程序进行建模？
 
-The answer is to model side effects through **effects**, meaning types that **represent** side effects.
+答案是通过 **作用（effects）** 对副作用进行建模，即**代表**副作用的类型。
 
-Let's see two possible techniques to do so in JavaScript:
+让我们看看在JavaScript中执行此操作的两种可能的技术：
 
-- define a DSL (domain specific language) for effects
-- use a _thunk_
+- 为作用定义DSL（领域特定语言 domain specific language）
+- 使用 _thunk_
 
-The first technique, using a DSL, means modifying a program like:
+第一种技术使用 DSL，意味着修改程序，例如：
 
 ```ts
 function log(message: string): void {
@@ -3010,7 +3010,7 @@ function log(message: string): void {
 }
 ```
 
-changing its codomain to make the function return a **description** of the side effect:
+更改其到达域使函数返回副作用的**描述**：
 
 ```ts
 type DSL = ... // sum type of every possible effect handled by the system
@@ -3023,14 +3023,14 @@ function log(message: string): DSL {
 }
 ```
 
-**Quiz**. Is the freshly defined `log` function really pure? Actually `log('foo') !== log('foo')`!
+**测验**：新定义的`log`函数真的纯粹吗？实际上`log('foo') !== log('foo')`！
 
-This technique requires a way to combine effects and the definition of an interpreter able to execute the side effects when launching the final program.
+该技术需要一种将作用与解释器的定义结合起来的方法，该解释器能够在启动最终程序时执行副作用。
 
-The second technique, way simpler in TypeScript, is to enclose the computation in a _thunk_:
+第二种技术在TypeScript中更简单，是将计算包在 _thunk_ 中：
 
 ```ts
-// a thunk representing a synchronous side effect
+// 代表同步副作用的 thunk
 type IO<A> = () => A;
 
 const log = (message: string): IO<void> => {
@@ -3038,7 +3038,7 @@ const log = (message: string): IO<void> => {
 };
 ```
 
-The `log` program, once executed, won't cause immediately a side effect, but returns **a value representing the computation** (also known as _action_).
+`log`程序一旦执行，不会立即产生副作用，而是返回**代表计算的值**（也称为 _action_）。
 
 ```ts
 import { IO } from 'fp-ts/IO';
@@ -3048,51 +3048,50 @@ export const log = (message: string): IO<void> => {
 };
 
 export const main = log('hello!');
-// there's nothing in the output at this point
-// because `main` is only an inert value
-// representing the computation
+// 此时输出中没有任何内容
+// 因为`main`只是一个代表计算的惰性值
 
 main();
-// only when launching the program I will see the result
+// 只有启动程序时才会看到结果
 ```
 
-In functional programming there's a tendency to shove side effects (under the form of effects) to the border of the system (the `main` function) where they are executed by an interpreter obtaining the following schema:
+在函数式编程中，倾向于将副作用（以效果的形式）推到执行它们的系统边界（`main`函数），由此可以得到以下方案：
 
 > system = pure core + imperative shell
 
-In _purely functional_ languages (like Haskell, PureScript or Elm) this division is strict and clear and imposed by the very languages.
+在 _纯函数式语言_ （如 Haskell、PureScript或Elm）中，这种划分是严格而清晰的，并且是由语言本身强加的。
 
-Even with this thunk technique (the same technique used in `fp-ts`) we need a way to combine effects, which brings us back to our goal of composing programs in a generic way, let's see how.
+即使使用第二种技术，我们也需要一种方法来组合作用，这使我们回到了以通用方式编写程序的目标，让我们看看如何实现。
 
-We first need a bit of (informal) terminology: we'll call **pure program** a function with the following signature:
+我们首先需要一些（非正式）术语：我们将具有以下签名的函数称为 **纯程序（pure program）**：
 
 ```ts
 (a: A) => B;
 ```
 
-Such a signature models a program that takes an input of type `A` and returns a result of type `B` without any effect.
+这样的签名模拟了一个程序，该程序接受类型`A`的输入并返回类型`B`的结果，但没有任何作用。
 
-**Example**
+**例**：
 
-The `len` program:
+`len` 程序：
 
 ```ts
 const len = (s: string): number => s.length;
 ```
 
-We'll call an **effectful program** a function with the following signature:
+将具有以下签名的函数称为 **有作用的程序（effectful program）**：
 
 ```ts
 (a: A) => F<B>;
 ```
 
-Such a signature models a program that takes an input of type `A` and returns a result of type `B` together with an **effect** `F`, where `F` is some sort of type constructor.
+这样的签名模拟了一个程序，该程序接受类型`A`的输入并返回类型`B`的结果以及 **作用**`F`，其中`F`是某种类型构造函数。
 
-Let's recall that a [type constructor](https://en.wikipedia.org/wiki/Type_constructor) is an `n`-ary type operator that takes as argument one or more types and returns another type. We have seen examples of such constructors as `Option`, `ReadonlyArray`, `Either`.
+让我们回想一下，[类型构造函数](https://en.wikipedia.org/wiki/Type_constructor)是一个`n`元类型运算符，它接受一个或多个类型作为参数并返回另一种类型。我们已经看到了`Option`、`ReadonlyArray`、`Either`等构造函数的示例。
 
-**Example**
+**例**：
 
-The `head` program:
+`head` 程序：
 
 ```ts
 import { Option, some, none } from 'fp-ts/Option';
@@ -3101,39 +3100,38 @@ const head = <A,>(as: ReadonlyArray<A>): Option<A> =>
   as.length === 0 ? none : some(as[0]);
 ```
 
-is a program with an `Option` effect.
+是一个有`Option`作用的程序。
 
-When we talk about effects we are interested in `n`-ary type constructors where `n >= 1`, example given:
+当谈论作用时，我们对`n`元类型构造函数感兴趣，其中“n >= 1”，给出一些例子：
 
-| Type constructor   | Effect (interpretation)                        |
-| ------------------ | ---------------------------------------------- |
-| `ReadonlyArray<A>` | a non deterministic computation                |
-| `Option<A>`        | a computation that may fail                    |
-| `Either<E, A>`     | a computation that may fail                    |
-| `IO<A>`            | a synchronous computation that **never fails** |
-| `Task<A>`          | an asynchronous computation **never fails**    |
-| `Reader<R, A>`     | reading from an environment                    |
+| 类型构造函数         | 作用（解释）          |
+| ------------------ | ------------------- |
+| `ReadonlyArray<A>` | 不确定性计算          |
+| `Option<A>`        | 可能会失败的计算      |
+| `Either<E, A>`     | 可能会失败的计算      |
+| `IO<A>`            | 永远不会失败的同步计算 |
+| `Task<A>`          | 永远不会失败的异步计算 |
+| `Reader<R, A>`     | 从环境中读取         |
 
-where
+其中
 
 ```ts
-// a thunk returning a `Promise`
+// 返回`Promise`的thunk
 type Task<A> = () => Promise<A>;
 ```
 
 ```ts
-// `R` represents an "environment" needed for the computation
-// (we can "read" from it) and `A` is the result
+// `R`代表一个计算所需的环境，我们可以从中读取。`A`是结果
 type Reader<R, A> = (r: R) => A;
 ```
 
-Let's get back to our core problem:
+让我们回到我们的核心问题：
 
-> How do we compose two generic functions `f: (a: A) => B` e `g: (c: C) => D`?
+> 我们如何组合两个泛型函数`f: (a: A) => B`与`g: (c: C) => D`？
 
-With our current set of rules this general problem is not solvable. We need to add some _boundaries_ to `B` and `C`.
+按照我们目前的规则，这个普遍问题是无法解决的。我们需要为`B`和`C`添加一些 _边界_。
 
-We already know that if `B = C` then the solution is the usual function composition.
+我们已经知道，如果`B = C`，那么解决方案就是通常的函数组合。
 
 ```ts
 function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
@@ -3141,36 +3139,36 @@ function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
 }
 ```
 
-But what about other cases?
+但是其他情况呢？
 
-## A boundary that leads to functors
+### 导出函子的约束条件
 
-Let's consider the following boundary: `B = F<C>` for some type constructor `F`, we have the following situation:
+考虑以下约束：对于`B = F<C>`，我们有以下场景，其中`F`是任意类型构造函数：
 
-- `f: (a: A) => F<B>` is an effectful program
-- `g: (b: B) => C` is a pure program
+- `f: (a: A) => F<B>`是一个有作用的程序
+- `g: (b: B) => C`是一个纯程序
 
-In order to compose `f` with `g` we need to find a procedure that allows us to derive a function `g` from a function `(b: B) => C` to a function `(fb: F<B>) => F<C>` in order to use the usual function composition (this way the codomain of `f` would be the same of the new function's domain).
+为了组合`f`与`g`，我们需要找到一个过程，允许将`g`从函数`(b: B) => C`转换为函数`(fb: F<B>) => F<C>`。这样我们才能使用通常的函数组合。（通过这种方式，`f`的到达域将与新函数的定义域相同）。
 
 <img src="images/map.png" width="500" alt="map" />
 
-We have mutated the original problem in a new one: can we find a function, let's call it `map`, that operates this way?
+我们将原来的问题变成了一个新的、不同的问题：我们能否找到一个函数`map`来实现这一点？
 
-Let's see some practical example:
+让我们看一些实际的例子：
 
-**Example** (`F = ReadonlyArray`)
+**例** (`F = ReadonlyArray`)
 
 ```ts
 import { flow, pipe } from 'fp-ts/function';
 
-// transforms functions `B -> C` to functions `ReadonlyArray<B> -> ReadonlyArray<C>`
+// 将函数`B -> C`转换为函数`ReadonlyArray<B> -> ReadonlyArray<C>`
 const map =
   <B, C>(g: (b: B) => C) =>
   (fb: ReadonlyArray<B>): ReadonlyArray<C> =>
     fb.map(g);
 
 // -------------------
-// usage example
+// 用例
 // -------------------
 
 interface User {
@@ -3185,7 +3183,7 @@ const getName = (user: User): string => user.name;
 // getFollowersNames: User -> ReadonlyArray<string>
 const getFollowersNames = flow(getFollowers, map(getName));
 
-// let's use `pipe` instead of `flow`...
+// 用`pipe`代替`flow`
 export const getFollowersNames2 = (user: User) =>
   pipe(user, getFollowers, map(getName));
 
@@ -3201,13 +3199,13 @@ const user: User = {
 console.log(getFollowersNames(user)); // => [ 'Terry R. Emerson', 'Marsha J. Joslyn' ]
 ```
 
-**Example** (`F = Option`)
+**例** (`F = Option`)
 
 ```ts
 import { flow } from 'fp-ts/function';
 import { none, Option, match, some } from 'fp-ts/Option';
 
-// transforms functions `B -> C` to functions `Option<B> -> Option<C>`
+// 将函数从`B -> C`转换为`Option<B> -> Option<C>`
 const map = <B, C>(g: (b: B) => C): ((fb: Option<B>) => Option<C>) =>
   match(
     () => none,
@@ -3218,7 +3216,7 @@ const map = <B, C>(g: (b: B) => C): ((fb: Option<B>) => Option<C>) =>
   );
 
 // -------------------
-// usage example
+// 用例
 // -------------------
 
 import * as RA from 'fp-ts/ReadonlyArray';
@@ -3233,13 +3231,13 @@ console.log(getDoubleHead([1, 2, 3])); // => some(2)
 console.log(getDoubleHead([])); // => none
 ```
 
-**Example** (`F = IO`)
+**例** (`F = IO`)
 
 ```ts
 import { flow } from 'fp-ts/function';
 import { IO } from 'fp-ts/IO';
 
-// transforms functions `B -> C` to functions `IO<B> -> IO<C>`
+// 将函数从`B -> C`转换为`IO<B> -> IO<C>`
 const map =
   <B, C>(g: (b: B) => C) =>
   (fb: IO<B>): IO<C> =>
@@ -3249,7 +3247,7 @@ const map =
   };
 
 // -------------------
-// usage example
+// 用例
 // -------------------
 
 interface User {
@@ -3276,13 +3274,13 @@ const getUserName = flow(getUser, map(getName));
 console.log(getUserName(1)()); // => Ruth R. Gonzalez
 ```
 
-**Example** (`F = Task`)
+**例** (`F = Task`)
 
 ```ts
 import { flow } from 'fp-ts/function';
 import { Task } from 'fp-ts/Task';
 
-// transforms functions `B -> C` into functions `Task<B> -> Task<C>`
+// 将函数从`B -> C`转换为`Task<B> -> Task<C>`
 const map =
   <B, C>(g: (b: B) => C) =>
   (fb: Task<B>): Task<C> =>
@@ -3292,7 +3290,7 @@ const map =
   };
 
 // -------------------
-// usage example
+// 用例
 // -------------------
 
 interface User {
@@ -3319,13 +3317,13 @@ const getUserName = flow(getUser, map(getName));
 getUserName(1)().then(console.log); // => Ruth R. Gonzalez
 ```
 
-**Example** (`F = Reader`)
+**例** (`F = Reader`)
 
 ```ts
 import { flow } from 'fp-ts/function';
 import { Reader } from 'fp-ts/Reader';
 
-// transforms functions `B -> C` into functions `Reader<R, B> -> Reader<R, C>`
+// 将函数从`B -> C`转换为`Reader<R, B> -> Reader<R, C>`
 const map =
   <B, C>(g: (b: B) => C) =>
   <R,>(fb: Reader<R, B>): Reader<R, C> =>
@@ -3335,7 +3333,7 @@ const map =
   };
 
 // -------------------
-// usage example
+// 用例
 // -------------------
 
 interface User {
@@ -3368,46 +3366,45 @@ console.log(
 ); // => Ruth R. Gonzalez
 ```
 
-More generally, when a type constructor `F` admits a `map` function, we say it admits a **functor instance**.
+更一般地，当类型构造函数`F`承认`map`函数时，我们说它承认**函子实例**。
 
-From a mathematical point of view, functors are **maps between categories** that preserve the structure of the category, meaning they preserve the identity morphisms and the composition operation.
+从数学的角度来看，函子是**范畴之间的映射**，它保留了范畴的结构，这意味着它们保留了单位态射和组合运算。
 
-Since categories are pairs of objects and morphisms, a functor too is a pair of two things:
+因为范畴由对象与态射组成，因此函子也类似地由以下两者组成：
 
-- a **map between objects** that binds every object `X` in _C_ to an object in _D_.
-- a **map between morphisms** that binds every morphism `f` in _C_ to a morphism `map(f)` in _D_.
+- 将`C`中的每个`X`对象与`D`中的`F<X>`对象关联起来的**对象间的映射**
+- 将`C`中每个态射`f`与`D`中的态射`map(f)`关联起来的**态射间的映射**
 
-where _C_ e _D_ are two categories (aka two programming languages).
+其中，_C_ 和 _D_ 是两个范畴（也称为两种编程语言）
 
 <img src="images/functor.png" width="500" alt="functor" />
 
-Even though a map between two different programming languages is a fascinating idea, we're more interested in a map where _C_ and _D_ are the same (the _TS_ category). In that case we're talking about **endofunctors** (from the greek "endo" meaning "inside", "internal").
+虽然两种编程语言之间的映射是一个有趣的想法，但我们更感兴趣的是 _C_ 和 _D_ 重合的映射（ _TS_ 范畴）。在这种情况下，我们谈论的是 **endofunctors** （来自希腊语“endo”，意思是“内部”）。
 
-From now on, unless specified differently, when we write "functor" we mean an endofunctor in the _TS_ category.
+从现在开始，当提到函子时，除非另有说明，否则一律指 _TS_ 范畴中的 endofunctor。
+
+我们知道了函子的应用方面，让我们看看它的正式的定义。
+现在我们知道函子的实际方面让我们感兴趣，让我们看看它们的正式定义。
 
 Now we know the practical side of functors, let's see the formal definition.
 
-## Definition
+### 函子的定义
 
-A functor is a pair `(F, map)` where:
+函子是一组`(F, map)`，其中：
 
-- `F` is an `n`-ary (`n >= 1`) type constructor mapping every type `X` in a type `F<X>` (**map between objects**)
-- `map` is a function with the following signature:
+- `F`是一个`n`元 (n >= 1) 类型构造函数，它将任何类型`X`映射到类型`F<X>`（**对象间的映射**）
+- `map`是具有以下签名的函数，它将每个函数`f: (a: A) => B`映射到函数`map(f): (fa: F<A>) => F<B>`（**态射间的映射**）
 
 ```ts
-map: <A, B>(f: (a: A) => B) =>
-  (fa: F<A>) =>
-    F<B>;
+map: <A, B>(f: (a: A) => B) => (fa: F<A>) => F<B>;
 ```
 
-that maps every function `f: (a: A) => B` in a function `map(f): (fa: F<A>) => F<B>` (**map between morphism**)
+它遵循以下定律：
 
-The following properties have to hold true:
+- `map(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**单位态射映射到单位态射**)
+- `map(g ∘ f) = map(g) ∘ map(f)` (**组合的映射是映射的组合**)
 
-- `map(1`<sub>X</sub>`)` = `1`<sub>F(X)</sub> (**identities go to identities**)
-- `map(g ∘ f) = map(g) ∘ map(f)` (**the image of a composition is the composition of its images**)
-
-The second law allows to refactor and optimize the following computation:
+依据第二条定律，我们可以重构和优化以下计算：
 
 ```ts
 import { flow, increment, pipe } from 'fp-ts/function';
@@ -3415,22 +3412,22 @@ import { map } from 'fp-ts/ReadonlyArray';
 
 const double = (n: number): number => n * 2;
 
-// iterates array twice
+// 对数组进行了两次迭代
 console.log(pipe([1, 2, 3], map(double), map(increment))); // => [ 3, 5, 7 ]
 
-// single iteration
+// 只有一次迭代
 console.log(pipe([1, 2, 3], map(flow(double, increment)))); // => [ 3, 5, 7 ]
 ```
 
-## Functors and functional error handling
+### 函子与函数式风格的错误处理
 
-Functors have a positive impact on functional error handling, let's see a practical example:
+函子对函数式风格的错误处理有积极的影响，让我们看一个实际的例子：
 
 ```ts
 declare const doSomethingWithIndex: (index: number) => string;
 
 export const program = (ns: ReadonlyArray<number>): string => {
-  // -1 indicates that no element has been found
+  // -1表示没有找到元素
   const i = ns.findIndex((n) => n > 0);
   if (i !== -1) {
     return doSomethingWithIndex(i);
@@ -3439,9 +3436,9 @@ export const program = (ns: ReadonlyArray<number>): string => {
 };
 ```
 
-Using the native `findIndex` API we are forced to use an `if` branch to test whether we have a result different than `-1`. If we forget to do so, the value `-1` could be unintentionally passed as input to `doSomethingWithIndex`.
+使用原生的`findIndex`，我们被迫使用`if`分支来测试结果是否与`-1`不同。如果我们忘记这样做，`-1`可能会无意中作为输入传递给`doSomethingWithIndex`。
 
-Let's see how easier it is to obtain the same behavior using `Option` and its functor instance:
+相反，让我们看看如何使用`Option`及其函子实例更轻松地获得类似的结果：
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -3458,19 +3455,19 @@ export const program = (ns: ReadonlyArray<number>): Option<string> =>
   );
 ```
 
-Practically, using `Option`, we're always in front of the `happy path`, error handing happens behind the scenes thanks to `map`.
+在实践中，使用`Option`，我们的面前总是一条康庄大道。这都要得益于`map`，让错误处理发生在幕后。
 
 **Demo** (optional)
 
 [`04_functor.ts`](src/04_functor.ts)
 
-**Quiz**. `Task<A>` represents an asynchronous call that always succeed, how can we model a computation that can fail instead?
+**测验**：`Task<A>`表示不会失败的异步计算，我们如何建模可能失败的异步计算？
 
-## Functors compose
+### 函子组合
 
-Functors compose, meaning that given two functors `F` and `G` then the composition `F<G<A>>` is still a functor and the `map` of this composition is the composition of the `map`s.
+函子组合，意味着给定两个函子`F`和`G`，则组合`F<G<A>>`仍然是一个函子，并且该组合的`map`是`map`的组合。
 
-**Example** (`F = Task`, `G = Option`)
+**例** (`F = Task`, `G = Option`)
 
 ```ts
 import { flow } from 'fp-ts/function';
@@ -3484,7 +3481,7 @@ export const map: <A, B>(
 ) => (fa: TaskOption<A>) => TaskOption<B> = flow(O.map, T.map);
 
 // -------------------
-// usage example
+// 用例
 // -------------------
 
 interface User {
@@ -3512,17 +3509,17 @@ getUserName(1)().then(console.log); // => some('Ruth R. Gonzalez')
 getUserName(4)().then(console.log); // => none
 ```
 
-## Contravariant Functors
+### 逆变函子（Contravariant Functor）
 
-In the previous section we haven't been completely thorough with our definitions. What we have seen in the previous section and called "functors" should be more properly called **covariant functors**.
+在继续之前，我想展示一下我们在上一节中看到的函子概念的一个变体：**逆变函子**。
 
-In this section we'll see another variant of the functor concept, **contravariant** functors.
+实际上，上一节中提到的函子的更准确的名称是**协变函子（covariant functor）**。
 
-The definition of a contravariant functor is pretty much the same of the covariant one, except for the signature of its fundamental operation, which is called `contramap` rather than `map`.
+逆变函子的定义与协变函子的定义几乎相同，只是其基本操作的签名不同（称为`contramap`而不是`map`）。
 
 <img src="images/contramap.png" width="300" alt="contramap" />
 
-**Example**
+**例**：
 
 ```ts
 import { map } from 'fp-ts/Option';
@@ -3535,11 +3532,9 @@ type User = {
 
 const getId = (_: User): number => _.id;
 
-// the way `map` operates...
 // const getIdOption: (fa: Option<User>) => Option<number>
 const getIdOption = map(getId);
 
-// the way `contramap` operates...
 // const getIdEq: (fa: Eq<number>) => Eq<User>
 const getIdEq = contramap(getId);
 
@@ -3549,7 +3544,7 @@ const EqID = getIdEq(N.Eq);
 
 /*
 
-In the `Eq` chapter we saw:
+在`Eq`一章，我们看到过：
 
 const EqID: Eq<User> = pipe(
   N.Eq,
@@ -3558,11 +3553,11 @@ const EqID: Eq<User> = pipe(
 */
 ```
 
-## Functors in `fp-ts`
+### `fp-ts`中的函子
 
-How do we define a functor instance in `fp-ts`? Let's see some example.
+我们如何在`fp-ts`中定义函子实例？让我们看一些例子。
 
-The following interface represents the model of some result we get by calling some HTTP API:
+下面的接口建模了通过调用HTTP API得到的一些结果：
 
 ```ts
 interface Response<A> {
@@ -3573,9 +3568,9 @@ interface Response<A> {
 }
 ```
 
-Please note that since `body` is parametric, this makes `Response` a good candidate to find a functor instance given that `Response` is a an `n`-ary type constructor with `n >= 1` (a necessary condition).
+请注意，由于`body`是参数化的，这使得`Response`成为查找函子实例的良好选择，因为`Response`是一个`n`元类型构造函数，且`n >= 1`（必要条件） 。
 
-To define a functor instance for `Response` we need to define a `map` function along some [technical details](https://gcanti.github.io/fp-ts/recipes/HKT.html) required by `fp-ts`.
+要为`Response`定义函子实例，我们需要定义`map`函数以及`fp-ts`所需的一些[技术细节](https://gcanti.github.io/fp-ts/#higher-kinded-types)。
 
 ```ts
 // `Response.ts` module
@@ -3603,24 +3598,24 @@ export const map =
     body: f(fa.body),
   });
 
-// functor instance for `Response<A>`
+// `Response<A>`的函子实例
 export const Functor: Functor1<'Response'> = {
   URI: 'Response',
   map: (fa, f) => pipe(fa, map(f)),
 };
 ```
 
-## Do functors solve the general problem?
+### 函子解决了核心问题吗
 
-Not yet. Functors allow us to compose an effectful program `f` with a pure program `g`, but `g` has to be a **unary** function, accepting one single argument. What happens if `g` takes two or more arguments?
+还没有。函子允许我们用纯程序`g`组成一个有作用的程序`f`，但`g`必须是一个**一元（unary）**函数，接受一个参数。如果`g`接受两个或多个参数该怎么办？
 
-| Program f | Program g               | Composition  |
-| --------- | ----------------------- | ------------ |
-| pure      | pure                    | `g ∘ f`      |
-| effectful | pure (unary)            | `map(g) ∘ f` |
-| effectful | pure (`n`-ary, `n > 1`) | ?            |
+| Program f | Program g          | 组合         |
+| --------- | ------------------ | ------------ |
+| pure      | pure               | `g ∘ f`      |
+| effectful | pure (一元)         | `map(g) ∘ f` |
+| effectful | pure (n元, `n > 1`) | ?            |
 
-To manage this circumstance we need something _more_, in the next chapter we'll see another important abstraction in functional programming: **applicative functors**.
+为了能够处理这种情况，我们需要更多的工具，在下一章中我们将看到函数式编程的另一个重要抽象：**应用函子（applicative functor）**。
 
 # Applicative functors
 
