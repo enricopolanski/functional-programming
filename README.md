@@ -1,3 +1,5 @@
+<!-- markdownlint-disable-file MD033 -->
+
 # functional-programming
 
 这个repo借用TypeScript与fp-ts生态中的库介绍了函数式编程的概念。
@@ -108,9 +110,9 @@ const ys: Array<number> = xs.map(double);
 
 想想看当审查涉及循环的代码时，`map`会比`for`容易多少。
 
-## 函数式编程的两大支柱
+## 函数式编程的两大基石
 
-函数式编程基于一下的两个支柱
+函数式编程基于以下的两个支柱
 
 - 引用透明(参照透明)
 - 组合(作为通用设计模式)
@@ -2769,29 +2771,29 @@ readFile('./myfile', (e) =>
 );
 ```
 
-# Category theory
+## 范畴论(Category theory)
 
-We have seen how a founding pillar of functional programming is **composition**.
+我们已经看到，函数式编程的基石是**组合**。
 
-> And how do we solve problems? We decompose bigger problems into smaller problems. If the smaller problems are still too big, we decompose them further, and so on. Finally, we write code that solves all the small problems. And then comes the essence of programming: we compose those pieces of code to create solutions to larger problems. Decomposition wouldn't make sense if we weren't able to put the pieces back together. - Bartosz Milewski
+> 我们如何解决问题？我们将更大的问题分解为更小的问题。如果较小的问题仍然太大，我们会进一步分解它们，依此类推。最后，我们编写解决所有小问题的代码。然后是编程的本质：我们编写这些代码片段来创建更大问题的解决方案。如果我们无法将碎片重新组合在一起，那么分解就没有意义。- Bartosz Milewski
 
-But what does it means exactly? How can we state whether two things _compose_? And how can we say if two things compose _well_?
+但这到底意味着什么？我们如何判断两个事物是否可以 _组合_？我们怎么判断两个事物是否组合得 _很好_ 呢？
 
-> Entities are composable if we can easily and generally combine their behaviours in some way without having to modify the entities being combined. I think of composability as being the key ingredient necessary for achieving reuse, and for achieving a combinatorial expansion of what is succinctly expressible in a programming model. - Paul Chiusano
+> 如果我们可以轻松且普遍地以某种方式组合实体的行为，而无需修改所组合的实体，则实体是可组合的。我认为可组合性是实现重用以及实现编程模型中可简洁表达的组合扩展所必需的关键要素。- Paul Chiusano
 
-We've briefly mentioned how a program written in functional styles tends to resemble a pipeline:
+在第一章中我们了解到，函数式程序往往被编写为管道：
 
 ```ts
 const program = pipe(
   input,
-  f1, // pure function
-  f2, // pure function
-  f3, // pure function
+  f1, // 纯函数
+  f2, // 纯函数
+  f3, // 纯函数
   ...
 )
 ```
 
-But how simple it is to code in such a style? Let's try:
+但要坚持这种风格谈何容易呢？这真的可行吗？咱们试试吧：
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -2800,36 +2802,30 @@ import * as RA from 'fp-ts/ReadonlyArray';
 const double = (n: number): number => n * 2;
 
 /**
- * Given a ReadonlyArray<number> the program doubles the first element and returns it
+ * 给定一个ReadonlyArray<number>，把它的第一个元素*2然后返回
  */
 const program = (input: ReadonlyArray<number>): number =>
   pipe(
     input,
-    RA.head, // compilation error! Type 'Option<number>' is not assignable to type 'number'
+    RA.head, // 编译错误！`Option<number>`不可分配给类型`number`
     double,
   );
 ```
 
-Why do I get a compilation error? Because `head` and `double` do not compose.
+为什么会编译报错？因为`head`和`double`不能组合。
 
 ```ts
 head: (as: ReadonlyArray<number>) => Option<number>;
 double: (n: number) => number;
 ```
 
-`head`'s codomain is not included in `double`'s domain.
+`head`的到达域与`double`的定义域不一致。
 
-Looks like our goal to program using pure functions is over..Or is it?
+那该怎么办呢？放弃？
 
-We need to be able to refer to some **rigorous theory**, one able to answer such fundamental questions.
+应该参考一个**严谨的理论**来回答这些基本问题。我们需要对组合概念进行**正式定义**。
 
-We need to refer to a **formal definition** of composability.
-
-Luckily, for the last 70 years ago, a large number of researchers, members of the oldest and largest humanity's open source project (mathematics) occupied itself with developing a theory dedicated to composability: **category theory**, a branch of mathematics founded by Saunders Mac Lane along Samuel Eilenberg (1945).
-
-> Categories capture the essence of composition.
-
-Saunders Mac Lane
+幸运的是，70 多年来，属于人类历史上运行时间最长、规模最庞大的开源项目（数学）的一大批学者一直致力于开发一种针对可组合性的理论：**范畴论**，这是数学的一个分支，由Saunders Mac Lane与Samuel Eilenberg一起创立(1945)。
 
 <center>
 <img src="images/maclane.jpg" width="300" alt="Saunders Mac Lane" />
@@ -2842,72 +2838,72 @@ Saunders Mac Lane
 
 </center>
 
-We'll see in the following chapters how a category can form the basis for:
+我们将在接下来的章节看到，范畴如何构成了以下内容的基础：
 
-- a model for a generic **programming language**
-- a model for the concept of **composition**
+- 通用**编程语言**的模型
+- **组合**概念的模型
 
-## Definition
+### 范畴的定义
 
-The definition of a category, even though it isn't really complex, is a bit long, thus I'll split it in two parts:
+范畴的定义虽然并不复杂，但有点长，因此我将其分为两部分：
 
-- the first is merely technical (we need to define its constituents)
-- the second one will be more relevant to what we care for: a notion of composition
+- 第一个仅仅是技术性的（我们需要定义其组成部分）
+- 第二部分包含我们更感兴趣的内容：组合的概念
 
-### Part I (Constituents)
+#### 第一部分（组成）
 
-A category is a pair of `(Objects, Morphisms)` where:
+一个范畴包含两类数学对象，`对象（Objects）`与`态射（Morphisms）`，其中：
 
-- `Objects` is a collection of **objects**
-- `Morphisms` is a collection of **morphisms** (also called "arrows") between objects
+- `对象（Objects）`是对象（object）的集合
+- `态射（Morphisms）`是对象（object）间的态射（morphisms）（也称箭头）的集合
 
-**Note**. The term "object" has nothing to do with the concept of "objects" in programming. Just think about those "objects" as black boxes we can't inspect, or simple placeholders useful to define the various morphisms.
+<img src="images/objects-morphisms.png" width="300" alt="Objects and Morphisms" />
 
-Every morphism `f` owns a source object `A` and a target object `B`.
+**注**：“对象”一词与OOP无关。可以将对象视为无法检查的黑匣子，或者定义态射的简单占位符。
 
-In every morphism, both `A` and `B` are members of `Objects`. We write `f: A ⟼ B` and we say that "f is a morphism from A to B".
+每个态射`f`都有一个源对象`A`和一个目标对象`B`，其中`A`和`B`都包含在`Objects`中。`f: A ⟼ B`读作“`f`是从`A`到`B`的态射”.
 
 <img src="images/morphism.png" width="300" alt="A morphism" />
 
-**Note**. For simplicity, from now on, I'll use labels only for objects, skipping the circles.
+**注**：为了简单起见，之后的图中仅使用标签表示对象，省略圆圈。
 
-### Part II (Composition)
+#### 第二部分（组合）
 
-There is an operation, `∘`, called "composition", such as the following properties hold true:
+存在一个称为“组合”的运算`∘`，它具有以下性质：
 
-- (**composition of morphisms**) every time we have two morphisms `f: A ⟼ B` and `g: B ⟼ C` in `Morphisms` then there has to be a third morphism `g ∘ f: A ⟼ C` in `Morphisms` which is the _composition_ of `f` and `g`
+- （**态射的组合**）只要`f: A ⟼ B`和`g: B ⟼ C`是`Morphisms`中的两个态射，则`Morphisms`中必定存在第三个态射`g ∘ f: A ⟼ C`，称为`f`与`g`的 _组合_。
 
 <img src="images/composition.png" width="300" alt="composition" />
 
-- (**associativity**) if `f: A ⟼ B`, `g: B ⟼ C` and `h: C ⟼ D` then `h ∘ (g ∘ f) = (h ∘ g) ∘ f`
+- （**结合律**）如果有`f: A ⟼ B`、`g: B ⟼ C`，`h: C ⟼ D`，则 `h ∘ (g ∘ f) = (h ∘ g) ∘ f`
 
 <img src="images/associativity.png" width="500" alt="associativity" />
 
-- (**identity**) for every object `X`, there is a morphism `identity: X ⟼ X` called _identity morphism_ of `X`, such as for every morphism `f: A ⟼ X` and `g: X ⟼ B`, the following equation holds true `identity ∘ f = f` and `g ∘ identity = g`.
+- (**单位元**) 对于每个对象`X`，都有一个态射`identity: X ⟼ X`称为`X`的 _单位态射_，使得对每个态射`f: A ⟼ X`，都会有`identity ∘ f = f = f ∘ identity`。
 
 <img src="images/identity.png" width="300" alt="identity" />
 
-**Example**
+**Example**：
 
 <img src="images/category.png" width="300" alt="a simple category" />
 
-This category is very simple, there are three objects and six morphisms (1<sub>A</sub>, 1<sub>B</sub>, 1<sub>C</sub> are the identity morphisms for `A`, `B`, `C`).
+这个范畴很简单，只有三个对象和六个态射（idA、idB、idC是A、B、C的单位态射）。
 
-## Modeling programming languages with categories
+### 用范畴建模编程语言
 
-A category can be seen as a simplified model for a **typed programming language**, where:
+返程可以被视为**类型化编程语言**的简化模型，其中：
 
-- objects are **types**
-- morphisms are **functions**
-- `∘` is the usual **function composition**
+- 对象(object)是**类型**
+- 态射(morphism)是**函数**
+- `∘`是一般的**函数组合**
 
-The following diagram:
+如下图：
 
 <img src="images/category.png" width="300" alt="a simple programming language" />
 
-can be seen as an imaginary (and simple) programming language with just three types and six functions
+可以被视为一种虚构的（且简单的）编程语言，只有三种类型和六个函数
 
-Example given:
+如:
 
 - `A = string`
 - `B = number`
@@ -2916,7 +2912,7 @@ Example given:
 - `g = number => boolean`
 - `g ∘ f = string => boolean`
 
-The implementation could be something like:
+实现可能类似于：
 
 ```ts
 const idA = (s: string): string => s;
@@ -2933,20 +2929,20 @@ const g = (n: number): boolean => n > 2;
 const gf = (s: string): boolean => g(f(s));
 ```
 
-## A category for TypeScript
+### 一个TypeScript的范畴
 
-We can define a category, let's call it _TS_, as a simplified model of the TypeScript language, where:
+我们可以定义一个范畴，称之为 _TS_，作为 TypeScript 语言的简化模型，其中：
 
-- **objects** are all the possible TypeScript types: `string`, `number`, `ReadonlyArray<string>`, etc...
-- **morphisms** are all TypeScript functions: `(a: A) => B`, `(b: B) => C`, ... where `A`, `B`, `C`, ... are TypeScript types
-- the **identity morphisms** are all encoded in a single polymorphic function `const identity = <A>(a: A): A => a`
-- **morphism's composition** is the usual function composition (which we know to be associative)
+- **对象**是所有可能的TypeScript类型：`string`、`number`、`ReadonlyArray<string>` 等...
+- **态射**是所有的TypeScript函数：`(a: A) => B`、`(b: B) => C`、...其中 `A`、`B`、`C`、. .. 是TypeScript类型
+- **单位态射**全部编码在单个多态函数`const Identity = <A>(a: A): A => a` 中
+- **态射的组合**是通常的函数组合（我们知道它是满足结合律的）
 
-As a model of TypeScript, the _TS_ category may seem a bit limited: no loops, no `if`s, there's _almost_ nothing... that being said that simplified model is rich enough to help us reach our goal: to reason about a well-defined notion of composition.
+作为TypeScript的模型，_TS_ 范畴可能看起来有点局限：没有循环，没有`if`，几乎什么都没有。话虽这么说，简化的模型足够丰富，可以帮助我们实现我们的目标：推理明确定义的组合概念。
 
-## Composition's core problem
+### 函数组合的核心问题
 
-In the _TS_ category we can compose two generic functions `f: (a: A) => B` and `g: (c: C) => D` as long as `C = B`
+在 _TS_ 范畴中，只要`C = B`，我们就可以组合两个泛型函数`f: (a: A) => B`和`g: (c: C) => D`。
 
 ```ts
 function flow<A, B, C>(f: (a: A) => B, g: (b: B) => C): (a: A) => C {
@@ -2958,20 +2954,20 @@ function pipe<A, B, C>(a: A, f: (a: A) => B, g: (b: B) => C): C {
 }
 ```
 
-But what happens if `B != C`? How can we compose two such functions? Should we give up?
+但是如果`B != C`会发生什么？我们如何组合两个这样的函数？
 
-In the next section we'll see under which conditions such a composition is possible.
+在接下来的章节中，我们将了解在什么条件下可以进行这种组合。
 
-**Spoiler**
+**剧透**：
 
-- to compose `f: (a: A) => B` with `g: (b: B) => C` we use our usual function composition
-- to compose `f: (a: A) => F<B>` with `g: (b: B) => C` we need a **functor** instance for `F`
-- to compose `f: (a: A) => F<B>` with `g: (b: B, c: C) => D` we need an **applicative functor** instance for `F`
-- to compose `f: (a: A) => F<B>` with `g: (b: B) => F<C>` we need a **monad** instance for `F`
+- 要组合`f: (a: A) => B`与`g: (b: B) => C`，我们使用常用的函数组合。
+- 要组合`f: (a: A) => F<B>`与`g: (b: B) => C`，我们需要`F`的**函子（functor）**实例。
+- 要组合`f: (a: A) => F<B>` with `g: (b: B, c: C) => D`，我们需要`F`的**可应用的函子（applicative functor）**实例。
+- 要组合`f: (a: A) => F<B>`与`g: (b: B) => F<C>`，我们需要`F`的**单子（monad）**实例。
 
 <img src="images/spoiler.png" width="900" alt="The four composition recipes" />
 
-The problem we started with at the beginning of this chapter corresponds to the second situation, where `F` is the `Option` type:
+在本章开头提出的问题对应于第二种情况，其中`F`是`Option`类型：
 
 ```ts
 // A = ReadonlyArray<number>, B = number, F = Option
@@ -2979,7 +2975,7 @@ head: (as: ReadonlyArray<number>) => Option<number>;
 double: (n: number) => number;
 ```
 
-To solve it, the next chapter will talk about functors.
+为了解决这个问题，下一章我们将讨论函子。
 
 # Functors
 
