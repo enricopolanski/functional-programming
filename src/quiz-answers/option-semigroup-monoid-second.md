@@ -1,6 +1,8 @@
-## Question
+# option-semigroup-monoid-second
 
-It is possible to define a monoid instance for `Option<A>` that behaves like that:
+## 问题
+
+可以为`Option<A>`定义一个幺半群实例，其行为如下：
 
 | x        | y        | concat(x, y)           |
 | -------- | -------- | ---------------------- |
@@ -10,17 +12,18 @@ It is possible to define a monoid instance for `Option<A>` that behaves like tha
 | some(a1) | some(a2) | some(S.concat(a1, a2)) |
 
 ```ts
-// the implementation is left as an exercise for the reader
+// 实现留给读者作为练习
 declare const getMonoid: <A>(S: Semigroup<A>) => Monoid<Option<A>>
 ```
 
-What is the `empty` member for the monoid?
+幺半群的`empty`是什么？
 
-## Answer
+## 答案
 
-`none` is the empty member for our monoid because with it, all the Monoid laws are true. Let's check the monoid laws on our new monoid:
+幺半群的`empty`应该是`none`，因为它遵循所有幺半群定律。让我们检查一下：
 
-**associative**
+**交换律**：
+
 ```ts
 concat(none, concat(none, concat(none))) === concat(concat(none, none), none)
 concat(none, concat(none, concat(some(z)))) === concat(concat(none, none), some(z))
@@ -31,12 +34,14 @@ concat(some(x), concat(none, concat(none))) === concat(concat(some(x), none), no
 concat(some(x), concat(some(y), concat(some(z)))) === concat(concat(some(x), some(y)), some(z))
 ```
 
-**right identity**
+**右单位元**：
+
 ```ts
 concat(some(x), none) === some(x)
 ```
 
-**left identity**
+**左单位元**：
+
 ```ts
 concat(none, some(x)) === some(x)
 ```

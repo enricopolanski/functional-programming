@@ -1,4 +1,6 @@
-## Question
+# pattern-matching
+
+## 问题
 
 ```ts
 interface Nil {
@@ -31,10 +33,10 @@ export const head = match(
 )
 ```
 
-Why's the `head` API sub optimal?
+为什么`head` API 不是最优的？
 
-## Answer
+## 答案
 
-The issue with `head` here is, its codomain (return type) can be either the type of List element `A` (in `List<A>`) or `undefined`. Working with this return type can be challenging and increase the possibility of introducing bugs. If we can always return the same type, then we don't need to write 2 separate pieces of code to handle two different possible return types from head function.
- 
-In fact, we always implement a `match` function to return the same type (unlike in this example). You will learn how to have `A` (in `List<A>`) and `undefined` modeled under the one type later in this tutorial.
+这里`head`的问题是，它的到达域（返回类型）可以是列表元素`A`的类型（在`List<A>`中）或`undefined`。使用这种返回类型可能具有挑战性，并且增加了引入错误的可能性。如果我们总是可以返回相同的类型，那么我们不需要编写2段单独的代码来处理`head`函数中两种可能的不同返回类型。
+
+事实上，我们总是实现返回相同的类型的`match`函数（与本例不同）。在接下来的教程中，你将看到如何在一种类型下建模`A`（在`List<A>`中）和`undefined`。

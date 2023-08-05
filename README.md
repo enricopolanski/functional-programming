@@ -582,7 +582,7 @@ pipe(reverse(S.Semigroup).concat('a', 'b'), console.log); // => 'ba'
 
 > [答案](src/quiz-answers/semigroup-commutative.md)
 
-## 乘积半群(Semigroup product)
+### 乘积半群(Semigroup product)
 
 让我们试着为更复杂的类型定义一个半群实例：
 
@@ -1857,32 +1857,32 @@ f': X ⟶ Option(Y)
 
 ## 代数数据类型(Algebraic Data Types)
 
-A good first step when writing an application or feature is to define it's domain model. TypeScript offers many tools that help accomplishing this task. **Algebraic Data Types** (in short, ADTs) are one of these tools.
+构建新应用程序的第一步是定义其领域模型(domain model)。TypeScript提供了许多工具来完成这件事。**代数数据类型**是其中之一。
 
 <!--
-  What are the other tools?
+  还有什么其他的工具？
 -->
 
-## What is an ADT?
+### 什么是ADT？
 
-> In computer programming, especially functional programming and type theory, an algebraic data type is a kind of composite type, i.e., **a type formed by combining other types**.
+> 在计算机编程中，尤其是函数式编程和类型论中，代数数据类型是一种复合类型，即**由其他类型组合而成的类型**。
 
-Two common families of algebraic data types are:
+两个常见的代数数据类型系列是：
 
-- **product types**
-- **sum types**
+- **积类型(product type)**
+- **和类型(sum product)**
 
 <center>
 <img src="images/adt.png" width="400" alt="ADT" />
 </center>
 
-Let's begin with the more familiar ones: product types.
+让我们从更熟悉的那个开始：积类型。
 
-## Product types
+### 积类型(Product types)
 
-A product type is a collection of types T<sub>i</sub> indexed by a set `I`.
+积类型是由集合`I`索引的类型 T<sub>i</sub> 的集合。
 
-Two members of this family are `n`-tuples, where `I` is an interval of natural numbers:
+该系列的两个成员分别是n元组，其中`I`是自然数：
 
 ```ts
 type Tuple1 = [string]; // I = [0]
@@ -1894,7 +1894,7 @@ type Fst = Tuple2[0]; // string
 type Snd = Tuple2[1]; // number
 ```
 
-and structs, where `I` is a set of labels:
+和结构体(struct)，其中`I`是一组标签(label)：
 
 ```ts
 // I = {"name", "age"}
@@ -1903,40 +1903,42 @@ interface Person {
   age: number;
 }
 
-// Accessing by label
+// 使用label访问
 type Name = Person['name']; // string
 type Age = Person['age']; // number
 ```
 
-Product types can be **polimorphic**.
+积类型可以是 **多态的(polimorphic)**。
 
-**Example**
+**例**：
 
 ```ts
-//                ↓ type parameter
+//                ↓ 类型参数
 type HttpResponse<A> = {
   readonly code: number;
   readonly body: A;
 };
 ```
 
-### Why "product" types?
+#### 为什么叫积类型？
 
-If we label with `C(A)` the number of elements of type `A` (also called in mathematics, **cardinality**), then the following equation hold true:
+如果我们用`C(A)`标记`A`类型的元素数量（在数学中也称为**基数(cardinality)**），则以下等式成立：
 
 ```ts
 C([A, B]) = C(A) * C(B);
 ```
 
-> the cardinality of a product is the product of the cardinalities
+> 乘积的基数是基数的乘积。
 
-**Example**
+**例**：
 
-The `null` type has cardinality `1` because it has only one member: `null`.
+`null` 类型的基数为1，因为它只有一个成员：`null`。
 
-**Quiz**: What is the cardinality of the `boolean` type.
+**例**：
 
-**Example**
+`boolean`类型的基数为2是多少，因为它有两个成员：`true`和`false`。
+
+**例**：
 
 ```ts
 type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
@@ -1944,58 +1946,51 @@ type Period = 'AM' | 'PM';
 type Clock = [Hour, Period];
 ```
 
-Type `Hour` has 12 members.
-Type `Period` has 2 members.
-Thus type `Clock` has `12 * 2 = 24` elements.
+`Hour`有12个成员。`Period`有2个成员。所以`Clock`有`12 * 2 = 24`元素。
 
-**Quiz**: What is the cardinality of the following `Clock` type?
+**测验**：`Clock`的基数是多少？
 
 ```ts
-// same as before
+// 与之前相同
 type Hour = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
-// same as before
+// 与之前相同
 type Period = 'AM' | 'PM';
 
-// different encoding, no longer a Tuple
+// 不再是元组
 type Clock = {
   readonly hour: Hour;
   readonly period: Period;
 };
 ```
 
-### When can I use a product type?
+#### 什么时候可以使用积类型
 
-Each time it's components are **independent**.
+每当它的 _组件_ 是 **相互独立** 的时候。
 
 ```ts
 type Clock = [Hour, Period];
 ```
 
-Here `Hour` and `Period` are independent: the value of `Hour` does not change the value of `Period`. Every legal pair of `[Hour, Period]` makes "sense" and is legal.
+这里`Hour`和`Period`是独立的，即`Hour`的值不影响`Period`的值，反之亦然。每对`[Hour, period]`都是合法且有意义的。
 
-## Sum types
+### 和类型(Sum types)
 
-A sum type is a a data type that can hold a value of different (but limited) types. Only one of these types can be used in a single instance and there is generally a "tag" value differentiating those types.
+和类型是一种数据结构，其中可以保存不同（但固定）类型的值。在单个实例中只能使用其中一种类型，并且通常有一个“标记值”来区分这些类型。
 
-In TypeScript's official docs they are called [discriminated union](https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html).
+在TypeScript'的官方文档中它们被称作[可辨识联合(discriminated union)](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions).
 
-It is important to note that the members of the union have to be **disjoint**, there can't be values that belong to more than one member.
+需要注意的是，联合的成员必须**不相交(disjoint)**，不能有属于多个成员的值。
+**注**：可辨识联合(discriminated union)，联合类型(union type)，不相交并集(disjoint union)在本节中是同义的。
 
-**Example**
-
-The type:
+**例**：
 
 ```ts
 type StringsOrNumbers = ReadonlyArray<string> | ReadonlyArray<number>;
-
-declare const sn: StringsOrNumbers;
-
-sn.map(); // error: This expression is not callable.
 ```
 
-is not a disjoint union because the value `[]`, the empty array, belongs to both members.
+不是不相交并集，因为`[]`同时属于两个成员。
 
-**Quiz**. Is the following union disjoint?
+**测验**：下面的集合是不相交的吗？
 
 ```ts
 type Member1 = { readonly a: string };
@@ -2003,15 +1998,13 @@ type Member2 = { readonly b: number };
 type MyUnion = Member1 | Member2;
 ```
 
-Disjoint unions are recurring in functional programming.
+在函数式编程中，我们倾向于尽可能地使用不相交并集。
 
-Fortunately `TypeScript` has a way to guarantee that a union is disjoint: add a specific field that works as a **tag**.
+幸运的是，在TypeScript中，有一种安全的方法可以确保集合是不相交的：添加一个特殊的`tag`字段。
 
-**Note**: Disjoint unions, sum types and tagged unions are used interchangeably to indicate the same thing.
+**例** ([redux actions](https://redux.js.org/introduction/getting-started#basic-example))：
 
-**Example** (redux actions)
-
-The `Action` sum type models a portion of the operation that the user can take i a [todo app](https://todomvc.com/).
+联合类型`Action`对[todo app](https://todomvc.com/)中的部分操作进行了建模。
 
 ```ts
 type Action =
@@ -2031,27 +2024,27 @@ type Action =
     };
 ```
 
-The `type` tag makes sure every member of the union is disjointed.
+`type`标签确保联合类型中的每个类型是不相交的。
 
-**Note**. The name of the field that acts as a tag is chosen by the developer. It doesn't have to be "type". In `fp-ts` the convention is to use a `_tag` field.
+充当标签的字段由开发人员自行决定，不需要一定是`type`（例如，在 fp-ts 中，按照惯例使用名称`_tag`）。
 
-Now that we've seen few examples we can define more explicitly what algebraic data types are:
+现在我们已经看到了一些例子，我们可以更明确地定义代数数据类型：
 
-> In general, an algebraic data type specifies a sum of one or more alternatives, where each alternative is a product of zero or more fields.
+> 一般来说，代数数据类型指定一个或多个选项的和，其中每个选项是零或多个字段的乘积。
 
-Sum types can be **polymorphic** and **recursive**.
+和类型可以是**多态的**和**递归的**。
 
-**Example** (linked list)
+**例** (链表)
 
 ```ts
-//               ↓ type parameter
+//               ↓ 类型参数
 export type List<A> =
   | { readonly _tag: 'Nil' }
   | { readonly _tag: 'Cons'; readonly head: A; readonly tail: List<A> };
-//                                                              ↑ recursion
+//                                                              ↑ 递归
 ```
 
-**Quiz** (TypeScript). Which of the following data types is a product or a sum type?
+**测验** (TypeScript)：判断下列数据类型是和类型还是积类型。
 
 - `ReadonlyArray<A>`
 - `Record<string, A>`
@@ -2059,11 +2052,12 @@ export type List<A> =
 - `ReadonlyMap<string, A>`
 - `ReadonlyMap<'k1' | 'k2', A>`
 
-### Constructors
+#### 构造函数
 
+具有n个元素的和类型至少需要n个**构造函数**，每个成员各一个：
 A sum type with `n` elements needs at least `n` **constructors**, one for each member:
 
-**Example** (redux action creators)
+**例** (redux action)
 
 ```ts
 export type Action =
@@ -2104,7 +2098,7 @@ export const del = (id: number): Action => ({
 });
 ```
 
-**Example** (TypeScript, linked lists)
+**例** (TypeScript，链表)
 
 ```ts
 export type List<A> =
@@ -2124,11 +2118,11 @@ export const cons = <A,>(head: A, tail: List<A>): List<A> => ({
 const myList = cons(1, cons(2, cons(3, nil)));
 ```
 
-### Pattern matching
+#### 模式匹配(Pattern matching)
 
-JavaScript doesn't support [pattern matching](https://github.com/tc39/proposal-pattern-matching) (neither does TypeScript) but we can simulate it with a `match` function.
+JavaScript不支持[模式匹配](https://github.com/tc39/proposal-pattern-matching) (TypeScript也不支持)。但我们可以使用`match`函数来模拟它。
 
-**Example** (TypeScript, linked lists)
+**例** (TypeScript，链表)
 
 ```ts
 interface Nil {
@@ -2154,42 +2148,42 @@ export const match =
     }
   };
 
-// returns `true` if the list is empty
+// 如果链表为空则返回`true`
 export const isEmpty = match(
   () => true,
   () => false,
 );
 
-// returns the first element of the list or `undefined`
+// 返回链表的第一个元素或`undefined`
 export const head = match(
   () => undefined,
   (head, _tail) => head,
 );
 
-// returns the length of the list, recursively
+// 递归地返回链表的长度
 export const length: <A>(fa: List<A>) => number = match(
   () => 0,
   (_, tail) => 1 + length(tail),
 );
 ```
 
-**Quiz**. Why's the `head` API sub optimal?
+**测验**：为什么`head` API 不是最优的？
 
--> See the [answer here](src/quiz-answers/pattern-matching.md)
+> [答案](src/quiz-answers/pattern-matching.md)
 
-**Note**. TypeScript offers a great feature for sum types: **exhaustive check**. The type checker can _check_, no pun intended, whether all the possible cases are handled by the `switch` defined in the body of the function.
+**注**：TypeScript为和类型提供了一个很棒的功能：**[详尽性检查(exhaustive check)](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#exhaustiveness-checking)**。类型检查器可以 _检查_ 是否所有可能的情况都由函数体中定义的`switch`处理了。
 
-### Why "sum" types?
+#### 为什么叫和类型？
 
-Because the following identity holds true:
+因为以下恒等式成立：
 
 ```ts
 C(A | B) = C(A) + C(B);
 ```
 
-> The sum of the cardinality is the sum of the cardinalities
+> 和的基数是基数的和
 
-**Example** (the `Option` type)
+**例** (`Option`类型)
 
 ```ts
 interface None {
@@ -2204,15 +2198,15 @@ interface Some<A> {
 type Option<A> = None | Some<A>;
 ```
 
-From the general formula `C(Option<A>) = 1 + C(A)` we can derive the cardinality of the `Option<boolean>` type: `1 + 2 = 3` members.
+从通用公式`C(Option<A>) = 1 + C(A)`我们可以导出`Option<boolean>`类型的基数：`1 + 2 = 3`。
 
-### When should I use a sum type?
+#### 什么时候该使用和类型
 
-When the components would be **dependent** if implemented with a product type.
+当用积类型实现时，组件会**互相依赖**时。
 
-**Example** (`React` props)
+**例** (`React` props)
 
-```ts
+```tsx
 import * as React from 'react';
 
 interface Props {
@@ -2231,9 +2225,9 @@ class Textbox extends React.Component<Props> {
 }
 ```
 
-The problem here is that `Props` is modeled like a product, but `onChange` **depends** on `editable`.
+这里的问题是`Props`被建模为一个积，但`onChange`**依赖**`editable`
 
-A sum type fits the use case better:
+和类型更适合这种场景：
 
 ```ts
 import * as React from 'react';
@@ -2258,7 +2252,7 @@ class Textbox extends React.Component<Props> {
 }
 ```
 
-**Example** (node callbacks)
+**例** (node callbacks)
 
 ```ts
 declare function readFile(
@@ -2268,61 +2262,61 @@ declare function readFile(
 ): void;
 ```
 
-The result of the `readFile` operation is modeled like a product type (to be more precise, as a tuple) which is later on passed to the `callback` function:
+`readFile`的结果被建模为积类型（准确地地说是一个元组），稍后传递给`callback`：
 
 ```ts
 type CallbackArgs = [Error | undefined, string | undefined];
 ```
 
-the callback components though are **dependent**: we either get an `Error` **or** a `string`:
+但是回调的组件(指参数)是互相依赖的：我们**要么**得到一个`Error`**要么**得到一个`string`:
 
-| err         | data        | legal? |
+| err         | data        | 合法性 |
 | ----------- | ----------- | ------ |
 | `Error`     | `undefined` | ✓      |
 | `undefined` | `string`    | ✓      |
 | `Error`     | `string`    | ✘      |
 | `undefined` | `undefined` | ✘      |
 
+这个API显然不是基于以下前提建模的：
 This API is clearly not modeled on the following premise:
 
-> Make impossible state unrepresentable
+> 使不可能的状态无法表示
 
-A sum type would've been a better choice, but which sum type?
-We'll see how to handle errors in a functional way.
+和类型会是更好的选择，但是应该选择哪个呢？让我们看看如何以函数式的方式处理错误。
 
-**Quiz**. Recently API's based on callbacks have been largely replaced by their `Promise` equivalents.
+**测验**：最近，返回`Promise`的API比回调 API 更受欢迎。
 
 ```ts
 declare function readFile(path: string): Promise<string>;
 ```
 
-Can you find some cons of the Promise solution when using static typing like in TypeScript?
+当使用像 TypeScript 这样的静态类型语言时，你能发现`Promise`的一些缺点吗？
 
-## Functional error handling
+### 函数式风格的错误处理(Functional error handling)
 
-Let's see how to handle errors in a functional way.
+让我们看看如何以函数式方式处理错误。
 
-A function that throws exceptions is an example of a partial function.
+返回错误或引发异常的函数就是部分函数的示例。
 
-In the previous chapters we have seen that every partial function `f` can always be brought back to a total one `f'`.
+在纯函数和偏函数一章中，我们看到每个偏函数`f`总是可以转化为全函数`f'`
 
-```
+```plaintext
 f': X ⟶ Option(Y)
 ```
 
-Now that we know a bit more about sum types in TypeScript we can define the `Option` without much issues.
+现在我们对TypeScript中的联合类型有了更多的了解，我们可以毫无问题地定义`Option`。
 
-### The `Option` type
+#### `Option`类型
 
-The type `Option` represents the effect of a computation which may fail (case `None`) or return a type `A` (case `Some<A>`):
+`Option<A>`类型代表计算的效果(返回值)，该计算可能失败（`None`）或返回类型为`A`的值（`Some<A>`）：
 
 ```ts
-// represents a failure
+// 代表失败
 interface None {
   readonly _tag: 'None';
 }
 
-// represents a success
+// 代表成功
 interface Some<A> {
   readonly _tag: 'Some';
   readonly value: A;
@@ -2331,7 +2325,7 @@ interface Some<A> {
 type Option<A> = None | Some<A>;
 ```
 
-Constructors and pattern matching:
+构造函数与模式匹配：
 
 ```ts
 const none: Option<never> = { _tag: 'None' };
@@ -2350,10 +2344,11 @@ const match =
   };
 ```
 
-The `Option` type can be used to avoid throwing exceptions or representing the optional values, thus we can move from:
+`Option`类型可用于避免抛出异常或表示可选值，因此我们可以从以下：
 
 ```ts
-//                        this is a lie ↓
+// 类型系统不知道该计算可能会失败
+//                                       ↓ 这是一个谎言
 const head = <A,>(as: ReadonlyArray<A>): A => {
   if (as.length === 0) {
     throw new Error('Empty array');
@@ -2369,12 +2364,12 @@ try {
 }
 ```
 
-where the type system is ignorant about the possibility of failure, to:
+改为：
 
 ```ts
 import { pipe } from 'fp-ts/function';
 
-//                                      ↓ the type system "knows" that this computation may fail
+//                                      ↓ 类型系统现在知道这个计算可能会失败
 const head = <A,>(as: ReadonlyArray<A>): Option<A> =>
   as.length === 0 ? none : some(as[0]);
 
@@ -2389,9 +2384,9 @@ const result = pipe(
 );
 ```
 
-where **the possibility of an error is encoded in the type system**.
+上述代码，**错误的可能性被编码进了类型系统中**。
 
-If we attempt to access the `value` property of an `Option` without checking in which case we are, the type system will warn us about the possibility of getting an error:
+如果我们在不进行任何检查的情况下尝试访问`Option`的`value`，类型系统将警告我们可能会出现错误：
 
 ```ts
 declare const numbers: ReadonlyArray<number>;
@@ -2400,20 +2395,20 @@ const result = head(numbers);
 result.value; // type checker error: Property 'value' does not exist on type 'Option<number>'
 ```
 
-The only way to access the value contained in an `Option` is to handle also the failure case using the `match` function.
+访问`Option`中包含的值的唯一方法是使用`match`函数处理失败的情况。
 
 ```ts
 pipe(result, match(
-  () => ...handle error...
-  (n) => ...go on with my business logic...
+  () => /** 错误处理 */
+  (n) => /** 编写业务逻辑 */
 ))
 ```
 
-Is it possible to define instances for the abstractions we've seen in the chapters before? Let's begin with `Eq`.
+能否为之前章节中看到的抽象定义`Option`实例？让我们从`Eq`开始。
 
-### An `Eq` instance
+##### `Eq`实例
 
-Suppose we have two values of type `Option<string>` and that we want to compare them to check if their equal:
+假设我们有两个`Option<string>`类型的值，并且我们想要比较它们以检查它们是否相等：
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -2444,18 +2439,18 @@ const result: boolean = pipe(
           // onNone o2
           () => false,
           // onSome o2
-          (s2) => s1 === s2, // <= qui uso l'uguaglianza tra stringhe
+          (s2) => s1 === s2, // 字符串相等
         ),
       ),
   ),
 );
 ```
 
-What if we had two values of type `Option<number>`? It would be pretty annoying to write the same code we just wrote above, the only difference afterall would be how we compare the two values contained in the `Option`.
+如果我们有两个`Option<number>`类型的值怎么办？再写一遍相同代码会非常烦人，毕竟唯一的区别是我们如何比较`Option`中包含的两个值。
 
-Thus we can generalize the necessary code by requiring the user to provide an `Eq` instance for `A` and then derive an `Eq` instance for `Option<A>`.
+因此，我们可以通过要求用户为`A`提供`Eq`实例来概括必要的代码，然后为`Option<A>`派生一个`Eq`实例。
 
-In other words we can define a **combinator** `getEq`: given an `Eq<A>` this combinator will return an `Eq<Option<A>>`:
+换句话说，我们可以定义一个 **combinator** `getEq`：给定一个`Eq<A>`这个combinator返回一个`Eq<Option<A>>`：
 
 ```ts
 import { Eq } from 'fp-ts/Eq';
@@ -2480,7 +2475,7 @@ export const getEq = <A,>(E: Eq<A>): Eq<Option<A>> => ({
             second,
             match(
               () => false,
-              (a2) => E.equals(a1, a2), // <= here I use the `A` equality
+              (a2) => E.equals(a1, a2), // `Eq<A>`的相等性检查
             ),
           ),
       ),
@@ -2498,11 +2493,9 @@ console.log(EqOptionString.equals(some('a'), some('b'))); // => false
 console.log(EqOptionString.equals(some('a'), some('a'))); // => true
 ```
 
-The best thing about being able to define an `Eq` instance for a type `Option<A>` is being able to leverage all of the combiners we've seen previously for `Eq`.
+为`Option<A>`定义`Eq`实例的好处是，能够使用我们之前见过的所有的`Eq`的 combinator。
 
-**Example**:
-
-An `Eq` instance for the type `Option<readonly [string, number]>`:
+以下是如何为`Option<readonly [string, number]>`定义`Eq`实例：
 
 ```ts
 import { tuple } from 'fp-ts/Eq';
@@ -2525,7 +2518,7 @@ console.log(EqOptionMyTuple.equals(o1, o2)); // => false
 console.log(EqOptionMyTuple.equals(o1, o3)); // => false
 ```
 
-If we slightly modify the imports in the following snippet we can obtain a similar result for `Ord`:
+如果稍微修改一下导入，我们可以获得`Ord`的类似结果：
 
 ```ts
 import * as N from 'fp-ts/number';
@@ -2548,9 +2541,9 @@ console.log(OrdOptionMyTuple.compare(o1, o2)); // => -1
 console.log(OrdOptionMyTuple.compare(o1, o3)); // => -1
 ```
 
-### `Semigroup` and `Monoid` instances
+##### `Semigroup`与`Monoid`实例
 
-Now, let's suppose we want to "merge" two different `Option<A>`s,: there are four different cases:
+现在，假设我们想要“合并”两个不同的`Option<A>`：有四种不同的情况：
 
 | x       | y       | concat(x, y) |
 | ------- | ------- | ------------ |
@@ -2559,29 +2552,29 @@ Now, let's suppose we want to "merge" two different `Option<A>`s,: there are fou
 | none    | some(a) | none         |
 | some(a) | some(b) | ?            |
 
-There's an issue in the last case, we need a recipe to "merge" two different `A`s.
+最后一种情况有一个问题，我们需要一个方法来“合并”两个不同的`A`。
 
-If only we had such a recipe..Isn't that the job our old good friends `Semigroup`s!?
+如果我们有这样的方法就好了...这不正是我们的老朋友`Semigroup`的工作吗！？
 
 | x        | y        | concat(x, y)           |
 | -------- | -------- | ---------------------- |
 | some(a1) | some(a2) | some(S.concat(a1, a2)) |
 
-All we need to do is to require the user to provide a `Semigroup` instance for `A` and then derive a `Semigroup` instance for `Option<A>`.
+我们需要做的就是要求用户为`A`提供一个`Semigroup`实例，然后为`Option<A>`派生一个`Semigroup`实例。
 
 ```ts
-// the implementation is left as an exercise for the reader
+// 实现留给读者作为练习
 declare const getApplySemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>;
 ```
 
-**Quiz**. Is it possible to add a neutral element to the previous semigroup to make it a monoid?
+**测验**：是否可以在上面的半群中添加一个单位元使其成为幺半群？
 
 ```ts
-// the implementation is left as an exercise for the reader
+// 实现留给读者作为练习
 declare const getApplicativeMonoid: <A>(M: Monoid<A>) => Monoid<Option<A>>;
 ```
 
-It is possible to define a monoid instance for `Option<A>` that behaves like that:
+可以为`Option<A>`定义一个幺半群实例，其行为如下：
 
 | x        | y        | concat(x, y)           |
 | -------- | -------- | ---------------------- |
@@ -2591,19 +2584,19 @@ It is possible to define a monoid instance for `Option<A>` that behaves like tha
 | some(a1) | some(a2) | some(S.concat(a1, a2)) |
 
 ```ts
-// the implementation is left as an exercise for the reader
+// 实现留给读者作为练习
 declare const getMonoid: <A>(S: Semigroup<A>) => Monoid<Option<A>>;
 ```
 
-**Quiz**. What is the `empty` member for the monoid?
+**测验**：幺半群的`empty`是什么？
 
--> See the [answer here](src/quiz-answers/option-semigroup-monoid-second.md)
+> [答案](src/quiz-answers/option-semigroup-monoid-second.md)
 
-**Example**
+**例**：
 
-Using `getMonoid` we can derive another two useful monoids:
+利用`getMonoid`我们可以派生出另外两个有用的幺半群:
 
-(Monoid returning the left-most non-`None` value)
+(返回最左边的非`None`值)
 
 | x        | y        | concat(x, y) |
 | -------- | -------- | ------------ |
@@ -2621,9 +2614,9 @@ export const getFirstMonoid = <A = never,>(): Monoid<Option<A>> =>
   getMonoid(first());
 ```
 
-and its dual:
+和它的对偶:
 
-(Monoid returning the right-most non-`None` value)
+(返回最右边的非`None`值)
 
 | x        | y        | concat(x, y) |
 | -------- | -------- | ------------ |
@@ -2641,9 +2634,9 @@ export const getLastMonoid = <A = never,>(): Monoid<Option<A>> =>
   getMonoid(last());
 ```
 
-**Example**
+**例**：
 
-`getLastMonoid` can be useful to manage optional values. Let's seen an example where we want to derive user settings for a text editor, in this case VSCode.
+在管理可选值时`getLastMonoid`非常有用。让我们看一个示例，我们想要派生文本编辑器（在本例中为 VSCode）的用户设置。
 
 ```ts
 import { Monoid, struct } from 'fp-ts/Monoid';
@@ -2652,11 +2645,11 @@ import { last } from 'fp-ts/Semigroup';
 
 /** VSCode settings */
 interface Settings {
-  /** Controls the font family */
+  /** 控制 font family */
   readonly fontFamily: Option<string>;
-  /** Controls the font size in pixels */
+  /** 控制 font size */
   readonly fontSize: Option<number>;
-  /** Limit the width of the minimap to render at most a certain number of columns. */
+  /** 限制渲染minimap时使用的列数 */
   readonly maxColumn: Option<number>;
 }
 
@@ -2678,7 +2671,7 @@ const userSettings: Settings = {
   maxColumn: none,
 };
 
-/** userSettings overrides workspaceSettings */
+/** userSettings 覆盖 workspaceSettings */
 console.log(monoidSettings.concat(workspaceSettings, userSettings));
 /*
 { fontFamily: some("Fira Code"),
@@ -2687,24 +2680,22 @@ console.log(monoidSettings.concat(workspaceSettings, userSettings));
 */
 ```
 
-**Quiz**. Suppose VSCode cannot manage more than `80` columns per row, how could we modify the definition of `monoidSettings` to take that into account?
+**测验**：假设VSCode每行无法管理超过“80”列，我们如何修改“monoidSettings”的定义以考虑到这一点？
 
-### The `Either` type
+#### `Either`类型
 
-We have seen how the `Option` data type can be used to handle partial functions, which often represent computations than can fail or throw exceptions.
+`Either`的常见用途是作为`Option`的替代方案来处理可能失败的计算的影响，同时能够指定失败的原因。
 
-This data type might be limiting in some use cases tho. While in the case of success we get `Some<A>` which contains information of type `A`, the other member, `None` does not carry any data. We know it failed, but we don't know the reason.
-
-In order to fix this we simply need to another data type to represent failure, we'll call it `Left<E>`. We'll also replace the `Some<A>` type with the `Right<A>`.
+在此用法中，`None`被`Left`替代，其中包含有关错误的有用信息。`Right`代替`Some`。
 
 ```ts
-// represents a failure
+// 代表失败
 interface Left<E> {
   readonly _tag: 'Left';
   readonly left: E;
 }
 
-// represents a success
+// 代表成功
 interface Right<A> {
   readonly _tag: 'Right';
   readonly right: A;
@@ -2713,7 +2704,7 @@ interface Right<A> {
 type Either<E, A> = Left<E> | Right<A>;
 ```
 
-Constructors and pattern matching:
+构造函数与模式匹配：
 
 ```ts
 const left = <E, A>(left: E): Either<E, A> => ({ _tag: 'Left', left });
@@ -2732,7 +2723,7 @@ const match =
   };
 ```
 
-Let's get back to the previous callback example:
+回到之前的回调的例子：
 
 ```ts
 declare function readFile(
@@ -2747,14 +2738,14 @@ readFile('./myfile', (err, data) => {
   } else if (data !== undefined) {
     message = `Data: ${data.trim()}`;
   } else {
-    // should never happen
+    // 理论上永远不会发生
     message = 'The impossible happened';
   }
   console.log(message);
 });
 ```
 
-we can change it's signature to:
+我们可以修改它的签名为：
 
 ```ts
 declare function readFile(
@@ -2763,7 +2754,7 @@ declare function readFile(
 ): void;
 ```
 
-and consume the API in such way:
+然后这么使用这个API：
 
 ```ts
 readFile('./myfile', (e) =>
