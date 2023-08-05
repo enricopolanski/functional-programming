@@ -2961,9 +2961,9 @@ function pipe<A, B, C>(a: A, f: (a: A) => B, g: (b: B) => C): C {
 **剧透**：
 
 - 要组合`f: (a: A) => B`与`g: (b: B) => C`，我们使用常用的函数组合。
-- 要组合`f: (a: A) => F<B>`与`g: (b: B) => C`，我们需要`F`的**函子（functor）**实例。
-- 要组合`f: (a: A) => F<B>` with `g: (b: B, c: C) => D`，我们需要`F`的**可应用的函子（applicative functor）**实例。
-- 要组合`f: (a: A) => F<B>`与`g: (b: B) => F<C>`，我们需要`F`的**单子（monad）**实例。
+- 要组合`f: (a: A) => F<B>`与`g: (b: B) => C`，我们需要`F`的 **函子（functor）** 实例。
+- 要组合`f: (a: A) => F<B>` with `g: (b: B, c: C) => D`，我们需要`F`的 **可应用的函子（applicative functor）** 实例。
+- 要组合`f: (a: A) => F<B>`与`g: (b: B) => F<C>`，我们需要`F`的 **单子（monad）** 实例。
 
 <img src="images/spoiler.png" width="900" alt="The four composition recipes" />
 
