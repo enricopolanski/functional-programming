@@ -1,21 +1,18 @@
 /*
 
-  Models the dice roll of a role-playing game.
+  建模RGP游戏的掷骰子
 
 */
-import { pipe } from 'fp-ts/function'
-import * as IO from 'fp-ts/IO'
-import { Monoid } from 'fp-ts/Monoid'
-import * as R from 'fp-ts/Random'
+import { function as F, io as IO , random as R ,monoid as M, } from 'fp-ts'
 
 // ------------------------------------
-// model
+// 模型
 // ------------------------------------
 
 export interface Die extends IO.IO<number> {}
 
 // ------------------------------------
-// constructors
+// 构造函数
 // ------------------------------------
 
 export const die = (faces: number): Die => R.randomInt(1, faces)
@@ -25,32 +22,32 @@ export const die = (faces: number): Die => R.randomInt(1, faces)
 // ------------------------------------
 
 export const modifier = (n: number) => (die: Die): Die =>
-  pipe(
+  F.pipe(
     die,
     IO.map((m) => m + n)
   )
 
 const liftA2 = <A, B, C>(f: (a: A) => (b: B) => C) => (fa: IO.IO<A>) => (
   fb: IO.IO<B>
-): IO.IO<C> => pipe(fa, IO.map(f), IO.ap(fb))
+): IO.IO<C> => F.pipe(fa, IO.map(f), IO.ap(fb))
 
 export const add: (
   second: Die
 ) => (first: Die) => Die = liftA2((a: number) => (b: number) => a + b)
 
 export const multiply = (n: number) => (die: Die): Die =>
-  pipe(
+  F.pipe(
     die,
     IO.map((m) => m * n)
   )
 
 // ------------------------------------
-// instances
+// 实例
 // ------------------------------------
 
-export const monoidDie: Monoid<Die> = {
-  concat: (first, second) => pipe(first, add(second)),
-  empty: () => 0 // <= un dado con zero facce
+export const monoidDie: M.Monoid<Die> = {
+  concat: (first, second) => F.pipe(first, add(second)),
+  empty: () => 0 // 面数为0的骰子
 }
 
 // ------------------------------------
@@ -61,6 +58,6 @@ const d6 = die(6)
 const d8 = die(8)
 
 // 2d6 + 1d8 + 2
-const _2d6_1d8_2 = pipe(d6, multiply(2), add(d8), modifier(2))
+const _2d6_1d8_2 = F.pipe(d6, multiply(2), add(d8), modifier(2))
 
 console.log(_2d6_1d8_2())
