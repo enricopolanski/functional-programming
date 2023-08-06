@@ -1,5 +1,5 @@
 // ====================
-// GUESS THE NUMBER
+// 猜数字
 // ====================
 
 import { pipe } from 'fp-ts/function'
@@ -10,17 +10,17 @@ import { randomInt } from 'fp-ts/Random'
 import * as T from 'fp-ts/Task'
 import { getLine, putStrLn } from './Console'
 
-// the number to guess
+// 要猜的数字
 export const secret: T.Task<number> = T.fromIO(randomInt(1, 100))
 
-// combinator: print a message before an action
+// combinator: 在行动前打印一条信息
 const withMessage = <A>(message: string, next: T.Task<A>): T.Task<A> =>
   pipe(
     putStrLn(message),
     T.chain(() => next)
   )
 
-// the input is a string so we have to validate it
+// 因为输入是一个字符串所以我们需要验证它
 const isValidGuess = between(N.Ord)(1, 100)
 const parseGuess = (s: string): O.Option<number> => {
   const n = parseInt(s, 10)
@@ -36,7 +36,7 @@ const answer: T.Task<number> = pipe(
       s,
       parseGuess,
       O.match(
-        () => withMessage('Devi inserire un intero da 1 a 100', answer),
+        () => withMessage('您必须输入 1 到 100 之间的整数', answer),
         (a) => T.of(a)
       )
     )
@@ -44,21 +44,21 @@ const answer: T.Task<number> = pipe(
 )
 
 const check = <A>(
-  secret: number, // the secret number to guess
-  guess: number, // user attempt
-  ok: T.Task<A>, // what to do if the user guessed
-  ko: T.Task<A> // what to do if the user did NOT guess
+  secret: number, // 谜底
+  guess: number, // 用户输入
+  ok: T.Task<A>, // 如果用户猜对
+  ko: T.Task<A> // 如果猜错
 ): T.Task<A> => {
   if (guess > secret) {
-    return withMessage('Troppo alto', ko)
+    return withMessage('太大', ko)
   } else if (guess < secret) {
-    return withMessage('Troppo basso', ko)
+    return withMessage('太小', ko)
   } else {
     return ok
   }
 }
 
-const end: T.Task<void> = putStrLn('Hai indovinato!')
+const end: T.Task<void> = putStrLn('你猜对了！')
 
 // keep the state (secret) as the argument of the function (alla Erlang)
 const loop = (secret: number): T.Task<void> =>

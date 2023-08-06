@@ -4112,22 +4112,19 @@ const ap = <A,>(
 
 还没有。最后一个非常重要的情况需要考虑：当**两个**程序都产生作用时。
 
-我们还需要更多的东西，在下一章中我们将讨论函数式编程中最重要的抽象之一：**单子（monad）**。
+我们还需要更多的工具，在下一章中我们将讨论函数式编程中最重要的抽象之一：**单子（monad）**。
 
-# Monads
+## 单子（Monad）
 
-<center>
 <img src="images/moggi.jpg" width="300" alt="Eugenio Moggi" />
 
-(Eugenio Moggi is a professor of computer science at the University of Genoa, Italy. He first described the general use of monads to structure programs)
+（Eugenio Moggi是意大利热那亚大学计算机科学教授。他首先描述了 monad 构建程序的一般用途）
 
 <img src="images/wadler.jpg" width="300" alt="Philip Lee Wadler" />
 
-(Philip Lee Wadler is an American computer scientist known for his contributions to programming language design and type theory)
+（Philip Lee Wadler是一位美国计算机科学家，因其对编程语言设计和类型理论的贡献而闻名）
 
-</center>
-
-In the last chapter we have seen how we can compose an effectful program `f: (a: A) => F<B>` with an `n`-ary pure program `g`, if and only if the type constructor `F` admits an applicative functor instance:
+在上一章里，我们看到了如何用一个`n`元纯程序`g`来编写一个有作用的程序`f: (a: A) => F<B>`，当且仅当类型构造函数`F`承认一个应用函子实例：
 
 | Program f | Program g     | Composition     |
 | --------- | ------------- | --------------- |
@@ -4135,22 +4132,22 @@ In the last chapter we have seen how we can compose an effectful program `f: (a:
 | effectful | pure (unary)  | `map(g) ∘ f`    |
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 
-But we need to solve one last, quite common, case: when **both** programs are effectful:
+但我们需要解决最后一个非常常见的情况：当**两个**程序都有作用时：
 
 ```ts
 f: (a: A) => F<B>;
 g: (b: B) => F<C>;
 ```
 
-What is the composition of `f` and `g`?
+`f`和`g`的组合是什么？
 
-## The problem with nested contexts
+### 嵌套上下文的问题
 
-Let's see few examples on why we need something more.
+让我们看几个例子来说明为什么我们需要更多工具。
 
-**Example** (`F = Array`)
+**例** (`F = Array`)
 
-Suppose we want to get followers' followers.
+假设我们想获得followe的followers。
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -4170,11 +4167,11 @@ declare const user: User;
 const followersOfFollowers = pipe(user, getFollowers, A.map(getFollowers));
 ```
 
-There's something wrong here, `followersOfFollowers` has a type `ReadonlyArray<ReadonlyArray<User>>` but we want `ReadonlyArray<User>`.
+这里有一些问题，`followersOfFollowers`的类型为`ReadonlyArray<ReadonlyArray<User>>`，但我们想要的是`ReadonlyArray<User>`。
 
-We need to **flatten** nested arrays.
+我们需要 **展平（flatten）** 嵌套数组。
 
-The function `flatten: <A>(mma: ReadonlyArray<ReadonlyArray<A>>) => ReadonlyArray<A>` exported by the `fp-ts/ReadonlyArray` is exactly what we need:
+`fp-ts/ReadonlyArray`导出的函数`flatten: <A>(mma: ReadonlyArray<ReadonlyArray<A>>) => ReadonlyArray<A>`正是我们所需要的：
 
 ```ts
 // followersOfFollowers: ReadonlyArray<User>
@@ -4186,10 +4183,11 @@ const followersOfFollowers = pipe(
 );
 ```
 
-Cool! Let's see some other data type.
+看起来不错！让我们看看其他的数据类型。
 
-**Example** (`F = Option`)
-Suppose you want to calculate the reciprocal of the first element of a numerical array:
+**例** (`F = Option`)
+
+假设要计算number数组第一个元素的倒数：
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -4203,153 +4201,132 @@ const inverse = (n: number): O.Option<number> =>
 const inverseHead = pipe([1, 2, 3], A.head, O.map(inverse));
 ```
 
-Oops, it happened again, `inverseHead` has type `Option<Option<number>>` but we want `Option<number>`.
+类似的事情在这里也发生了。`inverseHead`的类型是`Option<Option<number>>`，但我们想要的是`Option<number>`。
 
-We need to flatten again the nested `Option`s.
+我们需要展平嵌套的`Option`。
 
-The `flatten: <A>(mma: Option<Option<A>>) => Option<A>` function exported by the `fp-ts/Option` module is what we need:
+`fp-ts/Option`导出的函数`flatten: <A>(mma: Option<Option<A>>) => Option<A>`正是我们所需要的：
 
 ```ts
 // inverseHead: O.Option<number>
 const inverseHead = pipe([1, 2, 3], A.head, O.map(inverse), O.flatten);
 ```
 
-All of those `flatten` funcitons...They aren't a coincidence, there is a functional pattern behind the scenes: both the type constructors
-`ReadonlyArray` and `Option` (and many others) admit a **monad instance** and
+所有这些`flatten`并不是巧合。在幕后有一个函数模式：两个类型构造函数`ReadonlyArray`和`Option`（以及其他）承认 **monad 实例** 并且
 
-> `flatten` is the most peculiar operation of monads
+> `flatten`是单子最特殊的运算
 
-**Note**. A common synonym of `flatten` is **join**.
+**注**：`flatten`的常见同义词是**join**.
 
-So, what is a monad?
+所以，什么是单子？
 
-Here is how they are often presented...
+以下是它们经常被呈现的方式。
 
-## Monad Definition
+### 单子定义
 
-**Definition**. A monad is defined by three things:
+**定义**：单子由三部分组成：
 
-(1) a type constructor `M` admitting a functor instance
+(1) 承认函子实例的类型构造函数`M`
 
-(2) a function `of` (also called **pure** or **return**) with the following signature:
+(2) 具有以下签名的`of`（也叫 **pure** 或 **return**）函数：
 
 ```ts
 of: <A,>(a: A) => M<A>;
 ```
 
-(3) a `chain` function (also called **flatMap** or **bind**) with the following signature:
+(3) 具有以下签名的`chain`（也叫 **flatMap** 或 **bind**）函数：
 
 ```ts
-chain: <A, B>(f: (a: A) => M<B>) =>
-  (ma: M<A>) =>
-    M<B>;
+chain: <A, B>(f: (a: A) => M<B>) => (ma: M<A>) => M<B>;
 ```
 
-The `of` and `chain` functions need to obey three laws:
+`of`与`chain`需要遵守三个定律：
 
-- `chain(of) ∘ f = f` (**Left identity**)
-- `chain(f) ∘ of = f` (**Right identity**)
-- `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` (**Associativity**)
+- `chain(of) ∘ f = f` (**左单位元**)
+- `chain(f) ∘ of = f` (**右单位元**)
+- `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` (**结合律**)
 
-where `f`, `g`, `h` are all effectful functions and `∘` is the usual function composition.
+其中`f`、`g`、`h`都是effectful函数，`∘`是通常的函数组合。
 
-When I saw this definition for the first time I had many questions:
+当第一次看到这个定义时，我有很多疑问：
 
-- why exactly those two operation `of` and `chain`? and why to they have those signatures?
-- why do they have those synonyms like "pure" or "flatMap"?
-- why does laws need to hold true? What do they mean?
-- if `flatten` is so important for monads, why it doesn't compare in its definition?
+- 为什么需要`of`和`chain`？为什么他们需要这样的签名？
+- 为什么它们有`pure`或`flatMap`等同义词？
+- 为什么需要遵守三个定律？他们的意思是什么？
+- 如果`flatten`对于单子如此重要，为什么它的定义不具有可比性？
 
-This chapter will try to answer all of these questions.
+这一章将尝试回答上述问题。
 
-Let's get back to the core problem: what is the composition of two effectful functions `f` and `g`?
+让我们回到核心问题：两个effectful函数`f`和`g`的组合是什么？
 
 <img src="images/kleisli_arrows.png" alt="two Kleisli arrows, what's their composition?" width="450px" />
 
-<center>(two Kleisli Arrows)</center>
+（两个Kleisli箭头）
 
-**Note**. An effectful function is also called **Kleisli arrow**.
+**注**：effectful函数也称为**Kleisli箭头**。
 
-For the time being I don't even know the **type** of such composition.
+目前为止我甚至不知道这种组合的**类型**。
 
-But we've already seen some abstractions that talks specifically about composition. Do you remember what we said about categories?
+但我们已经看到了一些专门讨论组合的抽象概念。还记得范畴吗？
 
-> Categories capture the essence of composition
+> 范畴抓住了组合的本质
 
-We can transform our problem into a category problem, meaning: can we find a category that models the composition of Kleisli arrows?
+我们可以将我们的问题转化为范畴问题，也就是说：我们能否找到一个模拟Kleisli箭头组合的范畴？
 
-## The Kleisli category
+### Kleisli范畴
 
-<center>
 <img src="images/kleisli.jpg" width="300" alt="Heinrich Kleisli" />
 
-(Heinrich Kleisli, Swiss mathematician)
+(Heinrich Kleisli, 瑞士数学家)
 
-</center>
+让我们尝试构建一个范畴 _K_（称为 **Kleisli 范畴**），其中 _仅_ 包含Kleisli箭头：
 
-Let's try building a category _K_ (called **Kleisli category**) which contains _only_ Kleisli arrows:
+- **对象** 与 _TS_ 范畴相同，所以是TypeScript的所有类型
+- **态射** 是这样构建的：每当 _TS_ 中有一个 Kleisli 箭头`f: A ⟼ M<B>`时，我们就在 _K_ 中绘制一个箭头`f': A ⟼ B`
 
-- **objects** will be the same objects of the _TS_ category, so all TypeScript types.
-- **morphisms** are built like this: every time there is a Kleisli arrow `f: A ⟼ M<B>` in _TS_ we draw an arrow `f': A ⟼ B` in _K_
-
-<center>
 <img src="images/kleisli_category.png" alt="above the TS category, below the K construction" width="400px" />
 
-(above the composition in the _TS_ category, below the composition in the _K_ construction)
+（上方是 _TS_ 范畴中的组合，下方是 _K_ 结构中的组合）
 
-</center>
+那么 _K_ 中的`f`和`g`的组合是什么？它是下图中名为`h`的红色箭头：
 
-So what would be the composition of `f` and `g` in _K_?
-It's th red arrow called `h'` in the image below:
-
-<center>
 <img src="images/kleisli_composition.png" alt="above the composition in the TS category, below the composition in the K construction" width="400px" />
 
-(above the composition in the _TS_ category, below the composition in the _K_ construction)
+假设`h`是`K`中从`A`到`C`的箭头，我们可以在`TS`中找到从`A`到`M<C>`的对应函数`h`。
 
-</center>
+因此，_TS_ 中`f`和`g`的组合一个很好的候选者仍然是具有以下签名的 Kleisli 箭头：`(a: A) => M<C>`。
 
-Given that `h'` is an arrow from `A` to `C` in `K`, we can find a corresponding function `h` from `A` to `M<C>` in `TS`.
+让我们尝试实现这样一个函数。
 
-Thus, a good candidate for the following composition of `f` and `g` in _TS_ is still a Kleisli arrow with the following signature: `(a: A) => M<C>`.
+### 逐步定义`chain`
 
-Let's try implementing such a function.
+单子定义的第一点 (1) 告诉我们`M`承认一个函子实例，因此我们可以使用`map`将`g: (b: B) => M<C>`转换为`map(g): (mb: M<B>) => M<M<C>>`
 
-## Defining `chain` step by step
-
-The first point (1) of the monad definition tells us that `M` admits a functor instance, thus we can use the `map` function to transform the function `g: (b: B) => M<C>` into a function `map(g): (mb: M<B>) => M<M<C>>`
-
-<center>
 <img src="images/flatMap.png" alt="where chain comes from" width="450px" />
 
-(how to obtain the `h` function)
+（如何获得`h`函数）
 
-</center>
+但这里我们陷入了困境：函子实例没有合法的操作允许我们将`M<M<C>>`展平为`M<C>`。我们需要一个额外的操作，我们称之为`flatten`。
 
-We're stuck now though: there is no legal operation for the functor instance that allows us to flatten a value of type `M<M<C>>` into a value of type `M<C>`, we need an additional operation, let's call it `flatten`.
+如果我们可以定义这样的操作，那么我们就可以找到我们正在寻找的组合：
 
-If we can define such operation then we can find the composition we were looking for:
-
-```
+```plaintext
 h = flatten ∘ map(g) ∘ f
 ```
 
-By joining the `flatten ∘ map(g)` names we get "flatMap", hence the name!
+通过融合`flatten ∘ map(g)`，我们可以得到`flatMap`，这就是名字的由来。
 
-Thus we can get `chain` in this way
+这样我们就可以得到`chain`
 
-```
+```plaintext
 chain = flatten ∘ map(g)
 ```
 
-<center>
 <img src="images/chain.png" alt="how chain operates on the function g" width="400px" />
 
-(how `chain` operates on the function `g`)
+（`chain`如何对`g`进行操作）
 
-</center>
-
-Now we can update our composition table
+现在我们可以更新我们的组合表了
 
 | Program f | Program g     | Composition     |
 | --------- | ------------- | --------------- |
@@ -4358,16 +4335,14 @@ Now we can update our composition table
 | effectful | pure, `n`-ary | `liftAn(g) ∘ f` |
 | effectful | effectful     | `chain(g) ∘ f`  |
 
-What about `of`? Well, `of` comes from the identity morphisms in _K_: for every identity morphism 1<sub>A</sub> in _K_ there has to be a corresponding function from `A` to `M<A>` (that is, `of: <A>(a: A) => M<A>`).
+那`of`呢？
+`of`来自 _K_ 中的恒等态射：对于 _K_ 中的每个恒等态射 1<sub>A</sub> ，必须有一个从`A`到`M<A>`的对应函数（即，`of: <A>(a: A) => M<A>`）。
 
-<center>
 <img src="images/of.png" alt="where of comes from" width="300px" />
 
-(where `of` comes from)
+（ `of`的出处）
 
-</center>
-
-The fact that `of` is the neutral element for `chain` allows this kind of flux control (pretty common):
+事实上，`of`是`chain`的单位元素，允许以下的流量控制（很常见）：
 
 ```ts
 pipe(
@@ -4376,17 +4351,17 @@ pipe(
 );
 ```
 
-where `predicate: (b: B) => boolean`, `mb: M<B>` and `g: (b: B) => M<B>`.
+其中，`predicate: (b: B) => boolean`，`mb: M<B>`，`g: (b: B) => M<B>`.
 
-Last question: where do the laws come from? They are nothing else but the categorical laws in _K_ translated to _TS_:
+最后一个问题：定律从何而来？只不过是 _K_ 中的范畴定律翻译到了 _TS_ 中：
 
-| Law            | _K_                               | _TS_                                                    |
-| -------------- | --------------------------------- | ------------------------------------------------------- |
-| Left identity  | 1<sub>B</sub> ∘ `f'` = `f'`       | `chain(of) ∘ f = f`                                     |
-| Right identity | `f'` ∘ 1<sub>A</sub> = `f'`       | `chain(f) ∘ of = f`                                     |
-| Associativity  | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'` | `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` |
+| Law     | _K_                              | _TS_                                                  |
+| ------- | -------------------------------- | ----------------------------------------------------- |
+| 左单位元 | 1<sub>B</sub> ∘ `f'` = `f'`       | `chain(of) ∘ f = f`                                   |
+| 右单位元 | `f'` ∘ 1<sub>A</sub> = `f'`       | `chain(f) ∘ of = f`                                   |
+| 结合律   | `h' ∘ (g' ∘ f') = (h' ∘ g') ∘ f'`| `chain(h) ∘ (chain(g) ∘ f) = chain((chain(h) ∘ g)) ∘ f` |
 
-If we now go back to the examples that showed the problem with nested contexts we can solve them using `chain`:
+现在让我们现在回到嵌套上下文的例子，可以使用`chain`来解决它们：
 
 ```ts
 import { pipe } from 'fp-ts/function';
@@ -4415,12 +4390,12 @@ const inverse = (n: number): O.Option<number> =>
 const inverseHead: O.Option<number> = pipe([1, 2, 3], A.head, O.chain(inverse));
 ```
 
-Let's see how `chain` is implemented for the usual type constructors we've already seen:
+让我们看看如何为我们已经见过的常见类型构造函数实现`chain`：
 
-**Example** (`F = ReadonlyArray`)
+**例** (`F = ReadonlyArray`)
 
 ```ts
-// transforms functions `B -> ReadonlyArray<C>` into functions `ReadonlyArray<B> -> ReadonlyArray<C>`
+// 将`B -> ReadonlyArray<C>`转化为`ReadonlyArray<B> -> ReadonlyArray<C>`
 const chain =
   <B, C>(g: (b: B) => ReadonlyArray<C>) =>
   (mb: ReadonlyArray<B>): ReadonlyArray<C> => {
@@ -4432,22 +4407,22 @@ const chain =
   };
 ```
 
-**Example** (`F = Option`)
+**例** (`F = Option`)
 
 ```ts
 import { match, none, Option } from 'fp-ts/Option';
 
-// transforms functions `B -> Option<C>` into functions `Option<B> -> Option<C>`
+// 将`B -> Option<C>`转化为`Option<B> -> Option<C>`
 const chain = <B, C>(g: (b: B) => Option<C>): ((mb: Option<B>) => Option<C>) =>
   match(() => none, g);
 ```
 
-**Example** (`F = IO`)
+**例** (`F = IO`)
 
 ```ts
 import { IO } from 'fp-ts/IO';
 
-// transforms functions `B -> IO<C>` into functions `IO<B> -> IO<C>`
+// 将`B -> IO<C>`转化为`IO<B> -> IO<C>`
 const chain =
   <B, C>(g: (b: B) => IO<C>) =>
   (mb: IO<B>): IO<C> =>
@@ -4455,12 +4430,12 @@ const chain =
     g(mb())();
 ```
 
-**Example** (`F = Task`)
+**例** (`F = Task`)
 
 ```ts
 import { Task } from 'fp-ts/Task';
 
-// transforms functions `B -> Task<C>` into functions `Task<B> -> Task<C>`
+// 将`B -> Task<C>`转化为`Task<B> -> Task<C>`
 const chain =
   <B, C>(g: (b: B) => Task<C>) =>
   (mb: Task<B>): Task<C> =>
@@ -4468,12 +4443,12 @@ const chain =
     mb().then((b) => g(b)());
 ```
 
-**Example** (`F = Reader`)
+**例** (`F = Reader`)
 
 ```ts
 import { Reader } from 'fp-ts/Reader';
 
-// transforms functions `B -> Reader<R, C>` into functions `Reader<R, B> -> Reader<R, C>`
+// 将`B -> Reader<R, C>`转化为`Reader<R, B> -> Reader<R, C>`
 const chain =
   <B, R, C>(g: (b: B) => Reader<R, C>) =>
   (mb: Reader<R, B>): Reader<R, C> =>
@@ -4481,11 +4456,11 @@ const chain =
     g(mb(r))(r);
 ```
 
-## Manipulating programs
+### 程序操作
 
-Let's see now, how thanks to referential transparency and the monad concept we can programmaticaly manipulate programs.
+现在让我们看看，如何借助引用透明性和单子，以编程方式操作程序。
 
-Here's a small program that reads / writes a file:
+这是一个读/写文件的小程序：
 
 ```ts
 import { log } from 'fp-ts/Console';
@@ -4527,13 +4502,13 @@ const program1 = pipe(
 );
 ```
 
-The actions:
+下列动作
 
 ```ts
 pipe(readFile('file.txt'), chain(log));
 ```
 
-is repeated more than once in the program, but given that referential transparency holds we can factor it and assign it to a constant:
+在程序中重复多次，但鉴于引用透明性成立，我们可以将其分解并将其分配给一个常量：
 
 ```ts
 const read = pipe(readFile('file.txt'), chain(log));
@@ -4546,7 +4521,7 @@ const program2 = pipe(
 );
 ```
 
-We can even define a combinator and leverage it to make the code more compact:
+我们甚至可以定义一个combinator并利用它使代码更加简洁：
 
 ```ts
 const interleave = <A, B>(action: IO<A>, middle: IO<B>): IO<A> =>
@@ -4559,7 +4534,7 @@ const interleave = <A, B>(action: IO<A>, middle: IO<B>): IO<A> =>
 const program3 = interleave(read, modify);
 ```
 
-Another example: implementing a function similar to Unix' `time` (the part related to the execution time) for `IO`.
+再比如：为`IO`实现一个类似Unix的`time`（与执行时间相关的部分）的功能。
 
 ```ts
 import * as IO from 'fp-ts/IO';
@@ -4567,7 +4542,7 @@ import { now } from 'fp-ts/Date';
 import { log } from 'fp-ts/Console';
 import { pipe } from 'fp-ts/function';
 
-// logs the computation lenght in milliseconds
+// 记录计算长度（以毫秒为单位）
 export const time = <A,>(ma: IO.IO<A>): IO.IO<A> =>
   pipe(
     now,
@@ -4590,14 +4565,13 @@ export const time = <A,>(ma: IO.IO<A>): IO.IO<A> =>
   );
 ```
 
-**Digression**. As you can notice, using `chain` when it is required to maintain a scope leads to verbose code.
-In languages that support monadic style natively there is often syntax support that goes by the name of "do notation" which eases this kind of situations.
+**注**：如你所见，当需要维护范围时使用`chain`会导致冗长的代码。在原生支持单子风格的语言中，通常支持名为“do notation”的语法，可以缓解这种情况。
 
-Let's see a Haskell example
+让我们看一个Haskell的例子
 
 ```haskell
 now :: IO Int
-now = undefined -- `undefined` in Haskell is equivalent to TypeScript's declare
+now = undefined -- Haskell中`undefined`相当于TypeScript的声明
 
 log :: String -> IO ()
 log = undefined
@@ -4611,7 +4585,7 @@ time ma = do
   return a
 ```
 
-TypeScript does not support such syntax, but it can be emulated with something similar:
+TypeScript 不支持这种语法，但可以用类似的东西来模拟：
 
 ```ts
 import { log } from 'fp-ts/Console';
@@ -4619,7 +4593,7 @@ import { now } from 'fp-ts/Date';
 import { pipe } from 'fp-ts/function';
 import * as IO from 'fp-ts/IO';
 
-// logs the computation lenght in milliseconds
+// 记录计算长度（以毫秒为单位）
 export const time = <A,>(ma: IO.IO<A>): IO.IO<A> =>
   pipe(
     IO.Do,
@@ -4633,7 +4607,7 @@ export const time = <A,>(ma: IO.IO<A>): IO.IO<A> =>
   );
 ```
 
-Let's see a usage example of the `time` combinator:
+让我们看一个`time`的用例：
 
 ```ts
 import { randomInt } from 'fp-ts/Random';
@@ -4642,14 +4616,14 @@ import { replicate } from 'fp-ts/ReadonlyArray';
 
 const fib = (n: number): number => (n <= 1 ? 1 : fib(n - 1) + fib(n - 2));
 
-// launches `fib` with a random integer between 30 and 35
-// logging both the input and output
+// 使用 30 到 35 之间的随机整数启动`fib`
+// 记录输入和输出
 const randomFib: IO.IO<void> = pipe(
   randomInt(30, 35),
   IO.chain((n) => log([n, fib(n)])),
 );
 
-// a monoid instance for `IO<void>`
+// `IO<void>`的monoid实例
 const MonoidIO: Monoid<IO.IO<void>> = {
   concat: (first, second) => () => {
     first();
@@ -4658,12 +4632,12 @@ const MonoidIO: Monoid<IO.IO<void>> = {
   empty: IO.of(undefined),
 };
 
-// executes `n` times the `mv` computation
+// 执行`n`次`mv`计算
 const replicateIO = (n: number, mv: IO.IO<void>): IO.IO<void> =>
   concatAll(MonoidIO)(replicate(n, mv));
 
 // -------------------
-// usage example
+// 用例
 // -------------------
 
 time(replicateIO(3, randomFib))();
@@ -4675,7 +4649,7 @@ Elapsed: 89
 */
 ```
 
-Logs also the partial:
+还记录了部分内容：
 
 ```ts
 time(replicateIO(3, time(randomFib)))();
@@ -4690,16 +4664,16 @@ Elapsed: 106
 */
 ```
 
-One of the most interesting aspects of working with the monadic interface (`map`, `of`, `chain`) is the possibility to inject dependencies which the program needs, including the **way of concatenating different computations**.
+使用单子接口（`map`、`of`、`chain`）最有趣的方面之一是可以注入程序所需的依赖项，包括**连接不同计算的方式**。
 
-To see that, let's refactor the small program that reads and writes a file:
+为了看到这一点，让我们重构一下读取和写入文件的小程序：
 
 ```ts
 import { IO } from 'fp-ts/IO';
 import { pipe } from 'fp-ts/function';
 
 // -----------------------------------------
-// Deps interface, what we would call a "port" in the Hexagonal Architecture
+// Deps 接口，在六边形架构中称之为“端口”
 // -----------------------------------------
 
 interface Deps {
@@ -4730,7 +4704,7 @@ const program4 = (D: Deps) => {
 };
 
 // -----------------------------------------
-// a `Deps` instance, what we would call an "adapter" in the Hexagonal Architecture
+// 一个 `Deps` 实例，我们在六边形架构中称之为“适配器”
 // -----------------------------------------
 
 import * as fs from 'fs';
@@ -4745,11 +4719,11 @@ const DepsSync: Deps = {
   chain,
 };
 
-// dependency injection
+// 依赖注入，DI
 program4(DepsSync)();
 ```
 
-There's more, we can even abstract the effect in which the program runs. We can define our own `FileSystem` effect (the effect representing read-write operations over the file system):
+不仅如此，我们甚至可以抽象出程序运行的作用。我们可以定义自己的`FileSystem`效果（代表对文件系统的读写操作的作用）：
 
 ```ts
 import { IO } from 'fp-ts/IO';
@@ -4795,7 +4769,7 @@ const program4 = (D: Deps) => {
 };
 ```
 
-With a simple change in the definition of the `FileSystem` effect. we can modify the program to make it run asynchronously
+通过简单更改`FileSystem`的定义即可达到效果。我们可以修改程序，使其异步运行
 
 ```diff
 // -----------------------------------------
@@ -4806,20 +4780,20 @@ With a simple change in the definition of the `FileSystem` effect. we can modify
 +interface FileSystem<A> extends Task<A> {}
 ```
 
-now all there's left is to modify the `Deps` instance to adapt to the new definition.
+现在剩下的就是修改“Deps”实例以适应新的定义。
 
 ```ts
 import { Task } from 'fp-ts/Task';
 import { pipe } from 'fp-ts/function';
 
 // -----------------------------------------
-// our program's effect (modified)
+// our program's effect (修改过的)
 // -----------------------------------------
 
 interface FileSystem<A> extends Task<A> {}
 
 // -----------------------------------------
-// dependencies (NOT modified)
+// 依赖 (未修改的)
 // -----------------------------------------
 
 interface Deps {
@@ -4832,7 +4806,7 @@ interface Deps {
 }
 
 // -----------------------------------------
-// program (NOT modified)
+// program (未修改的)
 // -----------------------------------------
 
 const program5 = (D: Deps) => {
@@ -4852,7 +4826,7 @@ const program5 = (D: Deps) => {
 };
 
 // -----------------------------------------
-// a `Deps` instance (modified)
+// a `Deps` instance (修改的)
 // -----------------------------------------
 
 import * as fs from 'fs';
@@ -4874,7 +4848,7 @@ const DepsAsync: Deps = {
 program5(DepsAsync)();
 ```
 
-**Quiz**. The previous examples overlook, on purpose, possible errors. Example give: the file we're operating on may not exist at all. How could we modify the `FileSystem` effect to take this into account?
+**测验**：前面的示例故意忽略了可能的错误。示例：我们正在操作的文件可能根本不存在。我们如何修改`FileSystem`效果以考虑到这一点？
 
 ```ts
 import { Task } from 'fp-ts/Task';
@@ -4957,6 +4931,6 @@ const DepsAsync: Deps = {
 program5(DepsAsync)().then(console.log);
 ```
 
-**Demo**
+**Demo**:
 
 [`06_game.ts`](src/06_game.ts)
