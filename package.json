@@ -2,13 +2,15 @@
   "name": "functional-programming",
   "version": "2.0.0",
   "description": "functional-programming",
+  "type": "module",
   "files": [],
   "scripts": {
     "lint": "eslint --cache **/*.ts{,x}",
     "build": "tsc -p ./tsconfig.json",
     "doctoc": "doctoc README.md",
     "shapes": "parcel src/shapes.html",
-    "functor": "parcel src/functor.html"
+    "functor": "parcel src/functor.html",
+    "run-ts":"node --loader ts-node/esm"
   },
   "repository": {
     "type": "git",
@@ -36,6 +38,7 @@
     "parcel": "^2.9.3",
     "prettier": "^3.0.0",
     "process": "^0.11.10",
+    "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
   },
   "tags": [],

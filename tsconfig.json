@@ -2,7 +2,7 @@
   "compilerOptions": {
     "noEmit": true,
     "target": "es5",
-    "module": "commonjs",
+    "module": "ESNext",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "lib": ["dom"],
