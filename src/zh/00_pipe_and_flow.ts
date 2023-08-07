@@ -1,4 +1,4 @@
-import { pipe, flow } from 'fp-ts/function';
+import { function as F } from 'fp-ts/';
 
 const double = (n: number): number => n * 2;
 
@@ -23,11 +23,11 @@ const decrement = (n: number): number => n - 1;
       .andThen(double)
       .andThen(decrement)
 */
-const program1 = (n: number): number => pipe(n, increment, double, decrement);
+const program1 = (n: number): number => F.pipe(n, increment, double, decrement);
 
 console.log(program1(10)); // 21
 
 // const program2: (n: number) => number
-const program2 = flow(increment, double, decrement);
+const program2 = F.flow(increment, double, decrement);
 
 console.log(program2(10)); // 21

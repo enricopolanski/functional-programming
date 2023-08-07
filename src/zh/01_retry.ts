@@ -115,7 +115,7 @@ export const dryRun = (policy: RetryPolicy): ReadonlyArray<RetryStatus> => {
   return out
 }
 
-import { pipe } from 'fp-ts/function'
+import { function as F } from 'fp-ts'
 
 /*
   constantDelay(300)
@@ -123,7 +123,7 @@ import { pipe } from 'fp-ts/function'
     |> concat(limitRetries(5))
     |> capDelay(2000)
 */
-const myPolicy = pipe(
+const myPolicy = F.pipe(
   constantDelay(300),
   concat(exponentialBackoff(200)),
   concat(limitRetries(5)),

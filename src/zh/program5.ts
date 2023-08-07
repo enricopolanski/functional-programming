@@ -1,10 +1,8 @@
-import * as TE from 'fp-ts/TaskEither'
-import { pipe } from 'fp-ts/function'
+import { function as F, taskEither as TE } from 'fp-ts'
 
 // -----------------------------------------
 // effetto del nostro programma
 // -----------------------------------------
-
 interface FileSystem<A> extends TE.TaskEither<Error, A> {}
 
 // -----------------------------------------
@@ -26,16 +24,16 @@ interface Deps {
 
 const program5 = (D: Deps) => {
   const modifyFile = (filename: string, f: (s: string) => string) =>
-    pipe(
+    F.pipe(
       D.readFile(filename),
       D.chain((s) => D.writeFile(filename, f(s)))
     )
 
-  return pipe(
-    D.readFile('file.txt'),
+  return F.pipe(
+    D.readFile('src/file.txt'),
     D.chain(D.log),
-    D.chain(() => modifyFile('file.txt', (s) => s + '\n// eof')),
-    D.chain(() => D.readFile('file.txt')),
+    D.chain(() => modifyFile('src/file.txt', (s) => s + '\n// eof')),
+    D.chain(() => D.readFile('src/file.txt')),
     D.chain(D.log)
   )
 }
@@ -45,14 +43,21 @@ const program5 = (D: Deps) => {
 // -----------------------------------------
 
 import * as fs from 'fs'
-import { log } from 'fp-ts/Console'
+import { console as C } from 'fp-ts'
+import { Abortable } from 'events';
 
-const readFile = TE.taskify<string, string, Error, string>(fs.readFile)
+type ReadFileOptions = | ({
+  encoding: BufferEncoding;
+  flag?: string | undefined;
+} & Abortable)
+| BufferEncoding
+
+const readFile = TE.taskify<string,ReadFileOptions, NodeJS.ErrnoException, string>(fs.readFile)
 
 const DepsAsync: Deps = {
   readFile: (filename) => readFile(filename, 'utf-8'),
   writeFile: TE.taskify<string, string, Error, void>(fs.writeFile),
-  log: (a) => TE.fromIO(log(a)),
+  log: (a) => TE.fromIO(C.log(a)),
   chain: TE.chain
 }
 

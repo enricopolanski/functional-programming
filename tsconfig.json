@@ -17,5 +17,5 @@
     "stripInternal": true,
     "jsx": "react"
   },
-  "include": ["./src", "./dev"]
+  "include": ["./src/**/*.ts", "./scripts/**.ts"]
 }

@@ -1,9 +1,9 @@
 // 改编自 https://adrian-salajan.github.io/blog/2021/01/25/images-functor
-// 执行`npm run functor`启动
+// 执行`npm run functor -- zh`启动开发服务器
+// 依次解除64-67行查看各个demo
 
 import { Endomorphism } from 'fp-ts/Endomorphism';
-import * as R from 'fp-ts/Reader';
-
+import * as R from 'fp-ts/Reader'
 // -------------------------------------------------------------------------------------
 // 模型
 // -------------------------------------------------------------------------------------

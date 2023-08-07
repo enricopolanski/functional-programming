@@ -8,8 +8,8 @@
     "lint": "eslint --cache **/*.ts{,x}",
     "build": "tsc -p ./tsconfig.json",
     "doctoc": "doctoc README.md",
-    "shapes": "parcel src/shapes.html",
-    "functor": "parcel src/functor.html",
+    "shapes": "node --loader ts-node/esm ./scripts/run-shapes.ts",
+    "functor": "node --loader ts-node/esm ./scripts/run-functor.ts",
     "run-ts":"node --loader ts-node/esm"
   },
   "repository": {
