@@ -4,7 +4,7 @@
 
 このforkは[Giulio Canti](https://gcanti.github.io/about.html)の["Introduction to Functional Programming (Italian)"](https://github.com/gcanti/functional-programming)の日本語訳です。著者は、関数型プログラミングに関する講義やワークショップの参考資料として原書を使用しています。
 
-訳者はイタリア語ができないため、この翻訳は[enricopolanskiの英訳](https://github.com/enricopolanski)を参照しています。
+訳者はイタリア語ができないため、この翻訳は[enricopolanskiの英訳](https://github.com/enricopolanski/functional-programming)を参照しています。
 
 翻訳はできる限り主観を排除し、著者の意図をそのまま伝えます。多少の間違いはご容赦ください。
 
