@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "debug ts",
+        "program": "${workspaceFolder}/src/ja/01_retry.ts",
+        "preLaunchTask": "tsc: build - tsconfig.debug.json",
+        "outFiles": ["${workspaceFolder}/out/**/*.js"]
+      }
+    ]
+  }
