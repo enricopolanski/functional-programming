@@ -5,7 +5,7 @@
 - 引用透明(参照透明)
 - 组合(作为通用设计模式)
 
-其余的所有内容都直接或间接地源于这两点。
+这边教程中剩余的所有内容都直接或间接地源于这两点。
 
 ## 引用透明
 
@@ -22,7 +22,7 @@ const y = double(2);
 
 表达式`double(2)`拥有引用透明性因为它可以被它的值所代替(4)。
 
-因此我可以继续进行以下重构。
+因此可以进行以下重构。
 
 ```ts
 const x = 4;
@@ -42,7 +42,7 @@ const inverse = (n: number): number => {
 const x = inverse(0) + 1;
 ```
 
-我无法用它的值去替代`inverse(0)`，因此它不是引用透明的。
+我们无法用值去替代`inverse(0)`，因此它不是引用透明的。
 
 **例** (引用透明需要使用不可变的数据结构)
 
@@ -75,7 +75,7 @@ const x = await question('What is your name?');
 const y = await question('What is your name?');
 ```
 
-我可以进行如下重构吗？程序的行为是否会改变？
+可以进行如下重构吗？程序的行为是否会改变？
 
 ```ts
 const x = await question('What is your name?');
@@ -117,7 +117,7 @@ combinator: Thing -> Thing
 
 combinator 的目的是从已定义的事物中创造新的事物。
 
-由于 combinator 输出的新的 _事物_ 可以作为其他的程序或 combinator 的输入，因此我们可以不断地进行组合(组合爆炸)，这使得这种模式非常强大。
+由于 combinator 的输出可以作为输入再次传递，因此组合的可能性将爆炸性增长，这使得这种模式非常强大。
 
 **例**：
 
@@ -135,7 +135,7 @@ console.log(pipe(2, double, double, double)); // => 16
 - 一小组`T`的原语
 - 一组 combinator 用于在更大的结构中组合原语
 
-让我尝试实现这样一个模块。
+让我们尝试实现这样一个模块。
 
 **Demo**：
 
