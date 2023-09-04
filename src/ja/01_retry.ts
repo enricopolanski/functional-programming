@@ -43,7 +43,7 @@ export interface RetryPolicy {
 // -------------------------------------------------------------------------------------
 
 /**
- * 固定な遅延と無制限の再試行。
+ * 一定の遅延と無制限の再試行。
  */
 export const constantDelay = (delay: number): RetryPolicy => () => delay
 
