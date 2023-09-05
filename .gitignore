@@ -4,3 +4,4 @@ dist
 dev
 coverage
 *cache
+out
