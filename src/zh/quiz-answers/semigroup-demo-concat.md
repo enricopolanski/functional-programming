@@ -2,7 +2,7 @@
 
 ## 问题
 
-定义在[`01_retry.ts`](src/01_retry.ts)中的combinator `concat`能否用来给`RetryPolicy`定义一个半群接口？
+定义在[`01_retry.ts`](../01_retry.ts)中的combinator `concat`能否用来给`RetryPolicy`定义一个半群接口？
 
 ## 答案
 
