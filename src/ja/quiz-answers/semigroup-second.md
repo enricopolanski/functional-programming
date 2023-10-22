@@ -17,7 +17,7 @@ const last = <A>(): Semigroup<A> => ({
 
 満たしています。
 
-- `first`，`second`と結果`concat`(実質`first`)は全部`A`
+- `first`，`second`と結果`concat`(実質`second`)は全部`A`
 - `concat`は結合律を満たしています。
   - `concat(concat(first, second), third)`と`concat(second, third)`は結果が同じくて、`third`になります。
   - `concat(first, concat(second, third))`と`concat(first, third)`は結果が同じくて，`third`になります。
