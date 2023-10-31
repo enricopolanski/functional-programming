@@ -21,15 +21,7 @@
 
 ## 原群(Magma)的定义
 
-原群`Magma<A>`是一个非常简单的代数结构:
-
-- 一个集合或一个类型 (A)
-- `concat` 运算
-- 不需要遵循任何定律
-
-**注**：在大多数情况下，术语 _集合_ 和 _类型_ 可以互换使用。
-
-我们可以用 TypeScript `interface` 去建模一个原群
+我们可以用 TypeScript 的`interface` 去建模一个原群
 
 ```ts
 interface Magma<A> {
@@ -70,7 +62,7 @@ pipe(10, concat(2), concat(3), concat(1), concat(2), console.log);
 
 **测验**：`concat`是一个 _封闭性(Closure)_ 运算这一事实看似不起眼，其实非常重要。如果`A`是自然数的集合而不是 JavaScript的number类型(正负浮点数的集合), 我们能用`MagmaSub`的`concat`去定义`Magma<Natural>`吗? 你能想到其他的定义在自然数上的不具备 _封闭性_ 的`concat`运算吗?
 
-> [答案](src/quiz-answers/magma-concat-closed.md)
+> [答案](../quiz-answers/magma-concat-closed.md)
 
 **定义**：给定一个非空集合`A`和一个定义在`A`上的二元封闭性运算`*`，我们把组合`(A, *)`叫做 _原群(magma)_ (`A`与`*`构成了原群)。
 
@@ -129,7 +121,7 @@ a * b * c * d * e * f * g * h = ((a * b) * (c * d)) * ((e * f) * (g * h))
 
 子计算可以并列运行。
 
-至于`Magma`, `Semigroup`是通过TypeScript的`interface`实现的:
+与`Magma`类似，`Semigroup`也可以通过TypeScript的`interface`定义:
 
 ```ts
 // fp-ts/lib/Semigroup.ts
@@ -510,7 +502,7 @@ const merge2: ReadonlyNonEmptyArray<User> = [user1, user2, user3];
 
 `A`上的自由半群可以被视为一种连接`A`类型元素的"懒惰"的方式，同时保留了其数据内容。
 
-包含`[user1, user2, user3]`的`merge`, 告诉我们要连接的元素以及它们的顺序。
+包含`[user1, user2, user3]`的"合并"值, 告诉我们要连接的元素以及它们的顺序。
 
 现在，有三种方式去设计`getUser` API:
 
@@ -578,4 +570,6 @@ const SemigroupMax: Semigroup<number> = {
 
 为与`number`不同的类型定义这样的半群(`SemigroupMin`与`SemigroupMax`)将非常有用。
 
-是否有可能表现其他类型的 _全序_ 的概念？在讨论 _排序_ 之前，首先我们需要先讨论 _相等_ 的概念。
+是否有可能表现其他类型的 _全序_ 的概念？
+
+在讨论 _排序_ 之前，首先我们需要先讨论 _相等_ 的概念。
