@@ -347,13 +347,15 @@ interface Some<A> {
 type Option<A> = None | Some<A>
 ```
 
-From the general formula `C(Option<A>) = 1 + C(A)` we can derive the cardinality of the `Option<boolean>` type: `1 + 2 = 3` members.
+一般化された式 `C(Option<A>) = 1 + C(A)` から、`Option<boolean>` 型の濃度 `1 + 2 = 3` と導出できます。
 
-### When should I use a sum type?
+### どのような場合に直和型を使うべきか？
 
-When the components would be **dependent** if implemented with a product type.
+コンポーネントが **依存的である** 場合です。
 
-**Example** (`React` props)
+直積型で実装してしまった場合は以下のようになります。
+
+**例** (`React` の props)
 
 ```ts
 import * as React from 'react'
@@ -366,7 +368,7 @@ interface Props {
 class Textbox extends React.Component<Props> {
   render() {
     if (this.props.editable) {
-      // error: Cannot invoke an object which is possibly 'undefined' :(
+      // エラー: `undefined` であり得るオブジェクトのメンバにはアクセスできません :(
       this.props.onChange('a')
     }
     return <div />
@@ -374,9 +376,9 @@ class Textbox extends React.Component<Props> {
 }
 ```
 
-The problem here is that `Props` is modeled like a product, but `onChange` **depends** on `editable`.
+ここで何が問題かというと、`Props` は直積指向でモデル化されていながら、`onChainge` が `editable` に **依存している** ことです。
 
-A sum type fits the use case better:
+この場合は直和型がより良いです：
 
 ```ts
 import * as React from 'react'
@@ -401,45 +403,45 @@ class Textbox extends React.Component<Props> {
 }
 ```
 
-**Example** (node callbacks)
+**例** (ノード・コールバック)
 
 ```ts
 declare function readFile(
   path: string,
-  //         ↓ ---------- ↓ CallbackArgs
+  //         ↓ ---------- ↓ コールバック引数
   callback: (err?: Error, data?: string) => void
 ): void
 ```
 
-The result of the `readFile` operation is modeled like a product type (to be more precise, as a tuple) which is later on passed to the `callback` function:
+`readFile` 操作の結果は直積型で（具体的にはタプルとして）モデル化されており、後で `callback` 関数に渡されます：
 
 ```ts
 type CallbackArgs = [Error | undefined, string | undefined]
 ```
 
-the callback components though are **dependent**: we either get an `Error` **or** a `string`:
+コールバックコンポーネントは **依存的** です。`Error` か `string` かの **いずれか一方のみ** を受け取るのです。
 
-| err         | data        | legal? |
+| err         | data        | 整合か？ |
 | ----------- | ----------- | ------ |
 | `Error`     | `undefined` | ✓      |
 | `undefined` | `string`    | ✓      |
 | `Error`     | `string`    | ✘      |
 | `undefined` | `undefined` | ✘      |
 
-This API is clearly not modeled on the following premise:
+この API は明らかに以下の前提に基づいてモデル化されていません：
 
-> Make impossible state unrepresentable
+> あり得ない状態は表現できなくする
 
-A sum type would've been a better choice, but which sum type?
-We'll see how to handle errors in a functional way.
+直和型がより適切な選択肢でしたが、どの直和型を選ぶべきでしょうか？
+関数型の方法でエラーを処理する方法を見ていきます。
 
-**Quiz**. Recently API's based on callbacks have been largely replaced by their `Promise` equivalents.
+**クイズ**. 最近では、コールバックに基づく API は、その `Promise` によって大部分が置き換えられています。
 
 ```ts
 declare function readFile(path: string): Promise<string>
 ```
 
-Can you find some cons of the Promise solution when using static typing like in TypeScript?
+TypeScript のような静的型付けを使用する場合、Promise による解決にデメリットはあるでしょうか？
 
 ## Functional error handling
 
