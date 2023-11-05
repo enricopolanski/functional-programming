@@ -443,31 +443,32 @@ declare function readFile(path: string): Promise<string>
 
 TypeScript のような静的型付けを使用する場合、Promise による解決にデメリットはあるでしょうか？
 
-## Functional error handling
+## 関数型におけるエラーハンドリング
 
-Let's see how to handle errors in a functional way.
+関数型な方法でエラーをハンドリングする方法を見てみましょう。
 
-A function that throws exceptions is an example of a partial function.
+例外を投げる関数は部分関数の一例です。
 
-In the previous chapters we have seen that every partial function `f` can always be brought back to a total one `f'`.
+以前の章で、すべての部分関数 `f` を常に全域関数 `f'` に変換できることを見てきました。
 
 ```
 f': X ⟶ Option(Y)
 ```
 
+TypeScript の直和型について一定の理解をしたので、`Option` をある程度問題なく定義できるでしょう。
 Now that we know a bit more about sum types in TypeScript we can define the `Option` without much issues.
 
-### The `Option` type
+### `Option` 型
 
-The type `Option` represents the effect of a computation which may fail (case `None`) or return a type `A` (case `Some<A>`):
+`Option` 型は、失敗する可能性がある計算の効果を表現します。これは、失敗する場合（`None` ケース）または型 `A` を返す場合（`Some<A>` ケース）があります。
 
 ```ts
-// represents a failure
+// 失敗を表す
 interface None {
   readonly _tag: 'None'
 }
 
-// represents a success
+// 成功を表す
 interface Some<A> {
   readonly _tag: 'Some'
   readonly value: A
@@ -476,7 +477,7 @@ interface Some<A> {
 type Option<A> = None | Some<A>
 ```
 
-Constructors and pattern matching:
+コンストラクタとパターンマッチングは以下のようになります：
 
 ```ts
 const none: Option<never> = { _tag: 'None' }
@@ -495,10 +496,10 @@ const match = <R, A>(onNone: () => R, onSome: (a: A) => R) => (
 }
 ```
 
-The `Option` type can be used to avoid throwing exceptions or representing the optional values, thus we can move from:
+`Option` 型は、例外を投げたり存在しないかもしれない値を表現するのを避けたりするために使用できます。したがって、以下のような、型システムが失敗の可能性を関知しないコードは、
 
 ```ts
-//                        this is a lie ↓
+//                              これは嘘 ↓
 const head = <A>(as: ReadonlyArray<A>): A => {
   if (as.length === 0) {
     throw new Error('Empty array')
@@ -514,12 +515,12 @@ try {
 }
 ```
 
-where the type system is ignorant about the possibility of failure, to:
+以下のような、 **エラーの可能性を型システムにエンコードした形** に書き換えることができます。
 
 ```ts
 import { pipe } from 'fp-ts/function'
 
-//                                      ↓ the type system "knows" that this computation may fail
+//                                      ↓ 型システム自体が処理失敗の可能性を「知っている」
 const head = <A>(as: ReadonlyArray<A>): Option<A> =>
   as.length === 0 ? none : some(as[0])
 
@@ -534,31 +535,29 @@ const result = pipe(
 )
 ```
 
-where **the possibility of an error is encoded in the type system**.
-
-If we attempt to access the `value` property of an `Option` without checking in which case we are, the type system will warn us about the possibility of getting an error:
+成功・失敗のどちらなのかをチェックせずに `Option` の `value` プロパティにアクセスしようとすると、型システムはエラーの可能性について警告します：
 
 ```ts
 declare const numbers: ReadonlyArray<number>
 
 const result = head(numbers)
-result.value // type checker error: Property 'value' does not exist on type 'Option<number>'
+result.value // 型チェックエラー: 'Option<number>' 型に 'value' プロパティは存在しません。
 ```
 
-The only way to access the value contained in an `Option` is to handle also the failure case using the `match` function.
+`Option` に含まれる値にアクセスする際には、`match` 関数を使用して失敗の場合も処理しなければなりません。
 
 ```ts
 pipe(result, match(
-  () => ...handle error...
-  (n) => ...go on with my business logic...
+  () => ...エラーハンドリング...
+  (n) => ...任意のビジネスロジック...
 ))
 ```
 
-Is it possible to define instances for the abstractions we've seen in the chapters before? Let's begin with `Eq`.
+前の章で見た抽象インスタンスを定義することは可能でしょうか？まず、`Eq` から見ていきましょう。
 
-### An `Eq` instance
+### `Eq` インスタンス
 
-Suppose we have two values of type `Option<string>` and that we want to compare them to check if their equal:
+`Option<string>` 型の2つの値を持っており、それらが等しいかどうかをチェックしたいと仮定します：
 
 ```ts
 import { pipe } from 'fp-ts/function'
@@ -570,37 +569,37 @@ declare const o2: Option<string>
 const result: boolean = pipe(
   o1,
   match(
-    // onNone o1
+    // o1 が None のとき
     () =>
       pipe(
         o2,
         match(
-          // onNone o2
+          // o2 が None のとき
           () => true,
-          // onSome o2
+          // o2 が Some のとき
           () => false
         )
       ),
-    // onSome o1
+    // o1 が Some のとき
     (s1) =>
       pipe(
         o2,
         match(
-          // onNone o2
+          // o2 が None のとき
           () => false,
-          // onSome o2
-          (s2) => s1 === s2 // <= qui uso l'uguaglianza tra stringhe
+          // o2 が Some のとき
+          (s2) => s1 === s2 // <= ここでは string の等価性を使用しています
         )
       )
   )
 )
 ```
 
-What if we had two values of type `Option<number>`? It would be pretty annoying to write the same code we just wrote above, the only difference afterall would be how we compare the two values contained in the `Option`.
+もし `Option<number>` 型の2つの値があった場合、さきほど書いたコードと同じコードを書くのはかなり面倒です。結局のところ、違いは `Option` に含まれる2つの値をどのように比較するか、という点のみです。
 
-Thus we can generalize the necessary code by requiring the user to provide an `Eq` instance for `A` and then derive an `Eq` instance for `Option<A>`.
+したがって、ユーザーに `A` の `Eq` インスタンスを提供することを要求し、それから `Option<A>` の `Eq` インスタンスを導出することで、必要なコードを一般化できます。
 
-In other words we can define a **combinator** `getEq`: given an `Eq<A>` this combinator will return an `Eq<Option<A>>`:
+言い換えれば、`getEq` という **コンビネータ** を定義できます。与えられた `Eq<A>` に基づいて、このコンビネータは `Eq<Option<A>>` を返します：
 
 ```ts
 import { Eq } from 'fp-ts/Eq'
@@ -625,7 +624,7 @@ export const getEq = <A>(E: Eq<A>): Eq<Option<A>> => ({
             second,
             match(
               () => false,
-              (a2) => E.equals(a1, a2) // <= here I use the `A` equality
+              (a2) => E.equals(a1, a2) // <= ここでは `A` の等価性を使用しています
             )
           )
       )
@@ -643,11 +642,11 @@ console.log(EqOptionString.equals(some('a'), some('b'))) // => false
 console.log(EqOptionString.equals(some('a'), some('a'))) // => true
 ```
 
-The best thing about being able to define an `Eq` instance for a type `Option<A>` is being able to leverage all of the combiners we've seen previously for `Eq`.
+`Option<A>` 型の `Eq` インスタンスを定義できて何が一番嬉しいかというと、ここまで見てきた `Eq` インスタンスすべてに対してこれを適用できる点です。
 
-**Example**:
+**例**:
 
-An `Eq` instance for the type `Option<readonly [string, number]>`:
+`Option<readonly [string, number]>` 型の `Eq` インスタンス：
 
 ```ts
 import { tuple } from 'fp-ts/Eq'
@@ -670,7 +669,7 @@ console.log(EqOptionMyTuple.equals(o1, o2)) // => false
 console.log(EqOptionMyTuple.equals(o1, o3)) // => false
 ```
 
-If we slightly modify the imports in the following snippet we can obtain a similar result for `Ord`:
+次のコードスニペットでインポートをちょっと変えれば、`Ord` に対しても同じようなことを実現できます：
 
 ```ts
 import * as N from 'fp-ts/number'
@@ -693,9 +692,9 @@ console.log(OrdOptionMyTuple.compare(o1, o2)) // => -1
 console.log(OrdOptionMyTuple.compare(o1, o3)) // => -1
 ```
 
-### `Semigroup` and `Monoid` instances
+### `半群` インスタンスと `モノイド` インスタンス
 
-Now, let's suppose we want to "merge" two different `Option<A>`s,: there are four different cases:
+さて、異なる2つの `Option<A>` を「マージ」したいと仮定しましょう。4つの異なるケースがあります：
 
 | x       | y       | concat(x, y) |
 | ------- | ------- | ------------ |
@@ -704,29 +703,29 @@ Now, let's suppose we want to "merge" two different `Option<A>`s,: there are fou
 | none    | some(a) | none         |
 | some(a) | some(b) | ?            |
 
-There's an issue in the last case, we need a recipe to "merge" two different `A`s.
+最後のケースに問題があり、2つの異なる `A` に対する「マージ」処理が必要です。
 
-If only we had such a recipe..Isn't that the job our old good friends `Semigroup`s!?
+そういう処理さえあれば……それは古き良き友人、`半群` の役割ではないでしょうか！？
 
 | x        | y        | concat(x, y)           |
 | -------- | -------- | ---------------------- |
 | some(a1) | some(a2) | some(S.concat(a1, a2)) |
 
-All we need to do is to require the user to provide a `Semigroup` instance for `A` and then derive a `Semigroup` instance for `Option<A>`.
+あとは、ユーザに `A` の `半群` インスタンスを提供することを要求し、それをもとに `Option<A>` の `半群` インスタンスを導出すればよいです。
 
 ```ts
-// the implementation is left as an exercise for the reader
+// 実装は読者諸君の宿題とする
 declare const getApplySemigroup: <A>(S: Semigroup<A>) => Semigroup<Option<A>>
 ```
 
-**Quiz**. Is it possible to add a neutral element to the previous semigroup to make it a monoid?
+**クイズ**. 前に示した半群に初期値を追加してモノイドにすることはできるでしょうか？
 
 ```ts
-// the implementation is left as an exercise for the reader
+// 実装は読者諸君の宿題とする
 declare const getApplicativeMonoid: <A>(M: Monoid<A>) => Monoid<Option<A>>
 ```
 
-It is possible to define a monoid instance for `Option<A>` that behaves like that:
+`Option<A>` に対してモノイドインスタンスを定義することは可能です：
 
 | x        | y        | concat(x, y)           |
 | -------- | -------- | ---------------------- |
@@ -736,19 +735,20 @@ It is possible to define a monoid instance for `Option<A>` that behaves like tha
 | some(a1) | some(a2) | some(S.concat(a1, a2)) |
 
 ```ts
-// the implementation is left as an exercise for the reader
+// 実装は読者諸君の宿題とする
 declare const getMonoid: <A>(S: Semigroup<A>) => Monoid<Option<A>>
 ```
 
-**Quiz**. What is the `empty` member for the monoid?
+**クイズ**. モノイドにおいて `empty` とは何ですか？
 
--> See the [answer here](src/quiz-answers/option-semigroup-monoid-second.md)
+// TODO: ファイル持ってくる。リンク修正する。
+-> [答え](src/quiz-answers/option-semigroup-monoid-second.md)
 
-**Example**
+**例**
 
-Using `getMonoid` we can derive another two useful monoids:
+`getMonoid` を使用することで、さらに2つの便利なモノイドを導出できます：
 
-(Monoid returning the left-most non-`None` value)
+（最も左側の `None` でない値を返すモノイド）
 
 | x        | y        | concat(x, y) |
 | -------- | -------- | ------------ |
@@ -766,9 +766,9 @@ export const getFirstMonoid = <A = never>(): Monoid<Option<A>> =>
   getMonoid(first())
 ```
 
-and its dual:
+そしてもう一つは：
 
-(Monoid returning the right-most non-`None` value)
+（最も右側の `None` でない値を返すモノイド）
 
 | x        | y        | concat(x, y) |
 | -------- | -------- | ------------ |
@@ -786,22 +786,22 @@ export const getLastMonoid = <A = never>(): Monoid<Option<A>> =>
   getMonoid(last())
 ```
 
-**Example**
+**例**
 
-`getLastMonoid` can be useful to manage optional values. Let's seen an example where we want to derive user settings for a text editor, in this case VSCode.
+`getLastMonoid` は存在しないかもしれない値を管理するのに役立つことがあります。以下は、テキストエディター（この場合、VSCode）のユーザー設定を導出したい場合の例です。
 
 ```ts
 import { Monoid, struct } from 'fp-ts/Monoid'
 import { getMonoid, none, Option, some } from 'fp-ts/Option'
 import { last } from 'fp-ts/Semigroup'
 
-/** VSCode settings */
+/** VSCode の設定 */
 interface Settings {
-  /** Controls the font family */
+  /** フォントファミリーを制御する */
   readonly fontFamily: Option<string>
-  /** Controls the font size in pixels */
+  /** フォントサイズをピクセル単位で制御する */
   readonly fontSize: Option<number>
-  /** Limit the width of the minimap to render at most a certain number of columns. */
+  /** ミニマップの幅を制限し、特定の列数を超えないようにレンダリングする */
   readonly maxColumn: Option<number>
 }
 
@@ -823,7 +823,7 @@ const userSettings: Settings = {
   maxColumn: none
 }
 
-/** userSettings overrides workspaceSettings */
+/** userSettings は workspaceSettings を上書きする */
 console.log(monoidSettings.concat(workspaceSettings, userSettings))
 /*
 { fontFamily: some("Fira Code"),
@@ -832,24 +832,24 @@ console.log(monoidSettings.concat(workspaceSettings, userSettings))
 */
 ```
 
-**Quiz**. Suppose VSCode cannot manage more than `80` columns per row, how could we modify the definition of `monoidSettings` to take that into account?
+**クイズ**. VSCode が1行あたり最大で `80` 列しか処理できないと仮定した場合、`monoidSettings` の定義をどのように修正すればよいでしょうか？
 
-### The `Either` type
+### `Either` 型
 
-We have seen how the `Option` data type can be used to handle partial functions, which often represent computations than can fail or throw exceptions.
+`Option` というデータ型を使用して、失敗する可能性がある、または例外を投げる可能性がある部分関数を処理する方法を見てきました。
 
-This data type might be limiting in some use cases tho. While in the case of success we get `Some<A>` which contains information of type `A`, the other member, `None` does not carry any data. We know it failed, but we don't know the reason.
+ただし、このデータ型はいくつかのユースケースでは制限されることがあります。成功の場合、型 `A` の情報を含む `Some<A>` を得ますが、もう一方のメンバである `None` にはデータが含まれていません。失敗したことはわかりますが、失敗の理由はわかりません。
 
-In order to fix this we simply need to another data type to represent failure, we'll call it `Left<E>`. We'll also replace the `Some<A>` type with the `Right<A>`.
+これを修正するためには、失敗を表す別のデータ型があれば十分であり、それを `Left<E>` と呼びます。また、`Some<A>` の代わりに `Right<A>` を使用します。
 
 ```ts
-// represents a failure
+// 失敗を表す
 interface Left<E> {
   readonly _tag: 'Left'
   readonly left: E
 }
 
-// represents a success
+// 成功を表す
 interface Right<A> {
   readonly _tag: 'Right'
   readonly right: A
@@ -858,7 +858,7 @@ interface Right<A> {
 type Either<E, A> = Left<E> | Right<A>
 ```
 
-Constructors and pattern matching:
+コンストラクタとパターンマッチングは以下のようになります：
 
 ```ts
 const left = <E, A>(left: E): Either<E, A> => ({ _tag: 'Left', left })
@@ -877,7 +877,7 @@ const match = <E, R, A>(onLeft: (left: E) => R, onRight: (right: A) => R) => (
 }
 ```
 
-Let's get back to the previous callback example:
+以前見たコールバックの例に戻りましょう：
 
 ```ts
 declare function readFile(
@@ -892,14 +892,14 @@ readFile('./myfile', (err, data) => {
   } else if (data !== undefined) {
     message = `Data: ${data.trim()}`
   } else {
-    // should never happen
+    // 起こりえない
     message = 'The impossible happened'
   }
   console.log(message)
 })
 ```
 
-we can change it's signature to:
+シグネチャを以下のように変更できます：
 
 ```ts
 declare function readFile(
@@ -908,7 +908,7 @@ declare function readFile(
 ): void
 ```
 
-and consume the API in such way:
+この API は次のように使用できます：
 
 ```ts
 readFile('./myfile', (e) =>
