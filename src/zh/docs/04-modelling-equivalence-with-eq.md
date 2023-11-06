@@ -1,6 +1,6 @@
 # 用`eq`建模等价(Modelling equivalence with `Eq`)
 
-我们仍让可以用TypeScript的接口对等价建模。
+我们仍然可以用TypeScript的接口对等价建模。
 
 _等价关系(Equivalence relations)_ 体现了同一类型元素 _等价_ 的概念。_等价关系_ 的概念可以在TypeScript中用下列接口实现：
 
