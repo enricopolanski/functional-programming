@@ -5,12 +5,11 @@
   "type": "module",
   "files": [],
   "scripts": {
-    "lint": "eslint --cache **/*.ts{,x}",
     "build": "tsc -p ./tsconfig.json",
     "doctoc": "doctoc README.md",
     "shapes": "node --loader ts-node/esm ./scripts/run-shapes.ts",
     "functor": "node --loader ts-node/esm ./scripts/run-functor.ts",
-    "run-ts":"node --loader ts-node/esm"
+    "run-ts": "node --loader ts-node/esm"
   },
   "repository": {
     "type": "git",
@@ -30,11 +29,7 @@
   "devDependencies": {
     "@types/node": "^20.4.5",
     "@types/react": "^18.2.18",
-    "@typescript-eslint/eslint-plugin": "^6.2.1",
-    "@typescript-eslint/parser": "^6.2.1",
     "doctoc": "^2.2.1",
-    "eslint": "^8.46.0",
-    "eslint-config-prettier": "^8.9.0",
     "parcel": "^2.9.3",
     "prettier": "^3.0.0",
     "process": "^0.11.10",
