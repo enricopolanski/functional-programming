@@ -78,7 +78,7 @@ C([A, B]) = C(A) * C(B);
 
 **例**：
 
-`boolean`类型的基数为2是多少，因为它有两个成员：`true`和`false`。
+`boolean`类型的基数为2，因为它有两个成员：`true`和`false`。
 
 **例**：
 
@@ -197,7 +197,6 @@ export type List<A> =
 ### 构造函数
 
 具有n个元素的和类型至少需要n个**构造函数**，每个成员各一个：
-A sum type with `n` elements needs at least `n` **constructors**, one for each member:
 
 **例** (redux action)
 
@@ -311,7 +310,7 @@ export const length: <A>(fa: List<A>) => number = match(
 
 **测验**：为什么`head` API 不是最优的？
 
-> [答案](src/quiz-answers/pattern-matching.md)
+> [答案](../quiz-answers/pattern-matching.md)
 
 **注**：TypeScript为和类型提供了一个很棒的功能：**[详尽性检查(exhaustive check)](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#exhaustiveness-checking)**。类型检查器可以 _检查_ 是否所有可能的情况都由函数体中定义的`switch`处理了。
 

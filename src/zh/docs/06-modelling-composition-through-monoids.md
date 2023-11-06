@@ -88,7 +88,7 @@ const Semigroup: Semigroup<ReadonlyArray<string>> = {
 
 **测验**(更复杂)：证明给定一个幺半群，单位元是唯一的。
 
-因为对于一个幺半群来说单位元，因此当找到一个单位元后便不必再继续寻找。
+证明的结果表示，每一个幺半群只能有一个单位元，因此当找到一个单位元后便不必再继续寻找。
 
 每个幺半群都是半群，反之则不成立。
 
@@ -188,7 +188,7 @@ const Monoid: Monoid<Point> = struct({
 });
 ```
 
-**注**：有一个类似于`struct`的combinator可以与元祖一起使用：`tuple`.
+**注**：有一个类似于`struct`的combinator可以与元组一起使用：`tuple`.
 
 ```ts
 import { Monoid, tuple } from 'fp-ts/Monoid';

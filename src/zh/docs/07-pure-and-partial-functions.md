@@ -20,7 +20,7 @@ X × Y = { (x, y) | x ∈ X, y ∈ Y }
 
 一个世纪前人们给出了下面的[定义](https://en.wikipedia.org/wiki/History_of_the_function_concept)：
 
-**定义**：_函数_ `f: X ⟶ Y`是`X × Y`的子集，使得对于每个`x ∈ X`，总是只存在一个`y ∈ Y`，使得`(x, y) ∈ f`.
+**定义**：_函数_ `f: X ⟶ Y`是`X × Y`的子集。对于每个`x ∈ X`，总是只存在一个`y ∈ Y`，使得`(x, y) ∈ f`.
 
 集合`X`称为`f`的 _定义域(Domain)_，`Y`称为 _到达域(Codomain)_.
 
