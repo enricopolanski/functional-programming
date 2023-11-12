@@ -24,3 +24,6 @@
 - [10.函子](https://github.com/YiCChi/functional-programming/blob/master/src/zh/docs/10-functors.md)
 - [11.应用函子](https://github.com/YiCChi/functional-programming/blob/master/src/zh/docs/11-applicative-functors.md)
 - [12.单子](https://github.com/YiCChi/functional-programming/blob/master/src/zh/docs/12-monads.md)
+
+`npm run run-ts <relative/path/>`可以用来直接执行.ts文件。
+如`npm run run-ts ./src/zh/00_pipe_and_flow.ts`
