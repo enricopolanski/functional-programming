@@ -1,4 +1,4 @@
-import { function as F } from 'fp-ts/';
+import { function as F } from 'fp-ts';
 
 const double = (n: number): number => n * 2;
 
