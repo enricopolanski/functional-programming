@@ -1755,7 +1755,7 @@ export const f7 = (
 ): void => fs.readFile(path, { encoding: 'utf8' }, callback)
 ```
 
-The fact that a function is pure does not imply automatically a ban on local mutability as long as it doesn't leaks out of its scope.
+The fact that a function is pure does not imply automatically a ban on local mutability as long as it doesn't leak out of its scope.
 
 ![mutable / immutable](images/mutable-immutable.jpg)
 
