@@ -5,20 +5,9 @@ This fork is an edited translation of [Giulio Canti](https://gcanti.github.io/ab
 The purpose of the edits is to expand on the material without changing the concepts nor structure, for more information about the edit's goals see the [CONTRIBUTING](/CONTRIBUTING.md) file.
 
 
-## Read it Online
+## Translations
 
-For a best reading experience, [read it online via Gitbook](https://enricopolanski.github.io/functional-programming/).
-
-- Quick-access side-bar
-- In-browser exercises
-- In-depth examples
-
-**Setup**
-
-```sh
-git clone https://github.com/gcanti/functional-programming.git
-cd functional-programming
-npm i
+- [Simplified Chinese and Japanese](https://github.com/YiCChi/functional-programming)  by @YiCChi
 ```
 
 # What is functional programming
