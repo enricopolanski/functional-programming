@@ -8,7 +8,7 @@ The purpose of the edits is to expand on the material without changing the conce
 ## Translations
 
 - [Simplified Chinese and Japanese](https://github.com/YiCChi/functional-programming)  by @YiCChi
-```
+
 
 # What is functional programming
 
