@@ -1,14 +1,82 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+  - [Translations](#translations)
+- [What is functional programming](#what-is-functional-programming)
+- [The two pillars of functional programming](#the-two-pillars-of-functional-programming)
+  - [Referential transparency](#referential-transparency)
+  - [Composition](#composition)
+- [Modelling composition with Semigroups](#modelling-composition-with-semigroups)
+  - [Definition of a Magma](#definition-of-a-magma)
+  - [Definition of a Semigroup](#definition-of-a-semigroup)
+  - [The `concatAll` function](#the-concatall-function)
+  - [The dual semigroup](#the-dual-semigroup)
+  - [Semigroup product](#semigroup-product)
+  - [Finding a Semigroup instance for any type](#finding-a-semigroup-instance-for-any-type)
+  - [Order-derivable Semigroups](#order-derivable-semigroups)
+- [Modelling equivalence with `Eq`](#modelling-equivalence-with-eq)
+  - [Modeling ordering relations with `Ord`](#modeling-ordering-relations-with-ord)
+  - [Dual Ordering](#dual-ordering)
+- [Modeling composition through Monoids](#modeling-composition-through-monoids)
+  - [The `concatAll` function](#the-concatall-function-1)
+  - [Product monoid](#product-monoid)
+- [Pure and partial functions](#pure-and-partial-functions)
+- [Algebraic Data Types](#algebraic-data-types)
+  - [What is an ADT?](#what-is-an-adt)
+  - [Product types](#product-types)
+    - [Why "product" types?](#why-product-types)
+    - [When can I use a product type?](#when-can-i-use-a-product-type)
+  - [Sum types](#sum-types)
+    - [Constructors](#constructors)
+    - [Pattern matching](#pattern-matching)
+    - [Why "sum" types?](#why-sum-types)
+    - [When should I use a sum type?](#when-should-i-use-a-sum-type)
+  - [Functional error handling](#functional-error-handling)
+    - [The `Option` type](#the-option-type)
+    - [An `Eq` instance](#an-eq-instance)
+    - [`Semigroup` and `Monoid` instances](#semigroup-and-monoid-instances)
+    - [The `Either` type](#the-either-type)
+- [Category theory](#category-theory)
+  - [Definition](#definition)
+    - [Part I (Constituents)](#part-i-constituents)
+    - [Part II (Composition)](#part-ii-composition)
+  - [Modeling programming languages with categories](#modeling-programming-languages-with-categories)
+  - [A category for TypeScript](#a-category-for-typescript)
+  - [Composition's core problem](#compositions-core-problem)
+- [Functors](#functors)
+  - [Functions as programs](#functions-as-programs)
+  - [A boundary that leads to functors](#a-boundary-that-leads-to-functors)
+  - [Definition](#definition-1)
+  - [Functors and functional error handling](#functors-and-functional-error-handling)
+  - [Functors compose](#functors-compose)
+  - [Contravariant Functors](#contravariant-functors)
+  - [Functors in `fp-ts`](#functors-in-fp-ts)
+  - [Do functors solve the general problem?](#do-functors-solve-the-general-problem)
+- [Applicative functors](#applicative-functors)
+  - [Currying](#currying)
+  - [The `ap` operation](#the-ap-operation)
+  - [The `of` operation](#the-of-operation)
+  - [Applicative functors compose](#applicative-functors-compose)
+  - [Do applicative functors solve the general problem?](#do-applicative-functors-solve-the-general-problem)
+- [Monads](#monads)
+  - [The problem with nested contexts](#the-problem-with-nested-contexts)
+  - [Monad Definition](#monad-definition)
+  - [The Kleisli category](#the-kleisli-category)
+  - [Defining `chain` step by step](#defining-chain-step-by-step)
+  - [Manipulating programs](#manipulating-programs)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 This repo introduces functional programming concepts using TypeScript and possibly libraries in the fp-ts ecosystem.
 
 This fork is an edited translation of [Giulio Canti](https://gcanti.github.io/about.html)'s ["Introduction to Functional Programming (Italian)"](https://github.com/gcanti/functional-programming). The author uses the original as a reference and supporting material for his lectures and workshops on functional programming.
 
 The purpose of the edits is to expand on the material without changing the concepts nor structure, for more information about the edit's goals see the [CONTRIBUTING](/CONTRIBUTING.md) file.
 
-
 ## Translations
 
-- [Simplified Chinese and Japanese](https://github.com/YiCChi/functional-programming)  by @YiCChi
-```
+- [Simplified Chinese and Japanese](https://github.com/YiCChi/functional-programming) by @YiCChi
 
 # What is functional programming
 
